@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Burguer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+   <link rel="stylesheet" href="styles.css/styles.css">
+   <link rel="stylesheet" href="/dist/output.css">
+
+</head>
+<body>
+    
+    <!--header-->
+    <header 
+  class="relative w-full h-[420px] bg-cover bg-center" 
+  style="background-image: url('Imagem/hamburguerback.png');">
+
+  <!-- camada escura para “apagar” o fundo -->
+  <div class="absolute inset-0 bg-black bg-opacity-70"></div>
+
+  <!-- conteúdo centralizado -->
+  <div class="relative z-10 w-full h-full flex flex-col justify-center items-center text-center">
+    <img 
+      src="./Imagem/image.png" 
+      alt="logo burguer"
+      class="w-52 h-52 rounded-full shadow-lg hover:scale-110 duration-200"
+    />
+    <h1 class="text-4xl mt-2 font-bold text-white">
+      Dev Burguer
+    </h1>
+    <span class="text-white font-medium">
+      Rua. nome da sua rua N 000 centro, sua cidade - UF
+    </span>
+
+    <div class="bg-green-600 px-4 py-1 rounded-lg mt-5" id="date-span">
+      <span class="text-white font-medium">Seg a Dom - 18:00 às 22:00</span>
+    </div>
+  </div>
+</header>
+
+<!--fim header-->
+
+<h2 class="text-2xl md:text-4xl font-bold text-center mt-9 mb-6">
+  Conheça nosso Menu
+</h2>
+
+<!--inicio menu-->
+<div id="menu">
+  <main class="grid grid-col-1 md:grid-cols-2 gap-7 md:gap-10 mx-auto max-w-7xl px-2 mb-20">
+
+    <!--produto item-->
+    <div class="flex gap-2">
+      <img src="./Imagem/hamburguer.jpg" alt="hamburguer Smash"
+      class="w-28 h-28 rounded-md hover:scale-110 hover:-rotate-2 duration-200"
+      >
+
+      <div>
+        <p class="font-bold">Hamburguer Smash</p>
+        <p class="text-sm">Pao levinho de fermentaçao natural da trigou burguer 180g , queijo prato e 
+          maionese da casa.
+        </p>
+
+        <div class="flex items-center gap-2 justify-between mt-3">
+          <p class="font-bold text-lg">R$ 18,90</p>
+          <button class="bg-gray-900 px-5 rounded add-to-card-btn"
+            data-name="Hamburguer Smash"
+            data-price="18,90"
+          >
+            <i class="fas fa-shopping-cart text-lg text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!--fim produto item-->
+
+    <!--produto item-->
+    <div class="flex gap-2">
+      <img src="./Imagem/hamburguer1.jpg" alt="hamburguer da casa"
+      class="w-28 h-28 rounded-md hover:scale-110 hover:-rotate-2 duration-200"
+      >
+
+      <div>
+        <p class="font-bold">Hamburguer da Casa</p>
+        <p class="text-sm">Pao levinho de fermentaçao natural da trigou burguer 180g , queijo prato e 
+          maionese da casa.
+        </p>
+
+        <div class="flex items-center gap-2 justify-between mt-3">
+          <p class="font-bold text-lg">R$ 18,90</p>
+          <button class="bg-gray-900 px-5 rounded add-to-card-btn"
+            data-name="Hamburguer da Casa"
+            data-price="18,90"
+          >
+            <i class="fas fa-shopping-cart text-lg text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!--fim produto item-->
+
+    <!--produto item-->
+    <div class="flex gap-2">
+      <img src="./Imagem/hamburguer.jpg" alt="hamburguer Magno"
+      class="w-28 h-28 rounded-md hover:scale-110 hover:-rotate-2 duration-200"
+      >
+
+      <div>
+        <p class="font-bold">Hamburguer Magno</p>
+        <p class="text-sm">Pao levinho de fermentaçao natural da trigou burguer 180g , queijo prato e 
+          maionese da casa.
+        </p>
+
+        <div class="flex items-center gap-2 justify-between mt-3">
+          <p class="font-bold text-lg">R$ 18,90</p>
+          <button class="bg-gray-900 px-5 rounded add-to-card-btn"
+            data-name="Hamburguer Magno"
+            data-price="18,90"
+          >
+            <i class="fas fa-shopping-cart text-lg text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!--fim produto item-->
+
+     <!--produto item-->
+    <div class="flex gap-2">
+      <img src="./Imagem/hamburguer.jpg" alt="hamburguer X tudo"
+      class="w-28 h-28 rounded-md hover:scale-110 hover:-rotate-2 duration-200"
+      >
+
+      <div>
+        <p class="font-bold">Hamburguer X Tudo</p>
+        <p class="text-sm">Pao levinho de fermentaçao natural da trigou burguer 180g , queijo prato e 
+          maionese da casa.
+        </p>
+
+        <div class="flex items-center gap-2 justify-between mt-3">
+          <p class="font-bold text-lg">R$ 18,90</p>
+          <button class="bg-gray-900 px-5 rounded add-to-card-btn"
+            data-name="Hamburguer X Tudo"
+            data-price="18,90"
+          >
+            <i class="fas fa-shopping-cart text-lg text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!--fim produto item-->
+  </main>
+
+  <div class="mx-auto max-w-7xl px-2 my-2">
+    <h2 class="font-bold text-3xl">
+      Bebidas
+    </h2>
+  </div>
+
+   <!--grid bebidas-->
+   <div class="grid grid-col-1 md:grid-cols-2 gap-7 md:gap-10 mx-auto max-w-7xl px-2 mb-20" id="menu">
+       <!--produto item-->
+    <div class="flex gap-2 w-full">
+      <img src="./Imagem/coca.png" alt="Coca"
+      class="w-28 h-28 rounded-md hover:scale-110 hover:-rotate-2 duration-200"
+      >
+
+      <div class="w-full">
+        <p class="font-bold">Coca Cola lata</p>
+        
+
+        <div class="flex items-center gap-2 justify-between mt-3">
+          <p class="font-bold text-lg">R$ 5,90</p>
+          <button class="bg-gray-900 px-5 rounded add-to-card-btn"
+            data-name="Coca cola lata"
+            data-price="5,90"
+          >
+            <i class="fas fa-shopping-cart text-lg text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!--fim produto item-->
+
+       <!--produto item-->
+    <div class="flex gap-2 w-full">
+      <img src="./Imagem/guarana.png" alt="guarana"
+      class="w-28 h-28 rounded-md hover:scale-110 hover:-rotate-2 duration-200"
+      >
+
+      <div class="w-full">
+        <p class="font-bold">Guarana Antarctica</p>
+        
+
+        <div class="flex items-center gap-2 justify-between mt-3">
+          <p class="font-bold text-lg">R$ 3,90</p>
+          <button class="bg-gray-900 px-5 rounded add-to-card-btn"
+            data-name="Guarana Antarctica"
+            data-price="3,90"
+          >
+            <i class="fas fa-shopping-cart text-lg text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!--fim produto item-->
+   </div>
+   <!--fim grid bebidas-->
+</div>
+<!--fim menu-->
+
+<!--model card-->
+<div class="bg-black/50 w-full h-full fixed top-0 left-0 z-[99] flex items-center justify-center hidden"
+  id="card-modal">
+  <div class="bg-white rounded-md min-w-[90%] md:min-w-[600px] relative overflow-hidden">
+
+    <!-- 🔴 Cabeçalho vermelho -->
+    <div class="bg-red-600 py-3">
+      <h2 class="text-center text-white font-bold text-2xl">Meu Carrinho</h2>
+    </div>
+
+    <!-- 🛒 Conteúdo do carrinho -->
+    <div class="p-5">
+      <div id="card-itens" class="flex justify-between mb-2 flex-col"></div>
+
+      <p class="font-bold"><span id="card-total">0,00</span></p>
+
+      <p class="font-bold mt-4">Endereço de Entrega:</p>
+      <input type="text"
+        placeholder="Digite o Endereço"
+        id="address"
+        class="w-full border-2 p-1 rounded my-1" />
+
+      <p class="text-red-600 hidden" id="address-warn">Esse campo é obrigatório.</p>
+
+      <div class="flex items-center justify-between mt-5 w-full">
+        <button id="close-model-btn"
+          class="bg-gray-300 px-4 py-1 rounded hover:bg-gray-400 transition">Fechar</button>
+        <button id="checkout-btn"
+          class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition">Finalizar Pedido</button>
+      </div>
+
+      <!-- 💼 Rodapé de crédito -->
+      <p class="text-center text-gray-600 text-sm mt-6">
+        Desenvolvido por <span class="font-semibold text-red-600">DM DESIGN GRAFICO</span>
+      </p>
+    </div>
+
+    <!-- 🔥 Linha animada no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full h-[4px] animated-line"></div>
+  </div>
+</div>
+
+<!-- 🔥 Estilo da animação -->
+<style>
+  @keyframes mudarCor {
+    0% {
+      background-color: white;
+    }
+
+    50% {
+      background-color: red;
+    }
+
+    100% {
+      background-color: white;
+    }
+  }
+
+  .animated-line {
+    animation: mudarCor 2s linear infinite;
+  }
+</style>
+
+<!--fim model card-->
+<!--button card footer-->
+<footer class="w-full py-2 fixed bottom-0 z-40 flex items-center justify-center"
+  style="background-color: rgb(255, 0, 0);">
+  <button class="flex items-center gap-2 text-white font-bold" id="card-btn">
+    (<span id="card-count">0</span>)
+    Veja o meu carrinho
+    <i class="fas fa-shopping-cart text-lg text-white"></i>
+  </button>
+</footer>
+
+<!--fim button card footer-->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "cardapio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.2"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.17"
+  }
+}

@@ -279,11 +279,12 @@ devInfo.classList.add(
   "w-full"
 );
 
+
 devInfo.innerHTML = `
   <p class="mb-2">Desenvolvido por</p>
   <a href="https://www.dmdesigngrafico.com.br" target="_blank" title="Visite o site da DM Design Gráfico">
     <img 
-      src="./Imagem/DMDESIGN.PNG" 
+      src="/Imagem/DMDESIGN.png" 
       alt="Logo DM Design Gráfico"
       class="mx-auto w-40 h-auto mb-3 cursor-pointer hover:scale-110 transition-transform duration-300"
     />

@@ -306,7 +306,7 @@ devInfo.innerHTML = `
 
   <!-- 🔹 Linha adicionada conforme solicitado -->
   <p class="font-semibold mt-2">
-    Dev Burguer - CNPJ: 000-000-000/00 © Todos os direitos reservados. 2025
+    Dev Burguer - CNPJ: 12.345.678/0001-90 © Todos os direitos reservados. 2025
   </p>
 
   <p>© 2025 DM DESIGN GRÁFICO LTDA — Tecnologia e Soluções para Delivery</p>

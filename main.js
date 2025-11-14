@@ -8,6 +8,7 @@ const closeModelbtn = document.getElementById("close-model-btn")
 const cardCounter = document.getElementById("card-count")
 const andressInput = document.getElementById("address")
 const andresswarn = document.getElementById("address-warn")
+const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
 
@@ -68,21 +69,29 @@ function updateCartModal() {
   cartitemcontainer.innerHTML = "";
   let total = 0;
 
-  // ✅ Define a taxa de entrega: R$0,00 se o carrinho estiver vazio
-  const taxaEntrega = cart.length > 0 ? 3.00 : 0.00;
+  // 👉 Taxa padrão
+  let taxaEntrega = cart.length > 0 ? 3.00 : 0.00;
 
-  // ✅ Rolagem apenas dentro da lista de itens
-  cartitemcontainer.style.maxHeight = "250px"; // limite visual
-  cartitemcontainer.style.overflowY = "auto";  // rolagem vertical
-  cartitemcontainer.style.marginBottom = "10px"; // espaço entre lista e total
-  cartitemcontainer.style.paddingRight = "6px"; // evita corte da barra
+  // 👉 Se marcar “retirar no local”, taxa vira 0
+  if (retirarLocal.checked) {
+    taxaEntrega = 0.00;
+  }
 
-  // ❌ Removemos restrição de altura do modal (não usar maxHeight no modal!)
-  cardmodal.style.overflow = "visible"; // mantém tudo visível
+  // 👉 Rolagem da lista
+  cartitemcontainer.style.maxHeight = "250px";
+  cartitemcontainer.style.overflowY = "auto";
+  cartitemcontainer.style.marginBottom = "10px";
+  cartitemcontainer.style.paddingRight = "6px";
+
+  cardmodal.style.overflow = "visible";
 
   cart.forEach(item => {
     const cartItemElements = document.createElement("div");
-    cartItemElements.classList.add("flex", "justify-between", "mb-4", "flex-col", "border-b", "pb-2");
+    cartItemElements.classList.add(
+      "flex", "justify-between", "mb-4",
+      "flex-col", "border-b", "pb-2"
+    );
+
     cartItemElements.innerHTML = `
       <div class="flex items-center justify-between">
         <div>
@@ -91,19 +100,21 @@ function updateCartModal() {
           <p class="font-medium mt-2">R$ ${item.price.toFixed(2)}</p>
         </div>
 
-        <button class="remove-from-card-btn bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition" data-name="${item.name}">
+        <button class="remove-from-card-btn bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
+                data-name="${item.name}">
           Remover
         </button>
       </div>
     `;
+
     total += item.price * item.quantity;
     cartitemcontainer.appendChild(cartItemElements);
   });
 
-  // 💵 Calcula total com taxa
+  // 👉 Total com taxa ou sem taxa
   const totalComTaxa = total + taxaEntrega;
 
-  // 🧾 Exibe taxa e total
+  // 👉 Exibe taxa + total formatados
   cardtotal.innerHTML = `
     <p class="font-medium">
       Taxa de Entrega:
@@ -111,16 +122,20 @@ function updateCartModal() {
         ${taxaEntrega.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
       </span>
     </p>
+
     <p class="font-bold mt-1">
       Total:
       ${totalComTaxa.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
     </p>
   `;
 
-  // Atualiza contador
   cardCounter.innerHTML = cart.length;
 }
 
+
+retirarLocal.addEventListener("change", function () {
+  updateCartModal(); // Atualiza o modal quando marcar/desmarcar
+});
 // funçao para remover item do carrinho
 cartitemcontainer.addEventListener("click", function(event){
    if(event.target.classList.contains("remove-from-card-btn")){
@@ -161,89 +176,88 @@ checkout.addEventListener("click", function() {
 
   const isOpen = checkRestauranteOpen();
   if (!isOpen) {
-    
     Toastify({
-  text: "🍔 Dev Burguer está fechado no momento!",
-  duration: 3000,
-  close: true,
-  gravity: "top", // `top` or `bottom`
-  position: "left", // `left`, `center` or `right`
-  stopOnFocus: true, // Prevents dismissing of toast on hover
-  style: {
-    background: "linear-gradient(to right, #b00000ff, #fc0000ff)",
-  },
-  onClick: function(){} // Callback after click
-}).showToast();
+      text: "🍔 Dev Burguer está fechado no momento!",
+      duration: 3000,
+      close: true,
+      gravity: "top",
+      position: "left",
+      style: { background: "linear-gradient(to right, #b00000ff, #fc0000ff)" }
+    }).showToast();
     return;
   }
 
   if (cart.length === 0) {
-    
-     Toastify({
-  text: "Seu carrinho está vazio",
-  duration: 3000,
-  close: true,
-  gravity: "top", // `top` or `bottom`
-  position: "left", // `left`, `center` or `right`
-  stopOnFocus: true, // Prevents dismissing of toast on hover
-  style: {
-    background: "linear-gradient(to right, #adb000ff, #ebfc00ff)",
-  },
-  onClick: function(){} // Callback after click
-}).showToast();
+    Toastify({
+      text: "Seu carrinho está vazio",
+      duration: 3000,
+      close: true,
+      gravity: "top",
+      position: "left",
+      style: { background: "linear-gradient(to right, #adb000ff, #ebfc00ff)" }
+    }).showToast();
     return;
   }
 
-  if (andressInput.value === "") {
+  // Verifica se o cliente marcou retirada no local
+  const retirarLocalChecked = document.getElementById("retirarLocal")?.checked;
+
+  if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
   }
 
-  // 💰 Valor fixo da taxa de entrega
-  const taxaEntrega = 3.00;
-
-  // 🛍️ Monta a lista dos itens do carrinho
+  // 🛍️ Lista dos itens
   const cartItens = cart.map((item) => {
     return `${item.name} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
   }).join("\n");
 
-  // 💵 Calcula o total dos produtos
+  // 💵 Soma total dos produtos
   const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-  // 💰 Soma com a taxa de entrega
+  // 📦 Define taxa de entrega
+  let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
+
+  // 💰 Total final
   const totalComTaxa = totalProdutos + taxaEntrega;
 
-  // 🧾 Monta a mensagem completa
-  const mensagem = encodeURIComponent(
-    `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n💰 *Total:* R$ ${totalComTaxa.toFixed(2)}\n\n🏠 *Endereço:* ${andressInput.value}`
-  );
+  // 🧾 Mensagem dinamicamente adaptada
+  let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
 
-  // ☎️ Número do WhatsApp
+  if (retirarLocalChecked) {
+    mensagemTexto +=
+      `🏃 *Retirada no Local*\n` +
+      `📦 *Taxa de Entrega:* R$ 0,00\n`;
+  } else {
+    mensagemTexto +=
+      `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n` +
+      `🏠 *Endereço:* ${andressInput.value}\n`;
+  }
+
+  mensagemTexto += `💰 *Total:* R$ ${totalComTaxa.toFixed(2)}`;
+
+  // Codifica para URL
+  const mensagem = encodeURIComponent(mensagemTexto);
+
   const phone = "+5534998276982";
-
-  // 🚀 Abre o WhatsApp com a mensagem formatada
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
   cart = [];
   updateCartModal();
 
-  // ✅ Exibe mensagem de confirmação amigável
   setTimeout(() => {
-     Toastify({
-  text: "🎉 Parabéns! Seu pedido foi enviado com sucesso e chegará em aproximadamente 30 minutos. 🍔🚀",
-  duration: 3000,
-  close: true,
-  gravity: "top", // `top` or `bottom`
-  position: "left", // `left`, `center` or `right`
-  stopOnFocus: true, // Prevents dismissing of toast on hover
-  style: {
-    background: "linear-gradient(to right, #00b02cff, #00fc22ff)",
-  },
-  onClick: function(){} // Callback after click
-}).showToast();
+    Toastify({
+      text: "🎉 Parabéns! Seu pedido foi enviado com sucesso e chegará em aproximadamente 30 minutos. 🍔🚀",
+      duration: 3000,
+      close: true,
+      gravity: "top",
+      position: "left",
+      style: { background: "linear-gradient(to right, #00b02cff, #00fc22ff)" }
+    }).showToast();
   }, 500);
 });
+
 
 
 //horario de funcionamento

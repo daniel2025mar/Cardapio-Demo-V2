@@ -293,9 +293,9 @@ devInfo.classList.add(
   "w-full"
 );
 
-
 devInfo.innerHTML = `
   <p class="mb-2">Desenvolvido por</p>
+
   <a href="https://www.dmdesigngrafico.com.br" target="_blank" title="Visite o site da DM Design Gráfico">
     <img 
       src="/Imagem/DMDESIGN.png" 
@@ -303,7 +303,13 @@ devInfo.innerHTML = `
       class="mx-auto w-40 h-auto mb-3 cursor-pointer hover:scale-110 transition-transform duration-300"
     />
   </a>
-  <p>© 2025 DM DESIGN GRAFICO Soluções de Software LTDA</p>
+
+  <!-- 🔹 Linha adicionada conforme solicitado -->
+  <p class="font-semibold mt-2">
+    Dev Burguer - CNPJ: 000-000-000/00 © Todos os direitos reservados. 2025
+  </p>
+
+  <p>© 2025 DM DESIGN GRÁFICO LTDA — Tecnologia e Soluções para Delivery</p>
 `;
 
 // 🔹 Adiciona margem inferior para não encostar no botão fixo do carrinho
@@ -311,4 +317,5 @@ devInfo.style.marginBottom = "40px";
 
 // 👉 Insere logo abaixo do menu
 menu.insertAdjacentElement("afterend", devInfo);
+
 

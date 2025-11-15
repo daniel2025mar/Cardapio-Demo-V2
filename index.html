@@ -23,6 +23,9 @@
 </head>
 <body>
     
+    
+
+
     <!--header-->
     <header 
   class="relative w-full h-[420px] bg-cover bg-center" 
@@ -33,22 +36,42 @@
 
   <!-- conteúdo centralizado -->
   <div class="relative z-10 w-full h-full flex flex-col justify-center items-center text-center">
-    <img 
-      src="./Imagem/image.png" 
-      alt="logo burguer"
-      class="w-52 h-52 rounded-full shadow-lg hover:scale-110 duration-200"
-    />
-    <h1 class="text-4xl mt-2 font-bold text-white">
-      Dev Burguer
-    </h1>
-    <span class="text-white font-medium">
-      Rua. nome da sua rua N 000 centro, sua cidade - UF
-    </span>
 
-    <div class="bg-green-600 px-4 py-1 rounded-lg mt-5" id="date-span">
-      <span class="text-white font-medium">Seg a Dom - 9:00 às 22:00</span>
-    </div>
+  <!-- 🔐 Login / Cadastro no topo direito -->
+  <div class="absolute top-4 right-4 flex gap-3">
+    <button id="btn-login"
+  class="px-3 py-1 bg-white text-black font-semibold rounded hover:bg-gray-200 transition text-sm">
+  Entrar
+</button>
+
+<button id="btn-cadastro"
+  class="px-3 py-1 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition text-sm">
+  Criar Conta
+</button>
+
   </div>
+  <!-- 🔐 FIM LOGIN -->
+   
+
+  <img 
+    src="./Imagem/image.png" 
+    alt="logo burguer"
+    class="w-52 h-52 rounded-full shadow-lg hover:scale-110 duration-200"
+  />
+
+  <h1 class="text-4xl mt-2 font-bold text-white">
+    Dev Burguer
+  </h1>
+
+  <span class="text-white font-medium">
+    Rua. nome da sua rua N 000 centro, sua cidade - UF
+  </span>
+
+  <div class="bg-green-600 px-4 py-1 rounded-lg mt-5" id="date-span">
+    <span class="text-white font-medium">Seg a Dom - 9:00 às 22:00</span>
+  </div>
+</div>
+
 </header>
 
 <!--fim header-->
@@ -75,10 +98,11 @@
 
           <div class="flex gap-2">
             <!-- 🔘 botão ingredientes -->
-            <button class="bg-yellow-500 px-3 py-2 rounded text-white open-ingredientes-btn"
-              data-name="Hamburguer Smash">
-              <i class="fas fa-list"></i>
+            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+             data-name="Hamburguer Smash">
+            <i class="fas fa-list"></i>
             </button>
+
 
             <!-- 🛒 botão carrinho -->
             <button class="bg-gray-900 px-5 rounded add-to-card-btn"
@@ -107,10 +131,11 @@
 
           <div class="flex gap-2">
             <!-- botão ingredientes -->
-            <button class="bg-yellow-500 px-3 py-2 rounded text-white open-ingredientes-btn"
-              data-name="Hamburguer da Casa">
-              <i class="fas fa-list"></i>
+            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+            data-name="Hamburguer da Casa">
+            <i class="fas fa-list"></i>
             </button>
+
 
             <!-- botão carrinho -->
             <button class="bg-gray-900 px-5 rounded add-to-card-btn"
@@ -139,10 +164,12 @@
 
           <div class="flex gap-2">
             <!-- botão ingredientes -->
-            <button class="bg-yellow-500 px-3 py-2 rounded text-white open-ingredientes-btn"
-              data-name="Hamburguer Magno">
-              <i class="fas fa-list"></i>
-            </button>
+            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+           data-name="Hamburguer Magno">
+           <i class="fas fa-list"></i>
+           </button>
+
+
 
             <!-- botão carrinho -->
             <button class="bg-gray-900 px-5 rounded add-to-card-btn"
@@ -171,10 +198,11 @@
 
           <div class="flex gap-2">
             <!-- botão ingredientes -->
-            <button class="bg-yellow-500 px-3 py-2 rounded text-white open-ingredientes-btn"
-              data-name="Hamburguer X Tudo">
-              <i class="fas fa-list"></i>
+            <button class="bg-red-600 px-3 py-2 rounded text-white open-ingredientes-btn hover:bg-red-700 transition"
+            data-name="Hamburguer X Tudo">
+           <i class="fas fa-list"></i>
             </button>
+
 
             <!-- botão carrinho -->
             <button class="bg-gray-900 px-5 rounded add-to-card-btn"
@@ -387,17 +415,30 @@
 
 <!-- Modal de pedido enviado -->
 <div id="pedido-sucesso-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 transition-opacity duration-300">
-  <div class="bg-white rounded-2xl p-8 w-96 max-w-sm text-center shadow-xl transform scale-90 opacity-0 transition-all duration-300" id="pedido-modal-box">
-    <div class="mb-4">
-      <svg class="mx-auto w-16 h-16 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="bg-white rounded-2xl p-4 sm:p-8 w-[90%] max-w-xs sm:max-w-sm text-center shadow-xl transform scale-95 opacity-0 transition-all duration-300" id="pedido-modal-box">
+    
+    <div class="mb-3 sm:mb-4">
+      <svg class="mx-auto w-12 h-12 sm:w-16 sm:h-16 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
     </div>
-    <h2 class="text-2xl font-bold mb-2 text-gray-800">🎉 Pedido enviado!</h2>
-    <p class="text-gray-600 mb-6">Seu pedido foi enviado com sucesso e chegará em aproximadamente <strong>30 minutos</strong>. 🍔🚀</p>
-    <button id="pedido-sucesso-ok" class="px-6 py-2 bg-black text-white font-semibold rounded-full shadow hover:bg-gray-800 transition-colors duration-200">OK</button>
+
+    <h2 class="text-lg sm:text-2xl font-bold mb-2 text-gray-800">🎉 Pedido enviado!</h2>
+
+    <p class="text-gray-600 mb-5 text-xs sm:text-base">
+      Seu pedido foi enviado com sucesso e chegará em aproximadamente 
+      <strong>30 minutos</strong>. 🍔🚀
+    </p>
+
+    <button 
+      id="pedido-sucesso-ok" 
+      class="px-5 py-2 bg-black text-white font-semibold rounded-full shadow hover:bg-gray-800 transition-colors duration-200 text-sm sm:text-base">
+      OK
+    </button>
   </div>
 </div>
+
+
 
 
 <!--button card footer-->
@@ -409,9 +450,37 @@
     <i class="fas fa-shopping-cart text-lg text-white"></i>
   </button>
 </footer>
-
 <!--fim button card footer-->
+
+<div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+  <div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-xl relative transform scale-95 opacity-0 transition-all duration-300" id="login-modal-box">
+
+    <button id="login-fechar" class="absolute top-3 right-3 text-gray-500 text-2xl hover:text-gray-800 transition">
+      &times;
+    </button>
+
+    <h2 class="text-2xl font-bold mb-6 text-gray-900">Entrar ou Criar Conta</h2>
+
+    <!-- Botão Google -->
+    <button class="w-full mb-3 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2">
+      <i class="fab fa-google text-xl"></i>
+      Entrar com Google
+    </button>
+
+    <!-- Botão Facebook -->
+    <button class="w-full mb-3 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+      <i class="fab fa-facebook text-xl"></i>
+      Entrar com Facebook
+    </button>
+
+    <p class="text-gray-500 text-sm mt-4">
+      Continuando, você aceita nossos Termos de Uso e Política de Privacidade.
+    </p>
+
+  </div>
+</div>
+
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script type="module" src="/main.js"></script><script type="module" src="/main.js"></script>
+<script type="module" src="/main.js"></script>
 </body>
 </html>

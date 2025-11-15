@@ -263,10 +263,14 @@ checkout.addEventListener("click", function() {
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
   // Limpa carrinho
-  cart = [];
-  updateCartModal();
+// Limpa carrinho
+cart = [];
+updateCartModal();
 
-  setTimeout(() => {
+// FECHAR AUTOMATICAMENTE O MODAL DO CARRINHO
+cardmodal.style.display = "none";
+
+setTimeout(() => {
   const modal = document.getElementById('pedido-sucesso-modal');
   const modalBox = document.getElementById('pedido-modal-box');
   modal.classList.remove('hidden');
@@ -286,6 +290,7 @@ checkout.addEventListener("click", function() {
     }, 300);
   });
 }, 500);
+
 
 
 });
@@ -508,4 +513,38 @@ salvarIngredientes.addEventListener("click", () => {
 });
 
 
+  const loginModal = document.getElementById("login-modal");
+  const loginModalBox = document.getElementById("login-modal-box");
+
+  const btnLogin = document.getElementById("btn-login");
+  const btnCadastro = document.getElementById("btn-cadastro");
+  const btnFecharLogin = document.getElementById("login-fechar");
+
+  // Abrir modal (Entrar)
+  btnLogin.addEventListener("click", () => {
+    loginModal.classList.remove("hidden");
+    setTimeout(() => {
+      loginModalBox.classList.remove("scale-95", "opacity-0");
+      loginModalBox.classList.add("scale-100", "opacity-100");
+    }, 50);
+  });
+
+  // Abrir modal (Criar Conta)
+  btnCadastro.addEventListener("click", () => {
+    loginModal.classList.remove("hidden");
+    setTimeout(() => {
+      loginModalBox.classList.remove("scale-95", "opacity-0");
+      loginModalBox.classList.add("scale-100", "opacity-100");
+    }, 50);
+  });
+
+  // Fechar modal
+  btnFecharLogin.addEventListener("click", () => {
+    loginModalBox.classList.add("scale-95", "opacity-0");
+    loginModalBox.classList.remove("scale-100", "opacity-100");
+
+    setTimeout(() => {
+      loginModal.classList.add("hidden");
+    }, 200);
+  });
 

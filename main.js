@@ -175,17 +175,32 @@ andressInput.addEventListener("input", function(event){
 checkout.addEventListener("click", function() {
 
   const isOpen = checkRestauranteOpen();
-  if (!isOpen) {
-    Toastify({
-      text: "🍔 Dev Burguer está fechado no momento!",
-      duration: 3000,
-      close: true,
-      gravity: "top",
-      position: "left",
-      style: { background: "linear-gradient(to right, #b00000ff, #fc0000ff)" }
-    }).showToast();
-    return;
+   if (!isOpen) {
+  const modalLojaFechada = document.getElementById('loja-fechada-modal');
+  const modalContent = modalLojaFechada.children[0]; // conteúdo do modal
+  const btnFechar = document.getElementById('fechar-loja-fechada');
+  const btnOk = document.getElementById('ok-loja-fechada');
+
+  // Abre o modal com animação
+  modalLojaFechada.classList.remove('hidden');
+  setTimeout(() => {
+    modalContent.classList.remove('scale-90', 'opacity-0');
+    modalContent.classList.add('scale-100', 'opacity-100');
+  }, 10);
+
+  // Função para fechar o modal com animação
+  function fecharModal() {
+    modalContent.classList.add('scale-90', 'opacity-0');
+    setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
   }
+
+  // Eventos de fechamento
+  btnFechar.addEventListener('click', fecharModal);
+  btnOk.addEventListener('click', fecharModal);
+
+  return; // interrompe o checkout
+}
+
 
   if (cart.length === 0) {
     Toastify({
@@ -252,15 +267,27 @@ checkout.addEventListener("click", function() {
   updateCartModal();
 
   setTimeout(() => {
-    Toastify({
-      text: "🎉 Parabéns! Seu pedido foi enviado com sucesso e chegará em aproximadamente 30 minutos. 🍔🚀",
-      duration: 3000,
-      close: true,
-      gravity: "top",
-      position: "left",
-      style: { background: "linear-gradient(to right, #00b02cff, #00fc22ff)" }
-    }).showToast();
-  }, 500);
+  const modal = document.getElementById('pedido-sucesso-modal');
+  const modalBox = document.getElementById('pedido-modal-box');
+  modal.classList.remove('hidden');
+  
+  // animação de entrada
+  setTimeout(() => {
+    modalBox.classList.remove('scale-90', 'opacity-0');
+    modalBox.classList.add('scale-100', 'opacity-100');
+  }, 50);
+
+  const btnOk = document.getElementById('pedido-sucesso-ok');
+  btnOk.addEventListener('click', () => {
+    // animação de saída
+    modalBox.classList.add('scale-90', 'opacity-0');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  });
+}, 500);
+
+
 });
 
 

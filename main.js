@@ -199,8 +199,7 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // Verifica se o cliente marcou retirada no local
-  const retirarLocalChecked = document.getElementById("retirarLocal")?.checked;
+  const retirarLocalChecked = retirarLocal.checked;
 
   if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
@@ -208,9 +207,14 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // 🛍️ Lista dos itens
+  // 🛍️ Lista dos itens (incluindo ingredientes removidos)
   const cartItens = cart.map((item) => {
-    return `${item.name} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
+    let nomeProduto = item.name;
+    if (item.custom && item.removidos && item.removidos.length > 0) {
+      const removidosTexto = item.removidos.join(", ");
+      nomeProduto += ` (Sem ${removidosTexto})`;
+    }
+    return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
   }).join("\n");
 
   // 💵 Soma total dos produtos
@@ -222,7 +226,7 @@ checkout.addEventListener("click", function() {
   // 💰 Total final
   const totalComTaxa = totalProdutos + taxaEntrega;
 
-  // 🧾 Mensagem dinamicamente adaptada
+  // 🧾 Monta a mensagem para WhatsApp
   let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
 
   if (retirarLocalChecked) {
@@ -243,6 +247,7 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+  // Limpa carrinho
   cart = [];
   updateCartModal();
 
@@ -257,6 +262,7 @@ checkout.addEventListener("click", function() {
     }).showToast();
   }, 500);
 });
+
 
 
 
@@ -317,5 +323,161 @@ devInfo.style.marginBottom = "40px";
 
 // 👉 Insere logo abaixo do menu
 menu.insertAdjacentElement("afterend", devInfo);
+
+// ===============================
+// MODAL DE INGREDIENTES
+// ===============================
+
+// Seletores do modal
+const ingredientesModal = document.getElementById("ingredientes-modal");
+const ingredientesTitle = document.getElementById("ingredientes-title");
+const ingredientesList = document.getElementById("ingredientes-list");
+const fecharIngredientes = document.getElementById("ingredientes-close");
+const salvarIngredientes = document.getElementById("ingredientes-save");
+const ingredientesTotal = document.getElementById("ingredientes-total");
+
+let produtoSelecionado = null;
+
+// Banco de ingredientes com valor
+const ingredientesBanco = {
+  "Hamburguer Smash": [
+    { nome: "Alface", preco: 2.00 },
+    { nome: "Carne smash 180g", preco: 1.50 },
+    { nome: "Queijo prato", preco: 6.70 },
+    { nome: "Maionese da casa", preco: 7.00 },
+    { nome: "Ovo", preco: 1.70 }
+  ],
+  "Hamburguer da Casa": [
+    { nome: "Alface", preco: 2.00 },
+    { nome: "Carne smash 180g", preco: 1.50 },
+    { nome: "Queijo prato", preco: 6.70 },
+    { nome: "Maionese da casa", preco: 7.00 },
+    { nome: "Ovo", preco: 1.70 }
+  ],
+  "Hamburguer Magno": [
+    { nome: "Alface", preco: 2.00 },
+    { nome: "Carne smash 180g", preco: 1.50 },
+    { nome: "Queijo prato", preco: 6.70 },
+    { nome: "Maionese da casa", preco: 7.00 },
+    { nome: "Ovo", preco: 1.70 }
+  ],
+  "Hamburguer X Tudo": [
+    { nome: "Alface", preco: 2.00 },
+    { nome: "Carne smash 180g", preco: 1.50 },
+    { nome: "Queijo prato", preco: 6.70 },
+    { nome: "Maionese da casa", preco: 7.00 },
+    { nome: "Ovo", preco: 1.70 }
+  ]
+};
+
+// ===============================
+// ABRIR MODAL
+// ===============================
+document.querySelectorAll(".open-ingredientes-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    produtoSelecionado = btn.dataset.name;
+
+    ingredientesTitle.innerText = `Ingredientes - ${produtoSelecionado}`;
+    ingredientesList.innerHTML = "";
+
+    const lista = ingredientesBanco[produtoSelecionado] || [];
+
+    // Criar checkboxes
+    lista.forEach(item => {
+      const div = document.createElement("div");
+      div.classList.add("flex", "items-center", "gap-2");
+
+      div.innerHTML = `
+        <input type="checkbox" class="ingrediente-item" data-preco="${item.preco}" checked>
+        <label>${item.nome} — R$ ${item.preco.toFixed(2)}</label>
+      `;
+
+      ingredientesList.appendChild(div);
+    });
+
+    atualizarPrecoIngredientes();
+    ingredientesModal.classList.remove("hidden");
+  });
+});
+
+// ===============================
+// ATUALIZAR TOTAL
+// ===============================
+function atualizarPrecoIngredientes() {
+  let total = 0;
+  document.querySelectorAll(".ingrediente-item").forEach(input => {
+    if (input.checked) {
+      const precoIngrediente = parseFloat(input.dataset.preco);
+      if (!isNaN(precoIngrediente)) total += precoIngrediente;
+    }
+  });
+
+  ingredientesTotal.innerText = `Total: R$ ${total.toFixed(2)}`;
+}
+
+// ===============================
+// MARCAR/DESELECIONAR
+// ===============================
+document.addEventListener("change", e => {
+  if (e.target.classList.contains("ingrediente-item")) {
+    atualizarPrecoIngredientes();
+  }
+});
+
+// ===============================
+// FECHAR MODAL
+// ===============================
+fecharIngredientes.addEventListener("click", () => {
+  ingredientesModal.classList.add("hidden");
+});
+
+// ===============================
+// SALVAR INGREDIENTES
+// ===============================
+salvarIngredientes.addEventListener("click", () => {
+  // Pega os ingredientes desmarcados corretamente
+  const desmarcados = [...document.querySelectorAll(".ingrediente-item")]
+    .filter(input => !input.checked)
+    .map(input => {
+      // Pega o texto do label associado a este input
+      const label = input.nextElementSibling; // assuming label vem logo após o input
+      return label ? label.innerText.split(" — ")[0] : "";
+    }).filter(nome => nome !== ""); // remove strings vazias
+
+  // Calcula preço final baseado nos ingredientes selecionados
+  const totalFinal = [...document.querySelectorAll(".ingrediente-item")]
+    .filter(input => input.checked)
+    .reduce((sum, input) => sum + parseFloat(input.dataset.preco), 0);
+
+  // Adiciona produto personalizado no carrinho
+  const existingItem = cart.find(item => item.name === produtoSelecionado && item.custom);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+    existingItem.price = totalFinal; // Atualiza preço personalizado
+    existingItem.removidos = desmarcados; // atualiza ingredientes removidos
+  } else {
+    cart.push({
+      name: produtoSelecionado,
+      price: totalFinal,
+      quantity: 1,
+      custom: true, // marca que é um produto personalizado
+      removidos: desmarcados // salva os ingredientes desmarcados
+    });
+  }
+
+  // Atualiza o carrinho visualmente
+  updateCartModal();
+
+  ingredientesModal.classList.add("hidden");
+
+  Toastify({
+    text: "Produto adicionado ao carrinho!",
+    duration: 2000,
+    gravity: "top",
+    backgroundColor: "green"
+  }).showToast();
+});
+
 
 

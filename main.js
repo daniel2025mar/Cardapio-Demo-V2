@@ -388,9 +388,10 @@ document.querySelectorAll(".open-ingredientes-btn").forEach(btn => {
       div.classList.add("flex", "items-center", "gap-2");
 
       div.innerHTML = `
-        <input type="checkbox" class="ingrediente-item" data-preco="${item.preco}" checked>
-        <label>${item.nome} — R$ ${item.preco.toFixed(2)}</label>
-      `;
+  <input type="checkbox" class="ingrediente-item" data-preco="${item.preco}" checked>
+  <label>${item.nome}</label>
+`;
+
 
       ingredientesList.appendChild(div);
     });

@@ -720,3 +720,33 @@ if (logoutBtn) {
         fecharModal();
     });
 }
+
+
+
+  // Seleciona o input de pesquisa e o container dos produtos
+  const searchInput = document.getElementById('searchInput');
+  const produtos = document.querySelectorAll('#menu main > div'); // cada produto
+  const noResults = document.getElementById('noResults');
+
+  searchInput.addEventListener('input', () => {
+    const termo = searchInput.value.toLowerCase().trim();
+    let encontrados = 0;
+
+    produtos.forEach(produto => {
+      const nome = produto.querySelector('p.font-bold').textContent.toLowerCase();
+      if (nome.includes(termo)) {
+        produto.style.display = 'flex';
+        encontrados++;
+      } else {
+        produto.style.display = 'none';
+      }
+    });
+
+    // Mostra ou esconde a mensagem de "Nenhum produto encontrado"
+    if (encontrados === 0) {
+      noResults.classList.remove('hidden');
+    } else {
+      noResults.classList.add('hidden');
+    }
+  });
+

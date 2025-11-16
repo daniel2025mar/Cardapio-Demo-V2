@@ -77,6 +77,30 @@
   Conheça nosso Menu
 </h2>
 
+
+<!-- Campo de pesquisa responsivo com ícone elegante -->
+<div class="flex justify-center mb-6 px-2">
+  <div class="relative w-full max-w-md sm:max-w-lg md:max-w-xl">
+    <!-- Ícone dentro do input -->
+    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+      <i class="fas fa-search"></i>
+    </span>
+
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Pesquise seu produto..."
+      class="w-full pl-10 pr-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-red-600 transition text-sm sm:text-base"
+    />
+  </div>
+</div>
+
+<!-- Mensagem caso não encontre produtos -->
+<div id="noResults" class="text-center text-red-600 font-medium mt-4 hidden">
+  😔 Nenhum produto encontrado.
+</div>
+
+
 <!--inicio menu-->
 <div id="menu" class="px-4 py-6 bg-gray-50">
 

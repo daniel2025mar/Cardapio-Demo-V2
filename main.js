@@ -616,6 +616,7 @@ window.onload = function () {
             .click();
     });
 };
+
 // ===============================
 // MODAL DO PERFIL (FUNCIONAL)
 // ===============================
@@ -626,79 +627,98 @@ const perfilModalBox = document.getElementById("perfilModal-box");
 const perfilNome = document.getElementById("perfilModal-nome");
 const logoutBtn = document.getElementById("perfilModal-logout");
 
-// Foto pequena no topo (abre o modal)
+// Foto pequena no topo (abre/fecha o modal)
 const userPhotocliente = document.getElementById("user-photo");
 
 // Botões exibidos quando o usuário NÃO está logado
 const btnLogincliente = document.getElementById("btn-login");
 const btnCadastrocliente = document.getElementById("btn-cadastro");
 
-// ===============================
-// ABRIR MODAL DO PERFIL
-// ===============================
-function openPerfilModal() {
-    const user = JSON.parse(localStorage.getItem("userGoogle"));
-    if (!user) return; // Se não existe login, não abre o modal
+// Estado do modal
+let modalAberto = false;
 
-    // Atualiza nome no modal
+// ===============================
+// FUNÇÃO PARA ABRIR MODAL
+// ===============================
+function abrirModal() {
+    const user = JSON.parse(localStorage.getItem("userGoogle"));
+    if (!user) return;
+
     if (perfilNome) perfilNome.innerText = user.name || "Usuário";
 
-    // Mostra modal
     if (perfilModal) perfilModal.classList.remove("hidden");
-
-    // Animação
     setTimeout(() => {
         if (perfilModalBox) {
             perfilModalBox.classList.remove("scale-95", "opacity-0");
             perfilModalBox.classList.add("scale-100", "opacity-100");
         }
     }, 50);
+
+    modalAberto = true;
 }
 
-// Abre o modal ao clicar na foto do topo
+// ===============================
+// FUNÇÃO PARA FECHAR MODAL
+// ===============================
+function fecharModal() {
+    if (!modalAberto) return;
+
+    if (perfilModalBox) {
+        perfilModalBox.classList.add("scale-95", "opacity-0");
+        perfilModalBox.classList.remove("scale-100", "opacity-100");
+    }
+
+    setTimeout(() => {
+        if (perfilModal) perfilModal.classList.add("hidden");
+    }, 200);
+
+    modalAberto = false;
+}
+
+// ===============================
+// TOGGLE AO CLICAR NA FOTO
+// ===============================
 if (userPhotocliente) {
-    userPhotocliente.addEventListener("click", openPerfilModal);
-}
-
-// ===============================
-// FECHAR MODAL AO CLICAR FORA
-// ===============================
-if (perfilModal) {
-    perfilModal.addEventListener("click", (e) => {
-        if (e.target === perfilModal) { // clicou fora da caixa
-            perfilModalBox.classList.add("scale-95", "opacity-0");
-            perfilModalBox.classList.remove("scale-100", "opacity-100");
-
-            setTimeout(() => {
-                perfilModal.classList.add("hidden");
-            }, 200);
+    userPhotocliente.addEventListener("click", () => {
+        if (modalAberto) {
+            fecharModal();
+        } else {
+            abrirModal();
         }
     });
 }
+
+// ===============================
+// FECHAR AO CLICAR FORA DO MODAL
+// ===============================
+if (perfilModal) {
+    perfilModal.addEventListener("click", (e) => {
+        if (e.target === perfilModal) fecharModal();
+    });
+}
+
+// ===============================
+// FECHAR AO ROLAR OU MOVER O CARDÁPIO
+// ===============================
+window.addEventListener("scroll", () => {
+    fecharModal();
+});
 
 // ===============================
 // LOGOUT
 // ===============================
 if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-        // Remove dados do usuário
         localStorage.removeItem("userGoogle");
 
-        // Esconde foto do topo
         if (userPhotocliente) userPhotocliente.classList.add("hidden");
-
-        // Mostra botões de login / cadastro
         if (btnLogincliente) btnLogincliente.style.display = "block";
         if (btnCadastrocliente) btnCadastrocliente.style.display = "block";
 
-        // Fecha modal
-        if (perfilModal) perfilModal.classList.add("hidden");
-        if (perfilModalBox) {
-            perfilModalBox.classList.add("scale-95", "opacity-0");
-            perfilModalBox.classList.remove("scale-100", "opacity-100");
-        }
+        fecharModal();
     });
 }
+
 
 
 

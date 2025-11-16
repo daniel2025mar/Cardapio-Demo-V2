@@ -770,24 +770,30 @@ searchInput.addEventListener('input', () => {
 
 
 // propagandas
-
 const textos = [
-  "💳 Pagamento via PIX disponível",
-  "📢 Confira nossas promoções exclusivas",
-  "🍽️ Novidades no cardápio esta semana",
-  "🎁 Aproveite nosso cupom especial de hoje"
+  '<i class="fa-solid fa-credit-card"></i> Pagamento via PIX disponível',
+  '<i class="fa-solid fa-bullhorn"></i> Confira nossas promoções exclusivas',
+  '<i class="fa-solid fa-utensils"></i> Novidades no cardápio esta semana',
+  '<i class="fa-solid fa-gift"></i> Aproveite nosso cupom especial de hoje'
 ];
 
 let index = 0;
 const elemento = document.getElementById("rotating-text");
 
+// Define opacidade inicial
+elemento.style.transition = "opacity 0.5s ease";
+elemento.innerHTML = textos[index];
+
 setInterval(() => {
   // Fade out
   elemento.style.opacity = 0;
+
   setTimeout(() => {
+    // Troca o texto com HTML
     index = (index + 1) % textos.length;
-    elemento.innerText = textos[index];
+    elemento.innerHTML = textos[index];
+
     // Fade in
     elemento.style.opacity = 1;
-  }, 500); // meio segundo para o fade
-}, 3000); // troca a cada 3 segundos
+  }, 500); // duração do fade out
+}, 3000); // tempo total entre trocas

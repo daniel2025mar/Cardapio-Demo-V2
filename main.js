@@ -758,3 +758,29 @@ searchInput.addEventListener('input', () => {
     noResults.classList.add('hidden');
   }
 });
+
+
+// propagandas da empresa 
+const textos = [
+  "💳 Aceitamos PIX",
+  "🔥 Promoções incríveis!",
+  "🍔 Novos pratos no cardápio",
+  "🎁 Cupom especial hoje"
+];
+
+let index = 0;
+const elemento = document.getElementById("rotating-text");
+
+setInterval(() => {
+  // Fade out
+  elemento.style.opacity = 0;
+  
+  setTimeout(() => {
+    // Muda o texto
+    index = (index + 1) % textos.length;
+    elemento.textContent = textos[index];
+    
+    // Fade in
+    elemento.style.opacity = 1;
+  }, 1000); // meio segundo -> agora 1s para transição mais suave
+}, 4000); // tempo total entre trocas (fade out + fade in + pausa)

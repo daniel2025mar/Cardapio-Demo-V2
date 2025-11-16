@@ -647,12 +647,12 @@ function abrirModal() {
     if (perfilNome) perfilNome.innerText = user.name || "Usuário";
 
     if (perfilModal) perfilModal.classList.remove("hidden");
-    setTimeout(() => {
-        if (perfilModalBox) {
-            perfilModalBox.classList.remove("scale-95", "opacity-0");
-            perfilModalBox.classList.add("scale-100", "opacity-100");
-        }
-    }, 50);
+
+    // Animação suave
+    if (perfilModalBox) {
+        perfilModalBox.classList.remove("scale-95", "opacity-0");
+        perfilModalBox.classList.add("scale-100", "opacity-100");
+    }
 
     modalAberto = true;
 }
@@ -668,9 +668,7 @@ function fecharModal() {
         perfilModalBox.classList.remove("scale-100", "opacity-100");
     }
 
-    setTimeout(() => {
-        if (perfilModal) perfilModal.classList.add("hidden");
-    }, 200);
+    if (perfilModal) perfilModal.classList.add("hidden");
 
     modalAberto = false;
 }
@@ -689,20 +687,21 @@ if (userPhotocliente) {
 }
 
 // ===============================
-// FECHAR AO CLICAR FORA DO MODAL
+// FECHAR AO CLICAR FORA OU EM QUALQUER PARTE DO CARDÁPIO
 // ===============================
-if (perfilModal) {
-    perfilModal.addEventListener("click", (e) => {
-        if (e.target === perfilModal) fecharModal();
-    });
-}
+document.addEventListener("click", (e) => {
+    if (!modalAberto) return;
+
+    // Se o clique não foi na foto nem no modal, fecha
+    if (e.target !== userPhotocliente && !perfilModalBox.contains(e.target)) {
+        fecharModal();
+    }
+});
 
 // ===============================
 // FECHAR AO ROLAR OU MOVER O CARDÁPIO
 // ===============================
-window.addEventListener("scroll", () => {
-    fecharModal();
-});
+window.addEventListener("scroll", fecharModal);
 
 // ===============================
 // LOGOUT
@@ -718,14 +717,3 @@ if (logoutBtn) {
         fecharModal();
     });
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -616,17 +616,14 @@ window.onload = function () {
             .click();
     });
 };
-
 // ===============================
-// MODAL DO PERFIL (NOVAS IDs)
+// MODAL DO PERFIL (FUNCIONAL)
 // ===============================
 
 // Seletores do modal
 const perfilModal = document.getElementById("perfilModal-container");
 const perfilModalBox = document.getElementById("perfilModal-box");
-const perfilFoto = document.getElementById("perfilModal-foto");
 const perfilNome = document.getElementById("perfilModal-nome");
-const perfilFechar = document.getElementById("perfilModal-fechar");
 const logoutBtn = document.getElementById("perfilModal-logout");
 
 // Foto pequena no topo (abre o modal)
@@ -641,11 +638,9 @@ const btnCadastrocliente = document.getElementById("btn-cadastro");
 // ===============================
 function openPerfilModal() {
     const user = JSON.parse(localStorage.getItem("userGoogle"));
-
     if (!user) return; // Se não existe login, não abre o modal
 
-    // Atualiza dados no modal
-    if (perfilFoto) perfilFoto.src = user.picture || "";
+    // Atualiza nome no modal
     if (perfilNome) perfilNome.innerText = user.name || "Usuário";
 
     // Mostra modal
@@ -666,18 +661,18 @@ if (userPhotocliente) {
 }
 
 // ===============================
-// FECHAR MODAL
+// FECHAR MODAL AO CLICAR FORA
 // ===============================
-if (perfilFechar) {
-    perfilFechar.addEventListener("click", () => {
-        if (perfilModalBox) {
+if (perfilModal) {
+    perfilModal.addEventListener("click", (e) => {
+        if (e.target === perfilModal) { // clicou fora da caixa
             perfilModalBox.classList.add("scale-95", "opacity-0");
             perfilModalBox.classList.remove("scale-100", "opacity-100");
-        }
 
-        setTimeout(() => {
-            if (perfilModal) perfilModal.classList.add("hidden");
-        }, 200);
+            setTimeout(() => {
+                perfilModal.classList.add("hidden");
+            }, 200);
+        }
     });
 }
 
@@ -686,20 +681,25 @@ if (perfilFechar) {
 // ===============================
 if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-        // Remove dados salvos
+        // Remove dados do usuário
         localStorage.removeItem("userGoogle");
 
-        // Some com a foto pequena
+        // Esconde foto do topo
         if (userPhotocliente) userPhotocliente.classList.add("hidden");
 
-        // Mostra botões de login / cadastro novamente
+        // Mostra botões de login / cadastro
         if (btnLogincliente) btnLogincliente.style.display = "block";
         if (btnCadastrocliente) btnCadastrocliente.style.display = "block";
 
         // Fecha modal
-        if (perfilFechar) perfilFechar.click();
+        if (perfilModal) perfilModal.classList.add("hidden");
+        if (perfilModalBox) {
+            perfilModalBox.classList.add("scale-95", "opacity-0");
+            perfilModalBox.classList.remove("scale-100", "opacity-100");
+        }
     });
 }
+
 
 
 

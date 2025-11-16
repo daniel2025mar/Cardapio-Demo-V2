@@ -174,34 +174,58 @@ andressInput.addEventListener("input", function(event){
 
 checkout.addEventListener("click", function() {
 
-  const isOpen = checkRestauranteOpen();
-   if (!isOpen) {
-  const modalLojaFechada = document.getElementById('loja-fechada-modal');
-  const modalContent = modalLojaFechada.children[0]; // conteúdo do modal
-  const btnFechar = document.getElementById('fechar-loja-fechada');
-  const btnOk = document.getElementById('ok-loja-fechada');
+  // 🔹 Verifica se o usuário está logado
+  const storedUser = localStorage.getItem("userGoogle");
+  if (!storedUser) {
+    // Abre o modal de login
+    loginModal.classList.remove("hidden");
+    setTimeout(() => {
+      loginModalBox.classList.remove("scale-95", "opacity-0");
+      loginModalBox.classList.add("scale-100", "opacity-100");
+    }, 50);
 
-  // Abre o modal com animação
-  modalLojaFechada.classList.remove('hidden');
-  setTimeout(() => {
-    modalContent.classList.remove('scale-90', 'opacity-0');
-    modalContent.classList.add('scale-100', 'opacity-100');
-  }, 10);
+    Toastify({
+      text: "Você precisa entrar ou criar uma conta para enviar o pedido",
+      duration: 3000,
+      close: true,
+      gravity: "top",
+      position: "center",
+      style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
+    }).showToast();
 
-  // Função para fechar o modal com animação
-  function fecharModal() {
-    modalContent.classList.add('scale-90', 'opacity-0');
-    setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
+    return; // interrompe o envio do pedido
   }
 
-  // Eventos de fechamento
-  btnFechar.addEventListener('click', fecharModal);
-  btnOk.addEventListener('click', fecharModal);
+  // ==============================
+  // Verifica se o restaurante está aberto
+  // ==============================
+  const isOpen = checkRestauranteOpen();
+  if (!isOpen) {
+    const modalLojaFechada = document.getElementById('loja-fechada-modal');
+    const modalContent = modalLojaFechada.children[0];
+    const btnFechar = document.getElementById('fechar-loja-fechada');
+    const btnOk = document.getElementById('ok-loja-fechada');
 
-  return; // interrompe o checkout
-}
+    modalLojaFechada.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-90', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
 
+    function fecharModal() {
+      modalContent.classList.add('scale-90', 'opacity-0');
+      setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
+    }
 
+    btnFechar.addEventListener('click', fecharModal);
+    btnOk.addEventListener('click', fecharModal);
+
+    return;
+  }
+
+  // ==============================
+  // Verifica se o carrinho está vazio
+  // ==============================
   if (cart.length === 0) {
     Toastify({
       text: "Seu carrinho está vazio",
@@ -214,15 +238,19 @@ checkout.addEventListener("click", function() {
     return;
   }
 
+  // ==============================
+  // Verifica endereço
+  // ==============================
   const retirarLocalChecked = retirarLocal.checked;
-
   if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
   }
 
-  // 🛍️ Lista dos itens (incluindo ingredientes removidos)
+  // ==============================
+  // Continua com a lógica atual de montagem do pedido e envio
+  // ==============================
   const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
@@ -232,68 +260,45 @@ checkout.addEventListener("click", function() {
     return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
   }).join("\n");
 
-  // 💵 Soma total dos produtos
   const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-
-  // 📦 Define taxa de entrega
   let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
-
-  // 💰 Total final
   const totalComTaxa = totalProdutos + taxaEntrega;
 
-  // 🧾 Monta a mensagem para WhatsApp
   let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
-
   if (retirarLocalChecked) {
-    mensagemTexto +=
-      `🏃 *Retirada no Local*\n` +
-      `📦 *Taxa de Entrega:* R$ 0,00\n`;
+    mensagemTexto += `🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
   } else {
-    mensagemTexto +=
-      `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n` +
-      `🏠 *Endereço:* ${andressInput.value}\n`;
+    mensagemTexto += `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
   }
-
   mensagemTexto += `💰 *Total:* R$ ${totalComTaxa.toFixed(2)}`;
 
-  // Codifica para URL
   const mensagem = encodeURIComponent(mensagemTexto);
-
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  // Limpa carrinho
-// Limpa carrinho
-cart = [];
-updateCartModal();
+  cart = [];
+  updateCartModal();
+  cardmodal.style.display = "none";
 
-// FECHAR AUTOMATICAMENTE O MODAL DO CARRINHO
-cardmodal.style.display = "none";
-
-setTimeout(() => {
-  const modal = document.getElementById('pedido-sucesso-modal');
-  const modalBox = document.getElementById('pedido-modal-box');
-  modal.classList.remove('hidden');
-  
-  // animação de entrada
   setTimeout(() => {
-    modalBox.classList.remove('scale-90', 'opacity-0');
-    modalBox.classList.add('scale-100', 'opacity-100');
-  }, 50);
-
-  const btnOk = document.getElementById('pedido-sucesso-ok');
-  btnOk.addEventListener('click', () => {
-    // animação de saída
-    modalBox.classList.add('scale-90', 'opacity-0');
+    const modal = document.getElementById('pedido-sucesso-modal');
+    const modalBox = document.getElementById('pedido-modal-box');
+    modal.classList.remove('hidden');
+    
     setTimeout(() => {
-      modal.classList.add('hidden');
-    }, 300);
-  });
-}, 500);
+      modalBox.classList.remove('scale-90', 'opacity-0');
+      modalBox.classList.add('scale-100', 'opacity-100');
+    }, 50);
 
-
+    const btnOk = document.getElementById('pedido-sucesso-ok');
+    btnOk.addEventListener('click', () => {
+      modalBox.classList.add('scale-90', 'opacity-0');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+    });
+  }, 500);
 
 });
+
 
 
 
@@ -512,21 +517,27 @@ salvarIngredientes.addEventListener("click", () => {
   }).showToast();
 });
 
+// ===============================
+// Função de login por conta do Google
+// ===============================
 const loginModal = document.getElementById("login-modal");
 const loginModalBox = document.getElementById("login-modal-box");
 
-const btnLogin = document.getElementById("btn-login");
-const btnCadastro = document.getElementById("btn-cadastro");
+const btnLogin = document.getElementById("btn-login");       // Botão "Entrar"
+const btnCadastro = document.getElementById("btn-cadastro"); // Botão "Criar Conta"
 const btnFecharLogin = document.getElementById("login-fechar");
-const userPhoto = document.getElementById("user-photo"); // foto do usuário
+const userPhoto = document.getElementById("user-photo");     // Foto do usuário
+const googleLoginBtn = document.getElementById("google-login-btn"); // Botão do Google no modal
 
-// Função para mostrar foto do usuário e ocultar botão "Criar Conta"
+// Função para mostrar foto do usuário e ocultar botões de login/cadastro
 function showUser(user) {
-    btnCadastro.disabled = true;
-    btnCadastro.style.display = "none";
+    btnLogin.style.display = "none";      // Esconde botão Entrar
+    btnCadastro.style.display = "none";   // Esconde botão Criar Conta
 
-    userPhoto.src = user.picture;
-    userPhoto.classList.remove("hidden");
+    if (user.picture) {
+        userPhoto.src = user.picture;        // Define a foto do usuário
+        userPhoto.classList.remove("hidden"); // Mostra a foto
+    }
 }
 
 // Verifica se o usuário já está logado (localStorage)
@@ -547,7 +558,7 @@ btnLogin.addEventListener("click", () => {
     }, 50);
 });
 
-// Abrir modal (Criar Conta)
+// Abrir modal (Criar Conta) -> apenas abre o modal, não faz login
 btnCadastro.addEventListener("click", () => {
     loginModal.classList.remove("hidden");
     setTimeout(() => {
@@ -579,19 +590,22 @@ function handleCredentialResponse(response) {
     // Salva no localStorage
     localStorage.setItem("userGoogle", JSON.stringify(user));
 
-    // Mostra foto e oculta botão
+    // Mostra foto e oculta botões
     showUser(user);
 
     // Fecha modal
     loginModal.classList.add("hidden");
 }
 
+// Inicializa Google Sign-In
 google.accounts.id.initialize({
     client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
     callback: handleCredentialResponse
 });
 
+// Renderiza botão do Google no modal
 google.accounts.id.renderButton(
-    document.querySelector(".btn-google"),
+    googleLoginBtn, // agora usa o botão do modal
     { theme: "outline", size: "large" }
 );
+

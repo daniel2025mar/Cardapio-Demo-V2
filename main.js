@@ -617,18 +617,24 @@ window.onload = function () {
     });
 };
 
-
 // ===============================
-// MODAL DO PERFIL
+// MODAL DO PERFIL (NOVAS IDs)
 // ===============================
 
 // Seletores do modal
-const perfilModal = document.getElementById("perfil-modal");
-const perfilModalBox = document.getElementById("perfil-modal-box");
-const perfilFoto = document.getElementById("perfil-foto");
-const perfilNome = document.getElementById("perfil-nome");
-const perfilFechar = document.getElementById("perfil-fechar");
-const logoutBtn = document.getElementById("logout-btn");
+const perfilModal = document.getElementById("perfilModal-container");
+const perfilModalBox = document.getElementById("perfilModal-box");
+const perfilFoto = document.getElementById("perfilModal-foto");
+const perfilNome = document.getElementById("perfilModal-nome");
+const perfilFechar = document.getElementById("perfilModal-fechar");
+const logoutBtn = document.getElementById("perfilModal-logout");
+
+// Foto pequena no topo (abre o modal)
+const userPhotocliente = document.getElementById("user-photo");
+
+// Botões exibidos quando o usuário NÃO está logado
+const btnLogincliente = document.getElementById("btn-login");
+const btnCadastrocliente = document.getElementById("btn-cadastro");
 
 // ===============================
 // ABRIR MODAL DO PERFIL
@@ -636,49 +642,66 @@ const logoutBtn = document.getElementById("logout-btn");
 function openPerfilModal() {
     const user = JSON.parse(localStorage.getItem("userGoogle"));
 
-    if (!user) return;
+    if (!user) return; // Se não existe login, não abre o modal
 
-    perfilFoto.src = user.picture;
-    perfilNome.innerText = user.name;
+    // Atualiza dados no modal
+    if (perfilFoto) perfilFoto.src = user.picture || "";
+    if (perfilNome) perfilNome.innerText = user.name || "Usuário";
 
-    perfilModal.classList.remove("hidden");
+    // Mostra modal
+    if (perfilModal) perfilModal.classList.remove("hidden");
 
+    // Animação
     setTimeout(() => {
-        perfilModalBox.classList.remove("scale-95", "opacity-0");
-        perfilModalBox.classList.add("scale-100", "opacity-100");
+        if (perfilModalBox) {
+            perfilModalBox.classList.remove("scale-95", "opacity-0");
+            perfilModalBox.classList.add("scale-100", "opacity-100");
+        }
     }, 50);
 }
 
-// Quando o usuário clicar na foto pequena → abre o perfil
-userPhoto.addEventListener("click", openPerfilModal);
-
+// Abre o modal ao clicar na foto do topo
+if (userPhotocliente) {
+    userPhotocliente.addEventListener("click", openPerfilModal);
+}
 
 // ===============================
 // FECHAR MODAL
 // ===============================
-perfilFechar.addEventListener("click", () => {
-    perfilModalBox.classList.add("scale-95", "opacity-0");
-    perfilModalBox.classList.remove("scale-100", "opacity-100");
+if (perfilFechar) {
+    perfilFechar.addEventListener("click", () => {
+        if (perfilModalBox) {
+            perfilModalBox.classList.add("scale-95", "opacity-0");
+            perfilModalBox.classList.remove("scale-100", "opacity-100");
+        }
 
-    setTimeout(() => perfilModal.classList.add("hidden"), 200);
-});
+        setTimeout(() => {
+            if (perfilModal) perfilModal.classList.add("hidden");
+        }, 200);
+    });
+}
 
 // ===============================
 // LOGOUT
 // ===============================
-logoutBtn.addEventListener("click", () => {
-    localStorage.removeItem("userGoogle");
+if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+        // Remove dados salvos
+        localStorage.removeItem("userGoogle");
 
-    // Esconde a foto
-    userPhoto.classList.add("hidden");
+        // Some com a foto pequena
+        if (userPhotocliente) userPhotocliente.classList.add("hidden");
 
-    // Mostra novamente os botões Login / Cadastro
-    btnLogin.style.display = "block";
-    btnCadastro.style.display = "block";
+        // Mostra botões de login / cadastro novamente
+        if (btnLogincliente) btnLogincliente.style.display = "block";
+        if (btnCadastrocliente) btnCadastrocliente.style.display = "block";
 
-    // Fecha o modal
-    perfilFechar.click();
-});
+        // Fecha modal
+        if (perfilFechar) perfilFechar.click();
+    });
+}
+
+
 
 
 

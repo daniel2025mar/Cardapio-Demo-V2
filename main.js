@@ -377,19 +377,22 @@ let produtoSelecionado = null;
 
 // Banco de ingredientes com valor
 const ingredientesBanco = {
-  "Hamburguer Smash": [
-    { nome: "Alface", preco: 2.00 },
-    { nome: "Carne smash 180g", preco: 1.50 },
-    { nome: "Queijo prato", preco: 6.70 },
-    { nome: "Maionese da casa", preco: 7.00 },
-    { nome: "Ovo", preco: 1.70 }
+  "Chesse Pickles": [
+    { nome: "Hamburguer", preco: 2.00 },
+    { nome: "Mussarela empada", preco: 1.50 },
+    { nome: "Picles", preco: 6.70 },
+    { nome: "Cebola Roxa", preco: 7.00 },
+    { nome: "Alface", preco: 1.70 },
+    { nome: "Maionese Dev", preco: 1.70 }
   ],
-  "Hamburguer da Casa": [
-    { nome: "Alface", preco: 2.00 },
-    { nome: "Carne smash 180g", preco: 1.50 },
-    { nome: "Queijo prato", preco: 6.70 },
-    { nome: "Maionese da casa", preco: 7.00 },
-    { nome: "Ovo", preco: 1.70 }
+  "Chicken": [
+    { nome: "Hamburguer de Frango empanado", preco: 2.00 },
+    { nome: "Queijo Prato", preco: 1.50 },
+    { nome: "Bacon", preco: 6.70 },
+    { nome: "Cebola Roxa", preco: 7.00 },
+    { nome: "Tomate", preco: 1.70 },
+    { nome: "Alface", preco: 1.70 },
+    { nome: "Maionese", preco: 1.70 }
   ],
   "Hamburguer Magno": [
     { nome: "Alface", preco: 2.00 },

@@ -163,7 +163,7 @@ function removeItemCard(name){
 
 //funçao do campo do endereço
 andressInput.addEventListener("input", function(event){
- let inputValue = event.target.Value;
+ let inputValue = event.target.value; // sempre minúsculo
   if(inputValue !==""){
    andressInput.classList.remove("border-red-500")
    andresswarn.classList.add("hidden")
@@ -548,3 +548,32 @@ salvarIngredientes.addEventListener("click", () => {
     }, 200);
   });
 
+  function handleCredentialResponse(response) {
+      // Aqui você recebe os dados do Google
+      console.log("ID Token:", response.credential);
+
+      // Decodificar o token se quiser pegar nome/email (opcional)
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const user = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join('')));
+
+      console.log(user); // Contém nome, email, imagem etc.
+
+      // Aqui você pode salvar os dados no cardápio (localStorage ou enviar pro backend)
+      localStorage.setItem("userGoogle", JSON.stringify(user));
+
+      // Fechar modal de login se quiser
+      document.getElementById("login-modal").classList.add("hidden");
+  }
+
+  google.accounts.id.initialize({
+      client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
+      callback: handleCredentialResponse
+  });
+
+  google.accounts.id.renderButton(
+      document.querySelector(".btn-google"), // botão que você criou
+      { theme: "outline", size: "large" }  // estilo do botão
+  );

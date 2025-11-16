@@ -618,6 +618,70 @@ window.onload = function () {
 };
 
 
+// ===============================
+// MODAL DO PERFIL
+// ===============================
+
+// Seletores do modal
+const perfilModal = document.getElementById("perfil-modal");
+const perfilModalBox = document.getElementById("perfil-modal-box");
+const perfilFoto = document.getElementById("perfil-foto");
+const perfilNome = document.getElementById("perfil-nome");
+const perfilFechar = document.getElementById("perfil-fechar");
+const logoutBtn = document.getElementById("logout-btn");
+
+// ===============================
+// ABRIR MODAL DO PERFIL
+// ===============================
+function openPerfilModal() {
+    const user = JSON.parse(localStorage.getItem("userGoogle"));
+
+    if (!user) return;
+
+    perfilFoto.src = user.picture;
+    perfilNome.innerText = user.name;
+
+    perfilModal.classList.remove("hidden");
+
+    setTimeout(() => {
+        perfilModalBox.classList.remove("scale-95", "opacity-0");
+        perfilModalBox.classList.add("scale-100", "opacity-100");
+    }, 50);
+}
+
+// Quando o usuário clicar na foto pequena → abre o perfil
+userPhoto.addEventListener("click", openPerfilModal);
+
+
+// ===============================
+// FECHAR MODAL
+// ===============================
+perfilFechar.addEventListener("click", () => {
+    perfilModalBox.classList.add("scale-95", "opacity-0");
+    perfilModalBox.classList.remove("scale-100", "opacity-100");
+
+    setTimeout(() => perfilModal.classList.add("hidden"), 200);
+});
+
+// ===============================
+// LOGOUT
+// ===============================
+logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("userGoogle");
+
+    // Esconde a foto
+    userPhoto.classList.add("hidden");
+
+    // Mostra novamente os botões Login / Cadastro
+    btnLogin.style.display = "block";
+    btnCadastro.style.display = "block";
+
+    // Fecha o modal
+    perfilFechar.click();
+});
+
+
+
 
 
 

@@ -485,5 +485,25 @@
 
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script type="module" src="/main.js"></script>
+
+<!-- Google Identity -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<div id="g_id_onload"
+     data-client_id="621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com"
+     data-callback="handleCredentialResponse"
+     data-auto_prompt="false">
+</div>
+
+<!-- Botão oficial do Google (fica escondido) -->
+<div id="google-signin-btn"
+     class="g_id_signin"
+     data-type="standard"
+     data-size="large"
+     data-theme="outline"
+     data-text="signin_with"
+     style="display:none;">
+</div>
+
 </body>
 </html>

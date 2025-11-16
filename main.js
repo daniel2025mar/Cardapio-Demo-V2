@@ -594,31 +594,29 @@ function handleCredentialResponse(response) {
 }
 
 // ===============================
-// Carrega Google e só depois cria o botão invisível
+// Inicialização do Google Identity
 // ===============================
 window.onload = function () {
 
     google.accounts.id.initialize({
         client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
-        callback: handleCredentialResponse,
-        auto_select: false
+        callback: handleCredentialResponse
     });
 
-    // Criar botão invisível
-    const googleHiddenBtn = document.createElement("div");
-    googleHiddenBtn.style.display = "none";
-    document.body.appendChild(googleHiddenBtn);
-
+    // Renderiza o botão invisível oficial
     google.accounts.id.renderButton(
-        googleHiddenBtn,
+        document.getElementById("google-signin-btn"),
         { theme: "outline", size: "large" }
     );
 
-    // Associar o botão customizado
+    // Quando o usuário clicar no botão customizado → aciona o oficial
     googleLoginBtn.addEventListener("click", () => {
-        googleHiddenBtn.querySelector("button").click();
+        document
+            .querySelector("#google-signin-btn div[role=button]")
+            .click();
     });
 };
+
 
 
 

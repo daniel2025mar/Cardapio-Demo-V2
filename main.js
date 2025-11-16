@@ -650,13 +650,38 @@ const btnCadastrocliente = document.getElementById("btn-cadastro");
 let modalAberto = false;
 
 // ===============================
+// FUNÇÃO PARA ATUALIZAR UI DO USUÁRIO
+// ===============================
+function atualizarUIUsuario(user) {
+    if (user) {
+        // Mostra a foto do usuário
+        if (userPhotocliente) {
+            userPhotocliente.src = user.photoURL || "./Imagem/default-user.png";
+            userPhotocliente.classList.remove("hidden");
+        }
+        // Mostra o nome no modal
+        if (perfilNome) perfilNome.textContent = `Olá! ${user.name || "Usuário"}`;
+
+        // Esconde botões de login/cadastro
+        if (btnLogincliente) btnLogincliente.style.display = "none";
+        if (btnCadastrocliente) btnCadastrocliente.style.display = "none";
+    } else {
+        // Usuário deslogado
+        if (userPhotocliente) userPhotocliente.classList.add("hidden");
+        if (btnLogincliente) btnLogincliente.style.display = "block";
+        if (btnCadastrocliente) btnCadastrocliente.style.display = "block";
+        if (perfilNome) perfilNome.textContent = "Olá! Usuário";
+    }
+}
+
+// ===============================
 // FUNÇÃO PARA ABRIR MODAL
 // ===============================
 function abrirModal() {
     const user = JSON.parse(localStorage.getItem("userGoogle"));
     if (!user) return;
 
-    if (perfilNome) perfilNome.innerText = user.name || "Usuário";
+    atualizarUIUsuario(user);
 
     if (perfilModal) perfilModal.classList.remove("hidden");
 
@@ -704,7 +729,6 @@ if (userPhotocliente) {
 document.addEventListener("click", (e) => {
     if (!modalAberto) return;
 
-    // Se o clique não foi na foto nem no modal, fecha
     if (e.target !== userPhotocliente && !perfilModalBox.contains(e.target)) {
         fecharModal();
     }
@@ -722,13 +746,18 @@ if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
         localStorage.removeItem("userGoogle");
 
-        if (userPhotocliente) userPhotocliente.classList.add("hidden");
-        if (btnLogincliente) btnLogincliente.style.display = "block";
-        if (btnCadastrocliente) btnCadastrocliente.style.display = "block";
+        atualizarUIUsuario(null);
 
         fecharModal();
     });
 }
+
+// ===============================
+// INICIALIZAÇÃO - Carrega usuário do localStorage
+// ===============================
+const userLogado = JSON.parse(localStorage.getItem("userGoogle"));
+atualizarUIUsuario(userLogado);
+
 
 
 // Função para normalizar strings (remover acentos e caracteres especiais)
@@ -771,7 +800,8 @@ searchInput.addEventListener('input', () => {
 
 // propagandas
 const textos = [
-  '<i class="fa-solid fa-credit-card"></i> Pagamento via PIX disponível',
+  '<i class="fa-solid fa-money-bill-transfer"></i> Pagamento via PIX disponível',
+
   '<i class="fa-solid fa-bullhorn"></i> Confira nossas promoções exclusivas',
   '<i class="fa-solid fa-utensils"></i> Novidades no cardápio esta semana',
   '<i class="fa-solid fa-gift"></i> Aproveite nosso cupom especial de hoje'

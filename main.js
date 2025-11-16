@@ -722,31 +722,39 @@ if (logoutBtn) {
 }
 
 
+// Função para normalizar strings (remover acentos e caracteres especiais)
+function normalizeString(str) {
+  return str
+    .normalize('NFD')             // separa os acentos das letras
+    .replace(/[\u0300-\u036f]/g, '') // remove os diacríticos
+    .replace(/[^a-zA-Z0-9\s]/g, '') // remove caracteres especiais
+    .toLowerCase()
+    .trim();
+}
 
-  // Seleciona o input de pesquisa e o container dos produtos
-  const searchInput = document.getElementById('searchInput');
-  const produtos = document.querySelectorAll('#menu main > div'); // cada produto
-  const noResults = document.getElementById('noResults');
+// Seleciona o input de pesquisa e o container dos produtos
+const searchInput = document.getElementById('searchInput');
+const produtos = document.querySelectorAll('#menu main > div'); // cada produto
+const noResults = document.getElementById('noResults');
 
-  searchInput.addEventListener('input', () => {
-    const termo = searchInput.value.toLowerCase().trim();
-    let encontrados = 0;
+searchInput.addEventListener('input', () => {
+  const termo = normalizeString(searchInput.value);
+  let encontrados = 0;
 
-    produtos.forEach(produto => {
-      const nome = produto.querySelector('p.font-bold').textContent.toLowerCase();
-      if (nome.includes(termo)) {
-        produto.style.display = 'flex';
-        encontrados++;
-      } else {
-        produto.style.display = 'none';
-      }
-    });
-
-    // Mostra ou esconde a mensagem de "Nenhum produto encontrado"
-    if (encontrados === 0) {
-      noResults.classList.remove('hidden');
+  produtos.forEach(produto => {
+    const nome = normalizeString(produto.querySelector('p.font-bold').textContent);
+    if (nome.includes(termo)) {
+      produto.style.display = 'flex';
+      encontrados++;
     } else {
-      noResults.classList.add('hidden');
+      produto.style.display = 'none';
     }
   });
 
+  // Mostra ou esconde a mensagem de "Nenhum produto encontrado"
+  if (encontrados === 0) {
+    noResults.classList.remove('hidden');
+  } else {
+    noResults.classList.add('hidden');
+  }
+});

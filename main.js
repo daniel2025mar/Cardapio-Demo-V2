@@ -307,7 +307,7 @@ checkout.addEventListener("click", function() {
 function checkRestauranteOpen(){
    const data = new Date();
    const hora = data.getHours();
-   return hora >= 9 && hora < 22;
+   return hora >= 8 && hora < 22;
 }
 
 
@@ -520,6 +520,7 @@ salvarIngredientes.addEventListener("click", () => {
 // ===============================
 // Função de login por conta do Google
 // ===============================
+
 const loginModal = document.getElementById("login-modal");
 const loginModalBox = document.getElementById("login-modal-box");
 
@@ -527,20 +528,24 @@ const btnLogin = document.getElementById("btn-login");       // Botão "Entrar"
 const btnCadastro = document.getElementById("btn-cadastro"); // Botão "Criar Conta"
 const btnFecharLogin = document.getElementById("login-fechar");
 const userPhoto = document.getElementById("user-photo");     // Foto do usuário
-const googleLoginBtn = document.getElementById("google-login-btn"); // Botão do Google no modal
+const googleLoginBtn = document.getElementById("google-login-btn"); // Botão customizado Google
 
-// Função para mostrar foto do usuário e ocultar botões de login/cadastro
+// ===============================
+// Função para mostrar foto do usuário e ocultar botões
+// ===============================
 function showUser(user) {
     btnLogin.style.display = "none";      // Esconde botão Entrar
     btnCadastro.style.display = "none";   // Esconde botão Criar Conta
 
     if (user.picture) {
-        userPhoto.src = user.picture;        // Define a foto do usuário
-        userPhoto.classList.remove("hidden"); // Mostra a foto
+        userPhoto.src = user.picture;
+        userPhoto.classList.remove("hidden");
     }
 }
 
+// ===============================
 // Verifica se o usuário já está logado (localStorage)
+// ===============================
 window.addEventListener("DOMContentLoaded", () => {
     const storedUser = localStorage.getItem("userGoogle");
     if (storedUser) {
@@ -549,39 +554,38 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Abrir modal (Entrar)
-btnLogin.addEventListener("click", () => {
+// ===============================
+// Abrir modal (Entrar ou Criar Conta)
+// ===============================
+function openLoginModal() {
     loginModal.classList.remove("hidden");
     setTimeout(() => {
         loginModalBox.classList.remove("scale-95", "opacity-0");
         loginModalBox.classList.add("scale-100", "opacity-100");
     }, 50);
-});
+}
 
-// Abrir modal (Criar Conta) -> apenas abre o modal, não faz login
-btnCadastro.addEventListener("click", () => {
-    loginModal.classList.remove("hidden");
-    setTimeout(() => {
-        loginModalBox.classList.remove("scale-95", "opacity-0");
-        loginModalBox.classList.add("scale-100", "opacity-100");
-    }, 50);
-});
+btnLogin.addEventListener("click", openLoginModal);
+btnCadastro.addEventListener("click", openLoginModal);
 
+// ===============================
 // Fechar modal
+// ===============================
 btnFecharLogin.addEventListener("click", () => {
     loginModalBox.classList.add("scale-95", "opacity-0");
     loginModalBox.classList.remove("scale-100", "opacity-100");
-
     setTimeout(() => {
         loginModal.classList.add("hidden");
     }, 200);
 });
 
+// ===============================
 // Callback do Google
+// ===============================
 function handleCredentialResponse(response) {
     const base64Url = response.credential.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const user = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
+    const user = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join('')));
 
@@ -597,15 +601,20 @@ function handleCredentialResponse(response) {
     loginModal.classList.add("hidden");
 }
 
+// ===============================
 // Inicializa Google Sign-In
+// ===============================
 google.accounts.id.initialize({
     client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
-    callback: handleCredentialResponse
+    callback: handleCredentialResponse,
+    auto_select: false
 });
 
-// Renderiza botão do Google no modal
-google.accounts.id.renderButton(
-    googleLoginBtn, // agora usa o botão do modal
-    { theme: "outline", size: "large" }
-);
+// ===============================
+// Associa login ao botão customizado
+// ===============================
+googleLoginBtn.addEventListener("click", () => {
+    google.accounts.id.prompt(); // Abre o prompt de login do Google
+});
+
 

@@ -426,7 +426,7 @@ document.querySelectorAll(".open-ingredientes-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     produtoSelecionado = btn.dataset.name;
 
-    ingredientesTitle.innerText = `Ingredientes - ${produtoSelecionado}`;
+    ingredientesTitle.innerText = produtoSelecionado;
     ingredientesList.innerHTML = "";
 
     const lista = ingredientesBanco[produtoSelecionado] || [];

@@ -524,18 +524,18 @@ salvarIngredientes.addEventListener("click", () => {
 const loginModal = document.getElementById("login-modal");
 const loginModalBox = document.getElementById("login-modal-box");
 
-const btnLogin = document.getElementById("btn-login");       // Botão "Entrar"
-const btnCadastro = document.getElementById("btn-cadastro"); // Botão "Criar Conta"
+const btnLogin = document.getElementById("btn-login");
+const btnCadastro = document.getElementById("btn-cadastro");
 const btnFecharLogin = document.getElementById("login-fechar");
-const userPhoto = document.getElementById("user-photo");     // Foto do usuário
-const googleLoginBtn = document.getElementById("google-login-btn"); // Botão customizado Google
+const userPhoto = document.getElementById("user-photo");
+const googleLoginBtn = document.getElementById("google-login-btn");
 
 // ===============================
 // Função para mostrar foto do usuário e ocultar botões
 // ===============================
 function showUser(user) {
-    btnLogin.style.display = "none";      // Esconde botão Entrar
-    btnCadastro.style.display = "none";   // Esconde botão Criar Conta
+    btnLogin.style.display = "none";
+    btnCadastro.style.display = "none";
 
     if (user.picture) {
         userPhoto.src = user.picture;
@@ -591,18 +591,13 @@ function handleCredentialResponse(response) {
 
     console.log(user);
 
-    // Salva no localStorage
     localStorage.setItem("userGoogle", JSON.stringify(user));
-
-    // Mostra foto e oculta botões
     showUser(user);
-
-    // Fecha modal
     loginModal.classList.add("hidden");
 }
 
 // ===============================
-// Inicializa Google Sign-In
+// Inicializa Google Sign-In (escondido)
 // ===============================
 google.accounts.id.initialize({
     client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
@@ -611,10 +606,20 @@ google.accounts.id.initialize({
 });
 
 // ===============================
-// Associa login ao botão customizado
+// Botão customizado
 // ===============================
 googleLoginBtn.addEventListener("click", () => {
-    google.accounts.id.prompt(); // Abre o prompt de login do Google
+    // Cria um botão invisível do Google e "clica" nele programaticamente
+    const tempButton = document.createElement("div");
+    tempButton.style.display = "none";
+    document.body.appendChild(tempButton);
+
+    google.accounts.id.renderButton(tempButton, { theme: "outline", size: "large" });
+    tempButton.querySelector("button").click();
+
+    // Remove o botão temporário depois de usar
+    setTimeout(() => tempButton.remove(), 500);
 });
+
 
 

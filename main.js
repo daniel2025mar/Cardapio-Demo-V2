@@ -531,7 +531,7 @@ const userPhoto = document.getElementById("user-photo");
 const googleLoginBtn = document.getElementById("google-login-btn");
 
 // ===============================
-// Função para mostrar foto do usuário e ocultar botões
+// Mostrar foto do usuário
 // ===============================
 function showUser(user) {
     btnLogin.style.display = "none";
@@ -544,18 +544,17 @@ function showUser(user) {
 }
 
 // ===============================
-// Verifica se o usuário já está logado (localStorage)
+// Restaurar login salvo
 // ===============================
 window.addEventListener("DOMContentLoaded", () => {
     const storedUser = localStorage.getItem("userGoogle");
     if (storedUser) {
-        const user = JSON.parse(storedUser);
-        showUser(user);
+        showUser(JSON.parse(storedUser));
     }
 });
 
 // ===============================
-// Abrir modal (Entrar ou Criar Conta)
+// Abrir modal
 // ===============================
 function openLoginModal() {
     loginModal.classList.remove("hidden");
@@ -574,9 +573,7 @@ btnCadastro.addEventListener("click", openLoginModal);
 btnFecharLogin.addEventListener("click", () => {
     loginModalBox.classList.add("scale-95", "opacity-0");
     loginModalBox.classList.remove("scale-100", "opacity-100");
-    setTimeout(() => {
-        loginModal.classList.add("hidden");
-    }, 200);
+    setTimeout(() => loginModal.classList.add("hidden"), 200);
 });
 
 // ===============================
@@ -592,41 +589,37 @@ function handleCredentialResponse(response) {
     console.log("Usuário logado:", user);
     localStorage.setItem("userGoogle", JSON.stringify(user));
 
-    // Fecha o modal após login
     loginModal.classList.add("hidden");
-
-    // Mostra a foto do usuário
     showUser(user);
 }
 
 // ===============================
-// Inicializa Google Sign-In (escondido)
+// Carrega Google e só depois cria o botão invisível
 // ===============================
-google.accounts.id.initialize({
-    client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
-    callback: handleCredentialResponse,
-    auto_select: false
-});
+window.onload = function () {
 
-// ===============================
-// Botão customizado
-// ===============================
+    google.accounts.id.initialize({
+        client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
+        callback: handleCredentialResponse,
+        auto_select: false
+    });
 
-// Cria um botão invisível do Google (precisa existir uma vez na página)
-const googleHiddenBtn = document.createElement("div");
-googleHiddenBtn.style.display = "none";
-document.body.appendChild(googleHiddenBtn);
+    // Criar botão invisível
+    const googleHiddenBtn = document.createElement("div");
+    googleHiddenBtn.style.display = "none";
+    document.body.appendChild(googleHiddenBtn);
 
-// Renderiza o botão invisível
-google.accounts.id.renderButton(
-    googleHiddenBtn,
-    { theme: "outline", size: "large" }
-);
+    google.accounts.id.renderButton(
+        googleHiddenBtn,
+        { theme: "outline", size: "large" }
+    );
 
-// Faz o botão customizado disparar o botão invisível
-googleLoginBtn.addEventListener("click", () => {
-    googleHiddenBtn.querySelector("button").click();
-});
+    // Associar o botão customizado
+    googleLoginBtn.addEventListener("click", () => {
+        googleHiddenBtn.querySelector("button").click();
+    });
+};
+
 
 
 

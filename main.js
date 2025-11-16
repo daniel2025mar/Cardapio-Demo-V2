@@ -512,68 +512,86 @@ salvarIngredientes.addEventListener("click", () => {
   }).showToast();
 });
 
+const loginModal = document.getElementById("login-modal");
+const loginModalBox = document.getElementById("login-modal-box");
 
-  const loginModal = document.getElementById("login-modal");
-  const loginModalBox = document.getElementById("login-modal-box");
+const btnLogin = document.getElementById("btn-login");
+const btnCadastro = document.getElementById("btn-cadastro");
+const btnFecharLogin = document.getElementById("login-fechar");
+const userPhoto = document.getElementById("user-photo"); // foto do usuário
 
-  const btnLogin = document.getElementById("btn-login");
-  const btnCadastro = document.getElementById("btn-cadastro");
-  const btnFecharLogin = document.getElementById("login-fechar");
+// Função para mostrar foto do usuário e ocultar botão "Criar Conta"
+function showUser(user) {
+    btnCadastro.disabled = true;
+    btnCadastro.style.display = "none";
 
-  // Abrir modal (Entrar)
-  btnLogin.addEventListener("click", () => {
+    userPhoto.src = user.picture;
+    userPhoto.classList.remove("hidden");
+}
+
+// Verifica se o usuário já está logado (localStorage)
+window.addEventListener("DOMContentLoaded", () => {
+    const storedUser = localStorage.getItem("userGoogle");
+    if (storedUser) {
+        const user = JSON.parse(storedUser);
+        showUser(user);
+    }
+});
+
+// Abrir modal (Entrar)
+btnLogin.addEventListener("click", () => {
     loginModal.classList.remove("hidden");
     setTimeout(() => {
-      loginModalBox.classList.remove("scale-95", "opacity-0");
-      loginModalBox.classList.add("scale-100", "opacity-100");
+        loginModalBox.classList.remove("scale-95", "opacity-0");
+        loginModalBox.classList.add("scale-100", "opacity-100");
     }, 50);
-  });
+});
 
-  // Abrir modal (Criar Conta)
-  btnCadastro.addEventListener("click", () => {
+// Abrir modal (Criar Conta)
+btnCadastro.addEventListener("click", () => {
     loginModal.classList.remove("hidden");
     setTimeout(() => {
-      loginModalBox.classList.remove("scale-95", "opacity-0");
-      loginModalBox.classList.add("scale-100", "opacity-100");
+        loginModalBox.classList.remove("scale-95", "opacity-0");
+        loginModalBox.classList.add("scale-100", "opacity-100");
     }, 50);
-  });
+});
 
-  // Fechar modal
-  btnFecharLogin.addEventListener("click", () => {
+// Fechar modal
+btnFecharLogin.addEventListener("click", () => {
     loginModalBox.classList.add("scale-95", "opacity-0");
     loginModalBox.classList.remove("scale-100", "opacity-100");
 
     setTimeout(() => {
-      loginModal.classList.add("hidden");
+        loginModal.classList.add("hidden");
     }, 200);
-  });
+});
 
-  function handleCredentialResponse(response) {
-      // Aqui você recebe os dados do Google
-      console.log("ID Token:", response.credential);
+// Callback do Google
+function handleCredentialResponse(response) {
+    const base64Url = response.credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const user = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('')));
 
-      // Decodificar o token se quiser pegar nome/email (opcional)
-      const base64Url = response.credential.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const user = JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join('')));
+    console.log(user);
 
-      console.log(user); // Contém nome, email, imagem etc.
+    // Salva no localStorage
+    localStorage.setItem("userGoogle", JSON.stringify(user));
 
-      // Aqui você pode salvar os dados no cardápio (localStorage ou enviar pro backend)
-      localStorage.setItem("userGoogle", JSON.stringify(user));
+    // Mostra foto e oculta botão
+    showUser(user);
 
-      // Fechar modal de login se quiser
-      document.getElementById("login-modal").classList.add("hidden");
-  }
+    // Fecha modal
+    loginModal.classList.add("hidden");
+}
 
-  google.accounts.id.initialize({
-      client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
-      callback: handleCredentialResponse
-  });
+google.accounts.id.initialize({
+    client_id: "621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com",
+    callback: handleCredentialResponse
+});
 
-  google.accounts.id.renderButton(
-      document.querySelector(".btn-google"), // botão que você criou
-      { theme: "outline", size: "large" }  // estilo do botão
-  );
+google.accounts.id.renderButton(
+    document.querySelector(".btn-google"),
+    { theme: "outline", size: "large" }
+);

@@ -630,7 +630,7 @@ window.onload = function () {
 };
 
 // ===============================
-// MODAL DO PERFIL (FUNCIONAL)
+// MODAL DO PERFIL (FUNCIONAL) - CORRIGIDO
 // ===============================
 
 // Seletores do modal
@@ -654,9 +654,9 @@ let modalAberto = false;
 // ===============================
 function atualizarUIUsuario(user) {
     if (user) {
-        // Mostra a foto do usuário
+        // Mostra a foto do usuário somente se não estiver aberta
         if (userPhotocliente) {
-            userPhotocliente.src = user.photoURL || "./Imagem/default-user.png";
+            if (!modalAberto) userPhotocliente.src = user.photoURL || "./Imagem/default-user.png";
             userPhotocliente.classList.remove("hidden");
         }
         // Mostra o nome no modal
@@ -681,7 +681,8 @@ function abrirModal() {
     const user = JSON.parse(localStorage.getItem("userGoogle"));
     if (!user) return;
 
-    atualizarUIUsuario(user);
+    // Atualiza o nome do modal, mas não a foto
+    if (perfilNome) perfilNome.textContent = `Olá! ${user.name || "Usuário"}`;
 
     if (perfilModal) perfilModal.classList.remove("hidden");
 
@@ -714,7 +715,8 @@ function fecharModal() {
 // TOGGLE AO CLICAR NA FOTO
 // ===============================
 if (userPhotocliente) {
-    userPhotocliente.addEventListener("click", () => {
+    userPhotocliente.addEventListener("click", (e) => {
+        e.stopPropagation(); // Evita fechar imediatamente
         if (modalAberto) {
             fecharModal();
         } else {
@@ -724,11 +726,10 @@ if (userPhotocliente) {
 }
 
 // ===============================
-// FECHAR AO CLICAR FORA OU EM QUALQUER PARTE DO CARDÁPIO
+// FECHAR AO CLICAR FORA
 // ===============================
 document.addEventListener("click", (e) => {
     if (!modalAberto) return;
-
     if (e.target !== userPhotocliente && !perfilModalBox.contains(e.target)) {
         fecharModal();
     }
@@ -757,6 +758,7 @@ if (logoutBtn) {
 // ===============================
 const userLogado = JSON.parse(localStorage.getItem("userGoogle"));
 atualizarUIUsuario(userLogado);
+
 
 
 

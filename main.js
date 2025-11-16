@@ -307,7 +307,7 @@ checkout.addEventListener("click", function() {
 function checkRestauranteOpen(){
    const data = new Date();
    const hora = data.getHours();
-   return hora >= 8 && hora < 22;
+   return hora >= 9 && hora < 22;
 }
 
 
@@ -589,11 +589,14 @@ function handleCredentialResponse(response) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join('')));
 
-    console.log(user);
-
+    console.log("Usuário logado:", user);
     localStorage.setItem("userGoogle", JSON.stringify(user));
-    showUser(user);
+
+    // Fecha o modal após login
     loginModal.classList.add("hidden");
+
+    // Mostra a foto do usuário
+    showUser(user);
 }
 
 // ===============================
@@ -608,18 +611,23 @@ google.accounts.id.initialize({
 // ===============================
 // Botão customizado
 // ===============================
+
+// Cria um botão invisível do Google (precisa existir uma vez na página)
+const googleHiddenBtn = document.createElement("div");
+googleHiddenBtn.style.display = "none";
+document.body.appendChild(googleHiddenBtn);
+
+// Renderiza o botão invisível
+google.accounts.id.renderButton(
+    googleHiddenBtn,
+    { theme: "outline", size: "large" }
+);
+
+// Faz o botão customizado disparar o botão invisível
 googleLoginBtn.addEventListener("click", () => {
-    // Cria um botão invisível do Google e "clica" nele programaticamente
-    const tempButton = document.createElement("div");
-    tempButton.style.display = "none";
-    document.body.appendChild(tempButton);
-
-    google.accounts.id.renderButton(tempButton, { theme: "outline", size: "large" });
-    tempButton.querySelector("button").click();
-
-    // Remove o botão temporário depois de usar
-    setTimeout(() => tempButton.remove(), 500);
+    googleHiddenBtn.querySelector("button").click();
 });
+
 
 
 

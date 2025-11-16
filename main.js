@@ -407,6 +407,15 @@ const ingredientesBanco = {
     { nome: "Queijo prato", preco: 6.70 },
     { nome: "Maionese da casa", preco: 7.00 },
     { nome: "Ovo", preco: 1.70 }
+  ],
+
+  "Cupim Burguer": [
+    { nome: "Alface Americana", preco: 10.00 },
+    { nome: "Molho Dev", preco: 1.50 },
+    { nome: "Cupim Defumado", preco: 14.70 },
+    { nome: "Hamburguer", preco: 15.00 },
+    { nome: "Queijo Prato", preco: 5.0 },
+    { nome: "Bacon", preco: 4.70 }
   ]
 };
 
@@ -760,12 +769,13 @@ searchInput.addEventListener('input', () => {
 });
 
 
-// propagandas da empresa 
+// propagandas
+
 const textos = [
-  "💳 Aceitamos PIX",
-  "🔥 Promoções incríveis!",
-  "🍔 Novos pratos no cardápio",
-  "🎁 Cupom especial hoje"
+  "💳 Pagamento via PIX disponível",
+  "📢 Confira nossas promoções exclusivas",
+  "🍽️ Novidades no cardápio esta semana",
+  "🎁 Aproveite nosso cupom especial de hoje"
 ];
 
 let index = 0;
@@ -774,13 +784,10 @@ const elemento = document.getElementById("rotating-text");
 setInterval(() => {
   // Fade out
   elemento.style.opacity = 0;
-  
   setTimeout(() => {
-    // Muda o texto
     index = (index + 1) % textos.length;
-    elemento.textContent = textos[index];
-    
+    elemento.innerText = textos[index];
     // Fade in
     elemento.style.opacity = 1;
-  }, 1000); // meio segundo -> agora 1s para transição mais suave
-}, 4000); // tempo total entre trocas (fade out + fade in + pausa)
+  }, 500); // meio segundo para o fade
+}, 3000); // troca a cada 3 segundos

@@ -892,4 +892,22 @@ document.getElementById("mobileProductModal").addEventListener("click", function
   if (e.target === this) this.classList.add("hidden");
 });
 
+let qty = 1;
 
+document.getElementById("qtyPlus").addEventListener("click", function () {
+  qty++;
+  document.getElementById("qtyValue").innerText = qty;
+});
+
+document.getElementById("qtyMinus").addEventListener("click", function () {
+  if (qty > 0) {   // <-- AGORA PERMITE CHEGAR A ZERO
+    qty--;
+    document.getElementById("qtyValue").innerText = qty;
+  }
+});
+
+// Resetar quantidade sempre que abrir o modal
+function resetQty() {
+  qty = 1;
+  document.getElementById("qtyValue").innerText = 1;
+}

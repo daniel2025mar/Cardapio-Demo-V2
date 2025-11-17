@@ -88,7 +88,6 @@
   Conheça nosso Menu
 </h2>
 
-
 <!-- Campo de pesquisa responsivo com ícone elegante -->
 <div class="flex justify-center mb-6 px-2">
   <div class="relative w-full max-w-md sm:max-w-lg md:max-w-xl">
@@ -106,6 +105,90 @@
   </div>
 </div>
 
+
+
+<!-- CONTÊINER GERAL DAS CATEGORIAS -->
+<div class="relative w-full mt-6 mb-10">
+
+  <!-- SETA ESQUERDA -->
+  <button id="catLeft" 
+    class="absolute left-3 top-1/2 -translate-y-1/2 bg-white shadow-md 
+           w-10 h-10 rounded-full flex items-center justify-center 
+           hover:scale-110 transition z-20 cursor-pointer">
+    ◀
+  </button>
+
+  <!-- ÁREA SCROLL DOS CARDS -->
+  <div id="catScroll" class="w-full overflow-x-auto no-scrollbar px-16">
+    <div id="catContainer"
+         class="flex justify-center md:justify-center space-x-4 py-2 w-max mx-auto">
+
+      <!-- HAMBÚRGUERES -->
+      <a data-categoria="hamburguer"
+         class="categoria-card flex flex-col items-center justify-center 
+                bg-gray-200 text-gray-700 rounded-xl shadow-md 
+                w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
+                transition-all cursor-pointer">
+        <span class="text-3xl">🍔</span>
+        <span class="text-sm font-semibold mt-1">Hambúrgueres</span>
+      </a>
+
+      <!-- PORÇÕES -->
+      <a data-categoria="porcao"
+         class="categoria-card flex flex-col items-center justify-center 
+                bg-gray-200 text-gray-700 rounded-xl shadow-md 
+                w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
+                transition-all cursor-pointer">
+        <span class="text-3xl">🍟</span>
+        <span class="text-sm font-semibold mt-1">Porções</span>
+      </a>
+
+      <!-- BEBIDAS -->
+      <a data-categoria="bebidas"
+         class="categoria-card flex flex-col items-center justify-center 
+                bg-gray-200 text-gray-700 rounded-xl shadow-md 
+                w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
+                transition-all cursor-pointer">
+        <span class="text-3xl">🥤</span>
+        <span class="text-sm font-semibold mt-1">Bebidas</span>
+      </a>
+
+      <!-- COMBOS -->
+      <a data-categoria="combo"
+         class="categoria-card flex flex-col items-center justify-center 
+                bg-gray-200 text-gray-700 rounded-xl shadow-md 
+                w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
+                transition-all cursor-pointer">
+        <span class="text-3xl">🍱</span>
+        <span class="text-sm font-semibold mt-1">Combos</span>
+      </a>
+
+      <!-- SOBREMESAS -->
+      <a data-categoria="sobremesa"
+         class="categoria-card flex flex-col items-center justify-center 
+                bg-gray-200 text-gray-700 rounded-xl shadow-md 
+                w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
+                transition-all cursor-pointer">
+        <span class="text-3xl">🍨</span>
+        <span class="text-sm font-semibold mt-1">Sobremesas</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- SETA DIREITA -->
+  <button id="catRight" 
+    class="absolute right-3 top-1/2 -translate-y-1/2 bg-white shadow-md 
+           w-10 h-10 rounded-full flex items-center justify-center 
+           hover:scale-110 transition z-20 cursor-pointer">
+    ▶
+  </button>
+
+</div>
+
+
+
+
 <!-- Mensagem caso não encontre produtos -->
 <div id="noResults" class="text-center text-gray-600 font-medium mt-4 hidden">
   Nenhum item corresponde à sua pesquisa. Por favor, tente outro termo.
@@ -115,14 +198,18 @@
 <!--inicio menu-->
 <div id="menu" class="px-4 py-6 bg-gray-50">
 
-  <!-- ============================
-       TÍTULO HAMBÚRGUERES
-  ============================= -->
-  <div class="mx-auto max-w-7xl px-2 mb-6">
-  <h2 class="font-bold text-3xl text-gray-800">Hambúrgueres</h2>
-  <p class="mt-1 text-sm text-gray-500 font-medium italic">Deliciosos hambúrgueres artesanais feitos com ingredientes frescos!</p>
-</div>
+ <!-- ============================
+     SEÇÃO DE HAMBÚRGUERES
+============================= -->
+<div id="hamburgueres" data-section>
 
+  <!-- TÍTULO DA SEÇÃO -->
+  <div class="mx-auto max-w-7xl px-2 mb-6">
+    <h2 class="font-bold text-3xl text-gray-800">Hambúrgueres</h2>
+    <p class="mt-1 text-sm text-gray-500 font-medium italic">
+      Deliciosos hambúrgueres artesanais feitos com ingredientes frescos!
+    </p>
+  </div>
 
   <!-- ============================
        GRID HAMBÚRGUERES
@@ -130,134 +217,193 @@
   <main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
 
     <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
-      <img src="./Imagem/hamburguer.jpg" alt="Chesse Pickles"
-           class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+    <div data-produto="hamburguer"
+     class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
 
-      <div class="flex flex-col justify-between w-full">
-        <div>
-          <p class="font-bold text-lg mb-1">Chesse Pickles</p>
-          <p class="text-sm text-gray-600">Pão brioche, hambúrguer, mussarela empada, picles, cebola roxa, alface e maionese Dev</p>
-        </div>
-        <div class="flex items-center justify-between mt-3">
-          <p class="font-bold text-lg text-red-600">R$ 20,60</p>
-          <div class="flex gap-2">
-            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Chesse Pickles">
-              <i class="fas fa-list"></i>
-            </button>
-            <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Chesse Pickles" data-price="20,60">
-              <i class="fas fa-shopping-cart text-white text-lg"></i>
-            </button>
-          </div>
-        </div>
-      </div>
+  <img src="./Imagem/hamburguer.jpg" alt="Chesse Pickles"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Chesse Pickles</p>
+      <p class="text-sm text-gray-600">
+        Pão brioche, hambúrguer, mussarela empada, picles, cebola roxa, alface e maionese Dev
+      </p>
     </div>
 
-    <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
-      <img src="./Imagem/hamburguer1.jpg" alt="Chicken"
-           class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 20,60</p>
 
-      <div class="flex flex-col justify-between w-full">
-        <div>
-          <p class="font-bold text-lg mb-1">Chicken</p>
-          <p class="text-sm text-gray-600">Pão brioche, Hambúrguer de frango empanado, queijo prato, bacon, cebola roxa, tomate, alface e maionese</p>
-        </div>
-        <div class="flex items-center justify-between mt-3">
-          <p class="font-bold text-lg text-red-600">R$ 22,30</p>
-          <div class="flex gap-2">
-            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Chicken">
-              <i class="fas fa-list"></i>
-            </button>
-            <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Chicken" data-price="22,30">
-              <i class="fas fa-shopping-cart text-white text-lg"></i>
-            </button>
-          </div>
-        </div>
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+                data-name="Chesse Pickles">
+          <i class="fas fa-list"></i>
+        </button>
+
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+                data-name="Chesse Pickles" data-price="20,60">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
       </div>
     </div>
-
-    <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
-      <img src="./Imagem/hamburguer.jpg" alt="Hamburguer Magno"
-           class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-      <div class="flex flex-col justify-between w-full">
-        <div>
-          <p class="font-bold text-lg mb-1">Hamburguer Magno</p>
-          <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou Burguer 180g, queijo prato e maionese da casa.</p>
-        </div>
-        <div class="flex items-center justify-between mt-3">
-          <p class="font-bold text-lg text-red-600">R$ 18,90</p>
-          <div class="flex gap-2">
-            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Hamburguer Magno">
-              <i class="fas fa-list"></i>
-            </button>
-            <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Hamburguer Magno" data-price="18,90">
-              <i class="fas fa-shopping-cart text-white text-lg"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
-      <img src="./Imagem/hamburguer.jpg" alt="Hamburguer X Tudo"
-           class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-      <div class="flex flex-col justify-between w-full">
-        <div>
-          <p class="font-bold text-lg mb-1">Hamburguer X Tudo</p>
-          <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou Burguer 180g, queijo prato e maionese da casa.</p>
-        </div>
-        <div class="flex items-center justify-between mt-3">
-          <p class="font-bold text-lg text-red-600">R$ 18,90</p>
-          <div class="flex gap-2">
-            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Hamburguer X Tudo">
-              <i class="fas fa-list"></i>
-            </button>
-            <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Hamburguer X Tudo" data-price="18,90">
-              <i class="fas fa-shopping-cart text-white text-lg"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
-      <img src="./public/Imagem/cupim.png" alt="Cupim Burguer"
-           class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-      <div class="flex flex-col justify-between w-full">
-        <div>
-          <p class="font-bold text-lg mb-1">Cupim Burguer</p>
-          <p class="text-sm text-gray-600">Pão brioche, alface americana, molho Dev, cupim defumado(8 horas lenha de macieria) hamburguer, queijo prato...</p>
-        </div>
-        <div class="flex items-center justify-between mt-3">
-          <p class="font-bold text-lg text-red-600">R$ 50,90</p>
-          <div class="flex gap-2">
-            <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Cupim Burguer">
-              <i class="fas fa-list"></i>
-            </button>
-            <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Cupim Burguer" data-price="50,90">
-              <i class="fas fa-shopping-cart text-white text-lg"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- ============================
-       TÍTULO BEBIDAS
-  ============================= -->
-  <div class="mx-auto max-w-7xl px-2 mb-6">
-  <h2 class="font-bold text-3xl text-gray-800">Refrigerantes e Sucos</h2>
-  <p class="mt-1 text-sm text-gray-500 font-medium italic">Refresque-se com nossas bebidas geladinhas e deliciosas!</p>
+  </div>
 </div>
 
+    
+<div data-produto="hamburguer"
+     class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
+
+  <img src="./Imagem/hamburguer1.jpg" alt="Chicken"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Chicken</p>
+      <p class="text-sm text-gray-600">
+        Pão brioche, Hambúrguer de frango empanado, queijo prato, bacon, cebola roxa, tomate, alface e maionese
+      </p>
+    </div>
+
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 22,30</p>
+
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+                data-name="Chicken">
+          <i class="fas fa-list"></i>
+        </button>
+
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+                data-name="Chicken" data-price="22,30">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div data-produto="hamburguer"
+     class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
+
+  <img src="./Imagem/hamburguer.jpg" alt="Hamburguer Magno"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Hamburguer Magno</p>
+      <p class="text-sm text-gray-600">
+        Pão levinho de fermentação natural da Trigou Burguer 180g, queijo prato e maionese da casa.
+      </p>
+    </div>
+
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 18,90</p>
+
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+                data-name="Hamburguer Magno">
+          <i class="fas fa-list"></i>
+        </button>
+
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+                data-name="Hamburguer Magno" data-price="18,90">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div data-produto="hamburguer"
+     class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
+  
+  <img src="./Imagem/hamburguer.jpg" alt="Hamburguer X Tudo"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    
+    <div>
+      <p class="font-bold text-lg mb-1">Hamburguer X Tudo</p>
+      <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou Burguer 180g, queijo prato e maionese da casa.</p>
+    </div>
+
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 18,90</p>
+
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+                data-name="Hamburguer X Tudo">
+          <i class="fas fa-list"></i>
+        </button>
+
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+                data-name="Hamburguer X Tudo" data-price="18,90">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<!-- Produto Item -->
+<!-- 🔥 IMPORTANTE:
+     data-produto="hamburguer" deve ser exatamente igual ao data-categoria do botão.
+     Se estiver "hamburgueres", o filtro NÃO vai mostrar esse produto.
+-->
+<div data-produto="hamburguer"
+     class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
+
+  <img src="./public/Imagem/cupim.png" alt="Cupim Burguer"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+
+    <div>
+      <p class="font-bold text-lg mb-1">Cupim Burguer</p>
+      <p class="text-sm text-gray-600">
+        Pão brioche, alface americana, molho Dev, cupim defumado(8 horas), hamburguer, queijo prato...
+      </p>
+    </div>
+
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 50,90</p>
+
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn"
+                data-name="Cupim Burguer">
+          <i class="fas fa-list"></i>
+        </button>
+
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+                data-name="Cupim Burguer" data-price="50,90">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+  </main>
+</div>
+
+
+<!-- ============================
+     SEÇÃO BEBIDAS
+============================== -->
+<div id="bebidas" data-section>
+
+  <!-- TÍTULO BEBIDAS -->
+  <div class="mx-auto max-w-7xl px-2 mb-6">
+    <h2 class="font-bold text-3xl text-gray-800">Refrigerantes e Sucos</h2>
+    <p class="mt-1 text-sm text-gray-500 font-medium italic">
+      Refresque-se com nossas bebidas geladinhas e deliciosas!
+    </p>
+  </div>
 
   <!-- ============================
        GRID BEBIDAS
@@ -265,49 +411,48 @@
   <main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
 
     <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
+    <div data-produto="bebidas"
+         class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
       <img src="./public/Imagem/cocazero.png" alt="Coca cola zero"
            class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
 
       <div class="flex flex-col justify-between w-full">
-  
-  <!-- Título -->
-  <p class="font-bold text-lg mb-1">Coca Cola Zero</p>
 
-  <!-- Parágrafo logo abaixo -->
-  <p class="text-gray-600 text-sm mb-2">
-    Lata: Refrigerante gelado de 310ml
-  </p>
+        <p class="font-bold text-lg mb-1">Coca Cola Zero</p>
+        <p class="text-gray-600 text-sm mb-2">
+          Lata: Refrigerante gelado de 310ml
+        </p>
 
-  <!-- Preço + Botão -->
-  <div class="flex items-center justify-between mt-3">
-    <p class="font-bold text-lg text-red-600">R$ 7,00</p>
+        <div class="flex items-center justify-between mt-3">
+          <p class="font-bold text-lg text-red-600">R$ 7,00</p>
 
-    <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-      data-name="Coca Cola Zero"
-      data-price="7.00">
-      <i class="fas fa-shopping-cart text-white text-lg"></i>
-    </button>
-  </div>
+          <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+            data-name="Coca Cola Zero"
+            data-price="7.00">
+            <i class="fas fa-shopping-cart text-white text-lg"></i>
+          </button>
+        </div>
 
-</div>
-
+      </div>
     </div>
 
     <!-- Produto Item -->
-    <div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
-      <img src="./public/Imagem/guaranazerofanta.png" alt="Fanta Guarana"
+    <div data-produto="bebidas"
+         class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200">
+      <img src="./public/Imagem/guaranazerofanta.png" alt="Fanta Guaraná"
            class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
 
       <div class="flex flex-col justify-between w-full">
         <p class="font-bold text-lg mb-1">Fanta Guaraná</p>
-        <!-- Parágrafo logo abaixo -->
-  <p class="text-gray-600 text-sm mb-2">
-    Lata: Refrigerante gelado de 310ml
-  </p>
+        <p class="text-gray-600 text-sm mb-2">
+          Lata: Refrigerante gelado de 310ml
+        </p>
+
         <div class="flex items-center justify-between mt-3">
           <p class="font-bold text-lg text-red-600">R$ 7,00</p>
-          <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Fanta Guaraná" data-price="7,00">
+          <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+                  data-name="Fanta Guaraná"
+                  data-price="7,00">
             <i class="fas fa-shopping-cart text-white text-lg"></i>
           </button>
         </div>
@@ -318,6 +463,7 @@
 </div>
 
 <!--fim menu-->
+
 
 <!-- 🔶 MODAL DE INGREDIENTES -->
 <div id="ingredientes-modal"

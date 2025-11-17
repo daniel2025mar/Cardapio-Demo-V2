@@ -863,15 +863,15 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-//espançao do produto
-
-//espançao do produto
-
+// ========================
+// ABRIR MODAL NO CELULAR
+// ========================
 document.querySelectorAll(".produto-item").forEach(card => {
   card.addEventListener("click", function () {
 
-    // Verifica se é celular (tela menor que 768px)
-    if (window.innerWidth > 768) return;
+    if (window.innerWidth > 768) return; // só celular
+
+    resetQty(); // reset quantidade
 
     const img = this.querySelector("img").src;
     const name = this.querySelector("p.font-bold").innerText;
@@ -887,11 +887,16 @@ document.querySelectorAll(".produto-item").forEach(card => {
   });
 });
 
-// Fechar clicando fora
-document.getElementById("mobileProductModal").addEventListener("click", function(e) {
+// ========================
+// FECHAR MODAL CLICANDO FORA
+// ========================
+document.getElementById("mobileProductModal").addEventListener("click", function (e) {
   if (e.target === this) this.classList.add("hidden");
 });
 
+// ========================
+// SISTEMA DE QUANTIDADE
+// ========================
 let qty = 1;
 
 document.getElementById("qtyPlus").addEventListener("click", function () {
@@ -900,14 +905,49 @@ document.getElementById("qtyPlus").addEventListener("click", function () {
 });
 
 document.getElementById("qtyMinus").addEventListener("click", function () {
-  if (qty > 0) {   // <-- AGORA PERMITE CHEGAR A ZERO
+  if (qty > 0) {
     qty--;
     document.getElementById("qtyValue").innerText = qty;
   }
 });
 
-// Resetar quantidade sempre que abrir o modal
+// ========================
+// RESET QUANTIDADE
+// ========================
 function resetQty() {
   qty = 1;
   document.getElementById("qtyValue").innerText = 1;
 }
+
+// ========================
+// ADICIONAR AO CARRINHO
+// ========================
+document.getElementById("modalAddBtn").addEventListener("click", function () {
+
+  const name = document.getElementById("modalName").innerText;
+  const priceText = document.getElementById("modalPrice").innerText.replace("R$ ", "").replace(",", ".");
+  const price = parseFloat(priceText);
+
+  const item = {
+    name: name,
+    quantity: qty,
+    price: price,
+    total: (qty * price).toFixed(2)
+  };
+
+  // Se cart já existe, usa ele. Se não existe, cria.
+  if (typeof cart === "undefined") {
+    window.cart = [];
+  }
+
+  cart.push(item);
+  console.log("Carrinho atualizado:", cart);
+
+  // Fecha modal
+  document.getElementById("mobileProductModal").classList.add("hidden");
+
+  resetQty();
+});
+
+
+

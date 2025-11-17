@@ -829,3 +829,35 @@ setInterval(() => {
     elemento.style.opacity = 1;
   }, 500); // duração do fade out
 }, 3000); // tempo total entre trocas
+
+
+//funçao de filtro
+// Seleciona todos os cards de categoria
+const categoriaCards = document.querySelectorAll('.categoria-card-modern-small');
+
+// Seleciona todos os produtos
+const produtoscate = document.querySelectorAll('.produto-item');
+
+// Função para filtrar produtos
+function filtrarProdutos(categoria) {
+  produtos.forEach(produto => {
+    if (produto.dataset.categoria === categoria) {
+      produto.style.display = 'flex'; // mostra os produtos da categoria selecionada
+    } else {
+      produto.style.display = 'none'; // esconde os outros produtos
+    }
+  });
+}
+
+// Adiciona evento de clique em cada card de categoria
+categoriaCards.forEach(card => {
+  card.addEventListener('click', () => {
+    const categoria = card.dataset.categoria;
+    filtrarProdutos(categoria);
+  });
+});
+
+// Opcional: mostra todos os produtos ao carregar a página
+window.addEventListener('DOMContentLoaded', () => {
+  produtos.forEach(produto => produto.style.display = 'flex');
+});

@@ -861,3 +861,35 @@ categoriaCards.forEach(card => {
 window.addEventListener('DOMContentLoaded', () => {
   produtos.forEach(produto => produto.style.display = 'flex');
 });
+
+
+//espançao do produto
+
+//espançao do produto
+
+document.querySelectorAll(".produto-item").forEach(card => {
+  card.addEventListener("click", function () {
+
+    // Verifica se é celular (tela menor que 768px)
+    if (window.innerWidth > 768) return;
+
+    const img = this.querySelector("img").src;
+    const name = this.querySelector("p.font-bold").innerText;
+    const desc = this.querySelector("p.text-sm").innerText;
+    const price = this.querySelector("p.text-red-600").innerText;
+
+    document.getElementById("modalImg").src = img;
+    document.getElementById("modalName").innerText = name;
+    document.getElementById("modalDesc").innerText = desc;
+    document.getElementById("modalPrice").innerText = price;
+
+    document.getElementById("mobileProductModal").classList.remove("hidden");
+  });
+});
+
+// Fechar clicando fora
+document.getElementById("mobileProductModal").addEventListener("click", function(e) {
+  if (e.target === this) this.classList.add("hidden");
+});
+
+

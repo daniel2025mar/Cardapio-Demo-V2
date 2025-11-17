@@ -658,5 +658,45 @@
      style="display:none;">
 </div>
 
+<!-- MODAL MOBILE DO PRODUTO -->
+<div id="mobileProductModal" class="fixed inset-0 bg-black/70 hidden justify-end items-end z-50 md:hidden">
+
+  <div class="bg-white w-full p-5 rounded-t-2xl shadow-lg animate-slide-up">
+
+    <img id="modalImg" src="" class="w-full h-52 object-cover rounded-xl mb-4">
+
+    <h2 id="modalName" class="text-xl font-bold mb-2"></h2>
+
+    <p id="modalDesc" class="text-gray-600 text-sm mb-3"></p>
+
+    <p id="modalPrice" class="text-red-600 font-bold text-xl mb-4"></p>
+
+    <!-- CONTROLE DE QUANTIDADE -->
+    <div class="flex items-center justify-center gap-6 mb-6">
+
+      <button id="qtyMinus"
+        class="w-10 h-10 flex items-center justify-center bg-gray-200 text-xl font-bold rounded-full">
+        -
+      </button>
+
+      <span id="qtyValue" class="text-2xl font-bold">1</span>
+
+      <button id="qtyPlus"
+        class="w-10 h-10 flex items-center justify-center bg-gray-200 text-xl font-bold rounded-full">
+        +
+      </button>
+
+    </div>
+
+    <button id="modalAddBtn"
+      class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-lg font-semibold">
+      Adicionar
+    </button>
+
+  </div>
+
+</div>
+
+
 </body>
 </html>

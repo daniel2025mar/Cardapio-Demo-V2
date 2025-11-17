@@ -106,7 +106,6 @@
 </div>
 
 
-
 <!-- CONTÊINER GERAL DAS CATEGORIAS -->
 <div class="relative w-full mt-6 mb-10">
 
@@ -129,8 +128,8 @@
                 bg-gray-200 text-gray-700 rounded-xl shadow-md 
                 w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
                 transition-all cursor-pointer">
-        <span class="text-3xl">🍔</span>
-        <span class="text-sm font-semibold mt-1">Hambúrgueres</span>
+        <span class="text-3xl categoria-icone">🍔</span>
+        <span class="text-sm font-semibold mt-1 categoria-texto">Hambúrgueres</span>
       </a>
 
       <!-- PORÇÕES -->
@@ -139,8 +138,8 @@
                 bg-gray-200 text-gray-700 rounded-xl shadow-md 
                 w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
                 transition-all cursor-pointer">
-        <span class="text-3xl">🍟</span>
-        <span class="text-sm font-semibold mt-1">Porções</span>
+        <span class="text-3xl categoria-icone">🍟</span>
+        <span class="text-sm font-semibold mt-1 categoria-texto">Porções</span>
       </a>
 
       <!-- BEBIDAS -->
@@ -149,8 +148,8 @@
                 bg-gray-200 text-gray-700 rounded-xl shadow-md 
                 w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
                 transition-all cursor-pointer">
-        <span class="text-3xl">🥤</span>
-        <span class="text-sm font-semibold mt-1">Bebidas</span>
+        <span class="text-3xl categoria-icone">🥤</span>
+        <span class="text-sm font-semibold mt-1 categoria-texto">Bebidas</span>
       </a>
 
       <!-- COMBOS -->
@@ -159,8 +158,8 @@
                 bg-gray-200 text-gray-700 rounded-xl shadow-md 
                 w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
                 transition-all cursor-pointer">
-        <span class="text-3xl">🍱</span>
-        <span class="text-sm font-semibold mt-1">Combos</span>
+        <span class="text-3xl categoria-icone">🍱</span>
+        <span class="text-sm font-semibold mt-1 categoria-texto">Combos</span>
       </a>
 
       <!-- SOBREMESAS -->
@@ -169,8 +168,8 @@
                 bg-gray-200 text-gray-700 rounded-xl shadow-md 
                 w-28 h-28 flex-shrink-0 hover:shadow-lg hover:scale-105 
                 transition-all cursor-pointer">
-        <span class="text-3xl">🍨</span>
-        <span class="text-sm font-semibold mt-1">Sobremesas</span>
+        <span class="text-3xl categoria-icone">🍨</span>
+        <span class="text-sm font-semibold mt-1 categoria-texto">Sobremesas</span>
       </a>
 
     </div>
@@ -186,8 +185,37 @@
 
 </div>
 
+<!-- CSS RESPONSIVO PARA NÃO QUEBRAR NO CELULAR -->
+<style>
+  @media (max-width: 480px) {
+    .categoria-card {
+      width: 70px !important;
+      height: 70px !important;
+      border-radius: 12px !important;
+      padding: 4px !important;
+    }
 
+    .categoria-icone {
+      font-size: 22px !important;
+    }
 
+    .categoria-texto {
+      font-size: 10px !important;
+      margin-top: 1px !important;
+    }
+
+    #catScroll {
+      padding-left: 50px !important;
+      padding-right: 50px !important;
+    }
+
+    #catLeft, #catRight {
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 12px !important;
+    }
+  }
+</style>
 
 <!-- Mensagem caso não encontre produtos -->
 <div id="noResults" class="text-center text-gray-600 font-medium mt-4 hidden">

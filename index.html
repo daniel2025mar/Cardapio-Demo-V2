@@ -116,34 +116,36 @@
 <!-- ============================
      CATEGORIAS – CARDS MODERNOS
 =============================== -->
-<div class="flex justify-center gap-4 mt-6 mb-6 flex-wrap px-4">
+<!-- Container das categorias -->
+<div class="flex justify-center gap-4 mt-6 mb-6 px-4
+            overflow-x-auto sm:overflow-x-visible flex-nowrap">
 
   <!-- Card Hambúrgueres -->
-<div 
-  class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-4 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-40 sm:w-44 relative"
-  data-categoria="hamburgueres"
->
-  <i class="fas fa-hamburger text-red-600 text-2xl mb-2"></i>
-  <span class="font-medium text-sm text-center mb-4">Hambúrgueres</span>
-  
-  <!-- Linha vermelha no rodapé -->
-  <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+  <div 
+    class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 relative flex-shrink-0"
+    data-categoria="hamburgueres"
+  >
+    <i class="fas fa-hamburger text-red-600 text-xl sm:text-2xl mb-2"></i>
+    <span class="font-medium text-sm text-center mb-3 sm:mb-4">Hambúrgueres</span>
+    
+    <!-- Linha vermelha no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+  </div>
+
+  <!-- Card Bebidas -->
+  <div 
+    class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 relative flex-shrink-0"
+    data-categoria="bebidas"
+  >
+    <i class="fas fa-wine-glass-alt text-red-600 text-xl sm:text-2xl mb-2"></i>
+    <span class="font-medium text-sm text-center mb-3 sm:mb-4">Bebidas</span>
+    
+    <!-- Linha vermelha no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+  </div>
+
 </div>
 
-<!-- Card Bebidas -->
-<div 
-  class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-4 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-40 sm:w-44 relative"
-  data-categoria="bebidas"
->
-  <i class="fas fa-wine-glass-alt text-red-600 text-2xl mb-2"></i>
-  <span class="font-medium text-sm text-center mb-4">Bebidas</span>
-  
-  <!-- Linha vermelha no rodapé -->
-  <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
-</div>
-
-
-</div>
 <!-- ============================
      FIM CATEGORIAS
 =============================== -->

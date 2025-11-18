@@ -949,26 +949,23 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   resetQty();
 });
 
-
-
-
 document.addEventListener("DOMContentLoaded", () => {
   const aviso = document.getElementById("cloudflareError");
   const retryBtn = document.getElementById("btnRetry");
 
-  aviso.classList.add("hidden"); // sempre começa oculto
+  // sempre esconder
+  aviso.classList.add("hidden");
 
-  // Teste real de conexão
-  fetch("https://1.1.1.1/cdn-cgi/trace", { cache: "no-store" })
-    .then((res) => {
-      if (res.ok) {
-        aviso.classList.add("hidden"); // Conexão OK
-      } else {
-        aviso.classList.remove("hidden"); // Cloudflare falhou
+  // Testa o ping hospedado no próprio GitHub Pages
+  fetch("ping.txt", { cache: "no-store" })
+    .then(response => {
+      if (!response.ok) {
+        aviso.classList.remove("hidden"); // erro real
       }
     })
     .catch(() => {
-      aviso.classList.remove("hidden"); // Sem internet ou falha CF
+      // só aparece se o GitHub Pages realmente cair
+      aviso.classList.remove("hidden");
     });
 
   retryBtn.addEventListener("click", () => {
@@ -976,7 +973,3 @@ document.addEventListener("DOMContentLoaded", () => {
     location.reload();
   });
 });
-
-
-
-

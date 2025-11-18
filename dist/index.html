@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>Burguer Fresh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+   <style>
+    .ingrediente-item {
+      accent-color: rgb(216, 0, 0); /* cor do check */
+      width: 18px;       /* opcional, tamanho do checkbox */
+      height: 18px;      /* opcional */
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-Dq_fc3oz.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Bn0lAKcM.css">
+</head>
+<body>
+    
+
+<div class="bg-gray-200 text-gray-800 font-bold text-center py-2 rounded-lg w-full overflow-hidden relative">
+  <span id="rotating-text"></span>
+</div>
+
+
+
+<!--header-->
+    <header 
+
+    
+  class="relative w-full h-[420px] bg-cover bg-center" 
+  style="background-image: url('Imagem/hamburguerback.png');">
+
+  <!-- camada escura para “apagar” o fundo -->
+  <div class="absolute inset-0 bg-black bg-opacity-70"></div>
+
+  <!-- conteúdo centralizado -->
+  <div class="relative z-10 w-full h-full flex flex-col justify-center items-center text-center">
+
+  <!-- 🔐 Login / Cadastro no topo direito -->
+  <div class="absolute top-4 right-4 flex gap-3">
+    <button id="btn-login" class="px-3 py-1 bg-white text-black font-semibold rounded hover:bg-gray-200 transition text-sm">
+      Entrar
+    </button>
+
+    <button id="btn-cadastro" class="px-3 py-1 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition text-sm">
+  Criar Conta
+</button>
+
+
+
+    <img id="user-photo" class="w-10 h-10 rounded-full hidden" alt="Foto do usuário" />
+  </div>
+  <!-- 🔐 FIM LOGIN -->
+   
+
+  <img 
+    src="/assets/pngtree-burger-logo-png-image_6594283-BUUfn5ni.png" 
+    alt="logo burguer"
+    class="w-52 h-52 rounded-full shadow-lg hover:scale-110 duration-200"
+  />
+
+  <h1 class="text-4xl mt-2 font-bold text-white">
+    Burguer Fresh
+  </h1>
+  <p class="text-white text-sm font-medium italic">O melhor Hamburguer da cidade.</p>
+  
+  <span class="text-white font-medium">
+    Rua. nome da sua rua N 000 centro, sua cidade - UF
+  </span>
+
+  <div class="bg-green-600 px-4 py-1 rounded-lg mt-5" id="date-span">
+    <span class="text-white font-medium">Seg a Dom - 7:00 às 22:00</span>
+  </div>
+</div>
+
+</header>
+
+<!--fim header-->
+
+<h2 class="text-2xl md:text-4xl font-bold text-center mt-9 mb-6">
+  Conheça nosso Menu
+</h2>
+
+
+<!-- Campo de pesquisa responsivo com ícone elegante -->
+<div class="flex justify-center mb-6 px-2">
+  <div class="relative w-full max-w-md sm:max-w-lg md:max-w-xl">
+    <!-- Ícone dentro do input -->
+    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+      <i class="fas fa-search"></i>
+    </span>
+
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Pesquise seu produto"
+      class="w-full pl-10 pr-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-red-600 transition text-sm sm:text-base"
+    />
+  </div>
+</div>
+
+<!-- Mensagem caso não encontre produtos -->
+<div id="noResults" class="text-center text-gray-600 font-medium mt-4 hidden">
+  Nenhum item corresponde à sua pesquisa. Por favor, tente outro termo.
+</div>
+
+<!--categorias-->
+<!--categorias-->
+<!-- ============================
+     CATEGORIAS – CARDS MODERNOS
+=============================== -->
+<!-- Container das categorias -->
+<div class="flex justify-center gap-4 mt-6 mb-6 px-4
+            overflow-x-auto sm:overflow-x-visible flex-nowrap">
+
+  <!-- Card Hambúrgueres -->
+  <div 
+    class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 relative flex-shrink-0"
+    data-categoria="hamburgueres"
+  >
+    <i class="fas fa-hamburger text-red-600 text-xl sm:text-2xl mb-2"></i>
+    <span class="font-medium text-sm text-center mb-3 sm:mb-4">Hambúrgueres</span>
+    
+    <!-- Linha vermelha no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+  </div>
+
+  <!-- Card Bebidas -->
+  <div 
+    class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 relative flex-shrink-0"
+    data-categoria="bebidas"
+  >
+    <i class="fas fa-wine-glass-alt text-red-600 text-xl sm:text-2xl mb-2"></i>
+    <span class="font-medium text-sm text-center mb-3 sm:mb-4">Bebidas</span>
+    
+    <!-- Linha vermelha no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+  </div>
+
+</div>
+
+<!-- ============================
+     FIM CATEGORIAS
+=============================== -->
+
+<!--inicio menu-->
+<div id="menu" class="px-4 py-6 bg-gray-50">
+
+  <!-- ============================
+       TÍTULO HAMBÚRGUERES
+  ============================= -->
+  <div class="mx-auto max-w-7xl px-2 mb-6">
+  <h2 class="font-bold text-3xl text-gray-800">Hambúrgueres</h2>
+  <p class="mt-1 text-sm text-gray-500 font-medium italic">Deliciosos hambúrgueres artesanais feitos com ingredientes frescos!</p>
+</div>
+
+
+  <!-- ============================
+       GRID HAMBÚRGUERES
+  ============================= -->
+  <main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
+
+   <!-- Produto Item -->
+<div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200 produto-item" data-categoria="hamburgueres">
+  <img src="./Imagem/hamburguer.jpg" alt="Chesse Pickles"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Chesse Pickles</p>
+      <p class="text-sm text-gray-600">Pão brioche, hambúrguer, mussarela empada, picles, cebola roxa, alface e maionese Dev</p>
+    </div>
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 20,60</p>
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Chesse Pickles">
+          <i class="fas fa-list"></i>
+        </button>
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Chesse Pickles" data-price="20,60">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Produto Item -->
+<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
+  <img src="./Imagem/hamburguer1.jpg" alt="Chicken"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Chicken</p>
+      <p class="text-sm text-gray-600">Pão brioche, Hambúrguer de frango empanado, queijo prato, bacon, cebola roxa, tomate, alface e maionese</p>
+    </div>
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 22,30</p>
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Chicken">
+          <i class="fas fa-list"></i>
+        </button>
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Chicken" data-price="22,30">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Produto Item -->
+<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
+  <img src="./Imagem/hamburguer.jpg" alt="Hamburguer Magno"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Hamburguer Magno</p>
+      <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou Burguer 180g, queijo prato e maionese da casa.</p>
+    </div>
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 18,90</p>
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Hamburguer Magno">
+          <i class="fas fa-list"></i>
+        </button>
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Hamburguer Magno" data-price="18,90">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Produto Item -->
+<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
+  <img src="./Imagem/hamburguer.jpg" alt="Hamburguer X Tudo"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Hamburguer X Tudo</p>
+      <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou Burguer 180g, queijo prato e maionese da casa.</p>
+    </div>
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 18,90</p>
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Hamburguer X Tudo">
+          <i class="fas fa-list"></i>
+        </button>
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Hamburguer X Tudo" data-price="18,90">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Produto Item -->
+<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
+  <img src="/assets/cupim-BdIIJ8dO.png" alt="Cupim Burguer"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <div>
+      <p class="font-bold text-lg mb-1">Cupim Burguer</p>
+      <p class="text-sm text-gray-600">Pão brioche, alface americana, molho Dev, cupim defumado (8 horas lenha de macieira), hamburguer, queijo prato...</p>
+    </div>
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 50,90</p>
+      <div class="flex gap-2">
+        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Cupim Burguer">
+          <i class="fas fa-list"></i>
+        </button>
+        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Cupim Burguer" data-price="50,90">
+          <i class="fas fa-shopping-cart text-white text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </main>
+
+  <!-- ============================
+       TÍTULO BEBIDAS
+  ============================= -->
+  <div class="mx-auto max-w-7xl px-2 mb-6">
+  <h2 class="font-bold text-3xl text-gray-800">Refrigerantes e Sucos</h2>
+  <p class="mt-1 text-sm text-gray-500 font-medium italic">Refresque-se com nossas bebidas geladinhas e deliciosas!</p>
+</div>
+
+
+  <!-- ============================
+       GRID BEBIDAS
+  ============================= -->
+  <main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
+
+    <!-- Produto Item -->
+    <div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
+  <img src="/assets/cocazero-FusihE1X.png" alt="Coca Cola Zero"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+
+    <!-- Título -->
+    <p class="font-bold text-lg mb-1">Coca Cola Zero</p>
+
+    <!-- Parágrafo logo abaixo -->
+    <p class="text-gray-600 text-sm mb-2">
+      Lata: Refrigerante gelado de 310ml
+    </p>
+
+    <!-- Preço + Botão -->
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 7,00</p>
+
+      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
+        data-name="Coca Cola Zero"
+        data-price="7.00">
+        <i class="fas fa-shopping-cart text-white text-lg"></i>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+    <!-- Produto Item -->
+<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
+  <img src="/assets/guaranazerofanta-Djm62xLT.png" alt="Fanta Guaraná"
+       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+
+  <div class="flex flex-col justify-between w-full">
+    <p class="font-bold text-lg mb-1">Fanta Guaraná</p>
+
+    <!-- Parágrafo logo abaixo -->
+    <p class="text-gray-600 text-sm mb-2">
+      Lata: Refrigerante gelado de 310ml
+    </p>
+
+    <!-- Preço + Botão -->
+    <div class="flex items-center justify-between mt-3">
+      <p class="font-bold text-lg text-red-600">R$ 7,00</p>
+      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" 
+              data-name="Fanta Guaraná" 
+              data-price="7,00">
+        <i class="fas fa-shopping-cart text-white text-lg"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+  </main>
+</div>
+
+<!--fim menu-->
+
+<!-- 🔶 MODAL DE INGREDIENTES -->
+<div id="ingredientes-modal"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] hidden">
+
+  <div class="bg-white w-[90%] md:w-[400px] rounded-lg shadow-lg p-6 relative">
+
+    <!-- título -->
+    <h2 id="ingredientes-title" class="text-2xl font-semibold text-center mb-4 text-gray-800">
+      Ingredientes
+    </h2>
+
+    <!-- lista de ingredientes -->
+    <div id="ingredientes-list" class="space-y-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded">
+      <!-- os ingredientes serão gerados pelo JS -->
+    </div>
+
+    <!-- TOTAL DOS INGREDIENTES -->
+    <p id="ingredientes-total" class="text-lg font-bold text-center mt-4 text-gray-900">
+      Total: R$ 0,00
+    </p>
+
+    <!-- FRASE PROFISSIONAL -->
+    <p id="ingredientes-info" class="text-sm text-gray-600 text-center mt-2">
+      A escolha dos ingredientes será aplicada em todas as unidades deste mesmo produto adicionadas ao carrinho.
+    </p>
+
+    <!-- botões -->
+    <div class="flex justify-between mt-5">
+      <button id="ingredientes-close"
+        class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">
+        Fechar
+      </button>
+
+      <button id="ingredientes-save"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<!--model card-->
+<div class="bg-black/50 w-full h-full fixed top-0 left-0 z-[99] flex items-center justify-center hidden"
+  id="card-modal">
+  <div class="bg-white rounded-md min-w-[90%] md:min-w-[600px] relative overflow-hidden">
+
+    <!-- 🔴 Cabeçalho vermelho -->
+    <div class="bg-red-600 py-3">
+      <h2 class="text-center text-white font-bold text-2xl">Meu Carrinho</h2>
+    </div>
+
+    <!-- 🛒 Conteúdo do carrinho -->
+    <div class="p-5">
+      <div id="card-itens" class="flex justify-between mb-2 flex-col"></div>
+
+      <p class="font-bold"><span id="card-total">0,00</span></p>
+
+      <p class="font-bold mt-4">Endereço de Entrega:</p>
+      <input type="text"
+        placeholder="Digite o Endereço"
+        id="address"
+        class="w-full border-2 p-1 rounded my-1" />
+
+      <p class="text-red-600 hidden" id="address-warn">Esse campo é obrigatório.</p>
+
+     <label class="flex items-center gap-2 mt-4 cursor-pointer">
+  <input type="checkbox" id="retirarLocal" class="custom-checkbox">
+  <span>Retirar no local</span>
+</label>
+
+
+      <div class="flex items-center justify-between mt-5 w-full">
+        <button id="close-model-btn"
+          class="bg-gray-300 px-4 py-1 rounded hover:bg-gray-400 transition">Fechar</button>
+        <button id="checkout-btn"
+          class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition">Finalizar Pedido</button>
+      </div>
+
+      <!-- 💼 Rodapé de crédito -->
+      <p class="text-center text-gray-600 text-sm mt-6">
+        Desenvolvido por <span class="font-semibold text-red-600">DM DESIGN GRAFICO</span>
+      </p>
+    </div>
+
+    <!-- 🔥 Linha animada no rodapé -->
+    <div class="absolute bottom-0 left-0 w-full h-[4px] animated-line"></div>
+  </div>
+</div>
+
+<!-- 🔥 Estilo da animação -->
+<style>
+  @keyframes mudarCor {
+    0% {
+      background-color: white;
+    }
+
+    50% {
+      background-color: red;
+    }
+
+    100% {
+      background-color: white;
+    }
+  }
+
+  .animated-line {
+    animation: mudarCor 2s linear infinite;
+  }
+</style>
+<!--fim model card-->
+
+<!-- Modal de aviso elegante tamanho do screenshot -->
+<div id="loja-fechada-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+  <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-[650px] text-center transform scale-90 opacity-0 transition-all duration-300">
+    
+    <!-- Botão fechar -->
+    <button id="fechar-loja-fechada" class="absolute top-4 right-4 text-gray-500 text-2xl hover:text-gray-800 transition">&times;</button>
+    
+    <!-- Título -->
+    <h2 class="text-2xl font-bold mb-4 text-gray-900">
+      Poxa, nossa loja está fechada no momento
+    </h2>
+    
+    <!-- Mensagem -->
+    <p class="mb-6 text-gray-600 text-lg">
+      Mas não se preocupe, você pode olhar o cardápio e voltar mais tarde.
+    </p>
+    
+    <!-- Botão OK -->
+    <button id="ok-loja-fechada" class="bg-black text-white font-semibold px-10 py-3 rounded-lg hover:bg-gray-800 transition">
+      OK
+    </button>
+  </div>
+</div>
+
+<!-- Modal de pedido enviado -->
+<div id="pedido-sucesso-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 transition-opacity duration-300">
+  <div class="bg-white rounded-2xl p-4 sm:p-8 w-[90%] max-w-xs sm:max-w-sm text-center shadow-xl transform scale-95 opacity-0 transition-all duration-300" id="pedido-modal-box">
+    
+    <div class="mb-3 sm:mb-4">
+      <svg class="mx-auto w-12 h-12 sm:w-16 sm:h-16 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+
+    <h2 class="text-lg sm:text-2xl font-bold mb-2 text-gray-800">🎉 Pedido enviado!</h2>
+
+    <p class="text-gray-600 mb-5 text-xs sm:text-base">
+      Seu pedido foi enviado com sucesso e chegará em aproximadamente 
+      <strong>30 minutos</strong>. 🍔🚀
+    </p>
+
+    <button 
+      id="pedido-sucesso-ok" 
+      class="px-5 py-2 bg-black text-white font-semibold rounded-full shadow hover:bg-gray-800 transition-colors duration-200 text-sm sm:text-base">
+      OK
+    </button>
+  </div>
+</div>
+
+
+
+
+<!--button card footer-->
+<footer class="w-full py-2 fixed bottom-0 z-40 flex items-center justify-center"
+  style="background-color: rgb(255, 0, 0);">
+  <button class="flex items-center gap-2 text-white font-bold" id="card-btn">
+    (<span id="card-count">0</span>)
+    Veja o meu carrinho
+    <i class="fas fa-shopping-cart text-lg text-white"></i>
+  </button>
+</footer>
+<!--fim button card footer-->
+
+<div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+  <div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-xl relative transform scale-95 opacity-0 transition-all duration-300" id="login-modal-box">
+
+    <button id="login-fechar" class="absolute top-3 right-3 text-gray-500 text-2xl hover:text-gray-800 transition">
+      &times;
+    </button>
+
+    <h2 class="text-2xl font-bold mb-6 text-gray-900">Entrar ou Criar Conta</h2>
+
+    <!-- Botão Google -->
+    <button id="google-login-btn" class="w-full mb-3 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2">
+    <i class="fab fa-google text-xl"></i>
+    Entrar com Google
+</button>
+
+<!-- Botão Google invisível (necessário para o login) -->
+<div id="google-hidden-btn" style="display:none;"></div>
+<!-- ✅ Script do Google Identity -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+
+    <!-- Botão Facebook -->
+    <button class="w-full mb-3 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+      <i class="fab fa-facebook text-xl"></i>
+      Entrar com Facebook
+    </button>
+
+    <p class="text-gray-500 text-sm mt-4">
+      Continuando, você aceita nossos Termos de Uso e Política de Privacidade.
+    </p>
+
+  </div>
+</div>
+
+<!-- ============================
+     MODAL DO PERFIL DO USUÁRIO (Estilo Dropdown)
+=============================== -->
+<div id="perfilModal-container" class="hidden fixed top-14 right-4 bg-white rounded-xl shadow-lg w-64 text-left z-50 border border-gray-200">
+  <div id="perfilModal-box" class="p-4">
+
+      <!-- Nome do usuário -->
+      <h2 id="perfilModal-nome" class="text-md font-semibold mb-4 text-gray-900">
+        Olá, Usuário
+      </h2>
+
+      <!-- Lista de opções -->
+      <div class="space-y-2 text-gray-800">
+
+        <!-- Editar Perfil -->
+        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <p class="font-medium">Editar Perfil</p>
+        </button>
+
+        <!-- Meus Pedidos -->
+        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z" />
+          </svg>
+          <p class="font-medium">Meus Pedidos</p>
+        </button>
+
+        <!-- Meus Cupons -->
+        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6" />
+          </svg>
+          <p class="font-medium">Meus Cupons</p>
+        </button>
+
+        <!-- Gerenciar Notificações -->
+        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405M19 13V9a7 7 0 10-14 0v4l-2 2h18l-2-2z" />
+          </svg>
+          <p class="font-medium">Gerenciar Notificações</p>
+        </button>
+
+      </div>
+
+      <!-- Botão sair -->
+      <button id="perfilModal-logout" class="mt-4 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+        Sair da Conta
+      </button>
+
+  </div>
+</div>
+
+
+</div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<!-- Google Identity -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<div id="g_id_onload"
+     data-client_id="621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com"
+     data-callback="handleCredentialResponse"
+     data-auto_prompt="false">
+</div>
+
+<!-- Botão oficial do Google (fica escondido) -->
+<div id="google-signin-btn"
+     class="g_id_signin"
+     data-type="standard"
+     data-size="large"
+     data-theme="outline"
+     data-text="signin_with"
+     style="display:none;">
+</div>
+
+<!-- MODAL MOBILE DO PRODUTO -->
+<div id="mobileProductModal" class="fixed inset-0 bg-black/70 hidden justify-end items-end z-50 md:hidden">
+
+  <div class="bg-white w-full p-5 rounded-t-2xl shadow-lg animate-slide-up">
+
+    <img id="modalImg" src="" class="w-full h-52 object-cover rounded-xl mb-4">
+
+    <h2 id="modalName" class="text-xl font-bold mb-2"></h2>
+
+    <p id="modalDesc" class="text-gray-600 text-sm mb-3"></p>
+
+    <p id="modalPrice" class="text-red-600 font-bold text-xl mb-4"></p>
+
+    <!-- CONTROLE DE QUANTIDADE -->
+    <div class="flex items-center justify-center gap-4 mb-6">
+
+  <button id="qtyMinus"
+    class="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-lg text-2xl font-bold active:scale-95 transition">
+    −
+  </button>
+
+  <span id="qtyValue"
+    class="text-2xl font-semibold text-gray-900">
+    1
+  </span>
+
+  <button id="qtyPlus"
+    class="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-lg text-2xl font-bold active:scale-95 transition">
+    +
+  </button>
+
+</div>
+
+
+    <button id="modalAddBtn"
+      class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-lg font-semibold">
+      Adicionar
+    </button>
+
+  </div>
+
+</div>
+
+<!-- AVISO DE FALHA NO CLOUDFLARE -->
+<div id="cloudflareError" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+  <div class="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm">
+
+    <!-- SUA LOGO -->
+    <img src="/assets/pngtree-burger-logo-png-image_6594283-BUUfn5ni.png" alt="Logo" class="w-20 mx-auto mb-4">
+
+    <h2 class="text-xl font-bold text-red-600 mb-3">⚠️ Falha de Conexão</h2>
+    <p class="text-gray-700 mb-4">Estamos enfrentando instabilidade no servidor (Cloudflare). Tente novamente em alguns instantes.</p>
+
+    <button id="btnRetry" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg w-full">
+      Tentar Novamente
+    </button>
+
+  </div>
+</div>
+
+
+
+
+</body>
+</html>

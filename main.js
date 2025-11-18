@@ -862,7 +862,6 @@ window.addEventListener('DOMContentLoaded', () => {
   produtos.forEach(produto => produto.style.display = 'flex');
 });
 
-
 // ========================
 // ABRIR MODAL NO CELULAR
 // ========================
@@ -924,6 +923,14 @@ function resetQty() {
 // ========================
 document.getElementById("modalAddBtn").addEventListener("click", function () {
 
+  // 🔥 BLOQUEIO DE QUANTIDADE 0
+  if (qty === 0) {
+
+  alert(" ⚠️ Por favor, selecione uma quantidade maior que zero antes de adicionar o produto ao carrinho.");
+
+    return; // impede o restante da função
+  }
+
   const name = document.getElementById("modalName").innerText;
   const priceText = document.getElementById("modalPrice").innerText.replace("R$ ", "").replace(",", ".");
   const price = parseFloat(priceText);
@@ -948,6 +955,3 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
 
   resetQty();
 });
-
-
-

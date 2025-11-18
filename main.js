@@ -949,27 +949,5 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   resetQty();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const aviso = document.getElementById("cloudflareError");
-  const retryBtn = document.getElementById("btnRetry");
 
-  // sempre esconder
-  aviso.classList.add("hidden");
 
-  // Testa o ping hospedado no próprio GitHub Pages
-  fetch("ping.txt", { cache: "no-store" })
-    .then(response => {
-      if (!response.ok) {
-        aviso.classList.remove("hidden"); // erro real
-      }
-    })
-    .catch(() => {
-      // só aparece se o GitHub Pages realmente cair
-      aviso.classList.remove("hidden");
-    });
-
-  retryBtn.addEventListener("click", () => {
-    aviso.classList.add("hidden");
-    location.reload();
-  });
-});

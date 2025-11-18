@@ -956,24 +956,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const aviso = document.getElementById("cloudflareError");
   const retryBtn = document.getElementById("btnRetry");
 
-  // Sempre esconder ao carregar a página
-  aviso.classList.add("hidden");
+  aviso.classList.add("hidden"); // sempre começa oculto
 
-  // Testar carregamento
-  fetch("./index.html", { cache: "no-store" })
-    .then(() => {
-      aviso.classList.add("hidden"); // Tudo OK
+  // Teste real de conexão
+  fetch("https://1.1.1.1/cdn-cgi/trace", { cache: "no-store" })
+    .then((res) => {
+      if (res.ok) {
+        aviso.classList.add("hidden"); // Conexão OK
+      } else {
+        aviso.classList.remove("hidden"); // Cloudflare falhou
+      }
     })
     .catch(() => {
-      aviso.classList.remove("hidden"); // Mostrar aviso
+      aviso.classList.remove("hidden"); // Sem internet ou falha CF
     });
 
-  // Botão tentar novamente
   retryBtn.addEventListener("click", () => {
     aviso.classList.add("hidden");
     location.reload();
   });
 });
+
 
 
 

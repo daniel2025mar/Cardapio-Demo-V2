@@ -950,25 +950,30 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
 });
 
 
-// Verifica status do Cloudflare / servidor real
-async function checkCloudflare() {
-  try {
-    const response = await fetch("./ping.txt", { cache: "no-store" });
 
-    if (!response.ok) throw new Error("Sem resposta");
-    
-    const text = await response.text();
-    if (text.trim() !== "OK") throw new Error("Conteúdo incorreto");
 
-    console.log("✔ Cloudflare OK — nenhum aviso exibido");
-  } 
-  catch (error) {
-    console.log("❌ Erro real detectado");
-    showCloudflareError();
-  }
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const aviso = document.getElementById("cloudflareError");
+  const retryBtn = document.getElementById("btnRetry");
 
-checkCloudflare();
+  // Sempre esconder ao carregar a página
+  aviso.classList.add("hidden");
+
+  // Testar carregamento
+  fetch("./index.html", { cache: "no-store" })
+    .then(() => {
+      aviso.classList.add("hidden"); // Tudo OK
+    })
+    .catch(() => {
+      aviso.classList.remove("hidden"); // Mostrar aviso
+    });
+
+  // Botão tentar novamente
+  retryBtn.addEventListener("click", () => {
+    aviso.classList.add("hidden");
+    location.reload();
+  });
+});
 
 
 

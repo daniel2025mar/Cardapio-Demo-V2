@@ -950,4 +950,47 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
 });
 
 
+// EXIBE O AVISO DE ERRO CLOUDFLARE
+function showCloudflareError() {
+  document.getElementById("cloudflareError").classList.remove("hidden");
+}
+
+// BOTÃO PARA RECARREGAR A PÁGINA
+document.getElementById("btnRetry").addEventListener("click", () => {
+  location.reload();
+});
+
+// ========================================================
+//  TESTE REAL DO CLOUDFLARE — APENAS ONLINE
+// ========================================================
+
+if (!location.hostname.includes("localhost") && location.protocol !== "file:") {
+
+  async function checkServerStatus() {
+    try {
+      const response = await fetch("/ping.txt?cache=" + Date.now(), { method: "GET", cache: "no-store" });
+
+      if (response.ok) {
+        return true; // Servidor funcionando
+      } else {
+        throw new Error("Resposta não OK");
+      }
+
+    } catch (error) {
+      console.log("⚠️ Erro real detectado no Cloudflare ou servidor.");
+      showCloudflareError();
+      return false;
+    }
+  }
+
+  // Testa ao carregar
+  setTimeout(checkServerStatus, 2000);
+
+  // Testa a cada 15 segundos
+  setInterval(checkServerStatus, 15000);
+
+} else {
+  console.log("🔧 Rodando localmente — verificação Cloudflare desativada.");
+}
+
 

@@ -349,10 +349,10 @@ devInfo.innerHTML = `
 
   <!-- 🔹 Linha adicionada conforme solicitado -->
   <p class="font-semibold mt-2">
-    Dev Burguer - CNPJ: 12.345.678/0001-90 © Todos os direitos reservados. 2025
+    Burguer Fresh- CNPJ: 12.345.678/0001-90 © Todos os direitos reservados. 2025
   </p>
 
-  <p>© 2025 DM DESIGN GRÁFICO LTDA — Tecnologia e Soluções para Delivery</p>
+  <p>© 2025 DM DESIGN GRÁFICO — Tecnologia e Soluções para Delivery</p>
 `;
 
 // 🔹 Adiciona margem inferior para não encostar no botão fixo do carrinho

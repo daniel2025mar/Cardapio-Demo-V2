@@ -971,3 +971,29 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
 
   resetQty();
 });
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const retirar = document.getElementById("retirarLocal");
+    const address = document.getElementById("address");
+    const warn = document.getElementById("address-warn");
+
+    // Função para atualizar o estado
+    function updateAddressState() {
+      if (retirar.checked) {
+        address.value = "";
+        address.disabled = true;
+        address.classList.add("bg-gray-200", "cursor-not-allowed");
+        warn.classList.add("hidden");
+      } else {
+        address.disabled = false;
+        address.classList.remove("bg-gray-200", "cursor-not-allowed");
+      }
+    }
+
+    // Ativa ao clicar no checkbox
+    retirar.addEventListener("change", updateAddressState);
+
+    // Garantir estado correto ao abrir modal
+    updateAddressState();
+  });

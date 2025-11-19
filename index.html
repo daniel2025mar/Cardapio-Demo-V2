@@ -698,6 +698,43 @@
   </div>
 
 </div>
+<!-- MODAL DE AVISO PERSONALIZADO -->
+<div id="alertModal"
+     class="fixed inset-0 bg-black/60 hidden flex justify-center items-center z-[9999]">
+
+  <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl animate-[fadeIn_0.25s_ease]">
+
+    <!-- LOGO DA EMPRESA -->
+    <img src="./public/pngtree-burger-logo-png-image_6594283.png" alt="Logo" class="w-20 mx-auto mb-3">
+
+    <h2 class="text-xl font-bold text-red-600 mb-2">Atenção!!</h2>
+
+    <p id="alertModalMessage" class="text-gray-700 mb-5 leading-relaxed">
+      <!-- A mensagem será inserida aqui -->
+    </p>
+
+    <!-- Botão -->
+    <button id="alertModalBtn"
+      class="w-full bg-red-600 text-white font-semibold py-2 rounded-xl hover:bg-red-700 transition">
+      OK
+    </button>
+  </div>
+</div>
+
+<!-- Animação -->
+<style>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+</style>
+
 
 
 </body>

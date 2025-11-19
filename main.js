@@ -919,6 +919,22 @@ function resetQty() {
 }
 
 // ========================
+// FUNÇÃO DO MODAL DE ALERTA
+// ========================
+function showAlertModal(message) {
+  const modal = document.getElementById("alertModal");
+  const msg = document.getElementById("alertModalMessage");
+  const btn = document.getElementById("alertModalBtn");
+
+  msg.textContent = message;
+  modal.classList.remove("hidden");
+
+  btn.onclick = () => {
+    modal.classList.add("hidden");
+  };
+}
+
+// ========================
 // ADICIONAR AO CARRINHO
 // ========================
 document.getElementById("modalAddBtn").addEventListener("click", function () {
@@ -926,7 +942,7 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   // 🔥 BLOQUEIO DE QUANTIDADE 0
   if (qty === 0) {
 
-  alert(" ⚠️ Por favor, selecione uma quantidade maior que zero antes de adicionar o produto ao carrinho.");
+    showAlertModal("⚠️ Para continuar, selecione uma quantidade válida maior que zero antes de adicionar o produto ao carrinho.");
 
     return; // impede o restante da função
   }

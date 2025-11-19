@@ -942,7 +942,7 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   // 🔥 BLOQUEIO DE QUANTIDADE 0
   if (qty === 0) {
 
-    showAlertModal("⚠️ Para continuar, selecione uma quantidade válida maior que zero antes de adicionar o produto ao carrinho.");
+    showAlertModal("Para continuar, selecione uma quantidade válida maior que zero antes de adicionar o produto ao carrinho.");
 
     return; // impede o restante da função
   }

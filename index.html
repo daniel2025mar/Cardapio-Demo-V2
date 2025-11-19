@@ -701,11 +701,12 @@
 
 <!-- MODAL DE AVISO PERSONALIZADO -->
 <div id="alertModal"
-     class="fixed inset-0 bg-black/60 hidden justify-center items-center z-[9999]">
+     class="fixed inset-0 bg-black/60 hidden flex justify-center items-center z-[9999]">
 
-  <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl animate-[fadeIn_0.2s_ease]">
+  <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl animate-[fadeIn_0.25s_ease]">
 
     <h2 class="text-xl font-bold text-red-600 mb-2">Atenção!!</h2>
+
     <p id="alertModalMessage" class="text-gray-700 mb-5 leading-relaxed">
       <!-- A mensagem será inserida aqui -->
     </p>
@@ -721,8 +722,14 @@
 <!-- Animação -->
 <style>
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>
 

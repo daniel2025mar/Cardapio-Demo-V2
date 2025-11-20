@@ -635,14 +635,27 @@
 
 <!-- Modal Meus Pedidos -->
 <div id="meusPedidosModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-  <div class="bg-white w-11/12 md:w-1/2 p-6 rounded-lg relative">
-    <h2 class="text-xl font-bold mb-4">Meus Pedidos</h2>
-    <ul id="listaMeusPedidos" class="max-h-64 overflow-y-auto mb-4">
-      <!-- Lista de pedidos será inserida aqui via JS -->
-    </ul>
-    <button id="fecharMeusPedidos" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition">Fechar</button>
+  <div class="bg-white w-11/12 md:w-1/2 p-0 rounded-lg overflow-hidden relative">
+
+    <!-- 🔴 Cabeçalho vermelho -->
+    <div class="bg-red-600 p-4">
+      <h2 class="text-xl font-bold text-white text-center">Meus Pedidos</h2>
+    </div>
+
+    <!-- 🔽 Conteúdo interno -->
+    <div class="p-6">
+      <ul id="listaMeusPedidos" class="max-h-64 overflow-y-auto mb-4">
+        <!-- Lista de pedidos será inserida aqui via JS -->
+      </ul>
+
+      <button id="fecharMeusPedidos" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition w-full">
+        Fechar
+      </button>
+    </div>
+
   </div>
 </div>
+
 
 
 </div>

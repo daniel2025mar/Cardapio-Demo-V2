@@ -360,34 +360,52 @@ if(isOpen){
 const devInfo = document.createElement("div");
 devInfo.classList.add(
   "text-center",
-  "mt-10",
-  "p-5",
-  "border-t",
-  "border-gray-300",
-  "text-sm",
-  "text-gray-600",
-  "bg-white",
+  "mt-14",
+  "p-6",
+  "rounded-t-2xl",     // 🔥 SOMENTE EM CIMA ARREDONDADO
+  "rounded-b-none",    // 🔥 PARTE DE BAIXO RETA
+  "shadow-xl",
+  "bg-gradient-to-b",
+  "from-white",
+  "to-gray-100",
+  "dark:from-gray-900",
+  "dark:to-gray-800",
+  "border",
+  "border-gray-200",
+  "dark:border-gray-700",
   "w-full"
 );
 
 devInfo.innerHTML = `
-  <p class="mb-2">Desenvolvido por</p>
-
-  <a href="https://www.dmdesigngrafico.com.br" target="_blank" title="Visite o site da DM Design Gráfico">
-    <img 
-      src="/Imagem/DMDESIGN.png" 
-      alt="Logo DM Design Gráfico"
-      class="mx-auto w-40 h-auto mb-3 cursor-pointer hover:scale-110 transition-transform duration-300"
-    />
-  </a>
-
-  <!-- 🔹 Linha adicionada conforme solicitado -->
-  <p class="font-semibold mt-2">
-    Burguer Fresh- CNPJ: 12.345.678/0001-90 © Todos os direitos reservados. 2025
+  <p class="mb-3 text-gray-700 dark:text-gray-300 text-sm tracking-wide">
+    Desenvolvido por
   </p>
 
-  <p>© 2025 DM DESIGN GRÁFICO — Tecnologia e Soluções para Delivery</p>
+  <a href="https://www.dmdesigngrafico.com.br" target="_blank" title="Visite o site da DM Design Gráfico"
+     class="inline-block">
+    <img 
+  src="/Imagem/DMDESIGN.png"
+  class="mx-auto w-40 h-auto mb-4 cursor-pointer 
+         transition-transform duration-300 hover:scale-110 drop-shadow-md
+         brightness-0 invert"   <!-- 👈 TRANSFORMA EM BRANCO -->
+         />
+
+  </a>
+
+  <div class="mt-2 mb-1">
+    <p class="font-semibold text-gray-800 dark:text-gray-200 text-sm">
+      Burguer Fresh — CNPJ: 12.345.678/0001-90
+    </p>
+    <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">
+      © 2025 Todos os direitos reservados
+    </p>
+  </div>
+
+  <p class="text-xs font-medium text-red-600 dark:text-red-400 mt-2 tracking-wide">
+    DM DESIGN GRÁFICO — Tecnologia & Soluções para Delivery
+  </p>
 `;
+
 
 // 🔹 Adiciona margem inferior para não encostar no botão fixo do carrinho
 devInfo.style.marginBottom = "40px";

@@ -276,8 +276,17 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+   
+  
     // Adiciona os pedidos finalizados no localStorage
   let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
+  // Adiciona data e hora em cada pedido do carrinho
+const cartComData = cart.map(pedido => {
+  return {
+    ...pedido,
+    dataHora: new Date().toISOString()
+  };
+});
   pedidosFinalizados = [...pedidosFinalizados, ...cart];
   localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
 
@@ -1027,7 +1036,7 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     updateAddressState();
   });
 
-  // Seleciona elementos
+ // Seleciona elementos
 const meusPedidosBtn = document.getElementById("meus-pedidos-btn");
 const meusPedidosModal = document.getElementById("meusPedidosModal");
 const listaMeusPedidos = document.getElementById("listaMeusPedidos");
@@ -1042,11 +1051,29 @@ function mostrarMeusPedidos() {
     listaMeusPedidos.innerHTML = "<li class='text-gray-500'>Nenhum pedido finalizado ainda.</li>";
   } else {
     pedidosFinalizados.forEach((pedido, index) => {
+
+      // 📌 Formata a data/hora salva
+      const dataHora = pedido.dataHora
+        ? new Date(pedido.dataHora).toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          })
+        : "Data não registrada";
+
       const li = document.createElement('li');
-      li.className = "border-b border-gray-200 py-2";
+      li.className = "border-b border-gray-200 py-3";
+
       li.innerHTML = `
-        <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
+        <strong>Pedido ${index + 1}</strong><br>
+        Produto: ${pedido.name}<br>
+        Quantidade: ${pedido.quantity}<br>
+        Valor: R$ ${pedido.price.toFixed(2)}<br>
+        <span class="text-sm text-gray-600">📅 ${dataHora}</span>
       `;
+
       listaMeusPedidos.appendChild(li);
     });
   }
@@ -1055,10 +1082,9 @@ function mostrarMeusPedidos() {
   meusPedidosModal.classList.remove("hidden");
 }
 
-
 // Evento para abrir modal
 meusPedidosBtn.addEventListener("click", (e) => {
-  e.preventDefault(); // evita scroll indesejado no mobile
+  e.preventDefault();
   mostrarMeusPedidos();
 });
 
@@ -1067,11 +1093,10 @@ fecharMeusPedidos.addEventListener("click", () => {
   meusPedidosModal.classList.add("hidden");
 });
 
-// Fecha modal ao clicar fora da caixa (melhor para mobile)
+// Fecha modal ao clicar fora da caixa
 meusPedidosModal.addEventListener("click", (e) => {
   const modalContent = meusPedidosModal.querySelector("div");
   if (!modalContent.contains(e.target)) {
     meusPedidosModal.classList.add("hidden");
   }
 });
-

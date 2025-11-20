@@ -1036,9 +1036,9 @@ document.getElementById("fecharPedidos").addEventListener("click", function () {
 // ======================================================
 // ADICIONAR PEDIDOS
 // ======================================================
-
 // Essa função será chamada quando o cliente clicar em "Adicionar ao Carrinho"
 function adicionarAoCarrinho() {
+
   const nome = document.getElementById("modalNome").innerText;
   const preco = document.getElementById("modalPreco").innerText;
   const qtd = parseInt(document.getElementById("modalQtd").innerText);
@@ -1056,10 +1056,10 @@ function registrarPedido(nome, preco, qtd) {
   const agora = new Date();
 
   const pedido = {
-    nome,
-    preco,
-    qtd,
-    total,
+    nome: nome,
+    preco: preco,
+    qtd: qtd,
+    total: total,
     data: agora.toLocaleDateString("pt-BR"),
     hora: agora.toLocaleTimeString("pt-BR")
   };
@@ -1074,7 +1074,6 @@ function registrarPedido(nome, preco, qtd) {
 // ======================================================
 // ATUALIZAR O MODAL MEUS PEDIDOS
 // ======================================================
-
 function atualizarListaPedidos() {
   const lista = document.getElementById("listaPedidos");
   lista.innerHTML = "";
@@ -1108,10 +1107,10 @@ function atualizarListaPedidos() {
 // ======================================================
 // UTILITÁRIO PARA CALCULAR TOTAL
 // ======================================================
-
 function calcularTotal(preco, qtd) {
   let num = preco.replace("R$", "").replace(".", "").replace(",", ".");
   num = parseFloat(num);
   const valor = num * qtd;
   return "R$ " + valor.toFixed(2).replace(".", ",");
 }
+

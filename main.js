@@ -13,6 +13,7 @@ const retirarLocal = document.getElementById("retirarLocal");
 let cart = [];
 let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
+
 //funçaos do cardapio
 
 // abrir model do carrinho
@@ -171,29 +172,12 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
-function atualizarMeusPedidosModal() {
-  const container = document.getElementById("meusPedidosContainer");
-  container.innerHTML = ""; // limpa antes
-
-  pedidosFinalizados.forEach((item, index) => {
-    const div = document.createElement("div");
-    div.classList.add("flex", "justify-between", "mb-2", "border-b", "pb-1");
-
-    div.innerHTML = `
-      <p>${item.name} | Qtd: ${item.quantity} | R$ ${item.price.toFixed(2)}</p>
-    `;
-    container.appendChild(div);
-  });
-}
-
-
 
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
-    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -209,7 +193,7 @@ checkout.addEventListener("click", function() {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
-    return; // interrompe o envio do pedido
+    return;
   }
 
   // ==============================
@@ -265,6 +249,15 @@ checkout.addEventListener("click", function() {
   }
 
   // ==============================
+  // 🔹 Adiciona produtos do cart em pedidosFinalizados
+  // ==============================
+  pedidosFinalizados = [...pedidosFinalizados, ...cart];
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
+
+  // Atualiza o modal "Meus Pedidos"
+  atualizarMeusPedidosModal();
+
+  // ==============================
   // Continua com a lógica atual de montagem do pedido e envio
   // ==============================
   const cartItens = cart.map((item) => {
@@ -292,16 +285,16 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-
-   pedidosFinalizados = [...pedidosFinalizados, ...cart];
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
-
-  // Atualiza o modal "Meus Pedidos"
-  atualizarMeusPedidosModal();
+  // ==============================
+  // Limpa carrinho e card-modal
+  // ==============================
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
+  // ==============================
+  // Modal de sucesso
+  // ==============================
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
@@ -320,9 +313,6 @@ checkout.addEventListener("click", function() {
   }, 500);
 
 });
-
-
-
 
 
 //horario de funcionamento
@@ -1052,3 +1042,19 @@ modalPedidos.addEventListener('click', (e) => {
     modalPedidos.classList.remove('flex');
   }
 });
+
+
+// 2️⃣ Função que atualiza o conteúdo do modal
+function atualizarMeusPedidosModal() {
+  const container = document.getElementById("meusPedidosContainer");
+  container.innerHTML = "";
+
+  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+
+  pedidosFinalizados.forEach((item) => {
+    const div = document.createElement("div");
+    div.classList.add("flex", "justify-between", "mb-2", "border-b", "pb-1");
+    div.innerHTML = `<p>${item.name} | Qtd: ${item.quantity} | R$ ${item.price.toFixed(2)}</p>`;
+    container.appendChild(div);
+  });
+}

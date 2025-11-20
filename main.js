@@ -997,3 +997,90 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
+
+  // ============================
+// MEUS PEDIDOS
+// ============================
+// Seletores do modal e botão
+const btnMeusPedidos = document.getElementById("btnMeusPedidos");
+const meusPedidosModal = document.getElementById("meusPedidosModal");
+const pedidosList = document.getElementById("pedidosList");
+const closeMeusPedidos = document.getElementById("closeMeusPedidos");
+
+// Recupera os pedidos finalizados do localStorage (ou cria um array vazio)
+let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
+
+// Atualiza o modal com os pedidos
+function atualizarMeusPedidosModal() {
+  pedidosList.innerHTML = "";
+
+  if (pedidosFinalizados.length === 0) {
+    pedidosList.innerHTML = "<p>Nenhum pedido feito ainda.</p>";
+    return;
+  }
+
+  pedidosFinalizados.forEach((pedido, index) => {
+    const div = document.createElement("div");
+    div.classList.add("border-b", "pb-2", "mb-2");
+    div.innerHTML = `
+      <p><strong>Pedido ${index + 1}</strong></p>
+      <p>${pedido.itens}</p>
+      <p>Total: R$ ${pedido.total.toFixed(2)}</p>
+      <p>${pedido.retirarLocal ? "Retirada no local" : "Entrega no endereço: " + pedido.endereco}</p>
+    `;
+    pedidosList.appendChild(div);
+  });
+}
+
+// Abre o modal ao clicar
+btnMeusPedidos.addEventListener("click", () => {
+  atualizarMeusPedidosModal();
+  meusPedidosModal.classList.remove("hidden");
+});
+
+// Fecha o modal
+closeMeusPedidos.addEventListener("click", () => {
+  meusPedidosModal.classList.add("hidden");
+});
+
+// Fecha clicando fora do modal
+meusPedidosModal.addEventListener("click", (e) => {
+  if (e.target === meusPedidosModal) {
+    meusPedidosModal.classList.add("hidden");
+  }
+});
+
+// ==============================
+// Salvar pedido ao finalizar (adapte seu checkout)
+checkout.addEventListener("click", function() {
+  if (cart.length === 0) return;
+
+  // Cria resumo do pedido
+  const cartItens = cart.map(item => {
+    let nomeProduto = item.name;
+    if (item.custom && item.removidos && item.removidos.length > 0) {
+      nomeProduto += ` (Sem ${item.removidos.join(", ")})`;
+    }
+    return `${nomeProduto} | Qtd: ${item.quantity} | R$ ${item.price.toFixed(2)}`;
+  }).join("\n");
+
+  const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const taxaEntrega = retirarLocal.checked ? 0 : 3.00;
+  const totalComTaxa = totalProdutos + taxaEntrega;
+
+  // Adiciona ao array de pedidos finalizados
+  pedidosFinalizados.push({
+    itens: cartItens,
+    total: totalComTaxa,
+    retirarLocal: retirarLocal.checked,
+    endereco: andressInput.value
+  });
+
+  // Salva no localStorage
+  localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
+
+  // Limpa o carrinho e atualiza UI
+  cart = [];
+  updateCartModal();
+  cardmodal.style.display = "none";
+});

@@ -170,13 +170,11 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
-
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
-    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -195,9 +193,7 @@ checkout.addEventListener("click", function() {
     return; // interrompe o envio do pedido
   }
 
-  // ==============================
-  // Verifica se o restaurante está aberto
-  // ==============================
+  // 🔹 Verifica se o restaurante está aberto
   const isOpen = checkRestauranteOpen();
   if (!isOpen) {
     const modalLojaFechada = document.getElementById('loja-fechada-modal');
@@ -216,7 +212,7 @@ checkout.addEventListener("click", function() {
       setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
     };
 
-    // Remove event listeners anteriores para não duplicar
+    // Remove listeners antigos
     btnFechar.replaceWith(btnFechar.cloneNode(true));
     btnOk.replaceWith(btnOk.cloneNode(true));
 
@@ -226,9 +222,7 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // ==============================
-  // Verifica se o carrinho está vazio
-  // ==============================
+  // 🔹 Verifica se o carrinho está vazio
   if (cart.length === 0) {
     Toastify({
       text: "Seu carrinho está vazio",
@@ -241,9 +235,7 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // ==============================
-  // Verifica endereço
-  // ==============================
+  // 🔹 Verifica endereço
   const retirarLocalChecked = retirarLocal.checked;
   if (!retirarLocalChecked && andressInput.value.trim() === "") {
     andresswarn.classList.remove("hidden");
@@ -251,9 +243,7 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // ==============================
-  // Monta a mensagem do pedido
-  // ==============================
+  // 🔹 Monta a mensagem do pedido
   const cartItens = cart.map(item => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
@@ -279,19 +269,15 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  // ==============================
-  // Limpa carrinho e atualiza UI
-  // ==============================
+  // 🔹 Limpa carrinho e atualiza UI
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  // ✅ Atualiza o modal “Meus Pedidos”
+  // ✅ Atualiza o modal “Meus Pedidos” apenas neste botão
   atualizarPedidos();
 
-  // ==============================
-  // Modal de sucesso
-  // ==============================
+  // 🔹 Modal de sucesso
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
@@ -303,8 +289,6 @@ checkout.addEventListener("click", function() {
     }, 50);
 
     const btnOk = document.getElementById('pedido-sucesso-ok');
-
-    // Remove event listener antigo antes de adicionar
     btnOk.replaceWith(btnOk.cloneNode(true));
     document.getElementById('pedido-sucesso-ok').addEventListener('click', () => {
       modalBox.classList.add('scale-90', 'opacity-0');
@@ -313,6 +297,7 @@ checkout.addEventListener("click", function() {
   }, 500);
 
 });
+
 
 //horario de funcionamento
 function checkRestauranteOpen(){
@@ -1092,7 +1077,7 @@ checkoutBtn.addEventListener('click', () => {
 
 // Botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {
-  atualizarPedidos();
+  //atualizarPedidos();
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });

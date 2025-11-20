@@ -248,14 +248,6 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // ==============================
-  // 🔹 Adiciona produtos do cart em pedidosFinalizados
-  // ==============================
-  pedidosFinalizados = [...pedidosFinalizados, ...cart];
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
-
-  // Atualiza o modal "Meus Pedidos"
-  atualizarMeusPedidosModal();
 
   // ==============================
   // Continua com a lógica atual de montagem do pedido e envio
@@ -285,6 +277,15 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+
+  // ==============================
+  // 🔹 Adiciona produtos do cart em pedidosFinalizados
+  // ==============================
+  pedidosFinalizados = [...pedidosFinalizados, ...cart];
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
+
+  // Atualiza o modal "Meus Pedidos"
+  atualizarMeusPedidosModal();
   // ==============================
   // Limpa carrinho e card-modal
   // ==============================
@@ -1046,15 +1047,24 @@ modalPedidos.addEventListener('click', (e) => {
 
 // 2️⃣ Função que atualiza o conteúdo do modal
 function atualizarMeusPedidosModal() {
-  const container = document.getElementById("meusPedidosContainer");
-  container.innerHTML = "";
-
   const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+  const modalBody = document.getElementById('meusPedidosModalBody'); // div onde os pedidos aparecem
+  modalBody.innerHTML = ''; // limpa antes de adicionar
 
-  pedidosFinalizados.forEach((item) => {
-    const div = document.createElement("div");
-    div.classList.add("flex", "justify-between", "mb-2", "border-b", "pb-1");
-    div.innerHTML = `<p>${item.name} | Qtd: ${item.quantity} | R$ ${item.price.toFixed(2)}</p>`;
-    container.appendChild(div);
+  if (pedidosFinalizados.length === 0) {
+    modalBody.innerHTML = '<p class="text-center p-2">Nenhum pedido finalizado.</p>';
+    return;
+  }
+
+  pedidosFinalizados.forEach(pedido => {
+    // Aqui você monta o HTML de cada produto/pedido
+    const item = document.createElement('div');
+    item.classList.add('pedido-item', 'p-2', 'border-b', 'border-gray-300');
+    item.innerHTML = `
+      <p><strong>${pedido.nome}</strong></p>
+      <p>Qtd: ${pedido.quantidade}</p>
+      <p>R$ ${pedido.preco}</p>
+    `;
+    modalBody.appendChild(item);
   });
 }

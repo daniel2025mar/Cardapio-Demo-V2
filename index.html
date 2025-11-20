@@ -638,14 +638,26 @@
      MODAL MEUS PEDIDOS
 =============================== -->
 <div id="meusPedidosModal" class="hidden fixed inset-0 bg-black/60 justify-center items-center z-50">
-  <div class="bg-white w-11/12 max-w-md rounded-xl shadow-lg p-5">
-    <h2 class="text-xl font-bold text-gray-900 mb-4">Meus Pedidos</h2>
-    <div id="listaPedidos" class="space-y-3 max-h-96 overflow-y-auto"></div>
+  <div class="bg-white w-11/12 max-w-md rounded-xl shadow-lg p-5 flex flex-col max-h-[80vh]">
+
+    <!-- Título com fundo vermelho -->
+    <div class="bg-red-600 rounded-t-xl px-4 py-2 mb-4">
+      <h2 class="text-xl font-bold text-white">Meus Pedidos</h2>
+    </div>
+
+    <!-- Lista de pedidos com rolagem -->
+    <div id="listaPedidos" class="space-y-3 overflow-y-auto flex-1 max-h-96">
+      <!-- Itens do pedido serão inseridos via JS -->
+    </div>
+
+    <!-- Botão fechar -->
     <button id="fecharPedidos" class="mt-5 w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
       Fechar
     </button>
+
   </div>
 </div>
+
 
 
 </div>

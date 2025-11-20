@@ -1075,7 +1075,7 @@ botoesAdicionar.forEach(botao => {
     }
 
     salvarPedidos();
-    atualizarPedidos();
+    //atualizarPedidos();
   });
 });
 

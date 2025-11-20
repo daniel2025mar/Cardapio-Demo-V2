@@ -365,46 +365,41 @@ devInfo.classList.add(
   "rounded-t-2xl",     // 🔥 SOMENTE EM CIMA ARREDONDADO
   "rounded-b-none",    // 🔥 PARTE DE BAIXO RETA
   "shadow-xl",
-  "bg-gradient-to-b",
-  "from-white",
-  "to-gray-100",
-  "dark:from-gray-900",
-  "dark:to-gray-800",
-  "border",
-  "border-gray-200",
-  "dark:border-gray-700",
+  "bg-black",           // 🔥 FUNDO PRETO FIXO (independente do tema)
+  "border-t",
+  "border-gray-700",
   "w-full"
 );
 
 devInfo.innerHTML = `
-  <p class="mb-3 text-gray-700 dark:text-gray-300 text-sm tracking-wide">
+  <p class="mb-3 text-gray-300 text-sm tracking-wide">
     Desenvolvido por
   </p>
 
   <a href="https://www.dmdesigngrafico.com.br" target="_blank" title="Visite o site da DM Design Gráfico"
      class="inline-block">
     <img 
-  src="/Imagem/DMDESIGN.png"
-  class="mx-auto w-40 h-auto mb-4 cursor-pointer 
-         transition-transform duration-300 hover:scale-110 drop-shadow-md
-         brightness-0 invert"   <!-- 👈 TRANSFORMA EM BRANCO -->
-         />
-
+      src="/Imagem/DMDESIGN.png"
+      class="mx-auto w-40 h-auto mb-4 cursor-pointer 
+             transition-transform duration-300 hover:scale-110 drop-shadow-lg
+             brightness-0 invert"   <!-- 👈 TRANSFORMA A LOGO EM BRANCO -->
+    />
   </a>
 
   <div class="mt-2 mb-1">
-    <p class="font-semibold text-gray-800 dark:text-gray-200 text-sm">
+    <p class="font-semibold text-gray-200 text-sm">
       Burguer Fresh — CNPJ: 12.345.678/0001-90
     </p>
-    <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">
+    <p class="text-gray-400 text-xs mt-1">
       © 2025 Todos os direitos reservados
     </p>
   </div>
 
-  <p class="text-xs font-medium text-red-600 dark:text-red-400 mt-2 tracking-wide">
+  <p class="text-xs font-medium text-red-400 mt-2 tracking-wide">
     DM DESIGN GRÁFICO — Tecnologia & Soluções para Delivery
   </p>
 `;
+
 
 
 // 🔹 Adiciona margem inferior para não encostar no botão fixo do carrinho

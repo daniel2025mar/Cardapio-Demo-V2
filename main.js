@@ -1001,3 +1001,44 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
+
+  // Seleciona elementos
+const meusPedidosBtn = document.getElementById("meus-pedidos-btn");
+const meusPedidosModal = document.getElementById("meusPedidosModal");
+const listaMeusPedidos = document.getElementById("listaMeusPedidos");
+const fecharMeusPedidos = document.getElementById("fecharMeusPedidos");
+
+// Função para mostrar pedidos
+function mostrarMeusPedidos() {
+  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+  listaMeusPedidos.innerHTML = "";
+
+  if (pedidosFinalizados.length === 0) {
+    listaMeusPedidos.innerHTML = "<li class='text-gray-500'>Nenhum pedido finalizado ainda.</li>";
+  } else {
+    pedidosFinalizados.forEach((pedido, index) => {
+      const li = document.createElement('li');
+      li.className = "border-b border-gray-200 py-2";
+      li.innerHTML = `
+        <strong>Pedido ${index + 1}:</strong> ${pedido.nome} | Quantidade: ${pedido.quantidade} | R$ ${pedido.preco.toFixed(2)}
+      `;
+      listaMeusPedidos.appendChild(li);
+    });
+  }
+
+  // Abre o modal
+  meusPedidosModal.classList.remove("hidden");
+}
+
+// Evento para abrir modal
+meusPedidosBtn.addEventListener("click", mostrarMeusPedidos);
+
+// Evento para fechar modal
+fecharMeusPedidos.addEventListener("click", () => {
+  meusPedidosModal.classList.add("hidden");
+});
+
+// Fecha modal ao clicar fora da caixa
+meusPedidosModal.addEventListener("click", (e) => {
+  if (e.target === meusPedidosModal) meusPedidosModal.classList.add("hidden");
+});

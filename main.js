@@ -997,3 +997,88 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
+
+  // ==============================================
+// ABRIR / FECHAR MODAL "MEUS PEDIDOS"
+// ==============================================
+
+// Abrir
+function abrirMeusPedidos() {
+  const modal = document.getElementById("meusPedidosModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+// Fechar
+function fecharMeusPedidos() {
+  const modal = document.getElementById("meusPedidosModal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+document.getElementById("fecharPedidos").addEventListener("click", fecharMeusPedidos);
+
+
+// ==============================================
+// SISTEMA DE CARRINHO / LISTA DE PEDIDOS
+// ==============================================
+
+let pedidos = []; // Array que guarda os pedidos
+
+// Adicionar item ao carrinho
+function adicionarPedido(nome, preco, qtd) {
+
+  const pedido = {
+    nome,
+    preco,
+    qtd,
+    total: calcularTotal(preco, qtd)
+  };
+
+  pedidos.push(pedido);
+
+  atualizarListaPedidos();
+}
+
+
+// Atualizar HTML dos pedidos na lista
+function atualizarListaPedidos() {
+  const lista = document.getElementById("listaPedidos");
+  lista.innerHTML = ""; // limpar lista
+
+  pedidos.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "p-3 bg-gray-100 rounded-lg shadow";
+
+    div.innerHTML = `
+      <p class="font-bold text-gray-900">${item.qtd}x ${item.nome}</p>
+      <p class="text-red-600 font-semibold">${item.preco} cada</p>
+      <p class="text-gray-800 font-medium">Total: ${item.total}</p>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+// Converter "R$ 22,00" em número
+function calcularTotal(preco, qtd) {
+  let num = preco.replace("R$", "").replace(".", "").replace(",", ".");
+  num = parseFloat(num);
+  return "R$ " + (num * qtd).toFixed(2).replace(".", ",");
+}
+
+
+// ==============================================
+// INTEGRAÇÃO COM SEU MODAL DE PRODUTO
+// (QUANDO CLICAR EM "ADICIONAR AO CARRINHO")
+// ==============================================
+
+function adicionarAoCarrinho() {
+  const nome = document.getElementById("modalNome").innerText;
+  const preco = document.getElementById("modalPreco").innerText;
+  const qtd = parseInt(document.getElementById("modalQtd").innerText);
+
+  adicionarPedido(nome, preco, qtd);
+
+  closeModal(); // fecha modal do produto
+}

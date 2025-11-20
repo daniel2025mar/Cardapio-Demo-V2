@@ -886,16 +886,19 @@ window.addEventListener('DOMContentLoaded', () => {
 // ========================
 // ABRIR MODAL NO CELULAR
 // ========================
+// ========================
+// ABRIR MODAL NO CELULAR
+// ========================
 document.querySelectorAll(".produto-item").forEach(card => {
-  card.addEventListener("click", function () {
+  card.addEventListener("click", function (e) {
+    if (window.innerWidth > 768) return; // só abre no celular
 
-    if (window.innerWidth > 768) return; // só celular
-
-     // ✅ IGNORAR CLIQUE NOS BOTÕES DENTRO DO CARD
+    // ✅ IGNORAR CLIQUE NOS BOTÕES DENTRO DO CARD
     if (e.target.closest(".open-ingredientes-btn") || e.target.closest(".add-to-card-btn")) {
       return; // não abre o modal
     }
-    resetQty(); // reset quantidade
+
+    resetQty(); // reseta quantidade
 
     const img = this.querySelector("img").src;
     const name = this.querySelector("p.font-bold").innerText;
@@ -910,6 +913,7 @@ document.querySelectorAll(".produto-item").forEach(card => {
     document.getElementById("mobileProductModal").classList.remove("hidden");
   });
 });
+
 
 // ========================
 // FECHAR MODAL CLICANDO FORA

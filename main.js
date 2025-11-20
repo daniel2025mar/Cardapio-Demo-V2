@@ -1032,7 +1032,7 @@ function atualizarPedidos() {
   if (pedidos.length === 0) {
     const nenhum = document.createElement('div');
     nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
-    nenhum.textContent = 'Nenhum pedido encontrado';
+    nenhum.textContent = 'Você ainda não possui nenhum pedido';
     listaPedidos.appendChild(nenhum);
     return;
   }

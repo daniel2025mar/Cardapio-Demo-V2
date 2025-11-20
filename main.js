@@ -1019,15 +1019,24 @@ const btnMeusPedidos = document.getElementById('btnMeusPedidos');
 // Recupera pedidos salvos no localStorage
 let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
 
+// Função para formatar data e hora
+function formatarDataHora(date) {
+  const d = new Date(date);
+  return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+}
+
 // Função para atualizar a lista do modal
 function atualizarPedidos() {
   listaPedidos.innerHTML = '';
   pedidos.forEach(pedido => {
     const item = document.createElement('div');
-    item.classList.add('flex', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg');
+    item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
     item.innerHTML = `
-      <span>${pedido.nome} x${pedido.quantidade}</span>
-      <span>R$ ${pedido.preco.toFixed(2)}</span>
+      <div class="flex justify-between">
+        <span>${pedido.nome} x${pedido.quantidade}</span>
+        <span>R$ ${pedido.preco.toFixed(2)}</span>
+      </div>
+      <small class="text-gray-500">Pedido em: ${formatarDataHora(pedido.data)}</small>
     `;
     listaPedidos.appendChild(item);
   });
@@ -1044,15 +1053,16 @@ const botoesAdicionar = document.querySelectorAll('.add-to-card-btn');
 botoesAdicionar.forEach(botao => {
   botao.addEventListener('click', () => {
     const nome = botao.dataset.name;
-    let preco = botao.dataset.price.replace(',', '.'); // transforma "20,60" em "20.60"
-    preco = parseFloat(preco);
+    let preco = parseFloat(botao.dataset.price.replace(',', '.')); // transforma "20,60" em 20.60
+    const agora = new Date();
 
     // Verifica se o produto já existe no pedido
     const existente = pedidos.find(p => p.nome === nome);
     if (existente) {
       existente.quantidade += 1;
+      existente.data = agora; // atualiza a data para a última vez que o produto foi adicionado
     } else {
-      pedidos.push({ nome, quantidade: 1, preco });
+      pedidos.push({ nome, quantidade: 1, preco, data: agora });
     }
 
     salvarPedidos();
@@ -1062,6 +1072,10 @@ botoesAdicionar.forEach(botao => {
 
 // Botão Finalizar Pedido
 checkoutBtn.addEventListener('click', () => {
+  if (pedidos.length === 0) {
+    alert('Adicione produtos antes de finalizar o pedido!');
+    return;
+  }
   atualizarPedidos();
   modal.classList.remove('hidden');
   modal.classList.add('flex');

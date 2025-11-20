@@ -1009,119 +1009,37 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     updateAddressState();
   });
 
-  // ======================================================
-// BANCO DE PEDIDOS (LocalStorage)
-// ======================================================
+   const checkoutBtn = document.getElementById('checkout-btn'); // Botão Finalizar Pedido
+  const modal = document.getElementById('meusPedidosModal');
+  const fecharBtn = document.getElementById('fecharPedidos');
+  const listaPedidos = document.getElementById('listaPedidos');
 
-// Carrega pedidos já salvos
-let pedidos = JSON.parse(localStorage.getItem("meusPedidos")) || [];
+  // Array de exemplo com pedidos (substitua pelos pedidos reais do seu sistema)
+  let pedidos = [
+    { nome: 'X-Burguer', quantidade: 2, preco: 18.00 },
+    { nome: 'Coca Cola 350ml', quantidade: 1, preco: 7.00 },
+  ];
 
-// Salvar pedidos no LocalStorage
-function salvarPedidos() {
-  localStorage.setItem("meusPedidos", JSON.stringify(pedidos));
-}
-
-
-
-// ======================================================
-// ABRIR / FECHAR MODAL "MEUS PEDIDOS"
-// ======================================================
-
-// Abrir modal ao clicar no botão dentro do perfil
-document.getElementById("btnMeusPedidos").addEventListener("click", function () {
-  atualizarListaPedidos();
-  const modal = document.getElementById("meusPedidosModal");
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-});
-
-// Fechar modal
-document.getElementById("fecharPedidos").addEventListener("click", function () {
-  const modal = document.getElementById("meusPedidosModal");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-});
-
-
-
-// ======================================================
-// ADICIONAR PEDIDOS
-// ======================================================
-// Essa função será chamada quando o cliente clicar em "Adicionar ao Carrinho"
-function adicionarAoCarrinho() {
-
-  const nome = document.getElementById("modalNome").innerText;
-  const preco = document.getElementById("modalPreco").innerText;
-  const qtd = parseInt(document.getElementById("modalQtd").innerText);
-
-  registrarPedido(nome, preco, qtd);
-
-  closeModal(); // Fecha o modal do produto
-}
-
-
-
-// Registrar pedido no sistema
-function registrarPedido(nome, preco, qtd) {
-  const total = calcularTotal(preco, qtd);
-  const agora = new Date();
-
-  const pedido = {
-    nome: nome,
-    preco: preco,
-    qtd: qtd,
-    total: total,
-    data: agora.toLocaleDateString("pt-BR"),
-    hora: agora.toLocaleTimeString("pt-BR")
-  };
-
-  pedidos.push(pedido);
-  salvarPedidos();
-  atualizarListaPedidos();
-}
-
-
-
-// ======================================================
-// ATUALIZAR O MODAL MEUS PEDIDOS
-// ======================================================
-function atualizarListaPedidos() {
-  const lista = document.getElementById("listaPedidos");
-  lista.innerHTML = "";
-
-  if (pedidos.length === 0) {
-    lista.innerHTML = `
-      <p class="text-center text-gray-600">Nenhum pedido encontrado.</p>
-    `;
-    return;
+  function atualizarPedidos() {
+    listaPedidos.innerHTML = ''; // Limpa a lista
+    pedidos.forEach(pedido => {
+      const item = document.createElement('div');
+      item.classList.add('flex', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg');
+      item.innerHTML = `
+        <span>${pedido.nome} x${pedido.quantidade}</span>
+        <span>R$ ${pedido.preco.toFixed(2)}</span>
+      `;
+      listaPedidos.appendChild(item);
+    });
   }
 
-  pedidos.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "p-4 bg-gray-100 rounded-lg shadow";
-
-    div.innerHTML = `
-      <p class="font-bold text-gray-900 text-lg">${item.qtd}x ${item.nome}</p>
-      <p class="text-gray-700 font-medium">${item.preco} cada</p>
-      <p class="text-red-600 font-semibold">Total: ${item.total}</p>
-      <p class="text-sm text-gray-600 mt-1">
-        📅 ${item.data} — ⏰ ${item.hora}
-      </p>
-    `;
-
-    lista.appendChild(div);
+  // Abre modal e atualiza pedidos
+  checkoutBtn.addEventListener('click', () => {
+    atualizarPedidos();
+    modal.classList.remove('hidden');
   });
-}
 
-
-
-// ======================================================
-// UTILITÁRIO PARA CALCULAR TOTAL
-// ======================================================
-function calcularTotal(preco, qtd) {
-  let num = preco.replace("R$", "").replace(".", "").replace(",", ".");
-  num = parseFloat(num);
-  const valor = num * qtd;
-  return "R$ " + valor.toFixed(2).replace(".", ",");
-}
-
+  // Fecha modal
+  fecharBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });

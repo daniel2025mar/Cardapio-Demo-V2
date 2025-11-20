@@ -1045,7 +1045,7 @@ function mostrarMeusPedidos() {
       const li = document.createElement('li');
       li.className = "border-b border-gray-200 py-2";
       li.innerHTML = `
-        <strong>Pedido ${index + 1}:</strong> ${pedido.nome} | Quantidade: ${pedido.quantidade} | R$ ${pedido.preco.toFixed(2)}
+        <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
       `;
       listaMeusPedidos.appendChild(li);
     });
@@ -1054,6 +1054,7 @@ function mostrarMeusPedidos() {
   // Abre o modal
   meusPedidosModal.classList.remove("hidden");
 }
+
 
 // Evento para abrir modal
 meusPedidosBtn.addEventListener("click", (e) => {

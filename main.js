@@ -1052,35 +1052,4 @@ meusPedidosModal.addEventListener("click", (e) => {
 
 // ==============================
 // Salvar pedido ao finalizar (adapte seu checkout)
-checkout.addEventListener("click", function() {
-  if (cart.length === 0) return;
 
-  // Cria resumo do pedido
-  const cartItens = cart.map(item => {
-    let nomeProduto = item.name;
-    if (item.custom && item.removidos && item.removidos.length > 0) {
-      nomeProduto += ` (Sem ${item.removidos.join(", ")})`;
-    }
-    return `${nomeProduto} | Qtd: ${item.quantity} | R$ ${item.price.toFixed(2)}`;
-  }).join("\n");
-
-  const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const taxaEntrega = retirarLocal.checked ? 0 : 3.00;
-  const totalComTaxa = totalProdutos + taxaEntrega;
-
-  // Adiciona ao array de pedidos finalizados
-  pedidosFinalizados.push({
-    itens: cartItens,
-    total: totalComTaxa,
-    retirarLocal: retirarLocal.checked,
-    endereco: andressInput.value
-  });
-
-  // Salva no localStorage
-  localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
-
-  // Limpa o carrinho e atualiza UI
-  cart = [];
-  updateCartModal();
-  cardmodal.style.display = "none";
-});

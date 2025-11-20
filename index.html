@@ -599,12 +599,13 @@
         </button>
 
         <!-- Meus Pedidos -->
-        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z" />
-          </svg>
-          <p class="font-medium">Meus Pedidos</p>
-        </button>
+        <button id="openFinalizedModalBtn" class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z" />
+  </svg>
+  <p class="font-medium">Meus Pedidos</p>
+</button>
+
 
         <!-- Meus Cupons -->
         <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
@@ -697,6 +698,22 @@
 
   </div>
 
+</div>
+
+
+<!-- MODAL PEDIDOS FINALIZADOS -->
+<div id="finalizedOrdersModal" class="fixed inset-0 bg-black/70 hidden justify-center items-center z-50">
+  <div class="bg-white rounded-xl w-11/12 max-w-lg p-6 relative">
+    <h2 class="text-2xl font-bold mb-4">Pedidos Finalizados</h2>
+
+    <div id="finalizedOrdersList" class="space-y-3 max-h-96 overflow-y-auto">
+      <!-- Aqui os pedidos finalizados serão adicionados via JS -->
+    </div>
+
+    <button id="closeFinalizedModal" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+      Fechar
+    </button>
+  </div>
 </div>
 
 <!-- MODAL DE AVISO PERSONALIZADO -->

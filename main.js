@@ -1001,3 +1001,46 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
+
+  // Seleciona o botão e o modal
+const openFinalizedModalBtn = document.getElementById('openFinalizedModalBtn');
+const finalizedOrdersModal = document.getElementById('finalizedOrdersModal');
+const closeFinalizedModalBtn = document.getElementById('closeFinalizedModal');
+const finalizedOrdersList = document.getElementById('finalizedOrdersList');
+
+// Recupera pedidos finalizados do localStorage
+let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+
+// Função para exibir pedidos no modal
+function renderFinalizedOrders() {
+  finalizedOrdersList.innerHTML = '';
+
+  if (pedidosFinalizados.length === 0) {
+    finalizedOrdersList.innerHTML = `<p class="text-gray-500">Nenhum pedido finalizado ainda.</p>`;
+    return;
+  }
+
+  pedidosFinalizados.forEach((pedido) => {
+    finalizedOrdersList.innerHTML += `
+      <div class="border p-3 rounded shadow flex justify-between items-center">
+        <div>
+          <p class="font-semibold">${pedido.nome}</p>
+          <p class="text-gray-600">Quantidade: ${pedido.quantidade}</p>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Abrir modal ao clicar no botão
+openFinalizedModalBtn.addEventListener('click', () => {
+  renderFinalizedOrders();
+  finalizedOrdersModal.classList.remove('hidden');
+  finalizedOrdersModal.classList.add('flex');
+});
+
+// Fechar modal
+closeFinalizedModalBtn.addEventListener('click', () => {
+  finalizedOrdersModal.classList.add('hidden');
+  finalizedOrdersModal.classList.remove('flex');
+});

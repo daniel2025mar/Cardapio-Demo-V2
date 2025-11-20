@@ -169,15 +169,11 @@ andressInput.addEventListener("input", function(event){
    andresswarn.classList.add("hidden")
   }
 })
-
-
-
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
-    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -193,12 +189,10 @@ checkout.addEventListener("click", function() {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
-    return; // interrompe o envio do pedido
+    return;
   }
 
-  // ==============================
-  // Verifica se o restaurante está aberto
-  // ==============================
+  // 🔹 Verifica se o restaurante está aberto
   const isOpen = checkRestauranteOpen();
   if (!isOpen) {
     const modalLojaFechada = document.getElementById('loja-fechada-modal');
@@ -223,9 +217,7 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // ==============================
-  // Verifica se o carrinho está vazio
-  // ==============================
+  // 🔹 Verifica se o carrinho está vazio
   if (cart.length === 0) {
     Toastify({
       text: "Seu carrinho está vazio",
@@ -238,19 +230,18 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // ==============================
-  // Verifica endereço
-  // ==============================
+  // 🔹 Verifica endereço
   const retirarLocalChecked = retirarLocal.checked;
   if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
+  } else {
+    andresswarn.classList.add("hidden");
+    andressInput.classList.remove("border-red-500");
   }
 
-  // ==============================
-  // Continua com a lógica atual de montagem do pedido e envio
-  // ==============================
+  // 🔹 Montagem do pedido e envio
   const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
@@ -276,15 +267,23 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+  // 🔹 Adiciona ao finalizedOrders e atualiza o modal
+  let finalizedOrders = JSON.parse(localStorage.getItem("finalizedOrders")) || [];
+  finalizedOrders = [...finalizedOrders, ...cart];
+  localStorage.setItem("finalizedOrders", JSON.stringify(finalizedOrders));
+  updateFinalizedOrdersModal(); // função que atualiza o conteúdo do modal
+
+  // 🔹 Limpa o carrinho e fecha modal
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
+  // 🔹 Modal de sucesso
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
     modal.classList.remove('hidden');
-    
+
     setTimeout(() => {
       modalBox.classList.remove('scale-90', 'opacity-0');
       modalBox.classList.add('scale-100', 'opacity-100');
@@ -298,9 +297,6 @@ checkout.addEventListener("click", function() {
   }, 500);
 
 });
-
-
-
 
 
 //horario de funcionamento

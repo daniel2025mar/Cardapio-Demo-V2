@@ -1024,10 +1024,11 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   });
 
   document.addEventListener("DOMContentLoaded", () => {
+
   const modal = document.getElementById('pedidosFinalizadosModal');
   const listaPedidos = document.getElementById('listaPedidos');
   const fecharModal = document.getElementById('fecharModal');
-  const btnVerPedidos = document.getElementById('btnVerPedidos'); // ou btnMeusPedidos se for esse o id
+  const btnVerPedidos = document.getElementById('btnMeusPedidos'); // ou btnMeusPedidos se for esse o id
 
   function mostrarPedidosFinalizados() {
     const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];

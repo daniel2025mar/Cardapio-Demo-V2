@@ -12,16 +12,6 @@ const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
 
-
-// Função para finalizar pedido e salvar no localStorage
-function finalizarPedido(pedidos) {
-  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-  
-  const novosPedidos = [...pedidosFinalizados, ...pedidos];
-  
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(novosPedidos));
-}
-
 //funçaos do cardapio
 
 // abrir model do carrinho
@@ -257,17 +247,6 @@ checkout.addEventListener("click", function() {
     andressInput.classList.add("border-red-500");
     return;
   }
-
-    // ==============================
-  // Salvar pedido finalizado
-  // ==============================
-  const pedidosParaSalvar = cart.map(item => ({
-    nome: item.name,
-    quantidade: item.quantity,
-    preco: item.price
-  }));
-
-  finalizarPedido(pedidosParaSalvar);
 
   // ==============================
   // Continua com a lógica atual de montagem do pedido e envio
@@ -886,6 +865,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ========================
 // ABRIR MODAL NO CELULAR
 // ========================
+
 document.querySelectorAll(".produto-item").forEach(card => {
   card.addEventListener("click", function (event) {
     // 🔹 Ignora clique nos botões internos
@@ -909,7 +889,6 @@ document.querySelectorAll(".produto-item").forEach(card => {
     document.getElementById("mobileProductModal").classList.remove("hidden");
   });
 });
-
 
 // ========================
 // FECHAR MODAL CLICANDO FORA
@@ -1022,36 +1001,3 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
-
-  document.addEventListener("DOMContentLoaded", () => {
-
-  const modal = document.getElementById('pedidosFinalizadosModal');
-  const listaPedidos = document.getElementById('listaPedidos');
-  const fecharModal = document.getElementById('fecharModal');
-  const btnVerPedidos = document.getElementById('btnMeusPedidos'); // ou btnMeusPedidos se for esse o id
-
-  function mostrarPedidosFinalizados() {
-    const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-    listaPedidos.innerHTML = "";
-
-    if (pedidosFinalizados.length === 0) {
-      listaPedidos.innerHTML = "<li class='text-gray-500'>Nenhum pedido finalizado ainda.</li>";
-    } else {
-      pedidosFinalizados.forEach((pedido) => {
-        const li = document.createElement('li');
-        li.className = "border-b border-gray-200 pb-2";
-        li.innerHTML = `<strong>${pedido.nome}</strong> - Quantidade: ${pedido.quantidade} - R$ ${pedido.preco.toFixed(2)}`;
-        listaPedidos.appendChild(li);
-      });
-    }
-
-    modal.classList.remove('hidden');
-  }
-
-  fecharModal.addEventListener('click', () => {
-    modal.classList.add('hidden');
-  });
-
-  btnVerPedidos.addEventListener('click', mostrarPedidosFinalizados);
-});
-

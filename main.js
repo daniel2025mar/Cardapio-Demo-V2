@@ -242,25 +242,32 @@ checkout.addEventListener("click", function() {
     andressInput.classList.remove("border-red-500");
   }
 
-  // 🔹 Montagem do pedido e envio
+  // 🔹 Montagem do pedido
   const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
       const removidosTexto = item.removidos.join(", ");
       nomeProduto += ` (Sem ${removidosTexto})`;
     }
-    return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
-  }).join("\n");
+    return {
+      nome: nomeProduto,
+      quantidade: item.quantity,
+      preco: item.price
+    };
+  });
 
   const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
-  let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
+  let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n`;
+  cartItens.forEach((item) => {
+    mensagemTexto += `${item.nome} | Quantidade: ${item.quantidade} | Preço: R$ ${item.preco.toFixed(2)}\n`;
+  });
   if (retirarLocalChecked) {
-    mensagemTexto += `🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
+    mensagemTexto += `\n🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
   } else {
-    mensagemTexto += `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
+    mensagemTexto += `\n📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
   }
   mensagemTexto += `💰 *Total:* R$ ${totalComTaxa.toFixed(2)}`;
 
@@ -268,28 +275,20 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  // 🔹 Adiciona ao finalizedOrders e atualiza o modal
+  // 🔹 Adiciona pedidos ao finalizedOrders e atualiza o modal
   let finalizedOrders = JSON.parse(localStorage.getItem("finalizedOrders")) || [];
-  
-  // Adiciona cada item do carrinho ao array de pedidos finalizados
-  cart.forEach(item => {
-    finalizedOrders.push({
-      nome: item.name,
-      quantidade: item.quantity,
-      preco: item.price,
-      removidos: item.removidos || []
-    });
-  });
-
+  finalizedOrders = [...finalizedOrders, ...cartItens];
   localStorage.setItem("finalizedOrders", JSON.stringify(finalizedOrders));
-  renderFinalizedOrders(); // atualiza o modal de pedidos finalizados
 
-  // 🔹 Limpa o carrinho e fecha modal
+  // Atualiza modal de pedidos finalizados
+  renderFinalizedOrders();
+
+  // 🔹 Limpa o carrinho e fecha o modal de carrinho
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  // 🔹 Modal de sucesso
+  // 🔹 Modal de pedido enviado com sucesso
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
@@ -872,11 +871,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ABRIR MODAL NO CELULAR
 // ========================
 document.querySelectorAll(".produto-item").forEach(card => {
-  card.addEventListener("click", function (event) {
-
-    // Se clicou em algum botão específico dentro do card, NÃO abre modal
-    const clicouBotao = event.target.closest(".add-to-card-btn, .open-ingredientes-btn");
-    if (clicouBotao) return;
+  card.addEventListener("click", function () {
 
     if (window.innerWidth > 768) return; // só celular
 
@@ -1008,45 +1003,79 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     updateAddressState();
   });
 
-  // Seleciona o botão e o modal
-const openFinalizedModalBtn = document.getElementById('openFinalizedModalBtn');
-const finalizedOrdersModal = document.getElementById('finalizedOrdersModal');
-const closeFinalizedModalBtn = document.getElementById('closeFinalizedModal');
-const finalizedOrdersList = document.getElementById('finalizedOrdersList');
 
-// Função para exibir pedidos no modal
-function renderFinalizedOrders() {
-  // Recupera os pedidos finalizados mais recentes do localStorage
-  const pedidosFinalizados = JSON.parse(localStorage.getItem('finalizedOrders')) || [];
+  // ======== Arrays para armazenar pedidos ========
+let pedidos = []; // pedidos no carrinho
+let pedidosFinalizados = []; // pedidos finalizados
 
-  finalizedOrdersList.innerHTML = '';
+// ======== Seletores ========
+const finalizedModal = document.getElementById("finalizedOrdersModal");
+const finalizedList = document.getElementById("finalizedOrdersList");
+const openFinalizedBtn = document.getElementById("openFinalizedModalBtn");
+const closeFinalizedBtn = document.getElementById("closeFinalizedModal");
 
-  if (pedidosFinalizados.length === 0) {
-    finalizedOrdersList.innerHTML = `<p class="text-gray-500">Nenhum pedido finalizado ainda.</p>`;
-    return;
-  }
+// ======== Função para mostrar o modal ========
+function abrirFinalizados() {
+    // Limpa a lista antes de preencher
+    finalizedList.innerHTML = "";
 
-  pedidosFinalizados.forEach((pedido) => {
-    finalizedOrdersList.innerHTML += `
-      <div class="border p-3 rounded shadow flex justify-between items-center">
-        <div>
-          <p class="font-semibold">${pedido.name}</p>
-          <p class="text-gray-600">Quantidade: ${pedido.quantity}</p>
-        </div>
-      </div>
-    `;
-  });
+    if (pedidosFinalizados.length === 0) {
+        finalizedList.innerHTML = `<p class="text-gray-600 text-center">Nenhum pedido finalizado ainda.</p>`;
+    } else {
+        pedidosFinalizados.forEach((pedido, index) => {
+            const item = document.createElement("div");
+            item.classList.add("p-3", "border", "rounded", "flex", "justify-between", "items-center");
+            item.innerHTML = `
+                <span class="font-medium">${pedido.name}</span>
+                <span class="text-red-600 font-bold">R$ ${pedido.price}</span>
+            `;
+            finalizedList.appendChild(item);
+        });
+    }
+
+    finalizedModal.classList.remove("hidden");
 }
 
-// Abrir modal ao clicar no botão
-openFinalizedModalBtn.addEventListener('click', () => {
-  renderFinalizedOrders(); // Sempre busca os pedidos mais recentes
-  finalizedOrdersModal.classList.remove('hidden');
-  finalizedOrdersModal.classList.add('flex');
+// ======== Função para fechar o modal ========
+function fecharFinalizados() {
+    finalizedModal.classList.add("hidden");
+}
+
+// ======== Eventos ========
+openFinalizedBtn.addEventListener("click", abrirFinalizados);
+closeFinalizedBtn.addEventListener("click", fecharFinalizados);
+
+// ======== Função para finalizar pedidos ========
+const checkoutBtn = document.getElementById("checkout-btn");
+
+checkoutBtn.addEventListener("click", () => {
+    if (pedidos.length === 0) {
+        alert("Adicione produtos antes de finalizar o pedido!");
+        return;
+    }
+
+    // Adiciona ao array de pedidos finalizados
+    pedidosFinalizados = [...pedidosFinalizados, ...pedidos];
+    localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
+
+    // Limpa o carrinho
+    pedidos = [];
+    document.getElementById("card-itens").innerHTML = "";
+    document.getElementById("card-total").textContent = "0,00";
+    document.getElementById("card-count").textContent = "0";
+
+    // Fecha o modal do carrinho
+    document.getElementById("card-modal").classList.add("hidden");
+
+    // Mostra o modal de sucesso (se tiver)
+    const pedidoModal = document.getElementById("pedido-sucesso-modal");
+    pedidoModal.classList.remove("hidden");
 });
 
-// Fechar modal
-closeFinalizedModalBtn.addEventListener('click', () => {
-  finalizedOrdersModal.classList.add('hidden');
-  finalizedOrdersModal.classList.remove('flex');
+// ======== Função para carregar pedidos do localStorage ao iniciar ========
+window.addEventListener("load", () => {
+    const armazenados = localStorage.getItem("pedidosFinalizados");
+    if (armazenados) {
+        pedidosFinalizados = JSON.parse(armazenados);
+    }
 });

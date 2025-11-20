@@ -276,6 +276,30 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+    // Adiciona os pedidos finalizados no localStorage
+  let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
+  pedidosFinalizados = [...pedidosFinalizados, ...cart];
+  localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
+
+  // Função para atualizar o modal "Meus Pedidos"
+  (function atualizarMeusPedidos() {
+    const lista = document.getElementById("listaMeusPedidos");
+    lista.innerHTML = ""; // limpa a lista antes de inserir os itens
+
+    if (pedidosFinalizados.length === 0) {
+      lista.innerHTML = "<li class='p-2 text-gray-500'>Nenhum pedido finalizado ainda.</li>";
+      return;
+    }
+
+    pedidosFinalizados.forEach((pedido, index) => {
+      const li = document.createElement("li");
+      li.className = "p-2 border-b border-gray-200";
+      li.innerHTML = `
+        <strong>Pedido ${index + 1}:</strong> ${pedido.name} x ${pedido.quantity} - R$ ${pedido.price.toFixed(2)}
+      `;
+      lista.appendChild(li);
+    });
+  })(); 
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";

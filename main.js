@@ -170,11 +170,14 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
+
+
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
+    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -190,10 +193,12 @@ checkout.addEventListener("click", function() {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
-    return;
+    return; // interrompe o envio do pedido
   }
 
-  // 🔹 Verifica se o restaurante está aberto
+  // ==============================
+  // Verifica se o restaurante está aberto
+  // ==============================
   const isOpen = checkRestauranteOpen();
   if (!isOpen) {
     const modalLojaFechada = document.getElementById('loja-fechada-modal');
@@ -218,7 +223,9 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // 🔹 Verifica se o carrinho está vazio
+  // ==============================
+  // Verifica se o carrinho está vazio
+  // ==============================
   if (cart.length === 0) {
     Toastify({
       text: "Seu carrinho está vazio",
@@ -231,43 +238,37 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // 🔹 Verifica endereço
+  // ==============================
+  // Verifica endereço
+  // ==============================
   const retirarLocalChecked = retirarLocal.checked;
   if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
-  } else {
-    andresswarn.classList.add("hidden");
-    andressInput.classList.remove("border-red-500");
   }
 
-  // 🔹 Montagem do pedido
+  // ==============================
+  // Continua com a lógica atual de montagem do pedido e envio
+  // ==============================
   const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
       const removidosTexto = item.removidos.join(", ");
       nomeProduto += ` (Sem ${removidosTexto})`;
     }
-    return {
-      nome: nomeProduto,
-      quantidade: item.quantity,
-      preco: item.price
-    };
-  });
+    return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
+  }).join("\n");
 
   const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
-  let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n`;
-  cartItens.forEach((item) => {
-    mensagemTexto += `${item.nome} | Quantidade: ${item.quantidade} | Preço: R$ ${item.preco.toFixed(2)}\n`;
-  });
+  let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
   if (retirarLocalChecked) {
-    mensagemTexto += `\n🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
+    mensagemTexto += `🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
   } else {
-    mensagemTexto += `\n📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
+    mensagemTexto += `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
   }
   mensagemTexto += `💰 *Total:* R$ ${totalComTaxa.toFixed(2)}`;
 
@@ -275,25 +276,15 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  // 🔹 Adiciona pedidos ao finalizedOrders e atualiza o modal
-  let finalizedOrders = JSON.parse(localStorage.getItem("finalizedOrders")) || [];
-  finalizedOrders = [...finalizedOrders, ...cartItens];
-  localStorage.setItem("finalizedOrders", JSON.stringify(finalizedOrders));
-
-  // Atualiza modal de pedidos finalizados
-  renderFinalizedOrders();
-
-  // 🔹 Limpa o carrinho e fecha o modal de carrinho
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  // 🔹 Modal de pedido enviado com sucesso
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
     modal.classList.remove('hidden');
-
+    
     setTimeout(() => {
       modalBox.classList.remove('scale-90', 'opacity-0');
       modalBox.classList.add('scale-100', 'opacity-100');
@@ -307,6 +298,10 @@ checkout.addEventListener("click", function() {
   }, 500);
 
 });
+
+
+
+
 
 //horario de funcionamento
 function checkRestauranteOpen(){
@@ -1002,80 +997,3 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
-
-
-  // ======== Arrays para armazenar pedidos ========
-let pedidos = []; // pedidos no carrinho
-let pedidosFinalizados = []; // pedidos finalizados
-
-// ======== Seletores ========
-const finalizedModal = document.getElementById("finalizedOrdersModal");
-const finalizedList = document.getElementById("finalizedOrdersList");
-const openFinalizedBtn = document.getElementById("openFinalizedModalBtn");
-const closeFinalizedBtn = document.getElementById("closeFinalizedModal");
-
-// ======== Função para mostrar o modal ========
-function abrirFinalizados() {
-    // Limpa a lista antes de preencher
-    finalizedList.innerHTML = "";
-
-    if (pedidosFinalizados.length === 0) {
-        finalizedList.innerHTML = `<p class="text-gray-600 text-center">Nenhum pedido finalizado ainda.</p>`;
-    } else {
-        pedidosFinalizados.forEach((pedido, index) => {
-            const item = document.createElement("div");
-            item.classList.add("p-3", "border", "rounded", "flex", "justify-between", "items-center");
-            item.innerHTML = `
-                <span class="font-medium">${pedido.name}</span>
-                <span class="text-red-600 font-bold">R$ ${pedido.price}</span>
-            `;
-            finalizedList.appendChild(item);
-        });
-    }
-
-    finalizedModal.classList.remove("hidden");
-}
-
-// ======== Função para fechar o modal ========
-function fecharFinalizados() {
-    finalizedModal.classList.add("hidden");
-}
-
-// ======== Eventos ========
-openFinalizedBtn.addEventListener("click", abrirFinalizados);
-closeFinalizedBtn.addEventListener("click", fecharFinalizados);
-
-// ======== Função para finalizar pedidos ========
-const checkoutBtn = document.getElementById("checkout-btn");
-
-checkoutBtn.addEventListener("click", () => {
-    if (pedidos.length === 0) {
-        alert("Adicione produtos antes de finalizar o pedido!");
-        return;
-    }
-
-    // Adiciona ao array de pedidos finalizados
-    pedidosFinalizados = [...pedidosFinalizados, ...pedidos];
-    localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
-
-    // Limpa o carrinho
-    pedidos = [];
-    document.getElementById("card-itens").innerHTML = "";
-    document.getElementById("card-total").textContent = "0,00";
-    document.getElementById("card-count").textContent = "0";
-
-    // Fecha o modal do carrinho
-    document.getElementById("card-modal").classList.add("hidden");
-
-    // Mostra o modal de sucesso (se tiver)
-    const pedidoModal = document.getElementById("pedido-sucesso-modal");
-    pedidoModal.classList.remove("hidden");
-});
-
-// ======== Função para carregar pedidos do localStorage ao iniciar ========
-window.addEventListener("load", () => {
-    const armazenados = localStorage.getItem("pedidosFinalizados");
-    if (armazenados) {
-        pedidosFinalizados = JSON.parse(armazenados);
-    }
-});

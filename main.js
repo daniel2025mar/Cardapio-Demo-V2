@@ -866,9 +866,12 @@ window.addEventListener('DOMContentLoaded', () => {
 // ABRIR MODAL NO CELULAR
 // ========================
 document.querySelectorAll(".produto-item").forEach(card => {
-  card.addEventListener("click", function () {
+  card.addEventListener("click", function (event) {
+    // 🔹 Ignora clique nos botões internos
+    if (event.target.closest(".add-to-card-btn") || event.target.closest(".open-ingredientes-btn")) return;
 
-    if (window.innerWidth > 768) return; // só celular
+    // 🔹 Só abre modal no celular
+    if (window.innerWidth > 768) return;
 
     resetQty(); // reset quantidade
 
@@ -885,6 +888,7 @@ document.querySelectorAll(".produto-item").forEach(card => {
     document.getElementById("mobileProductModal").classList.remove("hidden");
   });
 });
+
 
 // ========================
 // FECHAR MODAL CLICANDO FORA
@@ -997,59 +1001,3 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
-
-  // ============================
-// MEUS PEDIDOS
-// ============================
-// Seletores do modal e botão
-const btnMeusPedidos = document.getElementById("btnMeusPedidos");
-const meusPedidosModal = document.getElementById("meusPedidosModal");
-const pedidosList = document.getElementById("pedidosList");
-const closeMeusPedidos = document.getElementById("closeMeusPedidos");
-
-// Recupera os pedidos finalizados do localStorage (ou cria um array vazio)
-let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
-
-// Atualiza o modal com os pedidos
-function atualizarMeusPedidosModal() {
-  pedidosList.innerHTML = "";
-
-  if (pedidosFinalizados.length === 0) {
-    pedidosList.innerHTML = "<p>Nenhum pedido feito ainda.</p>";
-    return;
-  }
-
-  pedidosFinalizados.forEach((pedido, index) => {
-    const div = document.createElement("div");
-    div.classList.add("border-b", "pb-2", "mb-2");
-    div.innerHTML = `
-      <p><strong>Pedido ${index + 1}</strong></p>
-      <p>${pedido.itens}</p>
-      <p>Total: R$ ${pedido.total.toFixed(2)}</p>
-      <p>${pedido.retirarLocal ? "Retirada no local" : "Entrega no endereço: " + pedido.endereco}</p>
-    `;
-    pedidosList.appendChild(div);
-  });
-}
-
-// Abre o modal ao clicar
-btnMeusPedidos.addEventListener("click", () => {
-  atualizarMeusPedidosModal();
-  meusPedidosModal.classList.remove("hidden");
-});
-
-// Fecha o modal
-closeMeusPedidos.addEventListener("click", () => {
-  meusPedidosModal.classList.add("hidden");
-});
-
-// Fecha clicando fora do modal
-meusPedidosModal.addEventListener("click", (e) => {
-  if (e.target === meusPedidosModal) {
-    meusPedidosModal.classList.add("hidden");
-  }
-});
-
-// ==============================
-// Salvar pedido ao finalizar (adapte seu checkout)
-

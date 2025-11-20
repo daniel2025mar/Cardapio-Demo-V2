@@ -11,6 +11,7 @@ const andresswarn = document.getElementById("address-warn")
 const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
+let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
 //funçaos do cardapio
 
@@ -170,6 +171,21 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
+function atualizarMeusPedidosModal() {
+  const container = document.getElementById("meusPedidosContainer");
+  container.innerHTML = ""; // limpa antes
+
+  pedidosFinalizados.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.classList.add("flex", "justify-between", "mb-2", "border-b", "pb-1");
+
+    div.innerHTML = `
+      <p>${item.name} | Qtd: ${item.quantity} | R$ ${item.price.toFixed(2)}</p>
+    `;
+    container.appendChild(div);
+  });
+}
+
 
 
 checkout.addEventListener("click", function() {
@@ -276,6 +292,12 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+
+   pedidosFinalizados = [...pedidosFinalizados, ...cart];
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
+
+  // Atualiza o modal "Meus Pedidos"
+  atualizarMeusPedidosModal();
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";

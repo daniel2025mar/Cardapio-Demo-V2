@@ -269,6 +269,7 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+  sincronizarPedidos();
   // 🔹 Limpa carrinho e atualiza UI
   cart = [];
   updateCartModal();
@@ -298,6 +299,27 @@ checkout.addEventListener("click", function() {
 
 });
 
+function sincronizarPedidos() {
+  const agora = new Date();
+
+  cart.forEach(item => {
+    const existente = pedidos.find(p => p.nome === item.name && JSON.stringify(p.removidos || []) === JSON.stringify(item.removidos || []));
+    if (existente) {
+      existente.quantidade += item.quantity;
+      existente.data = agora;
+    } else {
+      pedidos.push({
+        nome: item.name,
+        quantidade: item.quantity,
+        preco: item.price,
+        data: agora,
+        removidos: item.removidos || []
+      });
+    }
+  });
+
+  salvarPedidos();
+}
 
 //horario de funcionamento
 function checkRestauranteOpen(){

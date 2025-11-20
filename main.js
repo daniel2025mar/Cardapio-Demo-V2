@@ -1053,30 +1053,18 @@ function salvarPedidos() {
 }
 
 // Função para atualizar o modal com pedidos finalizados
-function atualizarPedidosModal() {
-  listaPedidos.innerHTML = '';
+function atualizarPedidosModal(limpar = false) {
+  const container = document.getElementById('pedidosModalContainer'); // ID do container no modal
+  if (limpar) container.innerHTML = ''; // limpa antes de adicionar
 
-  if (pedidosFinalizados.length === 0) {
-    const nenhum = document.createElement('div');
-    nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
-    nenhum.textContent = 'Você ainda não possui nenhum pedido';
-    listaPedidos.appendChild(nenhum);
-    return;
-  }
-
+  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
   pedidosFinalizados.forEach(pedido => {
-    const item = document.createElement('div');
-    item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
-    item.innerHTML = `
-      <div class="flex justify-between">
-        <span>${pedido.nome} x${pedido.quantidade}</span>
-        <span>R$ ${pedido.preco.toFixed(2)}</span>
-      </div>
-      <small class="text-gray-500">Pedido em: ${formatarDataHora(pedido.data)}</small>
-    `;
-    listaPedidos.appendChild(item);
+    const div = document.createElement('div');
+    div.textContent = `${pedido.nome} - Quantidade: ${pedido.quantidade}`;
+    container.appendChild(div);
   });
 }
+
 
 // Seleciona todos os botões de adicionar ao carrinho
 const botoesAdicionar = document.querySelectorAll('.add-to-card-btn');
@@ -1107,36 +1095,39 @@ checkoutBtn.addEventListener('click', () => {
     return;
   }
 
-  // Garante que pedidosFinalizados está definido
-  pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+  // Recupera pedidos finalizados do localStorage
+  let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
   // Mescla os pedidos do carrinho com os pedidos finalizados
   pedidos.forEach(pedido => {
-    const existente = pedidosFinalizados.find(p => p.nome === pedido.nome);
-    if (existente) {
-      existente.quantidade += pedido.quantidade; // soma a quantidade
-      existente.data = pedido.data; // atualiza a data
+    const index = pedidosFinalizados.findIndex(p => p.nome === pedido.nome);
+    if (index !== -1) {
+      // Substitui o pedido existente (evita duplicação de quantidade)
+      pedidosFinalizados[index] = { ...pedido };
     } else {
-      pedidosFinalizados.push({ ...pedido }); // adiciona novo pedido
+      pedidosFinalizados.push({ ...pedido });
     }
   });
 
   // Salva pedidos finalizados no localStorage
   localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
 
-  // Limpa o carrinho e salva
+  // Limpa o carrinho
   pedidos = [];
   localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
-  // Atualiza o modal de pedidos e exibe
+  // Atualiza o modal de pedidos (sempre limpando antes)
   if (typeof atualizarPedidosModal === 'function') {
-    atualizarPedidosModal();
+    atualizarPedidosModal(true); // true indica "limpar conteúdo antes de preencher"
   }
+
+  // Exibe o modal
   if (modal) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
 });
+
 
 
 

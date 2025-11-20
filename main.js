@@ -11,8 +11,6 @@ const andresswarn = document.getElementById("address-warn")
 const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
-let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-
 
 //funçaos do cardapio
 
@@ -172,11 +170,14 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
+
+
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
+    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -192,7 +193,7 @@ checkout.addEventListener("click", function() {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
-    return;
+    return; // interrompe o envio do pedido
   }
 
   // ==============================
@@ -216,8 +217,8 @@ checkout.addEventListener("click", function() {
       setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
     }
 
-    btnFechar.addEventListener('click', fecharModal, { once: true });
-    btnOk.addEventListener('click', fecharModal, { once: true });
+    btnFechar.addEventListener('click', fecharModal);
+    btnOk.addEventListener('click', fecharModal);
 
     return;
   }
@@ -248,10 +249,9 @@ checkout.addEventListener("click", function() {
   }
 
   // ==============================
-  // Montagem do pedido para WhatsApp
+  // Continua com a lógica atual de montagem do pedido e envio
   // ==============================
-  const cartCopy = [...cart]; // ✅ copia antes de limpar
-  const cartItens = cartCopy.map((item) => {
+  const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
       const removidosTexto = item.removidos.join(", ");
@@ -260,7 +260,7 @@ checkout.addEventListener("click", function() {
     return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
   }).join("\n");
 
-  const totalProdutos = cartCopy.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
@@ -276,25 +276,10 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  // ==============================
-  // 🔹 Adiciona produtos do cart em pedidosFinalizados antes de limpar
-  // ==============================
-  pedidosFinalizados = [...pedidosFinalizados, ...cartCopy];
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
-
-  // Atualiza o modal "Meus Pedidos"
-  atualizarMeusPedidosModal();
-
-  // ==============================
-  // 🔹 Limpa carrinho e card-modal
-  // ==============================
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  // ==============================
-  // Modal de sucesso
-  // ==============================
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
@@ -309,10 +294,14 @@ checkout.addEventListener("click", function() {
     btnOk.addEventListener('click', () => {
       modalBox.classList.add('scale-90', 'opacity-0');
       setTimeout(() => modal.classList.add('hidden'), 300);
-    }, { once: true });
+    });
   }, 500);
 
 });
+
+
+
+
 
 //horario de funcionamento
 function checkRestauranteOpen(){
@@ -877,15 +866,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // ABRIR MODAL NO CELULAR
 // ========================
 document.querySelectorAll(".produto-item").forEach(card => {
-  card.addEventListener("click", function (event) {
+  card.addEventListener("click", function () {
 
-    // Só abrir no celular
-    if (window.innerWidth > 768) return;
-
-    // Se clicou em um botão interno, não abrir modal
-    if (event.target.closest(".add-to-card-btn") || event.target.closest(".open-ingredientes-btn")) {
-      return;
-    }
+    if (window.innerWidth > 768) return; // só celular
 
     resetQty(); // reset quantidade
 
@@ -902,7 +885,6 @@ document.querySelectorAll(".produto-item").forEach(card => {
     document.getElementById("mobileProductModal").classList.remove("hidden");
   });
 });
-
 
 // ========================
 // FECHAR MODAL CLICANDO FORA
@@ -1015,54 +997,3 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
-
-
-  // Seleciona os elementos pelo ID
-const btnAbrirPedidos = document.getElementById('btnMeusPedidos');
-const modalPedidos = document.getElementById('meusPedidosModal');
-const btnFecharPedidos = document.getElementById('closeMeusPedidos');
-
-// Abre o modal
-btnAbrirPedidos.addEventListener('click', () => {
-  modalPedidos.classList.remove('hidden');
-  modalPedidos.classList.add('flex');
-});
-
-// Fecha o modal ao clicar no X
-btnFecharPedidos.addEventListener('click', () => {
-  modalPedidos.classList.add('hidden');
-  modalPedidos.classList.remove('flex');
-});
-
-// Fecha o modal se clicar fora da área branca
-modalPedidos.addEventListener('click', (e) => {
-  if (e.target === modalPedidos) {
-    modalPedidos.classList.add('hidden');
-    modalPedidos.classList.remove('flex');
-  }
-});
-
-
-// 2️⃣ Função que atualiza o conteúdo do modal
-function atualizarMeusPedidosModal() {
-  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-  const modalBody = document.getElementById('meusPedidosModalBody'); // div onde os pedidos aparecem
-  modalBody.innerHTML = ''; // limpa antes de adicionar
-
-  if (pedidosFinalizados.length === 0) {
-    modalBody.innerHTML = '<p class="text-center p-2">Nenhum pedido finalizado.</p>';
-    return;
-  }
-
-  pedidosFinalizados.forEach(pedido => {
-    // Aqui você monta o HTML de cada produto/pedido
-    const item = document.createElement('div');
-    item.classList.add('pedido-item', 'p-2', 'border-b', 'border-gray-300');
-    item.innerHTML = `
-      <p><strong>${pedido.nome}</strong></p>
-      <p>Qtd: ${pedido.quantidade}</p>
-      <p>R$ ${pedido.preco}</p>
-    `;
-    modalBody.appendChild(item);
-  });
-}

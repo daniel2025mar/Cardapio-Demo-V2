@@ -292,13 +292,14 @@ checkout.addEventListener("click", function() {
     }
 
     pedidosFinalizados.forEach((pedido, index) => {
-      const li = document.createElement("li");
-      li.className = "p-2 border-b border-gray-200";
-      li.innerHTML = `
-        <strong>Pedido ${index + 1}:</strong> ${pedido.name} x ${pedido.quantity} - R$ ${pedido.price.toFixed(2)}
-      `;
-      lista.appendChild(li);
-    });
+  const li = document.createElement('li');
+  li.className = "border-b border-gray-200 py-2";
+  li.innerHTML = `
+    <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
+  `;
+  listaMeusPedidos.appendChild(li);
+});
+
   })(); 
   cart = [];
   updateCartModal();

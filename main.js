@@ -891,6 +891,10 @@ document.querySelectorAll(".produto-item").forEach(card => {
 
     if (window.innerWidth > 768) return; // só celular
 
+     // ✅ IGNORAR CLIQUE NOS BOTÕES DENTRO DO CARD
+    if (e.target.closest(".open-ingredientes-btn") || e.target.closest(".add-to-card-btn")) {
+      return; // não abre o modal
+    }
     resetQty(); // reset quantidade
 
     const img = this.querySelector("img").src;

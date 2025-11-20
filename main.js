@@ -866,7 +866,11 @@ window.addEventListener('DOMContentLoaded', () => {
 // ABRIR MODAL NO CELULAR
 // ========================
 document.querySelectorAll(".produto-item").forEach(card => {
-  card.addEventListener("click", function () {
+  card.addEventListener("click", function (event) {
+
+    // Se clicou em algum botão específico dentro do card, NÃO abre modal
+    const clicouBotao = event.target.closest(".add-to-card-btn, .open-ingredientes-btn");
+    if (clicouBotao) return;
 
     if (window.innerWidth > 768) return; // só celular
 

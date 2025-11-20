@@ -172,7 +172,6 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
-
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
@@ -248,9 +247,8 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-
   // ==============================
-  // Continua com a lógica atual de montagem do pedido e envio
+  // Montagem do pedido para WhatsApp
   // ==============================
   const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
@@ -277,21 +275,21 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-
   // ==============================
-  // 🔹 Adiciona produtos do cart em pedidosFinalizados
-  // ==============================
-  pedidosFinalizados = [...pedidosFinalizados, ...cart];
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
-
-  // Atualiza o modal "Meus Pedidos"
-  atualizarMeusPedidosModal();
-  // ==============================
-  // Limpa carrinho e card-modal
+  // 🔹 Limpa carrinho e card-modal
   // ==============================
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
+
+  // ==============================
+  // 🔹 Adiciona produtos do cart em pedidosFinalizados
+  // ==============================
+  pedidosFinalizados = [...pedidosFinalizados, ...cartItens.split("\n").map((linha, i) => ({ ...cart[i] }))];
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
+
+  // Atualiza o modal "Meus Pedidos"
+  atualizarMeusPedidosModal();
 
   // ==============================
   // Modal de sucesso
@@ -314,6 +312,7 @@ checkout.addEventListener("click", function() {
   }, 500);
 
 });
+
 
 
 //horario de funcionamento

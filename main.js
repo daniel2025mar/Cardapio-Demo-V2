@@ -1104,18 +1104,30 @@ checkoutBtn.addEventListener('click', () => {
     return;
   }
 
-  // Adiciona os pedidos do carrinho aos pedidos finalizados
-  pedidosFinalizados = [...pedidosFinalizados, ...pedidos];
+  // Mescla os pedidos do carrinho com os pedidos finalizados
+  pedidos.forEach(pedido => {
+    const existente = pedidosFinalizados.find(p => p.nome === pedido.nome);
+    if (existente) {
+      existente.quantidade += pedido.quantidade; // soma a quantidade corretamente
+      existente.data = pedido.data; // atualiza a data
+    } else {
+      pedidosFinalizados.push({ ...pedido }); // adiciona novo pedido
+    }
+  });
+
+  // Salva pedidos finalizados no localStorage
   localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
 
   // Limpa o carrinho
   pedidos = [];
   localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
+  // Atualiza e abre o modal
   atualizarPedidosModal();
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });
+
 
 // Botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {

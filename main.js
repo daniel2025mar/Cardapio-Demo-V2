@@ -1068,8 +1068,7 @@ function atualizarPedidosModal() {
     const item = document.createElement('div');
     item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
 
-    // Calcula o preço total do pedido multiplicando quantidade x preço unitário
-    const precoTotal = pedido.preco * pedido.quantidade;
+    const precoTotal = pedido.preco * pedido.quantidade; // preço correto
 
     item.innerHTML = `
       <div class="flex justify-between">
@@ -1115,11 +1114,11 @@ checkoutBtn.addEventListener('click', () => {
   // Garante que pedidosFinalizados está definido
   let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
-  // Mescla os pedidos do carrinho com os pedidos finalizados
+  // Atualiza pedidosFinalizados sem duplicar quantidade
   pedidos.forEach(pedido => {
     const index = pedidosFinalizados.findIndex(p => p.nome === pedido.nome);
     if (index !== -1) {
-      // Substitui o pedido existente pelo novo, evitando soma duplicada
+      // Substitui o pedido existente pelo novo, mantendo a quantidade correta
       pedidosFinalizados[index] = { ...pedido };
     } else {
       pedidosFinalizados.push({ ...pedido }); // adiciona novo pedido

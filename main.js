@@ -48,24 +48,27 @@ if(parenButton){
 
 
 //funçao para adicionar no carrinho
-function addToCart(name, price){
+function addToCart(name, price, quantity = 1, removidos = []) {
+    // procura se já existe item igual no carrinho
+    const existingItem = cart.find(item => 
+        item.name === name && JSON.stringify(item.removidos || []) === JSON.stringify(removidos || [])
+    );
 
-const existengItem = cart.find(item => item.name === name)
+    if (existingItem) {
+        existingItem.quantity += quantity;
+    } else {
+        cart.push({
+            name,
+            price,
+            quantity,
+            custom: removidos.length > 0,
+            removidos
+        });
+    }
 
-if(existengItem){
- // se for o nome igual, almenta somente a quantidade.
- existengItem.quantity += 1;
-}else{
-
-    cart.push({
-    name,
-    price,
-    quantity: 1,
- })
+    updateCartModal();
 }
- 
-updateCartModal()
-}
+
 
 // atualize o carrinho
 function updateCartModal() {
@@ -1099,16 +1102,19 @@ botoesAdicionar.forEach(botao => {
 
 // Botão Finalizar Pedido
 checkoutBtn.addEventListener('click', () => {
-  if (pedidos.length === 0) {
+  if (!pedidos || pedidos.length === 0) {
     alert('Adicione produtos antes de finalizar o pedido!');
     return;
   }
+
+  // Garante que pedidosFinalizados está definido
+  pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
   // Mescla os pedidos do carrinho com os pedidos finalizados
   pedidos.forEach(pedido => {
     const existente = pedidosFinalizados.find(p => p.nome === pedido.nome);
     if (existente) {
-      existente.quantidade += pedido.quantidade; // soma a quantidade corretamente
+      existente.quantidade += pedido.quantidade; // soma a quantidade
       existente.data = pedido.data; // atualiza a data
     } else {
       pedidosFinalizados.push({ ...pedido }); // adiciona novo pedido
@@ -1118,15 +1124,20 @@ checkoutBtn.addEventListener('click', () => {
   // Salva pedidos finalizados no localStorage
   localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
 
-  // Limpa o carrinho
+  // Limpa o carrinho e salva
   pedidos = [];
   localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
-  // Atualiza e abre o modal
-  atualizarPedidosModal();
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+  // Atualiza o modal de pedidos e exibe
+  if (typeof atualizarPedidosModal === 'function') {
+    atualizarPedidosModal();
+  }
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
 });
+
 
 
 // Botão "Meus Pedidos"

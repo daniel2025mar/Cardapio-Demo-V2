@@ -1008,55 +1008,58 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
-
-   const checkoutBtn = document.getElementById('checkout-btn'); // Botão Finalizar Pedido
-  const modal = document.getElementById('meusPedidosModal');
-  const fecharBtn = document.getElementById('fecharPedidos');
-  const listaPedidos = document.getElementById('listaPedidos');
-
-  // Array de exemplo com pedidos (substitua pelos pedidos reais do seu sistema)
-  let pedidos = [
-    { nome: 'X-Burguer', quantidade: 2, preco: 18.00 },
-    { nome: 'Coca Cola 350ml', quantidade: 1, preco: 7.00 },
-  ];
-
-  function atualizarPedidos() {
-    listaPedidos.innerHTML = ''; // Limpa a lista
-    pedidos.forEach(pedido => {
-      const item = document.createElement('div');
-      item.classList.add('flex', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg');
-      item.innerHTML = `
-        <span>${pedido.nome} x${pedido.quantidade}</span>
-        <span>R$ ${pedido.preco.toFixed(2)}</span>
-      `;
-      listaPedidos.appendChild(item);
-    });
-  }
-
-  // Abre modal e atualiza pedidos
-  checkoutBtn.addEventListener('click', () => {
-    atualizarPedidos();
-    modal.classList.remove('hidden');
-  });
-
-  // Fecha modal
-  fecharBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-  });
-
-// Seleciona os elementos
+const checkoutBtn = document.getElementById('checkout-btn'); // Botão Finalizar Pedido
+const modal = document.getElementById('meusPedidosModal');
+const fecharBtn = document.getElementById('fecharPedidos');
+const listaPedidos = document.getElementById('listaPedidos');
 const btnMeusPedidos = document.getElementById('btnMeusPedidos');
-const meusPedidosModal = document.getElementById('meusPedidosModal');
-const fecharPedidos = document.getElementById('fecharPedidos');
 
-// Abrir modal
+// Recupera pedidos salvos no localStorage ou cria um array vazio
+let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+
+// Função para atualizar a lista do modal
+function atualizarPedidos() {
+  listaPedidos.innerHTML = ''; // Limpa a lista
+  pedidos.forEach(pedido => {
+    const item = document.createElement('div');
+    item.classList.add('flex', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg');
+    item.innerHTML = `
+      <span>${pedido.nome} x${pedido.quantidade}</span>
+      <span>R$ ${pedido.preco.toFixed(2)}</span>
+    `;
+    listaPedidos.appendChild(item);
+  });
+}
+
+// Salva pedidos no localStorage
+function salvarPedidos() {
+  localStorage.setItem('pedidos', JSON.stringify(pedidos));
+}
+
+// Abre modal e atualiza pedidos
+checkoutBtn.addEventListener('click', () => {
+  // Exemplo de novo pedido (substitua pelo seu sistema real)
+  const novoPedido = { nome: 'X-Burguer', quantidade: 2, preco: 18.00 };
+  pedidos.push(novoPedido);
+
+  salvarPedidos();
+  atualizarPedidos();
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+});
+
+// Abre modal pelo botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {
-  meusPedidosModal.classList.remove('hidden');
-  meusPedidosModal.classList.add('flex'); // garante que fique visível e centralizado
+  atualizarPedidos();
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
 });
 
-// Fechar modal
-fecharPedidos.addEventListener('click', () => {
-  meusPedidosModal.classList.add('hidden');
-  meusPedidosModal.classList.remove('flex');
+// Fecha modal
+fecharBtn.addEventListener('click', () => {
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
 });
+
+// Atualiza a lista ao carregar a página, caso existam pedidos salvos
+window.addEventListener('DOMContentLoaded', atualizarPedidos);

@@ -599,15 +599,12 @@
         </button>
 
         <!-- Meus Pedidos -->
-      
-      <button id="btnMeusPedidos" class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 11h14l1 10H4l1-10z" />
-  </svg>
-  <p class="font-medium">Meus Pedidos</p>
-</button>
-
-
+        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z" />
+          </svg>
+          <p class="font-medium">Meus Pedidos</p>
+        </button>
 
         <!-- Meus Cupons -->
         <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
@@ -635,30 +632,6 @@
   </div>
 </div>
 
-<!-- ============================
-     MODAL MEUS PEDIDOS
-=============================== -->
-
-<div id="meusPedidosModal" class="hidden fixed inset-0 bg-black/60 justify-center items-center z-50">
-  <div class="bg-white w-11/12 max-w-md md:max-w-3xl lg:max-w-4xl rounded-xl shadow-lg flex flex-col max-h-[80vh]">
-
-    <!-- Título com fundo vermelho cobrindo toda a largura -->
-    <div class="bg-red-600 rounded-t-xl py-3">
-      <h2 class="text-center text-white font-bold text-2xl">Meus Pedidos</h2>
-    </div>
-
-    <!-- Lista de pedidos com rolagem -->
-    <div id="listaPedidos" class="space-y-3 overflow-y-auto flex-1 max-h-96 p-5">
-      <!-- Itens do pedido serão inseridos via JS -->
-    </div>
-
-    <!-- Botão fechar -->
-    <button id="fecharPedidos" class="mt-2 w-full py-2 bg-white text-black rounded-b-xl">
-      Fechar
-    </button>
-
-  </div>
-</div>
 
 </div>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>

@@ -11,9 +11,6 @@ const andresswarn = document.getElementById("address-warn")
 const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
-let modalPedidos = [];
-
-
 
 //funçaos do cardapio
 
@@ -48,27 +45,24 @@ if(parenButton){
 
 
 //funçao para adicionar no carrinho
-function addToCart(name, price, quantity = 1, removidos = []) {
-    // procura se já existe item igual no carrinho
-    const existingItem = cart.find(item => 
-        item.name === name && JSON.stringify(item.removidos || []) === JSON.stringify(removidos || [])
-    );
+function addToCart(name, price){
 
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({
-            name,
-            price,
-            quantity,
-            custom: removidos.length > 0,
-            removidos
-        });
-    }
+const existengItem = cart.find(item => item.name === name)
 
-    updateCartModal();
+if(existengItem){
+ // se for o nome igual, almenta somente a quantidade.
+ existengItem.quantity += 1;
+}else{
+
+    cart.push({
+    name,
+    price,
+    quantity: 1,
+ })
 }
-
+ 
+updateCartModal()
+}
 
 // atualize o carrinho
 function updateCartModal() {
@@ -176,11 +170,14 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
+
+
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
+    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -199,7 +196,9 @@ checkout.addEventListener("click", function() {
     return; // interrompe o envio do pedido
   }
 
-  // 🔹 Verifica se o restaurante está aberto
+  // ==============================
+  // Verifica se o restaurante está aberto
+  // ==============================
   const isOpen = checkRestauranteOpen();
   if (!isOpen) {
     const modalLojaFechada = document.getElementById('loja-fechada-modal');
@@ -213,22 +212,20 @@ checkout.addEventListener("click", function() {
       modalContent.classList.add('scale-100', 'opacity-100');
     }, 10);
 
-    const fecharModal = () => {
+    function fecharModal() {
       modalContent.classList.add('scale-90', 'opacity-0');
       setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
-    };
+    }
 
-    // Remove listeners antigos
-    btnFechar.replaceWith(btnFechar.cloneNode(true));
-    btnOk.replaceWith(btnOk.cloneNode(true));
-
-    document.getElementById('fechar-loja-fechada').addEventListener('click', fecharModal);
-    document.getElementById('ok-loja-fechada').addEventListener('click', fecharModal);
+    btnFechar.addEventListener('click', fecharModal);
+    btnOk.addEventListener('click', fecharModal);
 
     return;
   }
 
-  // 🔹 Verifica se o carrinho está vazio
+  // ==============================
+  // Verifica se o carrinho está vazio
+  // ==============================
   if (cart.length === 0) {
     Toastify({
       text: "Seu carrinho está vazio",
@@ -241,16 +238,20 @@ checkout.addEventListener("click", function() {
     return;
   }
 
-  // 🔹 Verifica endereço
+  // ==============================
+  // Verifica endereço
+  // ==============================
   const retirarLocalChecked = retirarLocal.checked;
-  if (!retirarLocalChecked && andressInput.value.trim() === "") {
+  if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
   }
 
-  // 🔹 Monta a mensagem do pedido
-  const cartItens = cart.map(item => {
+  // ==============================
+  // Continua com a lógica atual de montagem do pedido e envio
+  // ==============================
+  const cartItens = cart.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
       const removidosTexto = item.removidos.join(", ");
@@ -260,7 +261,7 @@ checkout.addEventListener("click", function() {
   }).join("\n");
 
   const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const taxaEntrega = retirarLocalChecked ? 0 : 3.00;
+  let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
   let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
@@ -275,29 +276,22 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  sincronizarPedidos();
-  // 🔹 Limpa carrinho e atualiza UI
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  // ✅ Atualiza o modal “Meus Pedidos” apenas neste botão
-  atualizarPedidos();
-
-  // 🔹 Modal de sucesso
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
     modal.classList.remove('hidden');
-
+    
     setTimeout(() => {
       modalBox.classList.remove('scale-90', 'opacity-0');
       modalBox.classList.add('scale-100', 'opacity-100');
     }, 50);
 
     const btnOk = document.getElementById('pedido-sucesso-ok');
-    btnOk.replaceWith(btnOk.cloneNode(true));
-    document.getElementById('pedido-sucesso-ok').addEventListener('click', () => {
+    btnOk.addEventListener('click', () => {
       modalBox.classList.add('scale-90', 'opacity-0');
       setTimeout(() => modal.classList.add('hidden'), 300);
     });
@@ -305,27 +299,9 @@ checkout.addEventListener("click", function() {
 
 });
 
-function sincronizarPedidos() {
-  const agora = new Date();
 
-  cart.forEach(item => {
-    const existente = pedidos.find(p => p.nome === item.name && JSON.stringify(p.removidos || []) === JSON.stringify(item.removidos || []));
-    if (existente) {
-      existente.quantidade += item.quantity;
-      existente.data = agora;
-    } else {
-      pedidos.push({
-        nome: item.name,
-        quantidade: item.quantity,
-        preco: item.price,
-        data: agora,
-        removidos: item.removidos || []
-      });
-    }
-  });
 
-  salvarPedidos();
-}
+
 
 //horario de funcionamento
 function checkRestauranteOpen(){
@@ -889,19 +865,12 @@ window.addEventListener('DOMContentLoaded', () => {
 // ========================
 // ABRIR MODAL NO CELULAR
 // ========================
-// ========================
-// ABRIR MODAL NO CELULAR
-// ========================
 document.querySelectorAll(".produto-item").forEach(card => {
-  card.addEventListener("click", function (e) {
-    if (window.innerWidth > 768) return; // só abre no celular
+  card.addEventListener("click", function () {
 
-    // ✅ IGNORAR CLIQUE NOS BOTÕES DENTRO DO CARD
-    if (e.target.closest(".open-ingredientes-btn") || e.target.closest(".add-to-card-btn")) {
-      return; // não abre o modal
-    }
+    if (window.innerWidth > 768) return; // só celular
 
-    resetQty(); // reseta quantidade
+    resetQty(); // reset quantidade
 
     const img = this.querySelector("img").src;
     const name = this.querySelector("p.font-bold").innerText;
@@ -916,7 +885,6 @@ document.querySelectorAll(".produto-item").forEach(card => {
     document.getElementById("mobileProductModal").classList.remove("hidden");
   });
 });
-
 
 // ========================
 // FECHAR MODAL CLICANDO FORA
@@ -1029,134 +997,3 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
- 
-// Elementos do modal e botões
-const checkoutBtn = document.getElementById('checkout-btn');
-const modal = document.getElementById('meusPedidosModal');
-const fecharBtn = document.getElementById('fecharPedidos');
-const listaPedidos = document.getElementById('listaPedidos');
-const btnMeusPedidos = document.getElementById('btnMeusPedidos');
-
-// Recupera pedidos salvos no localStorage
-let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-
-// Função para formatar data e hora
-function formatarDataHora(date) {
-  const d = new Date(date);
-  return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
-}
-
-// Salva pedidos no localStorage
-function salvarPedidos() {
-  localStorage.setItem('pedidos', JSON.stringify(pedidos));
-}
-
-// Função para atualizar o modal com pedidos finalizados
-function atualizarPedidosModal() {
-  listaPedidos.innerHTML = '';
-
-  if (!pedidosFinalizados || pedidosFinalizados.length === 0) {
-    const nenhum = document.createElement('div');
-    nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
-    nenhum.textContent = 'Você ainda não possui nenhum pedido';
-    listaPedidos.appendChild(nenhum);
-    return;
-  }
-
-  pedidosFinalizados.forEach(pedido => {
-    const item = document.createElement('div');
-    item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
-
-    const precoTotal = pedido.preco * pedido.quantidade; // preço correto
-
-    item.innerHTML = `
-      <div class="flex justify-between">
-        <span>${pedido.nome} x${pedido.quantidade}</span>
-        <span>R$ ${precoTotal.toFixed(2)}</span>
-      </div>
-      <small class="text-gray-500">Pedido em: ${formatarDataHora(pedido.data)}</small>
-    `;
-    listaPedidos.appendChild(item);
-  });
-}
-
-
-// Seleciona todos os botões de adicionar ao carrinho
-const botoesAdicionar = document.querySelectorAll('.add-to-card-btn');
-
-botoesAdicionar.forEach(botao => {
-  botao.addEventListener('click', () => {
-    const nome = botao.dataset.name;
-    let preco = parseFloat(botao.dataset.price.replace(',', '.'));
-    const agora = new Date();
-
-    // Verifica se o produto já existe no pedido
-    const existente = pedidos.find(p => p.nome === nome);
-    if (existente) {
-      existente.quantidade += 1;
-      existente.data = agora; // atualiza a data
-    } else {
-      pedidos.push({ nome, quantidade: 1, preco, data: agora });
-    }
-
-    salvarPedidos();
-  });
-});
-
-// Botão Finalizar Pedido
-checkoutBtn.addEventListener('click', () => {
-  if (!pedidos || pedidos.length === 0) {
-    alert('Adicione produtos antes de finalizar o pedido!');
-    return;
-  }
-
-  // Garante que pedidosFinalizados está definido
-  let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-
-  // Atualiza pedidosFinalizados sem duplicar quantidade
-  pedidos.forEach(pedido => {
-    const index = pedidosFinalizados.findIndex(p => p.nome === pedido.nome);
-    if (index !== -1) {
-      // Substitui o pedido existente pelo novo, mantendo a quantidade correta
-      pedidosFinalizados[index] = { ...pedido };
-    } else {
-      pedidosFinalizados.push({ ...pedido }); // adiciona novo pedido
-    }
-  });
-
-  // Salva pedidos finalizados no localStorage
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
-
-  // Limpa o carrinho e salva
-  pedidos = [];
-  localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-  // Atualiza o modal de pedidos
-  if (typeof atualizarPedidosModal === 'function') {
-    atualizarPedidosModal();
-  }
-
-  // Exibe o modal
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-});
-
-// Botão "Meus Pedidos"
-btnMeusPedidos.addEventListener('click', () => {
-  atualizarPedidosModal(); // mostra apenas pedidos finalizados
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
-});
-
-// Botão Fechar modal
-fecharBtn.addEventListener('click', () => {
-  modal.classList.add('hidden');
-  modal.classList.remove('flex');
-});
-
-// Ao carregar a página, mostra apenas pedidos finalizados
-window.addEventListener('DOMContentLoaded', atualizarPedidosModal);
-

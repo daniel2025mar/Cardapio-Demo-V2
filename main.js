@@ -11,6 +11,9 @@ const andresswarn = document.getElementById("address-warn")
 const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
+let modalPedidos = [];
+
+
 
 //funçaos do cardapio
 
@@ -1092,10 +1095,38 @@ checkoutBtn.addEventListener('click', () => {
     alert('Adicione produtos antes de finalizar o pedido!');
     return;
   }
-  atualizarPedidos();
+
+  modalPedidos = [...pedidos]; // copia os pedidos atuais apenas ao finalizar
+  atualizarPedidosModal(); // função que atualiza a lista do modal com modalPedidos
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });
+
+function atualizarPedidosModal() {
+  listaPedidos.innerHTML = '';
+
+  if (modalPedidos.length === 0) {
+    const nenhum = document.createElement('div');
+    nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
+    nenhum.textContent = 'Você ainda não possui nenhum pedido';
+    listaPedidos.appendChild(nenhum);
+    return;
+  }
+
+  modalPedidos.forEach(pedido => {
+    const item = document.createElement('div');
+    item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
+    item.innerHTML = `
+      <div class="flex justify-between">
+        <span>${pedido.nome} x${pedido.quantidade}</span>
+        <span>R$ ${pedido.preco.toFixed(2)}</span>
+      </div>
+      <small class="text-gray-500">Pedido em: ${formatarDataHora(pedido.data)}</small>
+    `;
+    listaPedidos.appendChild(item);
+  });
+}
+
 
 // Botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {

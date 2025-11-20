@@ -216,8 +216,8 @@ checkout.addEventListener("click", function() {
       setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
     }
 
-    btnFechar.addEventListener('click', fecharModal);
-    btnOk.addEventListener('click', fecharModal);
+    btnFechar.addEventListener('click', fecharModal, { once: true });
+    btnOk.addEventListener('click', fecharModal, { once: true });
 
     return;
   }
@@ -250,7 +250,8 @@ checkout.addEventListener("click", function() {
   // ==============================
   // Montagem do pedido para WhatsApp
   // ==============================
-  const cartItens = cart.map((item) => {
+  const cartCopy = [...cart]; // ✅ copia antes de limpar
+  const cartItens = cartCopy.map((item) => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
       const removidosTexto = item.removidos.join(", ");
@@ -259,7 +260,7 @@ checkout.addEventListener("click", function() {
     return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
   }).join("\n");
 
-  const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalProdutos = cartCopy.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
@@ -276,20 +277,20 @@ checkout.addEventListener("click", function() {
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
   // ==============================
+  // 🔹 Adiciona produtos do cart em pedidosFinalizados antes de limpar
+  // ==============================
+  pedidosFinalizados = [...pedidosFinalizados, ...cartCopy];
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
+
+  // Atualiza o modal "Meus Pedidos"
+  atualizarMeusPedidosModal();
+
+  // ==============================
   // 🔹 Limpa carrinho e card-modal
   // ==============================
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
-
-  // ==============================
-  // 🔹 Adiciona produtos do cart em pedidosFinalizados
-  // ==============================
-  pedidosFinalizados = [...pedidosFinalizados, ...cartItens.split("\n").map((linha, i) => ({ ...cart[i] }))];
-  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
-
-  // Atualiza o modal "Meus Pedidos"
-  atualizarMeusPedidosModal();
 
   // ==============================
   // Modal de sucesso
@@ -308,12 +309,10 @@ checkout.addEventListener("click", function() {
     btnOk.addEventListener('click', () => {
       modalBox.classList.add('scale-90', 'opacity-0');
       setTimeout(() => modal.classList.add('hidden'), 300);
-    });
+    }, { once: true });
   }, 500);
 
 });
-
-
 
 //horario de funcionamento
 function checkRestauranteOpen(){

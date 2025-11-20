@@ -287,7 +287,7 @@ const cartComData = cart.map(pedido => {
     dataHora: new Date().toISOString()
   };
 });
-  pedidosFinalizados = [...pedidosFinalizados, ...cart];
+  pedidosFinalizados = [...pedidosFinalizados, ...cartComData];
   localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
 
   // Função para atualizar o modal "Meus Pedidos"

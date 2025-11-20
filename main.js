@@ -1006,15 +1006,15 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   });
 
 
-  // Seleciona os elementos
-const btnAbrirPedidos = document.querySelector('button.flex.items-center'); // seu botão
+  // Seleciona os elementos pelo ID
+const btnAbrirPedidos = document.getElementById('btnMeusPedidos');
 const modalPedidos = document.getElementById('meusPedidosModal');
 const btnFecharPedidos = document.getElementById('closeMeusPedidos');
 
-// Abre o modal ao clicar no botão
+// Abre o modal
 btnAbrirPedidos.addEventListener('click', () => {
   modalPedidos.classList.remove('hidden');
-  modalPedidos.classList.add('flex'); // garante que fique visível e centralizado
+  modalPedidos.classList.add('flex');
 });
 
 // Fecha o modal ao clicar no X
@@ -1023,9 +1023,9 @@ btnFecharPedidos.addEventListener('click', () => {
   modalPedidos.classList.remove('flex');
 });
 
-// Fecha o modal se clicar fora da área do conteúdo
+// Fecha o modal se clicar fora da área branca
 modalPedidos.addEventListener('click', (e) => {
-  if (e.target === modalPedidos) { // clicou no fundo escuro
+  if (e.target === modalPedidos) {
     modalPedidos.classList.add('hidden');
     modalPedidos.classList.remove('flex');
   }

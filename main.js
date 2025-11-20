@@ -169,6 +169,7 @@ andressInput.addEventListener("input", function(event){
    andresswarn.classList.add("hidden")
   }
 })
+
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
@@ -269,9 +270,19 @@ checkout.addEventListener("click", function() {
 
   // 🔹 Adiciona ao finalizedOrders e atualiza o modal
   let finalizedOrders = JSON.parse(localStorage.getItem("finalizedOrders")) || [];
-  finalizedOrders = [...finalizedOrders, ...cart];
+  
+  // Adiciona cada item do carrinho ao array de pedidos finalizados
+  cart.forEach(item => {
+    finalizedOrders.push({
+      nome: item.name,
+      quantidade: item.quantity,
+      preco: item.price,
+      removidos: item.removidos || []
+    });
+  });
+
   localStorage.setItem("finalizedOrders", JSON.stringify(finalizedOrders));
-  updateFinalizedOrdersModal(); // função que atualiza o conteúdo do modal
+  renderFinalizedOrders(); // atualiza o modal de pedidos finalizados
 
   // 🔹 Limpa o carrinho e fecha modal
   cart = [];
@@ -297,7 +308,6 @@ checkout.addEventListener("click", function() {
   }, 500);
 
 });
-
 
 //horario de funcionamento
 function checkRestauranteOpen(){

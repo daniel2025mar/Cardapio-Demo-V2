@@ -171,7 +171,6 @@ andressInput.addEventListener("input", function(event){
 })
 
 
-
 checkout.addEventListener("click", function() {
 
   // 🔹 Verifica se o usuário está logado
@@ -212,13 +211,17 @@ checkout.addEventListener("click", function() {
       modalContent.classList.add('scale-100', 'opacity-100');
     }, 10);
 
-    function fecharModal() {
+    const fecharModal = () => {
       modalContent.classList.add('scale-90', 'opacity-0');
       setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
-    }
+    };
 
-    btnFechar.addEventListener('click', fecharModal);
-    btnOk.addEventListener('click', fecharModal);
+    // Remove event listeners anteriores para não duplicar
+    btnFechar.replaceWith(btnFechar.cloneNode(true));
+    btnOk.replaceWith(btnOk.cloneNode(true));
+
+    document.getElementById('fechar-loja-fechada').addEventListener('click', fecharModal);
+    document.getElementById('ok-loja-fechada').addEventListener('click', fecharModal);
 
     return;
   }
@@ -242,16 +245,16 @@ checkout.addEventListener("click", function() {
   // Verifica endereço
   // ==============================
   const retirarLocalChecked = retirarLocal.checked;
-  if (!retirarLocalChecked && andressInput.value === "") {
+  if (!retirarLocalChecked && andressInput.value.trim() === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
   }
 
   // ==============================
-  // Continua com a lógica atual de montagem do pedido e envio
+  // Monta a mensagem do pedido
   // ==============================
-  const cartItens = cart.map((item) => {
+  const cartItens = cart.map(item => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
       const removidosTexto = item.removidos.join(", ");
@@ -261,7 +264,7 @@ checkout.addEventListener("click", function() {
   }).join("\n");
 
   const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
+  const taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
   let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
@@ -276,36 +279,40 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
+  // ==============================
+  // Limpa carrinho e atualiza UI
+  // ==============================
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  
-    // ✅ Atualiza o modal “Meus Pedidos”
-    atualizarListaPedidos();
+  // ✅ Atualiza o modal “Meus Pedidos”
+  atualizarListaPedidos();
 
+  // ==============================
+  // Modal de sucesso
+  // ==============================
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
     modal.classList.remove('hidden');
-    
+
     setTimeout(() => {
       modalBox.classList.remove('scale-90', 'opacity-0');
       modalBox.classList.add('scale-100', 'opacity-100');
     }, 50);
 
     const btnOk = document.getElementById('pedido-sucesso-ok');
-    btnOk.addEventListener('click', () => {
+
+    // Remove event listener antigo antes de adicionar
+    btnOk.replaceWith(btnOk.cloneNode(true));
+    document.getElementById('pedido-sucesso-ok').addEventListener('click', () => {
       modalBox.classList.add('scale-90', 'opacity-0');
       setTimeout(() => modal.classList.add('hidden'), 300);
     });
   }, 500);
 
 });
-
-
-
-
 
 //horario de funcionamento
 function checkRestauranteOpen(){

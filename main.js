@@ -1019,7 +1019,7 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     updateAddressState();
   });
  
-  // Elementos do modal e botões
+// Elementos do modal e botões
 const checkoutBtn = document.getElementById('checkout-btn');
 const modal = document.getElementById('meusPedidosModal');
 const fecharBtn = document.getElementById('fecharPedidos');
@@ -1028,6 +1028,7 @@ const btnMeusPedidos = document.getElementById('btnMeusPedidos');
 
 // Recupera pedidos salvos no localStorage
 let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
 // Função para formatar data e hora
 function formatarDataHora(date) {
@@ -1035,11 +1036,16 @@ function formatarDataHora(date) {
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
 }
 
-// Função para atualizar a lista do modal
-function atualizarPedidos() {
+// Salva pedidos no localStorage
+function salvarPedidos() {
+  localStorage.setItem('pedidos', JSON.stringify(pedidos));
+}
+
+// Função para atualizar o modal com pedidos finalizados
+function atualizarPedidosModal() {
   listaPedidos.innerHTML = '';
 
-  if (pedidos.length === 0) {
+  if (pedidosFinalizados.length === 0) {
     const nenhum = document.createElement('div');
     nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
     nenhum.textContent = 'Você ainda não possui nenhum pedido';
@@ -1047,7 +1053,7 @@ function atualizarPedidos() {
     return;
   }
 
-  pedidos.forEach(pedido => {
+  pedidosFinalizados.forEach(pedido => {
     const item = document.createElement('div');
     item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
     item.innerHTML = `
@@ -1059,11 +1065,6 @@ function atualizarPedidos() {
     `;
     listaPedidos.appendChild(item);
   });
-}
-
-// Salva pedidos no localStorage
-function salvarPedidos() {
-  localStorage.setItem('pedidos', JSON.stringify(pedidos));
 }
 
 // Seleciona todos os botões de adicionar ao carrinho
@@ -1079,13 +1080,12 @@ botoesAdicionar.forEach(botao => {
     const existente = pedidos.find(p => p.nome === nome);
     if (existente) {
       existente.quantidade += 1;
-      existente.data = agora; // atualiza a data para a última vez que o produto foi adicionado
+      existente.data = agora; // atualiza a data
     } else {
       pedidos.push({ nome, quantidade: 1, preco, data: agora });
     }
 
     salvarPedidos();
-    //atualizarPedidos();
   });
 });
 
@@ -1096,41 +1096,22 @@ checkoutBtn.addEventListener('click', () => {
     return;
   }
 
-  modalPedidos = [...pedidos]; // copia os pedidos atuais apenas ao finalizar
-  atualizarPedidosModal(); // função que atualiza a lista do modal com modalPedidos
+  // Adiciona os pedidos do carrinho aos pedidos finalizados
+  pedidosFinalizados = [...pedidosFinalizados, ...pedidos];
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
+
+  // Limpa o carrinho
+  pedidos = [];
+  localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+  atualizarPedidosModal();
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });
 
-function atualizarPedidosModal() {
-  listaPedidos.innerHTML = '';
-
-  if (modalPedidos.length === 0) {
-    const nenhum = document.createElement('div');
-    nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
-    nenhum.textContent = 'Você ainda não possui nenhum pedido';
-    listaPedidos.appendChild(nenhum);
-    return;
-  }
-
-  modalPedidos.forEach(pedido => {
-    const item = document.createElement('div');
-    item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
-    item.innerHTML = `
-      <div class="flex justify-between">
-        <span>${pedido.nome} x${pedido.quantidade}</span>
-        <span>R$ ${pedido.preco.toFixed(2)}</span>
-      </div>
-      <small class="text-gray-500">Pedido em: ${formatarDataHora(pedido.data)}</small>
-    `;
-    listaPedidos.appendChild(item);
-  });
-}
-
-
 // Botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {
-  //atualizarPedidos();
+  atualizarPedidosModal(); // mostra apenas pedidos finalizados
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });
@@ -1141,5 +1122,6 @@ fecharBtn.addEventListener('click', () => {
   modal.classList.remove('flex');
 });
 
-// Atualiza pedidos ao carregar a página
-//window.addEventListener('DOMContentLoaded', atualizarPedidos);
+// Ao carregar a página, mostra apenas pedidos finalizados
+window.addEventListener('DOMContentLoaded', atualizarPedidosModal);
+

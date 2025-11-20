@@ -1014,11 +1014,11 @@ const finalizedOrdersModal = document.getElementById('finalizedOrdersModal');
 const closeFinalizedModalBtn = document.getElementById('closeFinalizedModal');
 const finalizedOrdersList = document.getElementById('finalizedOrdersList');
 
-// Recupera pedidos finalizados do localStorage
-let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
-
 // Função para exibir pedidos no modal
 function renderFinalizedOrders() {
+  // Recupera os pedidos finalizados mais recentes do localStorage
+  const pedidosFinalizados = JSON.parse(localStorage.getItem('finalizedOrders')) || [];
+
   finalizedOrdersList.innerHTML = '';
 
   if (pedidosFinalizados.length === 0) {
@@ -1030,8 +1030,8 @@ function renderFinalizedOrders() {
     finalizedOrdersList.innerHTML += `
       <div class="border p-3 rounded shadow flex justify-between items-center">
         <div>
-          <p class="font-semibold">${pedido.nome}</p>
-          <p class="text-gray-600">Quantidade: ${pedido.quantidade}</p>
+          <p class="font-semibold">${pedido.name}</p>
+          <p class="text-gray-600">Quantidade: ${pedido.quantity}</p>
         </div>
       </div>
     `;
@@ -1040,7 +1040,7 @@ function renderFinalizedOrders() {
 
 // Abrir modal ao clicar no botão
 openFinalizedModalBtn.addEventListener('click', () => {
-  renderFinalizedOrders();
+  renderFinalizedOrders(); // Sempre busca os pedidos mais recentes
   finalizedOrdersModal.classList.remove('hidden');
   finalizedOrdersModal.classList.add('flex');
 });

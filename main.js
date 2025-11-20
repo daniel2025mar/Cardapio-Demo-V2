@@ -1055,14 +1055,21 @@ function mostrarMeusPedidos() {
 }
 
 // Evento para abrir modal
-meusPedidosBtn.addEventListener("click", mostrarMeusPedidos);
+meusPedidosBtn.addEventListener("click", (e) => {
+  e.preventDefault(); // evita scroll indesejado no mobile
+  mostrarMeusPedidos();
+});
 
 // Evento para fechar modal
 fecharMeusPedidos.addEventListener("click", () => {
   meusPedidosModal.classList.add("hidden");
 });
 
-// Fecha modal ao clicar fora da caixa
+// Fecha modal ao clicar fora da caixa (melhor para mobile)
 meusPedidosModal.addEventListener("click", (e) => {
-  if (e.target === meusPedidosModal) meusPedidosModal.classList.add("hidden");
+  const modalContent = meusPedidosModal.querySelector("div");
+  if (!modalContent.contains(e.target)) {
+    meusPedidosModal.classList.add("hidden");
+  }
 });
+

@@ -1028,6 +1028,15 @@ function formatarDataHora(date) {
 // Função para atualizar a lista do modal
 function atualizarPedidos() {
   listaPedidos.innerHTML = '';
+
+  if (pedidos.length === 0) {
+    const nenhum = document.createElement('div');
+    nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
+    nenhum.textContent = 'Nenhum pedido encontrado';
+    listaPedidos.appendChild(nenhum);
+    return;
+  }
+
   pedidos.forEach(pedido => {
     const item = document.createElement('div');
     item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
@@ -1053,7 +1062,7 @@ const botoesAdicionar = document.querySelectorAll('.add-to-card-btn');
 botoesAdicionar.forEach(botao => {
   botao.addEventListener('click', () => {
     const nome = botao.dataset.name;
-    let preco = parseFloat(botao.dataset.price.replace(',', '.')); // transforma "20,60" em 20.60
+    let preco = parseFloat(botao.dataset.price.replace(',', '.'));
     const agora = new Date();
 
     // Verifica se o produto já existe no pedido

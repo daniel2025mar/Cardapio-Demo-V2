@@ -1004,3 +1004,29 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
+
+
+  // Seleciona os elementos
+const btnAbrirPedidos = document.querySelector('button.flex.items-center'); // seu botão
+const modalPedidos = document.getElementById('meusPedidosModal');
+const btnFecharPedidos = document.getElementById('closeMeusPedidos');
+
+// Abre o modal ao clicar no botão
+btnAbrirPedidos.addEventListener('click', () => {
+  modalPedidos.classList.remove('hidden');
+  modalPedidos.classList.add('flex'); // garante que fique visível e centralizado
+});
+
+// Fecha o modal ao clicar no X
+btnFecharPedidos.addEventListener('click', () => {
+  modalPedidos.classList.add('hidden');
+  modalPedidos.classList.remove('flex');
+});
+
+// Fecha o modal se clicar fora da área do conteúdo
+modalPedidos.addEventListener('click', (e) => {
+  if (e.target === modalPedidos) { // clicou no fundo escuro
+    modalPedidos.classList.add('hidden');
+    modalPedidos.classList.remove('flex');
+  }
+});

@@ -634,19 +634,13 @@
 </div>
 
 <!-- Modal Meus Pedidos -->
-<div id="meusPedidosModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-  <div class="bg-white w-11/12 md:w-1/2 p-6 rounded-2xl shadow-2xl relative transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
-    <h2 class="text-2xl font-extrabold mb-6 text-gray-800 border-b pb-2">Meus Pedidos</h2>
-    
-    <ul id="listaMeusPedidos" class="max-h-72 overflow-y-auto space-y-3 mb-6">
+<div id="meusPedidosModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+  <div class="bg-white w-11/12 md:w-1/2 p-6 rounded-lg relative">
+    <h2 class="text-xl font-bold mb-4">Meus Pedidos</h2>
+    <ul id="listaMeusPedidos" class="max-h-64 overflow-y-auto mb-4">
       <!-- Lista de pedidos será inserida aqui via JS -->
     </ul>
-    
-    <div class="flex justify-end gap-3">
-      <button id="fecharMeusPedidos" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full font-semibold transition-all duration-200 hover:scale-105">
-        Fechar
-      </button>
-    </div>
+    <button id="fecharMeusPedidos" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition">Fechar</button>
   </div>
 </div>
 

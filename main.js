@@ -1043,3 +1043,20 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
   fecharBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
   });
+
+// Seleciona os elementos
+const btnMeusPedidos = document.getElementById('btnMeusPedidos');
+const meusPedidosModal = document.getElementById('meusPedidosModal');
+const fecharPedidos = document.getElementById('fecharPedidos');
+
+// Abrir modal
+btnMeusPedidos.addEventListener('click', () => {
+  meusPedidosModal.classList.remove('hidden');
+  meusPedidosModal.classList.add('flex'); // garante que fique visível e centralizado
+});
+
+// Fechar modal
+fecharPedidos.addEventListener('click', () => {
+  meusPedidosModal.classList.add('hidden');
+  meusPedidosModal.classList.remove('flex');
+});

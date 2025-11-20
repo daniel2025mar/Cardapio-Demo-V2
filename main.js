@@ -998,87 +998,120 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     updateAddressState();
   });
 
-  // ==============================================
-// ABRIR / FECHAR MODAL "MEUS PEDIDOS"
-// ==============================================
+  // ======================================================
+// BANCO DE PEDIDOS (LocalStorage)
+// ======================================================
 
-// Abrir
-function abrirMeusPedidos() {
+// Carrega pedidos já salvos
+let pedidos = JSON.parse(localStorage.getItem("meusPedidos")) || [];
+
+// Salvar pedidos no LocalStorage
+function salvarPedidos() {
+  localStorage.setItem("meusPedidos", JSON.stringify(pedidos));
+}
+
+
+
+// ======================================================
+// ABRIR / FECHAR MODAL "MEUS PEDIDOS"
+// ======================================================
+
+// Abrir modal ao clicar no botão dentro do perfil
+document.getElementById("btnMeusPedidos").addEventListener("click", function () {
+  atualizarListaPedidos();
   const modal = document.getElementById("meusPedidosModal");
   modal.classList.remove("hidden");
   modal.classList.add("flex");
-}
+});
 
-// Fechar
-function fecharMeusPedidos() {
+// Fechar modal
+document.getElementById("fecharPedidos").addEventListener("click", function () {
   const modal = document.getElementById("meusPedidosModal");
   modal.classList.add("hidden");
   modal.classList.remove("flex");
+});
+
+
+
+// ======================================================
+// ADICIONAR PEDIDOS
+// ======================================================
+
+// Essa função será chamada quando o cliente clicar em "Adicionar ao Carrinho"
+function adicionarAoCarrinho() {
+  const nome = document.getElementById("modalNome").innerText;
+  const preco = document.getElementById("modalPreco").innerText;
+  const qtd = parseInt(document.getElementById("modalQtd").innerText);
+
+  registrarPedido(nome, preco, qtd);
+
+  closeModal(); // Fecha o modal do produto
 }
 
-document.getElementById("fecharPedidos").addEventListener("click", fecharMeusPedidos);
 
 
-// ==============================================
-// SISTEMA DE CARRINHO / LISTA DE PEDIDOS
-// ==============================================
-
-let pedidos = []; // Array que guarda os pedidos
-
-// Adicionar item ao carrinho
-function adicionarPedido(nome, preco, qtd) {
+// Registrar pedido no sistema
+function registrarPedido(nome, preco, qtd) {
+  const total = calcularTotal(preco, qtd);
+  const agora = new Date();
 
   const pedido = {
     nome,
     preco,
     qtd,
-    total: calcularTotal(preco, qtd)
+    total,
+    data: agora.toLocaleDateString("pt-BR"),
+    hora: agora.toLocaleTimeString("pt-BR")
   };
 
   pedidos.push(pedido);
-
+  salvarPedidos();
   atualizarListaPedidos();
 }
 
 
-// Atualizar HTML dos pedidos na lista
+
+// ======================================================
+// ATUALIZAR O MODAL MEUS PEDIDOS
+// ======================================================
+
 function atualizarListaPedidos() {
   const lista = document.getElementById("listaPedidos");
-  lista.innerHTML = ""; // limpar lista
+  lista.innerHTML = "";
 
-  pedidos.forEach((item, index) => {
+  if (pedidos.length === 0) {
+    lista.innerHTML = `
+      <p class="text-center text-gray-600">Nenhum pedido encontrado.</p>
+    `;
+    return;
+  }
+
+  pedidos.forEach((item) => {
     const div = document.createElement("div");
-    div.className = "p-3 bg-gray-100 rounded-lg shadow";
+    div.className = "p-4 bg-gray-100 rounded-lg shadow";
 
     div.innerHTML = `
-      <p class="font-bold text-gray-900">${item.qtd}x ${item.nome}</p>
-      <p class="text-red-600 font-semibold">${item.preco} cada</p>
-      <p class="text-gray-800 font-medium">Total: ${item.total}</p>
+      <p class="font-bold text-gray-900 text-lg">${item.qtd}x ${item.nome}</p>
+      <p class="text-gray-700 font-medium">${item.preco} cada</p>
+      <p class="text-red-600 font-semibold">Total: ${item.total}</p>
+      <p class="text-sm text-gray-600 mt-1">
+        📅 ${item.data} — ⏰ ${item.hora}
+      </p>
     `;
 
     lista.appendChild(div);
   });
 }
 
-// Converter "R$ 22,00" em número
+
+
+// ======================================================
+// UTILITÁRIO PARA CALCULAR TOTAL
+// ======================================================
+
 function calcularTotal(preco, qtd) {
   let num = preco.replace("R$", "").replace(".", "").replace(",", ".");
   num = parseFloat(num);
-  return "R$ " + (num * qtd).toFixed(2).replace(".", ",");
-}
-
-
-// ==============================================
-// INTEGRAÇÃO COM SEU MODAL DE PRODUTO
-// (QUANDO CLICAR EM "ADICIONAR AO CARRINHO")
-// ==============================================
-
-function adicionarAoCarrinho() {
-  const nome = document.getElementById("modalNome").innerText;
-  const preco = document.getElementById("modalPreco").innerText;
-  const qtd = parseInt(document.getElementById("modalQtd").innerText);
-
-  adicionarPedido(nome, preco, qtd);
-
-  closeModal(); // fecha modal do produto
+  const valor = num * qtd;
+  return "R$ " + valor.toFixed(2).replace(".", ",");
 }

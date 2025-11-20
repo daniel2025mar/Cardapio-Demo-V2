@@ -1023,37 +1023,34 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     updateAddressState();
   });
 
+  document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById('pedidosFinalizadosModal');
-const listaPedidos = document.getElementById('listaPedidos');
-const fecharModal = document.getElementById('fecharModal');
+  const listaPedidos = document.getElementById('listaPedidos');
+  const fecharModal = document.getElementById('fecharModal');
+  const btnVerPedidos = document.getElementById('btnVerPedidos'); // ou btnMeusPedidos se for esse o id
 
-// Função para abrir o modal e listar os pedidos finalizados
-function mostrarPedidosFinalizados() {
-  // Pega os pedidos do localStorage
-  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+  function mostrarPedidosFinalizados() {
+    const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+    listaPedidos.innerHTML = "";
 
-  listaPedidos.innerHTML = ""; // limpa a lista
+    if (pedidosFinalizados.length === 0) {
+      listaPedidos.innerHTML = "<li class='text-gray-500'>Nenhum pedido finalizado ainda.</li>";
+    } else {
+      pedidosFinalizados.forEach((pedido) => {
+        const li = document.createElement('li');
+        li.className = "border-b border-gray-200 pb-2";
+        li.innerHTML = `<strong>${pedido.nome}</strong> - Quantidade: ${pedido.quantidade} - R$ ${pedido.preco.toFixed(2)}`;
+        listaPedidos.appendChild(li);
+      });
+    }
 
-  if (pedidosFinalizados.length === 0) {
-    listaPedidos.innerHTML = "<li class='text-gray-500'>Nenhum pedido finalizado ainda.</li>";
-  } else {
-    pedidosFinalizados.forEach((pedido, index) => {
-      const li = document.createElement('li');
-      li.className = "border-b border-gray-200 pb-2";
-      li.innerHTML = `
-        <strong>${pedido.nome}</strong> - Quantidade: ${pedido.quantidade} - R$ ${pedido.preco.toFixed(2)}
-      `;
-      listaPedidos.appendChild(li);
-    });
+    modal.classList.remove('hidden');
   }
 
-  modal.classList.remove('hidden'); // abre o modal
-}
+  fecharModal.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
 
-// Fecha o modal
-fecharModal.addEventListener('click', () => {
-  modal.classList.add('hidden');
+  btnVerPedidos.addEventListener('click', mostrarPedidosFinalizados);
 });
 
-// Botão para abrir o modal
-document.getElementById('btnVerPedidos').addEventListener('click', mostrarPedidosFinalizados);

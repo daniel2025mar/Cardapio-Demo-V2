@@ -1142,4 +1142,4 @@ fecharBtn.addEventListener('click', () => {
 });
 
 // Atualiza pedidos ao carregar a página
-window.addEventListener('DOMContentLoaded', atualizarPedidos);
+//window.addEventListener('DOMContentLoaded', atualizarPedidos);

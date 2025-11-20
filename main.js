@@ -12,6 +12,16 @@ const retirarLocal = document.getElementById("retirarLocal");
 
 let cart = [];
 
+
+// Função para finalizar pedido e salvar no localStorage
+function finalizarPedido(pedidos) {
+  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+  
+  const novosPedidos = [...pedidosFinalizados, ...pedidos];
+  
+  localStorage.setItem('pedidosFinalizados', JSON.stringify(novosPedidos));
+}
+
 //funçaos do cardapio
 
 // abrir model do carrinho
@@ -247,6 +257,17 @@ checkout.addEventListener("click", function() {
     andressInput.classList.add("border-red-500");
     return;
   }
+
+    // ==============================
+  // Salvar pedido finalizado
+  // ==============================
+  const pedidosParaSalvar = cart.map(item => ({
+    nome: item.name,
+    quantidade: item.quantity,
+    preco: item.price
+  }));
+
+  finalizarPedido(pedidosParaSalvar);
 
   // ==============================
   // Continua com a lógica atual de montagem do pedido e envio
@@ -1001,3 +1022,38 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
+
+  const modal = document.getElementById('pedidosFinalizadosModal');
+const listaPedidos = document.getElementById('listaPedidos');
+const fecharModal = document.getElementById('fecharModal');
+
+// Função para abrir o modal e listar os pedidos finalizados
+function mostrarPedidosFinalizados() {
+  // Pega os pedidos do localStorage
+  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+
+  listaPedidos.innerHTML = ""; // limpa a lista
+
+  if (pedidosFinalizados.length === 0) {
+    listaPedidos.innerHTML = "<li class='text-gray-500'>Nenhum pedido finalizado ainda.</li>";
+  } else {
+    pedidosFinalizados.forEach((pedido, index) => {
+      const li = document.createElement('li');
+      li.className = "border-b border-gray-200 pb-2";
+      li.innerHTML = `
+        <strong>${pedido.nome}</strong> - Quantidade: ${pedido.quantidade} - R$ ${pedido.preco.toFixed(2)}
+      `;
+      listaPedidos.appendChild(li);
+    });
+  }
+
+  modal.classList.remove('hidden'); // abre o modal
+}
+
+// Fecha o modal
+fecharModal.addEventListener('click', () => {
+  modal.classList.add('hidden');
+});
+
+// Botão para abrir o modal
+document.getElementById('btnVerPedidos').addEventListener('click', mostrarPedidosFinalizados);

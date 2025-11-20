@@ -287,7 +287,7 @@ checkout.addEventListener("click", function() {
   cardmodal.style.display = "none";
 
   // ✅ Atualiza o modal “Meus Pedidos”
-  atualizarListaPedidos();
+  atualizarPedidos();
 
   // ==============================
   // Modal de sucesso

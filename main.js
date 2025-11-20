@@ -280,6 +280,10 @@ checkout.addEventListener("click", function() {
   updateCartModal();
   cardmodal.style.display = "none";
 
+  
+    // ✅ Atualiza o modal “Meus Pedidos”
+    atualizarListaPedidos();
+
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');

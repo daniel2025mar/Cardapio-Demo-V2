@@ -1008,18 +1008,20 @@ document.getElementById("modalAddBtn").addEventListener("click", function () {
     // Garantir estado correto ao abrir modal
     updateAddressState();
   });
-const checkoutBtn = document.getElementById('checkout-btn'); // Botão Finalizar Pedido
+ 
+  // Elementos do modal e botões
+const checkoutBtn = document.getElementById('checkout-btn');
 const modal = document.getElementById('meusPedidosModal');
 const fecharBtn = document.getElementById('fecharPedidos');
 const listaPedidos = document.getElementById('listaPedidos');
 const btnMeusPedidos = document.getElementById('btnMeusPedidos');
 
-// Recupera pedidos salvos no localStorage ou cria um array vazio
+// Recupera pedidos salvos no localStorage
 let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
 
 // Função para atualizar a lista do modal
 function atualizarPedidos() {
-  listaPedidos.innerHTML = ''; // Limpa a lista
+  listaPedidos.innerHTML = '';
   pedidos.forEach(pedido => {
     const item = document.createElement('div');
     item.classList.add('flex', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg');
@@ -1036,30 +1038,47 @@ function salvarPedidos() {
   localStorage.setItem('pedidos', JSON.stringify(pedidos));
 }
 
-// Abre modal e atualiza pedidos
-checkoutBtn.addEventListener('click', () => {
-  // Exemplo de novo pedido (substitua pelo seu sistema real)
-  const novoPedido = { nome: 'X-Burguer', quantidade: 2, preco: 18.00 };
-  pedidos.push(novoPedido);
+// Seleciona todos os botões de adicionar ao carrinho
+const botoesAdicionar = document.querySelectorAll('.add-to-card-btn');
 
-  salvarPedidos();
+botoesAdicionar.forEach(botao => {
+  botao.addEventListener('click', () => {
+    const nome = botao.dataset.name;
+    let preco = botao.dataset.price.replace(',', '.'); // transforma "20,60" em "20.60"
+    preco = parseFloat(preco);
+
+    // Verifica se o produto já existe no pedido
+    const existente = pedidos.find(p => p.nome === nome);
+    if (existente) {
+      existente.quantidade += 1;
+    } else {
+      pedidos.push({ nome, quantidade: 1, preco });
+    }
+
+    salvarPedidos();
+    atualizarPedidos();
+  });
+});
+
+// Botão Finalizar Pedido
+checkoutBtn.addEventListener('click', () => {
   atualizarPedidos();
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });
 
-// Abre modal pelo botão "Meus Pedidos"
+// Botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {
   atualizarPedidos();
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 });
 
-// Fecha modal
+// Botão Fechar modal
 fecharBtn.addEventListener('click', () => {
   modal.classList.add('hidden');
   modal.classList.remove('flex');
 });
 
-// Atualiza a lista ao carregar a página, caso existam pedidos salvos
+// Atualiza pedidos ao carregar a página
 window.addEventListener('DOMContentLoaded', atualizarPedidos);

@@ -1053,15 +1053,32 @@ function salvarPedidos() {
 }
 
 // Função para atualizar o modal com pedidos finalizados
-function atualizarPedidosModal(limpar = false) {
-  const container = document.getElementById('pedidosModalContainer'); // ID do container no modal
-  if (limpar) container.innerHTML = ''; // limpa antes de adicionar
+function atualizarPedidosModal() {
+  listaPedidos.innerHTML = '';
 
-  const pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
+  if (!pedidosFinalizados || pedidosFinalizados.length === 0) {
+    const nenhum = document.createElement('div');
+    nenhum.classList.add('text-center', 'text-gray-500', 'py-4', 'font-medium');
+    nenhum.textContent = 'Você ainda não possui nenhum pedido';
+    listaPedidos.appendChild(nenhum);
+    return;
+  }
+
   pedidosFinalizados.forEach(pedido => {
-    const div = document.createElement('div');
-    div.textContent = `${pedido.nome} - Quantidade: ${pedido.quantidade}`;
-    container.appendChild(div);
+    const item = document.createElement('div');
+    item.classList.add('flex', 'flex-col', 'justify-between', 'p-2', 'bg-gray-100', 'rounded-lg', 'mb-2');
+
+    // Calcula o preço total do pedido multiplicando quantidade x preço unitário
+    const precoTotal = pedido.preco * pedido.quantidade;
+
+    item.innerHTML = `
+      <div class="flex justify-between">
+        <span>${pedido.nome} x${pedido.quantidade}</span>
+        <span>R$ ${precoTotal.toFixed(2)}</span>
+      </div>
+      <small class="text-gray-500">Pedido em: ${formatarDataHora(pedido.data)}</small>
+    `;
+    listaPedidos.appendChild(item);
   });
 }
 
@@ -1095,30 +1112,30 @@ checkoutBtn.addEventListener('click', () => {
     return;
   }
 
-  // Recupera pedidos finalizados do localStorage
+  // Garante que pedidosFinalizados está definido
   let pedidosFinalizados = JSON.parse(localStorage.getItem('pedidosFinalizados')) || [];
 
   // Mescla os pedidos do carrinho com os pedidos finalizados
   pedidos.forEach(pedido => {
     const index = pedidosFinalizados.findIndex(p => p.nome === pedido.nome);
     if (index !== -1) {
-      // Substitui o pedido existente (evita duplicação de quantidade)
+      // Substitui o pedido existente pelo novo, evitando soma duplicada
       pedidosFinalizados[index] = { ...pedido };
     } else {
-      pedidosFinalizados.push({ ...pedido });
+      pedidosFinalizados.push({ ...pedido }); // adiciona novo pedido
     }
   });
 
   // Salva pedidos finalizados no localStorage
   localStorage.setItem('pedidosFinalizados', JSON.stringify(pedidosFinalizados));
 
-  // Limpa o carrinho
+  // Limpa o carrinho e salva
   pedidos = [];
   localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
-  // Atualiza o modal de pedidos (sempre limpando antes)
+  // Atualiza o modal de pedidos
   if (typeof atualizarPedidosModal === 'function') {
-    atualizarPedidosModal(true); // true indica "limpar conteúdo antes de preencher"
+    atualizarPedidosModal();
   }
 
   // Exibe o modal
@@ -1127,9 +1144,6 @@ checkoutBtn.addEventListener('click', () => {
     modal.classList.add('flex');
   }
 });
-
-
-
 
 // Botão "Meus Pedidos"
 btnMeusPedidos.addEventListener('click', () => {

@@ -10,14 +10,41 @@
     .content-section {
       display: none;
     }
+
+    /* Menu lateral escondido no mobile */
+    @media (max-width: 768px) {
+      aside {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        height: 100%;
+        z-index: 50;
+        transition: left 0.3s ease-in-out;
+      }
+      aside.open {
+        left: 0;
+      }
+      main {
+        padding-left: 0;
+      }
+      .menu-toggle {
+        display: block;
+      }
+    }
+
+    /* Esconde toggle no desktop */
+    .menu-toggle {
+      display: none;
+    }
   </style>
 </head>
 <body class="h-screen flex flex-col">
 
   <!-- Topo -->
-  <header class="bg-gray-800 text-white h-16 flex items-center px-6 shadow">
+  <header class="bg-gray-800 text-white h-16 flex items-center px-6 shadow justify-between">
     <h1 class="text-xl font-bold">Painel Administrativo</h1>
-    <div class="ml-auto flex items-center gap-4">
+    <div class="flex items-center gap-4">
+      <button class="menu-toggle bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 text-white">Menu</button>
       <span>Usuário</span>
       <button id="btn-logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
     </div>
@@ -37,7 +64,7 @@
     </aside>
 
     <!-- Conteúdo Principal -->
-    <main class="flex-1 bg-gray-100 p-6 overflow-y-auto">
+    <main class="flex-1 bg-gray-100 p-4 md:p-6 overflow-y-auto">
 
       <!-- Dashboard -->
       <section id="dashboard" class="content-section mb-8">
@@ -68,8 +95,8 @@
         <h2 class="text-2xl font-bold mb-4">Funcionários</h2>
 
         <!-- Formulário de cadastro -->
-        <form id="funcionario-form" class="bg-white p-6 rounded shadow mb-6">
-          <div class="flex flex-col md:flex-row gap-4 mb-4">
+        <form id="funcionario-form" class="bg-white p-4 md:p-6 rounded shadow mb-6 flex flex-col gap-4">
+          <div class="flex flex-col md:flex-row gap-4">
             <input type="text" placeholder="Nome" class="border p-2 rounded flex-1" required>
             <input type="text" placeholder="Cargo" class="border p-2 rounded flex-1" required>
             <input type="email" placeholder="Email" class="border p-2 rounded flex-1" required>
@@ -77,54 +104,61 @@
           </div>
 
           <!-- Permissões -->
-          <div class="mb-4">
-            <p class="font-semibold mb-2">Permissões:</p>
-            <div class="flex flex-wrap gap-4">
-              <label class="flex items-center gap-2"><input type="checkbox" value="dashboard"> Dashboard</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="produtos"> Produtos</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="pedidos"> Pedidos</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="clientes"> Clientes</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="funcionarios"> Funcionários</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="acesso_total"> Acesso total do painel</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="editar_produtos"> Editar produtos</label>
-              <label class="flex items-center gap-2"><input type="checkbox" value="excluir_clientes"> Excluir clientes</label>
-            </div>
+          <div class="flex flex-wrap gap-2 md:gap-4">
+            <label class="flex items-center gap-2"><input type="checkbox" value="dashboard"> Dashboard</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="produtos"> Produtos</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="pedidos"> Pedidos</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="clientes"> Clientes</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="funcionarios"> Funcionários</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="acesso_total"> Acesso total</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="editar_produtos"> Editar produtos</label>
+            <label class="flex items-center gap-2"><input type="checkbox" value="excluir_clientes"> Excluir clientes</label>
           </div>
 
-          <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Adicionar</button>
+          <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full md:w-auto">Adicionar</button>
         </form>
 
         <!-- Lista de funcionários -->
-        <table class="min-w-full bg-white rounded shadow text-left">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="py-2 px-4 border-b text-left">Nome</th>
-              <th class="py-2 px-4 border-b text-left">Cargo</th>
-              <th class="py-2 px-4 border-b text-left">Email</th>
-              <th class="py-2 px-4 border-b text-left">Permissões</th>
-              <th class="py-2 px-4 border-b text-left">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="hover:bg-gray-100">
-              <td class="py-2 px-4 border-b align-middle">Administrador</td>
-              <td class="py-2 px-4 border-b align-middle">Admin</td>
-              <td class="py-2 px-4 border-b align-middle">admin@admin.com</td>
-              <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
-              <td class="py-2 px-4 border-b align-middle flex gap-2">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded shadow text-left">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="py-2 px-4 border-b text-left">Nome</th>
+                <th class="py-2 px-4 border-b text-left">Cargo</th>
+                <th class="py-2 px-4 border-b text-left">Email</th>
+                <th class="py-2 px-4 border-b text-left">Permissões</th>
+                <th class="py-2 px-4 border-b text-left">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="hover:bg-gray-100">
+                <td class="py-2 px-4 border-b align-middle">Administrador</td>
+                <td class="py-2 px-4 border-b align-middle">Admin</td>
+                <td class="py-2 px-4 border-b align-middle">admin@admin.com</td>
+                <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
+                <td class="py-2 px-4 border-b align-middle flex gap-2">
+                  <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
+                  <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
       </section>
 
     </main>
   </div>
 
-  <!-- Corrigido o caminho do script para a pasta painel -->
+  <!-- Script -->
   <script type="module" src="admin.js"></script>
+  <script>
+    // Toggle menu no mobile
+    const toggleBtn = document.querySelector('.menu-toggle');
+    const aside = document.querySelector('aside');
+    toggleBtn.addEventListener('click', () => {
+      aside.classList.toggle('open');
+    });
+  </script>
 </body>
 </html>

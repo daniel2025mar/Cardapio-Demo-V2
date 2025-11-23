@@ -6,23 +6,22 @@
   <title>Login - Painel Administrativo</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="h-screen flex items-center justify-center bg-gray-100">
+<body class="h-screen flex items-center justify-center bg-gray-100 p-4">
 
   <!-- Tela de Login -->
-  <div id="login-container" class="bg-white p-8 rounded shadow w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+  <div id="login-container" class="bg-white p-6 sm:p-8 rounded shadow w-full max-w-md">
+    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center">Login</h2>
     <form id="login-form" class="flex flex-col gap-4">
-      <input type="text" id="username" placeholder="Usuário" class="border p-2 rounded" required>
-      <input type="password" id="password" placeholder="Senha" class="border p-2 rounded" required>
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Entrar</button>
+      <input type="text" id="username" placeholder="Usuário" class="border p-2 rounded w-full text-sm sm:text-base" required>
+      <input type="password" id="password" placeholder="Senha" class="border p-2 rounded w-full text-sm sm:text-base" required>
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full text-sm sm:text-base">Entrar</button>
     </form>
-    <p id="login-error" class="text-red-500 mt-2 hidden">Usuário ou senha incorretos!</p>
+    <p id="login-error" class="text-red-500 mt-2 text-sm hidden">Usuário ou senha incorretos!</p>
   </div>
 
-  <!-- Painel Administrativo (não carregar direto, apenas redirecionar via login.js) -->
+  <!-- Painel Administrativo (não carregar direto) -->
   <div id="admin-panel" class="hidden h-screen w-full flex flex-col"></div>
 
-  <!-- Corrigido caminho relativo do script -->
   <script type="module" src="login.js"></script>
 </body>
 </html>

@@ -1114,36 +1114,134 @@ meusPedidosModal.addEventListener("click", (e) => {
   }
 });
 
-//navegaçao por categorias 
 // -----------------------------
 // NAVEGAÇÃO ENTRE CATEGORIAS (CELULAR)
 // -----------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const categoriaContainer = document.getElementById("categoriaContainer");
+  const navLeft = document.getElementById("navLeft");
+  const navRight = document.getElementById("navRight");
 
-const categoriaContainer = document.getElementById("categoriaContainer");
-const navLeft = document.getElementById("navLeft");
-const navRight = document.getElementById("navRight");
+  if (!categoriaContainer || !navLeft || !navRight) return;
 
-// Garantir que o container permita scroll no celular
-categoriaContainer.style.scrollBehavior = "smooth";
-categoriaContainer.style.overflowX = "auto";
+  const cards = Array.from(
+    categoriaContainer.querySelectorAll(".categoria-card-modern-small")
+  );
 
-// Pega a largura REAL de um card (incluindo gap)
-function getScrollAmount() {
-    const card = categoriaContainer.querySelector(".categoria-card-modern-small");
-    if (!card) return 150;
+  let startIndex = 0;
+  const visibleCount = 2;
 
-    const cardWidth = card.offsetWidth;
-    const gap = 16; // gap-4 equivale a 16px
+  function isMobile() {
+    return window.innerWidth < 768;
+  }
 
-    return cardWidth + gap;
-}
+  // Transição suave
+  cards.forEach((card) => {
+    card.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+  });
 
-// --- Botão Direita ---
-navRight.addEventListener("click", () => {
-    categoriaContainer.scrollLeft += getScrollAmount();
+  function renderMobileView() {
+    cards.forEach((card, index) => {
+      const isVisible = index >= startIndex && index < startIndex + visibleCount;
+
+      if (isVisible) {
+        // Aparece suavemente
+        card.style.display = "flex";    // primeiro aparece
+        requestAnimationFrame(() => {
+          card.style.opacity = "1";
+          card.style.transform = "translateY(0)";
+        });
+      } else {
+        // Some suavemente
+        card.style.opacity = "0";
+        card.style.transform = "translateY(12px)";
+
+        // Espera a animação terminar antes de esconder
+        setTimeout(() => {
+          if (card.style.opacity === "0") {
+            card.style.display = "none";
+          }
+        }, 350); // tempo igual ao do transition
+      }
+    });
+
+    // Botões
+    navLeft.disabled = startIndex === 0;
+    navRight.disabled = startIndex + visibleCount >= cards.length;
+
+    navLeft.classList.toggle("opacity-50", navLeft.disabled);
+    navRight.classList.toggle("opacity-50", navRight.disabled);
+  }
+
+  function restoreDesktopView() {
+    cards.forEach((card) => {
+      card.style.display = "";
+      card.style.opacity = "";
+      card.style.transform = "";
+    });
+
+    categoriaContainer.classList.remove("justify-start");
+    categoriaContainer.classList.add("justify-center");
+  }
+
+  function handleViewport() {
+    if (isMobile()) {
+      categoriaContainer.classList.add("justify-center");
+      categoriaContainer.classList.remove("justify-between");
+      renderMobileView();
+    } else {
+      restoreDesktopView();
+    }
+  }
+
+  // ➜ Botão NEXT (para cervejas)
+  navRight.addEventListener("click", () => {
+    if (!isMobile()) return;
+    if (startIndex + visibleCount >= cards.length) return;
+
+    startIndex++;
+    renderMobileView();
+  });
+
+  // ➜ Botão PREV
+  navLeft.addEventListener("click", () => {
+    if (!isMobile()) return;
+    if (startIndex <= 0) return;
+
+    startIndex--;
+    renderMobileView();
+  });
+
+  // Swipe
+  let startX = 0;
+
+  categoriaContainer.addEventListener(
+    "touchstart",
+    (e) => {
+      if (!isMobile()) return;
+      startX = e.touches[0].clientX;
+    },
+    { passive: true }
+  );
+
+  categoriaContainer.addEventListener(
+    "touchend",
+    (e) => {
+      if (!isMobile()) return;
+      const diff = startX - e.changedTouches[0].clientX;
+
+      if (diff > 40 && startIndex + visibleCount < cards.length) {
+        startIndex++;
+        renderMobileView();
+      } else if (diff < -40 && startIndex > 0) {
+        startIndex--;
+        renderMobileView();
+      }
+    },
+    { passive: true }
+  );
+
+  window.addEventListener("resize", handleViewport);
+  handleViewport();
 });
 
-// --- Botão Esquerda ---
-navLeft.addEventListener("click", () => {
-    categoriaContainer.scrollLeft -= getScrollAmount();
-});

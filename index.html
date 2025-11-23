@@ -117,51 +117,48 @@
 =============================== -->
 <div class="relative mt-4">
 
-  <!-- BOTÃO ESQUERDO (mostra só no celular) -->
-  <button id="navLeft" 
-    class="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white p-3 rounded-full shadow z-10">
+  <!-- BOTÃO ESQUERDO (mobile) -->
+  <button id="navLeft"
+    class="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white p-3 rounded-full shadow z-20">
     <i class="fas fa-chevron-left"></i>
   </button>
 
-  <!-- BOTÃO DIREITO (mostra só no celular) -->
-  <button id="navRight" 
-    class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white p-3 rounded-full shadow z-10">
+  <!-- BOTÃO DIREITO (mobile) -->
+  <button id="navRight"
+    class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white p-3 rounded-full shadow z-20">
     <i class="fas fa-chevron-right"></i>
   </button>
 
   <!-- Container das categorias -->
-  <div id="categoriaContainer" 
-    class="flex justify-center gap-4 mt-0 mb-6 px-10 
-           overflow-x-auto sm:overflow-x-visible flex-nowrap scroll-smooth">
+  <div id="categoriaContainer"
+    class="flex justify-center gap-4 mt-0 mb-6 px-16 sm:px-10
+           overflow-x-auto sm:overflow-x-visible flex-nowrap scroll-smooth py-2">
 
     <!-- Card Hambúrgueres -->
-    <div 
-      class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 relative flex-shrink-0"
-      data-categoria="hamburgueres"
-    >
+    <div
+      class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 flex-shrink-0"
+      data-categoria="hamburgueres">
       <i class="fas fa-hamburger text-red-600 text-xl sm:text-2xl mb-2"></i>
       <span class="font-medium text-sm text-center mb-3 sm:mb-4">Hambúrgueres</span>
-      <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+      <div class="w-full h-1 bg-red-600 rounded-b-xl"></div>
     </div>
 
     <!-- Card Bebidas -->
-    <div 
-      class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 relative flex-shrink-0"
-      data-categoria="bebidas"
-    >
+    <div
+      class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 flex-shrink-0"
+      data-categoria="bebidas">
       <i class="fas fa-wine-glass-alt text-red-600 text-xl sm:text-2xl mb-2"></i>
       <span class="font-medium text-sm text-center mb-3 sm:mb-4">Bebidas</span>
-      <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+      <div class="w-full h-1 bg-red-600 rounded-b-xl"></div>
     </div>
 
-    <!-- Card Cervejas — invisível no celular, visível no computador -->
-    <div 
-      class="hidden md:flex categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 md:w-44 relative flex-shrink-0"
-      data-categoria="cervejas"
-    >
+    <!-- Card Cervejas (mobile escondido) -->
+    <div
+      class="hidden md:flex categoria-card-modern-small flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 md:w-44 flex-shrink-0"
+      data-categoria="cervejas">
       <i class="fas fa-beer text-red-600 text-xl md:text-2xl mb-2"></i>
       <span class="font-medium text-sm text-center mb-3 md:mb-4">Cervejas</span>
-      <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 rounded-b-xl"></div>
+      <div class="w-full h-1 bg-red-600 rounded-b-xl"></div>
     </div>
 
   </div>

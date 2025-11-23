@@ -1113,3 +1113,37 @@ meusPedidosModal.addEventListener("click", (e) => {
     meusPedidosModal.classList.add("hidden");
   }
 });
+
+//navegaçao por categorias 
+// -----------------------------
+// NAVEGAÇÃO ENTRE CATEGORIAS (CELULAR)
+// -----------------------------
+
+const categoriaContainer = document.getElementById("categoriaContainer");
+const navLeft = document.getElementById("navLeft");
+const navRight = document.getElementById("navRight");
+
+// Garantir que o container permita scroll no celular
+categoriaContainer.style.scrollBehavior = "smooth";
+categoriaContainer.style.overflowX = "auto";
+
+// Pega a largura REAL de um card (incluindo gap)
+function getScrollAmount() {
+    const card = categoriaContainer.querySelector(".categoria-card-modern-small");
+    if (!card) return 150;
+
+    const cardWidth = card.offsetWidth;
+    const gap = 16; // gap-4 equivale a 16px
+
+    return cardWidth + gap;
+}
+
+// --- Botão Direita ---
+navRight.addEventListener("click", () => {
+    categoriaContainer.scrollLeft += getScrollAmount();
+});
+
+// --- Botão Esquerda ---
+navLeft.addEventListener("click", () => {
+    categoriaContainer.scrollLeft -= getScrollAmount();
+});

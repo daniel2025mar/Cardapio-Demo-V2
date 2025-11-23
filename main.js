@@ -1124,16 +1124,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!categoriaContainer || !navLeft || !navRight) return;
 
-  const cards = Array.from(
-    categoriaContainer.querySelectorAll(".categoria-card-modern-small")
-  );
+  const cards = Array.from(categoriaContainer.querySelectorAll(".categoria-card-modern-small"));
 
   let startIndex = 0;
   const visibleCount = 2;
 
-  function isMobile() {
-    return window.innerWidth < 768;
-  }
+  const isMobile = () => window.innerWidth < 768;
 
   // Transição suave
   cards.forEach((card) => {
@@ -1145,32 +1141,34 @@ document.addEventListener("DOMContentLoaded", () => {
       const isVisible = index >= startIndex && index < startIndex + visibleCount;
 
       if (isVisible) {
-        // Aparece suavemente
-        card.style.display = "flex";    // primeiro aparece
+        card.style.display = "flex";
         requestAnimationFrame(() => {
           card.style.opacity = "1";
           card.style.transform = "translateY(0)";
         });
       } else {
-        // Some suavemente
         card.style.opacity = "0";
         card.style.transform = "translateY(12px)";
-
-        // Espera a animação terminar antes de esconder
+        // Esconde após a transição
         setTimeout(() => {
-          if (card.style.opacity === "0") {
-            card.style.display = "none";
-          }
-        }, 350); // tempo igual ao do transition
+          if (card.style.opacity === "0") card.style.display = "none";
+        }, 350);
       }
     });
 
-    // Botões
+    // Botões desabilitados quando não há mais cards
     navLeft.disabled = startIndex === 0;
     navRight.disabled = startIndex + visibleCount >= cards.length;
 
-    navLeft.classList.toggle("opacity-50", navLeft.disabled);
-    navRight.classList.toggle("opacity-50", navRight.disabled);
+    [navLeft, navRight].forEach((btn) => {
+      if (btn.disabled) {
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+        btn.classList.remove("hover:text-red-600");
+      } else {
+        btn.classList.remove("opacity-50", "cursor-not-allowed");
+        btn.classList.add("hover:text-red-600");
+      }
+    });
   }
 
   function restoreDesktopView() {
@@ -1179,69 +1177,50 @@ document.addEventListener("DOMContentLoaded", () => {
       card.style.opacity = "";
       card.style.transform = "";
     });
-
-    categoriaContainer.classList.remove("justify-start");
-    categoriaContainer.classList.add("justify-center");
   }
 
   function handleViewport() {
     if (isMobile()) {
-      categoriaContainer.classList.add("justify-center");
-      categoriaContainer.classList.remove("justify-between");
       renderMobileView();
     } else {
       restoreDesktopView();
     }
   }
 
-  // ➜ Botão NEXT (para cervejas)
+  // Botões NEXT / PREV
   navRight.addEventListener("click", () => {
     if (!isMobile()) return;
     if (startIndex + visibleCount >= cards.length) return;
-
     startIndex++;
     renderMobileView();
   });
 
-  // ➜ Botão PREV
   navLeft.addEventListener("click", () => {
     if (!isMobile()) return;
     if (startIndex <= 0) return;
-
     startIndex--;
     renderMobileView();
   });
 
-  // Swipe
+  // Swipe para mobile
   let startX = 0;
+  categoriaContainer.addEventListener("touchstart", (e) => {
+    if (!isMobile()) return;
+    startX = e.touches[0].clientX;
+  }, { passive: true });
 
-  categoriaContainer.addEventListener(
-    "touchstart",
-    (e) => {
-      if (!isMobile()) return;
-      startX = e.touches[0].clientX;
-    },
-    { passive: true }
-  );
-
-  categoriaContainer.addEventListener(
-    "touchend",
-    (e) => {
-      if (!isMobile()) return;
-      const diff = startX - e.changedTouches[0].clientX;
-
-      if (diff > 40 && startIndex + visibleCount < cards.length) {
-        startIndex++;
-        renderMobileView();
-      } else if (diff < -40 && startIndex > 0) {
-        startIndex--;
-        renderMobileView();
-      }
-    },
-    { passive: true }
-  );
+  categoriaContainer.addEventListener("touchend", (e) => {
+    if (!isMobile()) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if (diff > 40 && startIndex + visibleCount < cards.length) {
+      startIndex++;
+      renderMobileView();
+    } else if (diff < -40 && startIndex > 0) {
+      startIndex--;
+      renderMobileView();
+    }
+  }, { passive: true });
 
   window.addEventListener("resize", handleViewport);
   handleViewport();
 });
-

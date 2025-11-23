@@ -19,7 +19,7 @@
     <h1 class="text-xl font-bold">Painel Administrativo</h1>
     <div class="ml-auto flex items-center gap-4">
       <span>Usuário</span>
-      <button class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
+      <button id="btn-logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
     </div>
   </header>
 
@@ -96,36 +96,35 @@
 
         <!-- Lista de funcionários -->
         <table class="min-w-full bg-white rounded shadow text-left">
-  <thead>
-    <tr class="bg-gray-200">
-      <th class="py-2 px-4 border-b text-left">Nome</th>
-      <th class="py-2 px-4 border-b text-left">Cargo</th>
-      <th class="py-2 px-4 border-b text-left">Email</th>
-      
-      <th class="py-2 px-4 border-b text-left">Permissões</th>
-      <th class="py-2 px-4 border-b text-left">Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr class="hover:bg-gray-100">
-      <td class="py-2 px-4 border-b align-middle">Administrador</td>
-      <td class="py-2 px-4 border-b align-middle">Admin</td>
-      <td class="py-2 px-4 border-b align-middle">admin@admin.com</td>
-      <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
-      <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
-      <td class="py-2 px-4 border-b align-middle flex gap-2">
-        <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="py-2 px-4 border-b text-left">Nome</th>
+              <th class="py-2 px-4 border-b text-left">Cargo</th>
+              <th class="py-2 px-4 border-b text-left">Email</th>
+              <th class="py-2 px-4 border-b text-left">Permissões</th>
+              <th class="py-2 px-4 border-b text-left">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="hover:bg-gray-100">
+              <td class="py-2 px-4 border-b align-middle">Administrador</td>
+              <td class="py-2 px-4 border-b align-middle">Admin</td>
+              <td class="py-2 px-4 border-b align-middle">admin@admin.com</td>
+              <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
+              <td class="py-2 px-4 border-b align-middle flex gap-2">
+                <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
+                <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
       </section>
 
     </main>
   </div>
 
-  <script type="module" src="/admin.js"></script>
+  <!-- Corrigido o caminho do script para a pasta painel -->
+  <script type="module" src="admin.js"></script>
 </body>
 </html>

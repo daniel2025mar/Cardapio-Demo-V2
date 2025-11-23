@@ -6,17 +6,30 @@
   <title>Login - Painel Administrativo</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="h-screen flex items-center justify-center bg-gray-100 p-4">
+<body class="h-screen flex items-center justify-center bg-gray-900 p-4">
 
   <!-- Tela de Login -->
-  <div id="login-container" class="bg-white p-6 sm:p-8 rounded shadow w-full max-w-md">
-    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center">Login</h2>
+  <div id="login-container" class="bg-gray-800 p-6 sm:p-10 rounded-2xl shadow-xl w-full max-w-md">
+    
+    <!-- Cabeçalho -->
+    <h2 class="text-3xl font-bold mb-4 text-center text-white">Bem-vindo</h2>
+    <p class="text-center text-gray-400 mb-6">Faça login para acessar o painel administrativo</p>
+
+    <!-- Formulário -->
     <form id="login-form" class="flex flex-col gap-4">
-      <input type="text" id="username" placeholder="Usuário" class="border p-2 rounded w-full text-sm sm:text-base" required>
-      <input type="password" id="password" placeholder="Senha" class="border p-2 rounded w-full text-sm sm:text-base" required>
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full text-sm sm:text-base">Entrar</button>
+      <input type="text" id="username" placeholder="Usuário" 
+             class="bg-gray-700 border border-gray-600 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+      <input type="password" id="password" placeholder="Senha" 
+             class="bg-gray-700 border border-gray-600 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+      <button type="submit" 
+              class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 w-full text-sm sm:text-base font-medium">Entrar</button>
     </form>
-    <p id="login-error" class="text-red-500 mt-2 text-sm hidden">Usuário ou senha incorretos!</p>
+
+    <!-- Mensagem de erro -->
+    <p id="login-error" class="text-red-500 mt-2 text-sm hidden text-center">Usuário ou senha incorretos!</p>
+
+    <!-- Rodapé opcional -->
+    <p class="text-gray-500 mt-6 text-center text-xs sm:text-sm">© 2025 Sua Empresa</p>
   </div>
 
   <!-- Painel Administrativo (não carregar direto) -->

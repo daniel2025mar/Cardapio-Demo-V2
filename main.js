@@ -1224,3 +1224,66 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", handleViewport);
   handleViewport();
 });
+
+
+//funçao lista 
+document.addEventListener("DOMContentLoaded", () => {
+  const categoriaCards = document.querySelectorAll(".categoria-card-modern-small");
+  const produtos = document.querySelectorAll(".produto-item");
+
+  categoriaCards.forEach(card => {
+    card.addEventListener("click", () => {
+      const categoria = card.dataset.categoria;
+
+      produtos.forEach(prod => {
+        if (categoria === "all") {
+          prod.style.display = "flex";
+        } else {
+          prod.style.display = prod.dataset.categoria === categoria ? "flex" : "none";
+        }
+      });
+    });
+  });
+
+  // Busca de produtos
+  const searchInput = document.getElementById("searchInput");
+  const noResults = document.getElementById("noResults");
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    let found = false;
+
+    produtos.forEach(prod => {
+      const name = prod.querySelector("p.font-bold").textContent.toLowerCase();
+      if (name.includes(query)) {
+        prod.style.display = "flex";
+        found = true;
+      } else {
+        prod.style.display = "none";
+      }
+    });
+
+    noResults.classList.toggle("hidden", found);
+  });
+});
+
+function renderMenu() {
+    const menu = document.getElementById("menu");
+    if (!menu) return;
+
+    menu.innerHTML = "";
+
+    produtos.forEach(prod => {
+        const card = document.createElement("div");
+        card.className = "produto-item bg-white p-4 rounded shadow";
+
+        card.innerHTML = `
+            <img src="${prod.imagem}" class="w-full h-40 object-cover rounded mb-2">
+            <p class="font-bold text-lg">${prod.nome}</p>
+            <p class="text-sm text-gray-600">${prod.descricao}</p>
+            <p class="text-red-600 font-bold">R$ ${prod.preco}</p>
+        `;
+
+        menu.appendChild(card);
+    });
+}

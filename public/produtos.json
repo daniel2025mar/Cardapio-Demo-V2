@@ -1,0 +1,107 @@
+[
+  {
+    "nome": "Chesse Pickles",
+    "categoria": "hamburgueres",
+    "preco": 20.60,
+    "descricao": "Pão brioche, hambúrguer, mussarela empanada, picles, cebola roxa, alface e maionese Dev.",
+    "imagem": "./Imagem/hamburguer.jpg"
+  },
+  {
+    "nome": "Chicken",
+    "categoria": "hamburgueres",
+    "preco": 22.30,
+    "descricao": "Pão brioche, hambúrguer de frango empanado, queijo prato, bacon, cebola roxa, tomate, alface e maionese.",
+    "imagem": "./Imagem/hamburguer1.jpg"
+  },
+  {
+    "nome": "Hamburguer Magno",
+    "categoria": "hamburgueres",
+    "preco": 18.90,
+    "descricao": "Pão levinho de fermentação natural da Trigou, burguer 180g, queijo prato e maionese da casa.",
+    "imagem": "./Imagem/hamburguer.jpg"
+  },
+  {
+    "nome": "Hamburguer X Tudo",
+    "categoria": "hamburgueres",
+    "preco": 18.90,
+    "descricao": "Pão levinho de fermentação natural da Trigou, burguer 180g, queijo prato e maionese da casa.",
+    "imagem": "./Imagem/hamburguer.jpg"
+  },
+  {
+    "nome": "Cupim Burguer",
+    "categoria": "hamburgueres",
+    "preco": 50.90,
+    "descricao": "Pão brioche, alface americana, molho Dev, cupim defumado (8 horas na lenha de macieira), hambúrguer e queijo prato...",
+    "imagem": "./public/Imagem/cupim.png"
+  },
+  {
+    "nome": "Coca Cola Zero",
+    "categoria": "bebidas",
+    "preco": 7.00,
+    "descricao": "Lata: Refrigerante gelado de 310ml",
+    "imagem": "./public/Imagem/cocazero.png"
+  },
+  {
+    "nome": "Fanta Guaraná",
+    "categoria": "bebidas",
+    "preco": 7.00,
+    "descricao": "Lata: Refrigerante gelado de 310ml",
+    "imagem": "./public/Imagem/guaranazerofanta.png"
+  },
+  {
+    "nome": "Fanta Laranja",
+    "categoria": "bebidas",
+    "preco": 7.00,
+    "descricao": "Lata: Refrigerante gelado de 310ml",
+    "imagem": "./public/Imagem/fantalaranja.png"
+  },
+  {
+    "nome": "Agua Mineral",
+    "categoria": "bebidas",
+    "preco": 3.00,
+    "descricao": "Garrafa: agua mineral de 500ml",
+    "imagem": "./public/Imagem/aguamineral500.png"
+  },
+  {
+    "nome": "Suco Integral Natural One Laranja",
+    "categoria": "bebidas",
+    "preco": 13.00,
+    "descricao": "Garrafa: Suco geladinhas de 900ml",
+    "imagem": "./public/Imagem/suco.png"
+  },
+  {
+    "nome": "Budweiser 350ml",
+    "categoria": "cervejas",
+    "preco": 8.00,
+    "descricao": "Long neck gelada de 350ml",
+    "imagem": "./public/Imagem/Budweiser 350.png"
+  },
+  {
+    "nome": "Heineken 330ml",
+    "categoria": "cervejas",
+    "preco": 9.50,
+    "descricao": "Long neck gelada de 330ml",
+    "imagem": "./public/Imagem/heineken330.png"
+  },
+  {
+    "nome": "Skol Lata 350ml",
+    "categoria": "cervejas",
+    "preco": 6.00,
+    "descricao": "Lata gelada 350ml",
+    "imagem": "./public/Imagem/skol350.png"
+  },
+  {
+    "nome": "Kaiser Lata 473ml",
+    "categoria": "cervejas",
+    "preco": 4.00,
+    "descricao": "Lata gelada 473ml",
+    "imagem": "./public/Imagem/kaiser473.png"
+  },
+  {
+    "nome": "Skol Beats Senses Lata 473ml",
+    "categoria": "cervejas",
+    "preco": 13.00,
+    "descricao": "Lata gelada 473ml",
+    "imagem": "./public/Imagem/beatessenses473.png"
+  }
+]

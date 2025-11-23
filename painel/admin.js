@@ -1,22 +1,39 @@
-// Seleciona elementos do header
+// 🔹 CONFIGURAÇÃO DO FIREBASE
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, set, onValue, remove } from "firebase/database";
+
+// Configuração do Firebase (substitua pelos seus dados)
+const firebaseConfig = {
+  apiKey: "AIzaSyC4DMjGfR3tHQWDUdKCT8nC8BK6MrSaLMQ",
+  authDomain: "loginpainel-29555.firebaseapp.com",
+  databaseURL: "https://loginpainel-29555-default-rtdb.firebaseio.com",
+  projectId: "loginpainel-29555",
+  storageBucket: "loginpainel-29555.appspot.com",
+  messagingSenderId: "462544162950",
+  appId: "1:462544162950:web:1379981f5f7be9d865c107"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// 🔹 ELEMENTOS DA PÁGINA
 const usuarioSpan = document.querySelector('header span');
 const btnSair = document.querySelector('header button');
-
-// Menu lateral e seções
 const menuLabels = document.querySelectorAll('aside nav label');
 const sections = document.querySelectorAll('main section');
+const form = document.querySelector('#funcionarios form');
+const tabela = document.querySelector('#funcionarios tbody');
 
-// Função para mostrar seção
+// 🔹 FUNÇÃO PARA MOSTRAR SEÇÃO
 function showSection(id) {
   sections.forEach(sec => {
     sec.style.display = sec.id === id ? 'block' : 'none';
   });
 }
-
-// Inicializa mostrando dashboard
 showSection('dashboard');
 
-// Ao clicar em um menu, abre a seção correspondente
+// 🔹 MENU LATERAL
 menuLabels.forEach(label => {
   label.addEventListener('click', () => {
     const targetId = label.getAttribute('for').replace('menu-', '');
@@ -36,37 +53,26 @@ menuLabels.forEach(label => {
   });
 });
 
-// Cadastro de funcionários
-const form = document.querySelector('#funcionarios form');
-const tabela = document.querySelector('#funcionarios tbody');
-
-// Recupera funcionários do localStorage
-let funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
-
-// Garante que o admin esteja sempre presente
-const adminUser = funcionarios.find(f => f.email === 'admin@admin.com');
-if (!adminUser) {
-  funcionarios.push({
-    nome: 'Administrador',
-    cargo: 'Admin',
-    email: 'admin@admin.com',
-    senha: 'admin123',
-    permissoes: [
-      'dashboard',
-      'produtos',
-      'pedidos',
-      'clientes',
-      'funcionarios',
-      'acesso_total',
-      'editar_produtos',
-      'excluir_clientes'
-    ]
-  });
-  localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
+// 🔹 FUNÇÕES FIREBASE
+function adicionarFuncionarioFirebase(f) {
+  set(ref(db, 'funcionarios/' + f.email.replace('.', '_')), f);
 }
 
-// Atualiza tabela de funcionários
-function atualizarTabela() {
+function removerFuncionarioFirebase(email) {
+  remove(ref(db, 'funcionarios/' + email.replace('.', '_')));
+}
+
+function carregarFuncionariosFirebase(callback) {
+  const funcionariosRef = ref(db, 'funcionarios');
+  onValue(funcionariosRef, (snapshot) => {
+    const data = snapshot.val();
+    const funcionariosArray = Object.values(data || {});
+    callback(funcionariosArray);
+  });
+}
+
+// 🔹 ATUALIZA TABELA DE FUNCIONÁRIOS
+function atualizarTabela(funcionarios) {
   tabela.innerHTML = '';
   funcionarios.forEach((f, index) => {
     const row = document.createElement('tr');
@@ -97,21 +103,17 @@ function atualizarTabela() {
       form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
         cb.checked = f.permissoes.includes(cb.value);
       });
-      funcionarios.splice(index, 1);
-      localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
-      atualizarTabela();
+      removerFuncionarioFirebase(f.email);
     });
 
     // Excluir funcionário
     row.querySelector('button.bg-red-500').addEventListener('click', () => {
-      funcionarios.splice(index, 1);
-      localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
-      atualizarTabela();
+      removerFuncionarioFirebase(f.email);
     });
   });
 }
 
-// Ao enviar formulário
+// 🔹 CADASTRO DE FUNCIONÁRIOS
 form.addEventListener('submit', e => {
   e.preventDefault();
   const nome = form.querySelector('input[placeholder="Nome"]').value.trim();
@@ -125,55 +127,42 @@ form.addEventListener('submit', e => {
     return;
   }
 
-  funcionarios.push({ nome, cargo, email, senha, permissoes });
-  localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
-
+  const funcionario = { nome, cargo, email, senha, permissoes };
+  adicionarFuncionarioFirebase(funcionario);
   form.reset();
-  atualizarTabela();
 });
 
-// Inicializa tabela ao carregar
-atualizarTabela();
-
-// 🔹 Função de login para funcionários e admin dentro do painel
+// 🔹 LOGIN
 export function loginFuncionario(usuario, senha) {
-  const user = funcionarios.find(f => f.nome === usuario && f.senha === senha)
-            || (usuario === 'admin' && senha === '1234'
-                ? { nome: 'Administrador', cargo: 'Admin', email: 'admin@admin.com', permissoes: ['acesso_total'] }
-                : null);
+  let user = null;
+  carregarFuncionariosFirebase(funcionarios => {
+    user = funcionarios.find(f => f.nome === usuario && f.senha === senha)
+          || (usuario === 'admin' && senha === '1234'
+              ? { nome: 'Administrador', cargo: 'Admin', email: 'admin@admin.com', permissoes: ['acesso_total'] }
+              : null);
 
-  if (!user) return null;
+    if (!user) return null;
 
-  // Salva usuário logado
-  localStorage.setItem('usuarioLogado', JSON.stringify(user));
-
-  aplicarPermissoes(user);
-
-  return user;
+    localStorage.setItem('usuarioLogado', JSON.stringify(user));
+    aplicarPermissoes(user);
+  });
 }
 
-// 🔹 Função que aplica permissões ao carregar a página
+// 🔹 APLICA PERMISSÕES
 export function aplicarPermissoes(user) {
-  // Atualiza o nome do usuário no header
   if (usuarioSpan) usuarioSpan.textContent = user.nome;
 
   if (user.permissoes.includes('acesso_total')) {
-    // 🔹 Admin desbloqueia tudo
     menuLabels.forEach(label => {
       label.style.display = 'block';
       label.classList.remove('cursor-not-allowed', 'opacity-50');
       label.removeAttribute('title');
     });
-    sections.forEach(sec => {
-      sec.style.display = 'block';
-    });
-
-    // Mostra todos os pedidos
-    mostrarPedidos(); 
+    sections.forEach(sec => sec.style.display = 'block');
+    mostrarPedidos();
     return;
   }
 
-  // Usuários comuns
   menuLabels.forEach(label => {
     const targetId = label.getAttribute('for').replace('menu-', '');
     if (user.permissoes.includes(targetId)) {
@@ -187,32 +176,22 @@ export function aplicarPermissoes(user) {
     }
   });
 
-  // Esconde todas as seções
   sections.forEach(sec => sec.style.display = 'none');
-
-  // Mostra seções que o usuário pode acessar
   user.permissoes.forEach(p => {
     const sec = document.getElementById(p);
     if (sec) sec.style.display = 'block';
   });
 
-  // Se o usuário tiver permissão de Pedidos, mostra todos os pedidos
-  if (user.permissoes.includes('pedidos')) {
-    mostrarPedidos();
-  }
+  if (user.permissoes.includes('pedidos')) mostrarPedidos();
 }
 
-// 🔹 Função para mostrar todos os pedidos
+// 🔹 MOSTRA PEDIDOS
 function mostrarPedidos() {
   const pedidosSection = document.getElementById('pedidos');
   if (!pedidosSection) return;
-
-  // Limpa seção
   pedidosSection.innerHTML = '';
 
-  // Recupera pedidos do localStorage ou array de exemplo
   const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-
   if (pedidos.length === 0) {
     pedidosSection.innerHTML = '<p class="p-4">Nenhum pedido encontrado.</p>';
     return;
@@ -232,7 +211,7 @@ function mostrarPedidos() {
   });
 }
 
-// 🔹 Botão de logout
+// 🔹 LOGOUT
 if (btnSair) {
   btnSair.addEventListener('click', () => {
     localStorage.removeItem('usuarioLogado');
@@ -240,8 +219,5 @@ if (btnSair) {
   });
 }
 
-// 🔹 Executa ao carregar a página para manter sessão
-const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
-if (usuarioLogado) {
-  aplicarPermissoes(usuarioLogado);
-}
+// 🔹 CARREGA FUNCIONÁRIOS AO INICIAR
+carregarFuncionariosFirebase(atualizarTabela);

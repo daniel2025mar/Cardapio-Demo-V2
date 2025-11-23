@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Esconde todas as seções por padrão */
+    .content-section {
+      display: none;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col">
+
+  <!-- Topo -->
+  <header class="bg-gray-800 text-white h-16 flex items-center px-6 shadow">
+    <h1 class="text-xl font-bold">Painel Administrativo</h1>
+    <div class="ml-auto flex items-center gap-4">
+      <span>Usuário</span>
+      <button class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Menu Lateral -->
+    <aside class="bg-gray-900 text-white w-64 flex-shrink-0 p-6 overflow-y-auto">
+      <nav class="flex flex-col gap-4">
+        <label for="menu-dashboard" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Dashboard</label>
+        <label for="menu-produtos" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Produtos</label>
+        <label for="menu-pedidos" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Pedidos</label>
+        <label for="menu-clientes" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Clientes</label>
+        <label for="menu-funcionarios" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Funcionários</label>
+      </nav>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-1 bg-gray-100 p-6 overflow-y-auto">
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="content-section mb-8">
+        <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+        <p>Resumo geral do sistema.</p>
+      </section>
+
+      <!-- Produtos -->
+      <section id="produtos" class="content-section mb-8">
+        <h2 class="text-2xl font-bold mb-4">Produtos</h2>
+        <p>Aqui você gerencia os produtos do cardápio.</p>
+      </section>
+
+      <!-- Pedidos -->
+      <section id="pedidos" class="content-section mb-8">
+        <h2 class="text-2xl font-bold mb-4">Pedidos</h2>
+        <p>Aqui você acompanha os pedidos feitos.</p>
+      </section>
+
+      <!-- Clientes -->
+      <section id="clientes" class="content-section mb-8">
+        <h2 class="text-2xl font-bold mb-4">Clientes</h2>
+        <p>Gerencie os clientes cadastrados.</p>
+      </section>
+
+      <!-- Funcionários -->
+      <section id="funcionarios" class="content-section mb-8">
+        <h2 class="text-2xl font-bold mb-4">Funcionários</h2>
+
+        <!-- Formulário de cadastro -->
+        <form id="funcionario-form" class="bg-white p-6 rounded shadow mb-6">
+          <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <input type="text" placeholder="Nome" class="border p-2 rounded flex-1" required>
+            <input type="text" placeholder="Cargo" class="border p-2 rounded flex-1" required>
+            <input type="email" placeholder="Email" class="border p-2 rounded flex-1" required>
+            <input type="password" placeholder="Senha" class="border p-2 rounded flex-1" required>
+          </div>
+
+          <!-- Permissões -->
+          <div class="mb-4">
+            <p class="font-semibold mb-2">Permissões:</p>
+            <div class="flex flex-wrap gap-4">
+              <label class="flex items-center gap-2"><input type="checkbox" value="dashboard"> Dashboard</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="produtos"> Produtos</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="pedidos"> Pedidos</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="clientes"> Clientes</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="funcionarios"> Funcionários</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="acesso_total"> Acesso total do painel</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="editar_produtos"> Editar produtos</label>
+              <label class="flex items-center gap-2"><input type="checkbox" value="excluir_clientes"> Excluir clientes</label>
+            </div>
+          </div>
+
+          <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Adicionar</button>
+        </form>
+
+        <!-- Lista de funcionários -->
+        <table class="min-w-full bg-white rounded shadow text-left">
+  <thead>
+    <tr class="bg-gray-200">
+      <th class="py-2 px-4 border-b text-left">Nome</th>
+      <th class="py-2 px-4 border-b text-left">Cargo</th>
+      <th class="py-2 px-4 border-b text-left">Email</th>
+      
+      <th class="py-2 px-4 border-b text-left">Permissões</th>
+      <th class="py-2 px-4 border-b text-left">Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="hover:bg-gray-100">
+      <td class="py-2 px-4 border-b align-middle">Administrador</td>
+      <td class="py-2 px-4 border-b align-middle">Admin</td>
+      <td class="py-2 px-4 border-b align-middle">admin@admin.com</td>
+      <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
+      <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
+      <td class="py-2 px-4 border-b align-middle flex gap-2">
+        <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
+        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="/admin.js"></script>
+</body>
+</html>

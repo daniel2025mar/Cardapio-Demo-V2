@@ -40,13 +40,28 @@
 </head>
 <body class="h-screen flex flex-col">
 
+  <!-- Overlay para mobile -->
+  <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+
   <!-- Topo -->
   <header class="bg-gray-800 text-white h-16 flex items-center px-6 shadow justify-between">
-    <h1 class="text-xl font-bold">Painel Administrativo</h1>
+    <h1 class="font-bold text-lg md:text-xl whitespace-nowrap">Painel Administrativo</h1>
+
     <div class="flex items-center gap-4">
-      <button class="menu-toggle bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 text-white">Menu</button>
-      <span>Usuário</span>
-      <button id="btn-logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
+      <!-- Botão menu mobile -->
+      <button class="menu-toggle bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 text-white md:hidden">Menu</button>
+
+      <!-- Desktop: nome do usuário + botão sair -->
+      <div class="hidden md:flex items-center gap-2">
+        <span>Usuário</span>
+        <button id="btn-logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
+      </div>
+
+      <!-- Mobile: avatar do usuário com nome abaixo -->
+      <div class="flex flex-col items-center md:hidden cursor-pointer" id="mobile-logout">
+        <img src="https://via.placeholder.com/32" alt="Usuário" class="rounded-full w-8 h-8 mb-1">
+        <span class="text-sm">Usuário</span>
+      </div>
     </div>
   </header>
 
@@ -156,8 +171,26 @@
     // Toggle menu no mobile
     const toggleBtn = document.querySelector('.menu-toggle');
     const aside = document.querySelector('aside');
+    const overlay = document.getElementById('overlay');
+
     toggleBtn.addEventListener('click', () => {
       aside.classList.toggle('open');
+      overlay.classList.toggle('hidden');
+    });
+
+    overlay.addEventListener('click', () => {
+      aside.classList.remove('open');
+      overlay.classList.add('hidden');
+    });
+
+    // Logout mobile pelo avatar
+    const mobileLogout = document.getElementById('mobile-logout');
+    mobileLogout.addEventListener('click', () => {
+      if(window.innerWidth < 768){
+        alert('Deslogando...');
+        // Aqui você coloca a função de logout real
+        // ex: logout();
+      }
     });
   </script>
 </body>

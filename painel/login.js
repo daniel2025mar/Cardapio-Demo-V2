@@ -8,11 +8,13 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
 // =============================
 //      LOGIN DO USUÁRIO
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
+
+  // Evitar scroll na tela de login
+  document.body.style.overflow = "hidden";
 
   const form = document.getElementById("login-form");
   const usernameInput = document.getElementById("username");
@@ -33,27 +35,46 @@ document.addEventListener("DOMContentLoaded", () => {
       .single();
 
     if (!usuario || error) {
-      console.log("Usuário não encontrado.");
       return mostrarErro();
     }
 
     // 2️⃣ VALIDAR SENHA
     if (usuario.password !== password) {
-      console.log("Senha incorreta.");
       return mostrarErro();
     }
 
     // 3️⃣ SALVAR SESSÃO LOCAL (SEM SUPABASE AUTH)
     localStorage.setItem("usuarioLogado", JSON.stringify(usuario));
 
-    // 4️⃣ LOGIN OK — REDIRECIONA
-    window.location.href = "admin.html";
+    // 4️⃣ LOGIN OK — Mostrar boas-vindas e redirecionar
+    mostrarBoasVindas(usuario.username);
   });
 
-
-  // 🔴 Função padrão para erro
+  // 🔴 Função de erro personalizada
   function mostrarErro() {
     errorMsg.classList.remove("hidden");
     errorMsg.textContent = "Usuário ou senha incorretos!";
+    usernameInput.value = "";
+    passwordInput.value = "";
+    usernameInput.focus();
+
+    setTimeout(() => {
+      errorMsg.classList.add("hidden");
+    }, 3000);
+  }
+
+  // 🔵 Função de boas-vindas
+  function mostrarBoasVindas(nomeUsuario) {
+    // Cria elemento temporário para mensagem
+    const mensagem = document.createElement("div");
+    mensagem.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
+    mensagem.className = "fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow z-50";
+    document.body.appendChild(mensagem);
+
+    // Remove a mensagem depois de 3 segundos e redireciona
+    setTimeout(() => {
+      mensagem.remove();
+      window.location.href = "admin.html";
+    }, 3000);
   }
 });

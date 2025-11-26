@@ -9,6 +9,7 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
 // ===================================================
@@ -20,6 +21,7 @@ const MENU_MAP = {
   "funcionários": "funcionarios",
   "funcionarios": "funcionarios"
 };
+
 
 // ===================================================
 //  VERIFICAR LOGIN E CARREGAR USUÁRIO
@@ -33,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // AGORA BUSCA PELO USERNAME (CORRETO)
   const { data: usuario, error } = await supabase
     .from("usuarios")
     .select("*")
@@ -46,8 +49,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   aplicarPermissoes(usuario);
-  configurarLogoutMobile();
 });
+
 
 // ===============================
 //   APLICAR PERMISSÕES
@@ -56,8 +59,8 @@ function aplicarPermissoes(usuario) {
 
   const permissoes = usuario.permissoes || [];
 
-  // Mostra nome no topo
-  const userSpan = document.getElementById("user-name");
+  // Mostra nome no canto superior
+  const userSpan = document.querySelector("header span");
   userSpan.textContent = usuario.username;
 
   // Oculta todas as seções
@@ -87,51 +90,66 @@ function aplicarPermissoes(usuario) {
   ativarMenu();
 }
 
+
+
 // ======================
 // MOSTRAR SEÇÕES PERMITIDAS
 // ======================
 function mostrarSecaoPermitida(permissoes) {
+
   permissoes.forEach(p => {
     const sec = document.getElementById(p);
     if (sec) sec.style.display = "block";
   });
 }
 
+
+
 // ======================
 //  FILTRAR MENU
 // ======================
 function filtrarMenu(permissoes) {
+
   document.querySelectorAll("aside nav label").forEach(label => {
+
     const textoMenu = label.textContent.trim().toLowerCase();
+
     const secaoID = MENU_MAP[textoMenu];
+
     if (!secaoID || !permissoes.includes(secaoID)) {
       label.style.display = "none";
-    } else {
-      label.style.display = "block";
     }
   });
 }
+
+
 
 // ======================
 //   TROCAR SEÇÕES
 // ======================
 function ativarMenu() {
+
   const labels = document.querySelectorAll("aside nav label");
   const sections = document.querySelectorAll(".content-section");
 
   labels.forEach(label => {
     label.addEventListener("click", () => {
+
       const textoMenu = label.textContent.trim().toLowerCase();
       const secaoID = MENU_MAP[textoMenu];
+
       if (!secaoID) return;
 
       sections.forEach(sec => sec.style.display = "none");
 
       const target = document.getElementById(secaoID);
       if (target) target.style.display = "block";
+
     });
   });
 }
+
+
 
 // ======================
 //         LOGOUT
@@ -140,16 +158,3 @@ document.getElementById("btn-logout").addEventListener("click", () => {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "login.html";
 });
-
-// ======================
-// LOGOUT PELO AVATAR NO MOBILE
-// ======================
-function configurarLogoutMobile() {
-  const userContainer = document.getElementById('user-container');
-  userContainer.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      localStorage.removeItem("usuarioLogado");
-      window.location.href = "login.html";
-    }
-  });
-}

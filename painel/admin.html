@@ -103,30 +103,5 @@
     </main>
   </div>
 
-  <!-- Script -->
-  <script>
-    const toggleBtn = document.querySelector('.menu-toggle');
-    const aside = document.querySelector('aside');
-    const overlay = document.getElementById('overlay');
-
-    toggleBtn.addEventListener('click', () => {
-      aside.classList.toggle('open');
-      overlay.classList.toggle('hidden');
-    });
-
-    overlay.addEventListener('click', () => {
-      aside.classList.remove('open');
-      overlay.classList.add('hidden');
-    });
-
-    // Logout pelo avatar no mobile
-    const userContainer = document.getElementById('user-container');
-    userContainer.addEventListener('click', () => {
-      if (window.innerWidth <= 768) {
-        localStorage.removeItem("usuarioLogado");
-        window.location.href = "login.html";
-      }
-    });
-  </script>
 </body>
 </html>

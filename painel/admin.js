@@ -1,223 +1,160 @@
-// 🔹 CONFIGURAÇÃO DO FIREBASE
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, onValue, remove } from "firebase/database";
+// =============================
+//   CONFIGURAÇÃO DO SUPABASE
+// =============================
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-// Configuração do Firebase (substitua pelos seus dados)
-const firebaseConfig = {
-  apiKey: "AIzaSyC4DMjGfR3tHQWDUdKCT8nC8BK6MrSaLMQ",
-  authDomain: "loginpainel-29555.firebaseapp.com",
-  databaseURL: "https://loginpainel-29555-default-rtdb.firebaseio.com",
-  projectId: "loginpainel-29555",
-  storageBucket: "loginpainel-29555.appspot.com",
-  messagingSenderId: "462544162950",
-  appId: "1:462544162950:web:1379981f5f7be9d865c107"
+const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+// ===================================================
+//  MAPA REAL DO MENU → ID DAS SEÇÕES
+// ===================================================
+const MENU_MAP = {
+  "dashboard": "dashboard",
+  "produtos": "produtos",
+  "pedidos": "pedidos",
+  "clientes": "clientes",
+  "funcionários": "funcionarios",
+  "funcionarios": "funcionarios"
 };
 
-// Inicializa Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
 
-// 🔹 ELEMENTOS DA PÁGINA
-const usuarioSpan = document.querySelector('header span');
-const btnSair = document.querySelector('header button');
-const menuLabels = document.querySelectorAll('aside nav label');
-const sections = document.querySelectorAll('main section');
-const form = document.querySelector('#funcionarios form');
-const tabela = document.querySelector('#funcionarios tbody');
+// ===================================================
+//  VERIFICAR LOGIN E CARREGAR USUÁRIO
+// ===================================================
+document.addEventListener("DOMContentLoaded", async () => {
 
-// 🔹 FUNÇÃO PARA MOSTRAR SEÇÃO
-function showSection(id) {
-  sections.forEach(sec => {
-    sec.style.display = sec.id === id ? 'block' : 'none';
-  });
-}
-showSection('dashboard');
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
-// 🔹 MENU LATERAL
-menuLabels.forEach(label => {
-  label.addEventListener('click', () => {
-    const targetId = label.getAttribute('for').replace('menu-', '');
-    const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
-
-    if (!usuarioLogado) {
-      alert('Nenhum usuário logado!');
-      return;
-    }
-
-    if (usuarioLogado.permissoes.includes('acesso_total') || usuarioLogado.permissoes.includes(targetId)) {
-      showSection(targetId);
-      if (targetId === 'pedidos') mostrarPedidos();
-    } else {
-      alert('Você não tem permissão para acessar esta seção!');
-    }
-  });
-});
-
-// 🔹 FUNÇÕES FIREBASE
-function adicionarFuncionarioFirebase(f) {
-  set(ref(db, 'funcionarios/' + f.email.replace('.', '_')), f);
-}
-
-function removerFuncionarioFirebase(email) {
-  remove(ref(db, 'funcionarios/' + email.replace('.', '_')));
-}
-
-function carregarFuncionariosFirebase(callback) {
-  const funcionariosRef = ref(db, 'funcionarios');
-  onValue(funcionariosRef, (snapshot) => {
-    const data = snapshot.val();
-    const funcionariosArray = Object.values(data || {});
-    callback(funcionariosArray);
-  });
-}
-
-// 🔹 ATUALIZA TABELA DE FUNCIONÁRIOS
-function atualizarTabela(funcionarios) {
-  tabela.innerHTML = '';
-  funcionarios.forEach((f, index) => {
-    const row = document.createElement('tr');
-    row.className = 'hover:bg-gray-100';
-
-    const permissoesTexto = f.permissoes.includes('acesso_total')
-      ? 'Acesso total do painel'
-      : f.permissoes.join(', ');
-
-    row.innerHTML = `
-      <td class="py-2 px-4 border-b">${f.nome}</td>
-      <td class="py-2 px-4 border-b">${f.cargo}</td>
-      <td class="py-2 px-4 border-b">${f.email}</td>
-      <td class="py-2 px-4 border-b">${permissoesTexto}</td>
-      <td class="py-2 px-4 border-b">
-        <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
-        <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
-      </td>
-    `;
-    tabela.appendChild(row);
-
-    // Editar funcionário
-    row.querySelector('button.bg-blue-500').addEventListener('click', () => {
-      form.querySelector('input[placeholder="Nome"]').value = f.nome;
-      form.querySelector('input[placeholder="Cargo"]').value = f.cargo;
-      form.querySelector('input[placeholder="Email"]').value = f.email;
-      form.querySelector('input[placeholder="Senha"]').value = f.senha;
-      form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.checked = f.permissoes.includes(cb.value);
-      });
-      removerFuncionarioFirebase(f.email);
-    });
-
-    // Excluir funcionário
-    row.querySelector('button.bg-red-500').addEventListener('click', () => {
-      removerFuncionarioFirebase(f.email);
-    });
-  });
-}
-
-// 🔹 CADASTRO DE FUNCIONÁRIOS
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  const nome = form.querySelector('input[placeholder="Nome"]').value.trim();
-  const cargo = form.querySelector('input[placeholder="Cargo"]').value.trim();
-  const email = form.querySelector('input[placeholder="Email"]').value.trim();
-  const senha = form.querySelector('input[placeholder="Senha"]').value.trim();
-  const permissoes = Array.from(form.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-
-  if (!nome || !cargo || !email || !senha) {
-    alert('Preencha todos os campos!');
+  if (!usuarioLogado) {
+    window.location.href = "login.html";
     return;
   }
 
-  const funcionario = { nome, cargo, email, senha, permissoes };
-  adicionarFuncionarioFirebase(funcionario);
-  form.reset();
-});
+  // AGORA BUSCA PELO USERNAME (CORRETO)
+  const { data: usuario, error } = await supabase
+    .from("usuarios")
+    .select("*")
+    .eq("username", usuarioLogado.username)
+    .single();
 
-// 🔹 LOGIN
-export function loginFuncionario(usuario, senha) {
-  let user = null;
-  carregarFuncionariosFirebase(funcionarios => {
-    user = funcionarios.find(f => f.nome === usuario && f.senha === senha)
-          || (usuario === 'admin' && senha === '1234'
-              ? { nome: 'Administrador', cargo: 'Admin', email: 'admin@admin.com', permissoes: ['acesso_total'] }
-              : null);
-
-    if (!user) return null;
-
-    localStorage.setItem('usuarioLogado', JSON.stringify(user));
-    aplicarPermissoes(user);
-  });
-}
-
-// 🔹 APLICA PERMISSÕES
-export function aplicarPermissoes(user) {
-  if (usuarioSpan) usuarioSpan.textContent = user.nome;
-
-  if (user.permissoes.includes('acesso_total')) {
-    menuLabels.forEach(label => {
-      label.style.display = 'block';
-      label.classList.remove('cursor-not-allowed', 'opacity-50');
-      label.removeAttribute('title');
-    });
-    sections.forEach(sec => sec.style.display = 'block');
-    mostrarPedidos();
+  if (!usuario || error) {
+    alert("Erro ao carregar usuário!");
+    console.error("ERRO SUPABASE:", error);
     return;
   }
 
-  menuLabels.forEach(label => {
-    const targetId = label.getAttribute('for').replace('menu-', '');
-    if (user.permissoes.includes(targetId)) {
-      label.style.display = 'block';
-      label.classList.remove('cursor-not-allowed', 'opacity-50');
-      label.removeAttribute('title');
-    } else {
-      label.style.display = 'block';
-      label.classList.add('cursor-not-allowed', 'opacity-50');
-      label.setAttribute('title', 'Sem permissão');
-    }
+  aplicarPermissoes(usuario);
+});
+
+
+// ===============================
+//   APLICAR PERMISSÕES
+// ===============================
+function aplicarPermissoes(usuario) {
+
+  const permissoes = usuario.permissoes || [];
+
+  // Mostra nome no canto superior
+  const userSpan = document.querySelector("header span");
+  userSpan.textContent = usuario.username;
+
+  // Oculta todas as seções
+  document.querySelectorAll(".content-section").forEach(sec => {
+    sec.style.display = "none";
   });
 
-  sections.forEach(sec => sec.style.display = 'none');
-  user.permissoes.forEach(p => {
+  // ============================
+  //       ACESSO TOTAL
+  // ============================
+  if (permissoes.includes("acesso_total")) {
+
+    document.querySelectorAll(".content-section").forEach(sec => {
+      sec.style.display = "block";
+    });
+
+    const permCells = document.querySelectorAll("td:nth-child(4)");
+    permCells.forEach(c => c.textContent = "Acesso total do painel");
+
+    ativarMenu();
+    return;
+  }
+
+  // Apenas seções permitidas
+  mostrarSecaoPermitida(permissoes);
+  filtrarMenu(permissoes);
+  ativarMenu();
+}
+
+
+
+// ======================
+// MOSTRAR SEÇÕES PERMITIDAS
+// ======================
+function mostrarSecaoPermitida(permissoes) {
+
+  permissoes.forEach(p => {
     const sec = document.getElementById(p);
-    if (sec) sec.style.display = 'block';
-  });
-
-  if (user.permissoes.includes('pedidos')) mostrarPedidos();
-}
-
-// 🔹 MOSTRA PEDIDOS
-function mostrarPedidos() {
-  const pedidosSection = document.getElementById('pedidos');
-  if (!pedidosSection) return;
-  pedidosSection.innerHTML = '';
-
-  const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-  if (pedidos.length === 0) {
-    pedidosSection.innerHTML = '<p class="p-4">Nenhum pedido encontrado.</p>';
-    return;
-  }
-
-  pedidos.forEach(pedido => {
-    const div = document.createElement('div');
-    div.className = 'border p-4 mb-2 rounded shadow bg-white';
-    div.innerHTML = `
-      <p><strong>ID:</strong> ${pedido.id}</p>
-      <p><strong>Cliente:</strong> ${pedido.cliente}</p>
-      <p><strong>Produto:</strong> ${pedido.produto}</p>
-      <p><strong>Quantidade:</strong> ${pedido.quantidade}</p>
-      <p><strong>Status:</strong> ${pedido.status}</p>
-    `;
-    pedidosSection.appendChild(div);
+    if (sec) sec.style.display = "block";
   });
 }
 
-// 🔹 LOGOUT
-if (btnSair) {
-  btnSair.addEventListener('click', () => {
-    localStorage.removeItem('usuarioLogado');
-    window.location.replace('login.html');
+
+
+// ======================
+//  FILTRAR MENU
+// ======================
+function filtrarMenu(permissoes) {
+
+  document.querySelectorAll("aside nav label").forEach(label => {
+
+    const textoMenu = label.textContent.trim().toLowerCase();
+
+    const secaoID = MENU_MAP[textoMenu];
+
+    if (!secaoID || !permissoes.includes(secaoID)) {
+      label.style.display = "none";
+    }
   });
 }
 
-// 🔹 CARREGA FUNCIONÁRIOS AO INICIAR
-carregarFuncionariosFirebase(atualizarTabela);
+
+
+// ======================
+//   TROCAR SEÇÕES
+// ======================
+function ativarMenu() {
+
+  const labels = document.querySelectorAll("aside nav label");
+  const sections = document.querySelectorAll(".content-section");
+
+  labels.forEach(label => {
+    label.addEventListener("click", () => {
+
+      const textoMenu = label.textContent.trim().toLowerCase();
+      const secaoID = MENU_MAP[textoMenu];
+
+      if (!secaoID) return;
+
+      sections.forEach(sec => sec.style.display = "none");
+
+      const target = document.getElementById(secaoID);
+      if (target) target.style.display = "block";
+
+    });
+  });
+}
+
+
+
+// ======================
+//         LOGOUT
+// ======================
+document.getElementById("btn-logout").addEventListener("click", () => {
+  localStorage.removeItem("usuarioLogado");
+  window.location.href = "login.html";
+});

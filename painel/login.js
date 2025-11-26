@@ -1,64 +1,59 @@
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue } from "firebase/database";
+// =============================
+//   CONFIGURAÇÃO DO SUPABASE
+// =============================
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-document.addEventListener('DOMContentLoaded', () => {
-  const loginForm = document.getElementById('login-form');
-  const loginError = document.getElementById('login-error');
+const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
-  // Configuração Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyC4DMjGfR3tHQWDUdKCT8nC8BK6MrSaLMQ",
-    authDomain: "loginpainel-29555.firebaseapp.com",
-    databaseURL: "https://loginpainel-29555-default-rtdb.firebaseio.com",
-    projectId: "loginpainel-29555",
-    storageBucket: "loginpainel-29555.appspot.com",
-    messagingSenderId: "462544162950",
-    appId: "1:462544162950:web:1379981f5f7be9d865c107"
-  };
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Inicializa Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
 
-  // Admin padrão
-  const defaultAdmin = {
-    nome: 'Administrador',
-    cargo: 'Admin',
-    email: 'admin@admin.com',
-    permissoes: ['acesso_total'],
-    senha: '1234'
-  };
+// =============================
+//      LOGIN DO USUÁRIO
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
 
-  loginForm.addEventListener('submit', e => {
+  const form = document.getElementById("login-form");
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const errorMsg = document.getElementById("login-error");
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
 
-    // Login admin padrão
-    if (username === 'admin' && password === defaultAdmin.senha) {
-      localStorage.setItem('usuarioLogado', JSON.stringify(defaultAdmin));
-      window.location.replace('admin.html');
-      return;
+    // 1️⃣ BUSCAR O USUÁRIO NA TABELA "usuarios"
+    const { data: usuario, error } = await supabase
+      .from("usuarios")
+      .select("*")
+      .eq("username", username)
+      .single();
+
+    if (!usuario || error) {
+      console.log("Usuário não encontrado.");
+      return mostrarErro();
     }
 
-    // Login de funcionários via Firebase
-    const funcionariosRef = ref(db, 'funcionarios');
-    onValue(funcionariosRef, (snapshot) => {
-      const data = snapshot.val();
-      const funcionarios = Object.values(data || {});
-      const user = funcionarios.find(f => f.nome === username && f.senha === password);
+    // 2️⃣ VALIDAR SENHA
+    if (usuario.password !== password) {
+      console.log("Senha incorreta.");
+      return mostrarErro();
+    }
 
-      if (user) {
-        localStorage.setItem('usuarioLogado', JSON.stringify(user));
-        window.location.replace('admin.html');
-        return;
-      }
+    // 3️⃣ SALVAR SESSÃO LOCAL (SEM SUPABASE AUTH)
+    localStorage.setItem("usuarioLogado", JSON.stringify(usuario));
 
-      // Login inválido
-      loginError.classList.remove('hidden');
-    }, {
-      onlyOnce: true // Faz a verificação apenas uma vez
-    });
+    // 4️⃣ LOGIN OK — REDIRECIONA
+    window.location.href = "admin.html";
   });
+
+
+  // 🔴 Função padrão para erro
+  function mostrarErro() {
+    errorMsg.classList.remove("hidden");
+    errorMsg.textContent = "Usuário ou senha incorretos!";
+  }
 });

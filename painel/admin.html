@@ -30,6 +30,14 @@
       .menu-toggle {
         display: block;
       }
+
+      /* Ajuste do título no mobile */
+      header h1 {
+        font-size: 1rem; /* Fonte menor */
+        white-space: nowrap; /* Não quebra linha */
+        overflow: hidden;
+        text-overflow: ellipsis; /* Adiciona reticências se necessário */
+      }
     }
 
     /* Esconde toggle no desktop */
@@ -42,11 +50,16 @@
 
   <!-- Topo -->
   <header class="bg-gray-800 text-white h-16 flex items-center px-6 shadow justify-between">
-    <h1 class="text-xl font-bold">Painel Administrativo</h1>
+    <h1 class="text-xl font-bold truncate">Painel Administrativo</h1>
     <div class="flex items-center gap-4">
       <button class="menu-toggle bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 text-white">Menu</button>
       <span>Usuário</span>
-      <button id="btn-logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Sair</button>
+      <!-- Botão de logout como ícone -->
+      <button id="btn-logout" class="p-2 rounded hover:bg-blue-600 transition-colors" title="Sair">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+        </svg>
+      </button>
     </div>
   </header>
 

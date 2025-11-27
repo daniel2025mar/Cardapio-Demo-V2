@@ -9,7 +9,6 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
 // ===================================================
@@ -22,12 +21,10 @@ const MENU_MAP = {
   "funcionarios": "funcionarios"
 };
 
-
 // ===================================================
 //  VERIFICAR LOGIN E CARREGAR USUÁRIO
 // ===================================================
 document.addEventListener("DOMContentLoaded", async () => {
-
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
   if (!usuarioLogado) {
@@ -51,12 +48,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   ativarMenuMobile(); // inicializa função de abrir/fechar menu mobile
 });
 
-
 // ===============================
 //   APLICAR PERMISSÕES
 // ===============================
 function aplicarPermissoes(usuario) {
-
   const permissoes = usuario.permissoes || [];
 
   // Mostra nome no canto superior
@@ -72,7 +67,6 @@ function aplicarPermissoes(usuario) {
   //       ACESSO TOTAL
   // ============================
   if (permissoes.includes("acesso_total")) {
-
     document.querySelectorAll(".content-section").forEach(sec => {
       sec.style.display = "block";
     });
@@ -92,7 +86,6 @@ function aplicarPermissoes(usuario) {
   abrirDashboard(); // abre o Dashboard por padrão
 }
 
-
 // ======================
 // ABRIR DASHBOARD POR PADRÃO
 // ======================
@@ -110,7 +103,6 @@ function abrirDashboard() {
   if (dashLabel) dashLabel.classList.add("active");
 }
 
-
 // ======================
 // MOSTRAR SEÇÕES PERMITIDAS
 // ======================
@@ -120,7 +112,6 @@ function mostrarSecaoPermitida(permissoes) {
     if (sec) sec.style.display = "block";
   });
 }
-
 
 // ======================
 //  FILTRAR MENU
@@ -134,7 +125,6 @@ function filtrarMenu(permissoes) {
     }
   });
 }
-
 
 // ======================
 //   TROCAR SEÇÕES
@@ -153,7 +143,6 @@ function ativarMenu() {
       const target = document.getElementById(secaoID);
       if (target) target.style.display = "block";
 
-      // Atualiza menu ativo
       labels.forEach(l => l.classList.remove("active"));
       label.classList.add("active");
 
@@ -166,7 +155,6 @@ function ativarMenu() {
   });
 }
 
-
 // ======================
 // ATIVAR MENU MOBILE (ABRIR/FECHAR)
 // ======================
@@ -174,11 +162,12 @@ function ativarMenuMobile() {
   const toggleBtn = document.querySelector('.menu-toggle');
   const aside = document.querySelector('aside');
 
+  if (!toggleBtn) return; // evita erro se não existir
+
   toggleBtn.addEventListener('click', () => {
     aside.classList.toggle('open');
   });
 }
-
 
 // ======================
 //         LOGOUT

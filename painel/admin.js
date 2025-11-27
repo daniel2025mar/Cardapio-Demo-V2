@@ -176,3 +176,20 @@ document.getElementById("btn-logout").addEventListener("click", () => {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "login.html";
 });
+
+// ==== MENU MOBILE ====
+const btnMenu = document.getElementById("btn-menu");
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+
+// Abre o menu no mobile
+btnMenu.addEventListener("click", () => {
+  sidebar.classList.add("open");
+  overlay.classList.add("show");
+});
+
+// Fecha ao tocar no overlay
+overlay.addEventListener("click", () => {
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
+});

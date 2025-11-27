@@ -6,129 +6,205 @@
   <title>Login - Painel Administrativo</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- Fonte moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+
   <style>
-    /* 🔵 Animação leve do container */
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(-45deg, #111, #222, #333, #000);
+      background-size: 400% 400%;
+      animation: gradientShift 20s ease infinite;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     @keyframes floatCard {
       0% { transform: translateY(0px); }
       50% { transform: translateY(-6px); }
       100% { transform: translateY(0px); }
     }
+    .animate-float { animation: floatCard 5s infinite ease-in-out; }
 
-    /* 🔵 Bordas neon */
-    .neon-border {
-      box-shadow: 0 0 18px rgba(0, 140, 255, 0.4);
-      border: 1px solid rgba(0, 140, 255, 0.5);
+    input:focus {
+      box-shadow: 0 0 8px #0ea5e9;
+      border-color: #0ea5e9;
+      outline: none;
+    }
+
+    .icon { width: 22px; height: 22px; fill: white; opacity: 0.9; }
+    .toggle-eye {
+      cursor: pointer;
+      transition: 0.2s ease;
+      width: 22px;
+      height: 22px;
+      fill: white;
+      opacity: 0.8;
+    }
+    .toggle-eye:hover { opacity: 1; }
+
+    button:active { transform: scale(0.95); }
+    button:hover { box-shadow: 0 0 12px #3b82f6; }
+
+    .titulo {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      background: linear-gradient(90deg,#0ea5e9,#3b82f6,#06b6d4);
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 8px #0ea5e9, 0 0 16px #3b82f6;
     }
 
     .glass {
       background: rgba(31, 41, 55, 0.55);
       backdrop-filter: blur(12px);
       border-radius: 18px;
+      box-shadow: 0 0 18px rgba(0, 140, 255, 0.4);
+      border: 1px solid rgba(0, 140, 255, 0.5);
+      transition: all 0.3s ease;
+      padding: 2rem;
+    }
+    .glass:hover {
+      box-shadow: 0 0 20px rgba(0, 140, 255, 0.6), 0 0 40px rgba(0, 140, 255, 0.4);
+      transform: translateY(-3px);
     }
 
-    .icon {
-      width: 22px;
-      height: 22px;
-      fill: white;
-      opacity: 0.9;
+    /* Painel explicativo */
+    .info-panel {
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 2rem;
+      flex: 1;
+      color: #fff;
+      max-width: 400px;
+    }
+    .info-panel h3 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .info-panel p {
+      font-size: 1rem;
+      line-height: 1.6;
     }
 
-    /* Botão de mostrar senha */
-    .toggle-eye {
-      cursor: pointer;
-      transition: 0.2s ease;
+    /* Alerta */
+    .alerta {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #000;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      z-index: 50;
+      text-align: center;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: clamp(14px, 2vw, 18px);
+      max-width: 95vw;
+      animation: slideDown 0.5s ease forwards;
     }
-    .toggle-eye:hover {
-      opacity: 0.7;
+    @keyframes slideDown {
+      0% { transform: translate(-50%, -50px); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+    @media (max-width: 640px) {
+      .alerta { white-space: normal; word-break: break-word; }
     }
   </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+<body>
+  <div class="flex flex-wrap md:flex-nowrap justify-center items-center gap-6 w-full max-w-6xl px-4">
 
-  <!-- CONTAINER -->
-  <div class="glass neon-border p-8 sm:p-10 w-full max-w-md animate-[floatCard_5s_infinite_ease-in-out]">
+    <!-- Painel explicativo: aparece apenas em md+ -->
+    <div class="info-panel animate-float hidden md:block">
+      <h3>Controle de Pedidos</h3>
+      <p>
+        Este painel permite gerenciar todos os pedidos que chegam do cardápio dos clientes de forma rápida e organizada.
+      </p>
+      <p>
+        Você poderá visualizar os pedidos em tempo real, atualizar o status, organizar entregas e garantir que cada pedido seja atendido corretamente.
+      </p>
+      <p>
+        É a ferramenta ideal para ter total controle sobre os pedidos e otimizar o atendimento dos seus clientes.
+      </p>
+    </div>
 
-    <!-- Título -->
-    <h2 class="text-4xl font-extrabold text-center text-white mb-2 tracking-wide drop-shadow-lg">
-      Painel
-    </h2>
+    <!-- Formulário de login -->
+    <div class="glass w-full max-w-md sm:max-w-sm mx-auto animate-float">
+      <h2 class="text-4xl titulo text-center mb-2 tracking-wide drop-shadow-lg">Bem-vindo</h2>
+      <p class="text-center text-gray-300 mb-8 text-sm">Faça login para acessar o painel administrativo</p>
 
-    <p class="text-center text-gray-300 mb-8 text-sm">
-      Faça login para acessar o painel administrativo
-    </p>
+      <form id="login-form" class="flex flex-col gap-5">
+        <!-- Usuário -->
+        <div class="relative">
+          <svg class="absolute left-3 top-3 icon" viewBox="0 0 24 24">
+            <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+          </svg>
+          <input type="text" id="username" placeholder="Usuário"
+                 class="pl-12 bg-gray-900/60 border border-gray-700 p-3 rounded-lg w-full text-white placeholder-gray-400" required>
+        </div>
 
-    <!-- FORMULÁRIO -->
-    <form id="login-form" class="flex flex-col gap-5">
+        <!-- Senha -->
+        <div class="relative">
+          <svg class="absolute left-3 top-3 icon" viewBox="0 0 24 24">
+            <path d="M17 8h-1V6c0-2.8-2.2-5-5-5S6 3.2 6 6v2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-7-2c0-1.7 1.3-3 3-3s3 1.3 3 3v2H10V6zm3 11c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+          </svg>
+          <input type="password" id="password" placeholder="Senha"
+                 class="pl-12 pr-12 bg-gray-900/60 border border-gray-700 p-3 rounded-lg w-full text-white placeholder-gray-400" required>
+          <svg id="togglePassword" class="absolute right-3 top-3 toggle-eye" viewBox="0 0 24 24">
+            <path d="M12 5c-7 0-11 7-11 7s4 7 11 7 11-7 11-7-4-7-11-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/>
+            <circle cx="12" cy="12" r="2.5"/>
+          </svg>
+        </div>
 
-      <!-- Usuário -->
-      <div class="relative">
-        <!-- Ícone SVG branco -->
-        <svg class="absolute left-3 top-3 icon" viewBox="0 0 24 24">
-          <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
-        </svg>
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 transition-all duration-200 text-white py-3 rounded-lg shadow-lg font-semibold text-base tracking-wide">
+          Entrar
+        </button>
+      </form>
 
-        <input
-          type="text"
-          id="username"
-          placeholder="Usuário"
-          class="pl-12 bg-gray-900/60 border border-gray-700 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        >
-      </div>
+      <p id="login-error" class="text-red-400 mt-3 text-sm hidden text-center font-medium"></p>
+      <p class="text-gray-500 mt-8 text-center text-xs">© 2025 Sua Empresa</p>
+    </div>
 
-      <!-- Senha -->
-      <div class="relative">
-        <!-- Ícone cadeado SVG branco -->
-        <svg class="absolute left-3 top-3 icon" viewBox="0 0 24 24">
-          <path d="M17 8h-1V6c0-2.8-2.2-5-5-5S6 3.2 6 6v2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-7-2c0-1.7 1.3-3 3-3s3 1.3 3 3v2H10V6zm3 11c-1.1 0-2-.9-2-2s.9-2 2-2 
-                   2 .9 2 2-.9 2-2 2z"/>
-        </svg>
-
-        <input
-          type="password"
-          id="password"
-          placeholder="Senha"
-          class="pl-12 pr-12 bg-gray-900/60 border border-gray-700 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        >
-
-        <!-- Ícone mostrar/ocultar senha -->
-        <span id="togglePassword" class="absolute right-3 top-3 text-white text-2xl toggle-eye select-none">
-          👁️
-        </span>
-      </div>
-
-      <!-- Botão -->
-      <button
-        type="submit"
-        class="bg-blue-600 hover:bg-blue-700 transition-all duration-200 text-white py-3 rounded-lg shadow-lg font-semibold text-base tracking-wide active:scale-95"
-      >
-        Entrar
-      </button>
-    </form>
-
-    <!-- Erro -->
-    <p id="login-error" class="text-red-400 mt-3 text-sm hidden text-center font-medium"></p>
-
-    <!-- Rodapé -->
-    <p class="text-gray-500 mt-8 text-center text-xs">© 2025 Sua Empresa</p>
   </div>
 
   <script>
-    // 👁️ Mostrar e ocultar senha
     const toggle = document.getElementById("togglePassword");
     const password = document.getElementById("password");
 
+    let senhaVisivel = false;
     toggle.addEventListener("click", () => {
-      const type = password.type === "password" ? "text" : "password";
-      password.type = type;
-
-      toggle.textContent = type === "password" ? "👁️" : "🙈";
+      senhaVisivel = !senhaVisivel;
+      password.type = senhaVisivel ? "text" : "password";
+      toggle.style.transform = senhaVisivel ? "rotate(20deg)" : "rotate(0deg)";
     });
+
+    function exibirAlerta(msg) {
+      const alerta = document.createElement("div");
+      alerta.className = 'alerta';
+      alerta.textContent = msg;
+      document.body.appendChild(alerta);
+      setTimeout(() => alerta.remove(), 5000);
+    }
   </script>
 
-  <!-- Seu arquivo JS -->
   <script type="module" src="login.js"></script>
 </body>
 </html>

@@ -98,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
     errorMsg.classList.remove("hidden");
     errorMsg.textContent = msg;
 
-    // Texto branco
     errorMsg.style.color = "#ffffff";
 
     usernameInput.value = "";
@@ -134,29 +133,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function exibirBloqueio() {
-    const alerta = document.createElement("div");
-    alerta.className =
-      "fixed top-5 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 text-center font-semibold";
-    alerta.textContent =
-      "ACESSO NEGADO: Aguarde 5 minutos e tente novamente";
+  const alerta = document.createElement("div");
+  alerta.textContent = "ACESSO NEGADO: Aguarde 5 minutos e tente novamente";
 
-    document.body.appendChild(alerta);
+  alerta.className =
+    "fixed top-5 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 font-semibold text-center";
 
-    usernameInput.disabled = true;
-    passwordInput.disabled = true;
+  // Estilo inline para responsividade
+  alerta.style.whiteSpace = "nowrap";       // mantém em uma linha por padrão
+  alerta.style.overflow = "hidden";         // evita overflow
+  alerta.style.maxWidth = "95vw";           // nunca ultrapassa largura da tela
+  alerta.style.fontSize = "clamp(14px, 2vw, 18px)"; // fonte proporcional
 
-    setTimeout(() => {
-      alerta.remove();
-    }, 5000);
-
-    const tempoRestante = Number(localStorage.getItem("loginBloqueado")) - Date.now();
-
-    setTimeout(() => {
-      usernameInput.disabled = false;
-      passwordInput.disabled = false;
-      tentativas = 0;
-    }, tempoRestante);
+  // Permitir quebra de linha somente em telas muito pequenas
+  if (window.innerWidth <= 400) {
+    alerta.style.whiteSpace = "normal";      // permite quebra de linha
+    alerta.style.wordBreak = "break-word";   // quebra palavras se necessário
   }
+
+  document.body.appendChild(alerta);
+
+  usernameInput.disabled = true;
+  passwordInput.disabled = true;
+
+  setTimeout(() => {
+    alerta.remove();
+  }, 5000);
+
+  const tempoRestante = Number(localStorage.getItem("loginBloqueado")) - Date.now();
+
+  setTimeout(() => {
+    usernameInput.disabled = false;
+    passwordInput.disabled = false;
+    tentativas = 0;
+  }, tempoRestante);
+}
+
 
   // =============================
   //     MENSAGEM DE BOAS-VINDAS

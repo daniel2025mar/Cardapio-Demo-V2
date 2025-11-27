@@ -1,15 +1,3 @@
-// =============================
-//   CONFIGURAÇÃO DO SUPABASE
-// =============================
-import { createClient } from "https://esm.sh/@supabase/supabase-js";
-
-const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-
 const menu = document.getElementById("menu")
 const carbtn = document.getElementById("card-btn")
 const cardmodal = document.getElementById("card-modal")
@@ -182,42 +170,14 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
-// =============================
-// 📌 FUNÇÃO PARA SALVAR PEDIDO NO SUPABASE
-// =============================
-async function salvarPedidoSupabase(cart, usuarioNome, endereco, retirarLocal, totalFinal) {
-  try {
-    const { data, error } = await supabase
-      .from("pedidos")
-      .insert([
-        {
-          cliente: usuarioNome,
-          itens: cart,
-          endereco: retirarLocal ? "RETIRADA NO LOCAL" : endereco,
-          total: totalFinal,
-          status: "PENDENTE",
-          criado_em: new Date().toISOString()
-        }
-      ]);
 
-    if (error) {
-      console.error("Erro ao salvar pedido:", error);
-      return false;
-    }
 
-    return true;
+checkout.addEventListener("click", function() {
 
-  } catch (err) {
-    console.error("Erro inesperado:", err);
-    return false;
-  }
-}
-
-checkout.addEventListener("click", async function () {
-
-  // 🔹 Verifica login
+  // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
+    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -233,33 +193,39 @@ checkout.addEventListener("click", async function () {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
-    return;
+    return; // interrompe o envio do pedido
   }
 
-  // 🔹 Verifica horário de funcionamento
-  if (!checkRestauranteOpen()) {
-    const modal = document.getElementById("loja-fechada-modal");
-    const box = modal.children[0];
-    const fechar = document.getElementById("fechar-loja-fechada");
-    const ok = document.getElementById("ok-loja-fechada");
+  // ==============================
+  // Verifica se o restaurante está aberto
+  // ==============================
+  const isOpen = checkRestauranteOpen();
+  if (!isOpen) {
+    const modalLojaFechada = document.getElementById('loja-fechada-modal');
+    const modalContent = modalLojaFechada.children[0];
+    const btnFechar = document.getElementById('fechar-loja-fechada');
+    const btnOk = document.getElementById('ok-loja-fechada');
 
-    modal.classList.remove("hidden");
+    modalLojaFechada.classList.remove('hidden');
     setTimeout(() => {
-      box.classList.remove("scale-90", "opacity-0");
-      box.classList.add("scale-100", "opacity-100");
-    }, 50);
+      modalContent.classList.remove('scale-90', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
 
-    function close() {
-      box.classList.add("scale-90", "opacity-0");
-      setTimeout(() => modal.classList.add("hidden"), 300);
+    function fecharModal() {
+      modalContent.classList.add('scale-90', 'opacity-0');
+      setTimeout(() => modalLojaFechada.classList.add('hidden'), 300);
     }
 
-    fechar.addEventListener("click", close);
-    ok.addEventListener("click", close);
+    btnFechar.addEventListener('click', fecharModal);
+    btnOk.addEventListener('click', fecharModal);
+
     return;
   }
 
-  // 🔹 Carrinho vazio
+  // ==============================
+  // Verifica se o carrinho está vazio
+  // ==============================
   if (cart.length === 0) {
     Toastify({
       text: "Seu carrinho está vazio",
@@ -272,107 +238,104 @@ checkout.addEventListener("click", async function () {
     return;
   }
 
-  // 🔹 Valida endereço
+  // ==============================
+  // Verifica endereço
+  // ==============================
   const retirarLocalChecked = retirarLocal.checked;
-  if (!retirarLocalChecked && andressInput.value.trim() === "") {
+  if (!retirarLocalChecked && andressInput.value === "") {
     andresswarn.classList.remove("hidden");
     andressInput.classList.add("border-red-500");
     return;
   }
 
-  // ===========================
-  // 📌 MONTA TEXTO DO PEDIDO
-  // ===========================
-  const cartItens = cart
-    .map((item) =>
-      `${item.name} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`
-    )
-    .join("\n");
+  // ==============================
+  // Continua com a lógica atual de montagem do pedido e envio
+  // ==============================
+  const cartItens = cart.map((item) => {
+    let nomeProduto = item.name;
+    if (item.custom && item.removidos && item.removidos.length > 0) {
+      const removidosTexto = item.removidos.join(", ");
+      nomeProduto += ` (Sem ${removidosTexto})`;
+    }
+    return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
+  }).join("\n");
 
-  const totalProdutos = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const taxaEntrega = retirarLocalChecked ? 0 : 3.0;
+  const totalProdutos = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
   let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
-
   if (retirarLocalChecked) {
-    mensagemTexto += `🏃 *Retirada no Local*\n📦 Taxa: R$ 0,00\n`;
+    mensagemTexto += `🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
   } else {
-    mensagemTexto += `📦 *Taxa:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
+    mensagemTexto += `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
   }
-
   mensagemTexto += `💰 *Total:* R$ ${totalComTaxa.toFixed(2)}`;
 
   const mensagem = encodeURIComponent(mensagemTexto);
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-  // ===========================
-  // 📌 SALVAR NO SUPABASE
-  // ===========================
-  const usuarioGoogle = JSON.parse(storedUser);
-  const usuarioNome = usuarioGoogle?.displayName || "Cliente Desconhecido";
-
-  const pedidoSalvo = await salvarPedidoSupabase(
-    cart,
-    usuarioNome,
-    andressInput.value,
-    retirarLocalChecked,
-    totalComTaxa
-  );
-
-  console.log(pedidoSalvo ? "Pedido salvo no Supabase!" : "Erro ao salvar pedido no Supabase");
-
-  // ===========================
-  // 📌 SALVAR NO MEUS PEDIDOS (localStorage)
-  // ===========================
+   
+  
+    // Adiciona os pedidos finalizados no localStorage
   let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
-
-  const cartComData = cart.map((p) => ({
-    ...p,
-    dataHora: new Date().toISOString(),
-  }));
-
-  pedidosFinalizados.push(...cartComData);
+  // Adiciona data e hora em cada pedido do carrinho
+const cartComData = cart.map(pedido => {
+  return {
+    ...pedido,
+    dataHora: new Date().toISOString()
+  };
+});
+  pedidosFinalizados = [...pedidosFinalizados, ...cartComData];
   localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
 
-  // Atualiza lista do modal "Meus Pedidos"
-  const lista = document.getElementById("listaMeusPedidos");
-  lista.innerHTML = "";
+  // Função para atualizar o modal "Meus Pedidos"
+  (function atualizarMeusPedidos() {
+    const lista = document.getElementById("listaMeusPedidos");
+    lista.innerHTML = ""; // limpa a lista antes de inserir os itens
 
-  pedidosFinalizados.forEach((pedido, i) => {
-    const li = document.createElement("li");
-    li.className = "border-b border-gray-200 py-2";
-    li.innerHTML = `<strong>Pedido ${i + 1}:</strong> ${pedido.name} | Qtd: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}`;
-    lista.appendChild(li);
-  });
+    if (pedidosFinalizados.length === 0) {
+      lista.innerHTML = "<li class='p-2 text-gray-500'>Nenhum pedido finalizado ainda.</li>";
+      return;
+    }
 
-  // ===========================
-  // 📌 LIMPA CARRINHO
-  // ===========================
+    pedidosFinalizados.forEach((pedido, index) => {
+  const li = document.createElement('li');
+  li.className = "border-b border-gray-200 py-2";
+  li.innerHTML = `
+    <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
+  `;
+  listaMeusPedidos.appendChild(li);
+});
+
+  })(); 
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
-  // ===========================
-  // 📌 MODAL DE SUCESSO
-  // ===========================
   setTimeout(() => {
-    const modal = document.getElementById("pedido-sucesso-modal");
-    const box = document.getElementById("pedido-modal-box");
-
-    modal.classList.remove("hidden");
+    const modal = document.getElementById('pedido-sucesso-modal');
+    const modalBox = document.getElementById('pedido-modal-box');
+    modal.classList.remove('hidden');
+    
     setTimeout(() => {
-      box.classList.remove("scale-90", "opacity-0");
-      box.classList.add("scale-100", "opacity-100");
+      modalBox.classList.remove('scale-90', 'opacity-0');
+      modalBox.classList.add('scale-100', 'opacity-100');
     }, 50);
 
-    document.getElementById("pedido-sucesso-ok").addEventListener("click", () => {
-      box.classList.add("scale-90", "opacity-0");
-      setTimeout(() => modal.classList.add("hidden"), 300);
+    const btnOk = document.getElementById('pedido-sucesso-ok');
+    btnOk.addEventListener('click', () => {
+      modalBox.classList.add('scale-90', 'opacity-0');
+      setTimeout(() => modal.classList.add('hidden'), 300);
     });
   }, 500);
+
 });
+
+
+
+
 
 //horario de funcionamento
 function checkRestauranteOpen(){

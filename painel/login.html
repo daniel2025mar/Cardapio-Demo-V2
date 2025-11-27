@@ -7,62 +7,128 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* 🔵 Animação da borda azul */
-    @keyframes borderGlow {
-      0% {
-        box-shadow: 0 0 10px rgba(3, 169, 244, 0.6), inset 0 0 10px rgba(3, 169, 244, 0.4);
-        border-color: #4fc3f7;
-      }
-      50% {
-        box-shadow: 0 0 18px rgba(25, 118, 210, 0.8), inset 0 0 15px rgba(25, 118, 210, 0.6);
-        border-color: #1e88e5;
-      }
-      100% {
-        box-shadow: 0 0 10px rgba(3, 169, 244, 0.6), inset 0 0 10px rgba(3, 169, 244, 0.4);
-        border-color: #4fc3f7;
-      }
+    /* 🔵 Animação leve do container */
+    @keyframes floatCard {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0px); }
     }
 
-    .glow-border {
-      animation: borderGlow 3s infinite ease-in-out;
-      border-width: 3px;
-      border-style: solid;
+    /* 🔵 Bordas neon */
+    .neon-border {
+      box-shadow: 0 0 18px rgba(0, 140, 255, 0.4);
+      border: 1px solid rgba(0, 140, 255, 0.5);
+    }
+
+    .glass {
+      background: rgba(31, 41, 55, 0.55);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+    }
+
+    .icon {
+      width: 22px;
+      height: 22px;
+      fill: white;
+      opacity: 0.9;
+    }
+
+    /* Botão de mostrar senha */
+    .toggle-eye {
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .toggle-eye:hover {
+      opacity: 0.7;
     }
   </style>
 </head>
-<body class="h-screen flex items-center justify-center bg-gray-900 p-4">
 
-  <!-- Tela de Login -->
-  <div id="login-container" 
-       class="bg-gray-800 p-6 sm:p-10 rounded-2xl shadow-xl w-full max-w-md glow-border">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
 
-    <!-- Cabeçalho -->
-    <h2 class="text-3xl font-bold mb-4 text-center text-white">Bem-vindo</h2>
-    <p class="text-center text-gray-400 mb-6">Faça login para acessar o painel administrativo</p>
+  <!-- CONTAINER -->
+  <div class="glass neon-border p-8 sm:p-10 w-full max-w-md animate-[floatCard_5s_infinite_ease-in-out]">
 
-    <!-- Formulário -->
-    <form id="login-form" class="flex flex-col gap-4">
-      <input type="text" id="username" placeholder="Usuário" 
-             class="bg-gray-700 border border-gray-600 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+    <!-- Título -->
+    <h2 class="text-4xl font-extrabold text-center text-white mb-2 tracking-wide drop-shadow-lg">
+      Painel
+    </h2>
 
-      <input type="password" id="password" placeholder="Senha" 
-             class="bg-gray-700 border border-gray-600 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+    <p class="text-center text-gray-300 mb-8 text-sm">
+      Faça login para continuar
+    </p>
 
-      <button type="submit" 
-              class="bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200 w-full text-sm sm:text-base font-medium">
+    <!-- FORMULÁRIO -->
+    <form id="login-form" class="flex flex-col gap-5">
+
+      <!-- Usuário -->
+      <div class="relative">
+        <!-- Ícone SVG branco -->
+        <svg class="absolute left-3 top-3 icon" viewBox="0 0 24 24">
+          <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+        </svg>
+
+        <input
+          type="text"
+          id="username"
+          placeholder="Usuário"
+          class="pl-12 bg-gray-900/60 border border-gray-700 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+      </div>
+
+      <!-- Senha -->
+      <div class="relative">
+        <!-- Ícone cadeado SVG branco -->
+        <svg class="absolute left-3 top-3 icon" viewBox="0 0 24 24">
+          <path d="M17 8h-1V6c0-2.8-2.2-5-5-5S6 3.2 6 6v2H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-7-2c0-1.7 1.3-3 3-3s3 1.3 3 3v2H10V6zm3 11c-1.1 0-2-.9-2-2s.9-2 2-2 
+                   2 .9 2 2-.9 2-2 2z"/>
+        </svg>
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Senha"
+          class="pl-12 pr-12 bg-gray-900/60 border border-gray-700 p-3 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+
+        <!-- Ícone mostrar/ocultar senha -->
+        <span id="togglePassword" class="absolute right-3 top-3 text-white text-2xl toggle-eye select-none">
+          👁️
+        </span>
+      </div>
+
+      <!-- Botão -->
+      <button
+        type="submit"
+        class="bg-blue-600 hover:bg-blue-700 transition-all duration-200 text-white py-3 rounded-lg shadow-lg font-semibold text-base tracking-wide active:scale-95"
+      >
         Entrar
       </button>
     </form>
 
-    <!-- Mensagem de erro -->
-    <p id="login-error" class="text-white mt-2 text-sm hidden text-center"></p>
+    <!-- Erro -->
+    <p id="login-error" class="text-red-400 mt-3 text-sm hidden text-center font-medium"></p>
 
     <!-- Rodapé -->
-    <p class="text-gray-500 mt-6 text-center text-xs sm:text-sm">© 2025 Sua Empresa</p>
+    <p class="text-gray-500 mt-8 text-center text-xs">© 2025 Sua Empresa</p>
   </div>
 
-  <div id="admin-panel" class="hidden h-screen w-full flex flex-col"></div>
+  <script>
+    // 👁️ Mostrar e ocultar senha
+    const toggle = document.getElementById("togglePassword");
+    const password = document.getElementById("password");
 
+    toggle.addEventListener("click", () => {
+      const type = password.type === "password" ? "text" : "password";
+      password.type = type;
+
+      toggle.textContent = type === "password" ? "👁️" : "🙈";
+    });
+  </script>
+
+  <!-- Seu arquivo JS -->
   <script type="module" src="login.js"></script>
 </body>
 </html>

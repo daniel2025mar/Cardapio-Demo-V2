@@ -4,15 +4,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
 const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================
+//       VARIÁVEIS
+// =============================
+let tentativas = 0;
+const MAX_TENTATIVAS = 4;
+const TEMPO_BLOQUEIO = 5 * 60 * 1000; // 5 minutos
 
 // =============================
 //        LOGIN DO USUÁRIO
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
-
   document.body.style.overflow = "hidden";
 
   const form = document.getElementById("login-form");
@@ -20,14 +27,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = document.getElementById("password");
   const errorMsg = document.getElementById("login-error");
 
-  // 🔒 Bloquear números e caracteres especiais no usuário
+  verificarBloqueio();
+
+  // Bloqueia números no usuário
   usernameInput.addEventListener("input", () => {
     usernameInput.value = usernameInput.value.replace(/[^a-zA-Z]/g, "");
   });
 
   usernameInput.addEventListener("paste", (e) => e.preventDefault());
 
-  // ✔ Verificar internet
+  // Verificar internet
   async function temConexao() {
     if (!navigator.onLine) return false;
     try {
@@ -39,10 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // =============================
-  //     EVENTO DE LOGIN
+  //       EVENTO DE LOGIN
   // =============================
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (estaBloqueado()) return;
 
     const online = await temConexao();
     if (!online) return mostrarErro("Sem conexão com a internet!");
@@ -50,68 +61,105 @@ document.addEventListener("DOMContentLoaded", () => {
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
 
-    // 🔍 Validação dinâmica
-    if (username === "" && password === "") {
-      return mostrarErro("Preencha todos os campos!");
-    }
-    if (username === "") {
-      return mostrarErro("Preencha o usuário!");
-    }
-    if (password === "") {
-      return mostrarErro("Preencha a senha!");
-    }
+    if (username === "" && password === "") return mostrarErro("Preencha todos os campos!");
+    if (username === "") return mostrarErro("Preencha o usuário!");
+    if (password === "") return mostrarErro("Preencha a senha!");
 
-    // 🔎 Buscar no Supabase
+    // Buscar no Supabase
     const { data: usuario, error } = await supabase
       .from("usuarios")
       .select("*")
       .eq("username", username)
       .single();
 
-    if (!usuario || error) return mostrarErro("Usuário ou senha incorretos!");
-    if (usuario.password !== password) return mostrarErro("Usuário ou senha incorretos!");
+    if (!usuario || error || usuario.password !== password) {
+      tentativas++;
+
+      const restantes = MAX_TENTATIVAS - tentativas;
+
+      if (tentativas >= MAX_TENTATIVAS) {
+        return ativarBloqueio();
+      }
+
+      return mostrarErro(`Usuário ou senha incorretos! Tentativas restantes: ${restantes}`);
+    }
+
+    tentativas = 0;
+    localStorage.removeItem("loginBloqueado");
 
     localStorage.setItem("usuarioLogado", JSON.stringify(usuario));
     mostrarBoasVindas(usuario.username);
   });
 
   // =============================
-  //       FUNÇÃO DE ERRO
+  //     FUNÇÃO DE EXIBIR ERRO
   // =============================
   function mostrarErro(msg) {
     errorMsg.classList.remove("hidden");
     errorMsg.textContent = msg;
 
-    // Campo usuário vazio
-    if (msg.includes("usuário")) {
-      usernameInput.value = "";
-      usernameInput.focus();
-    }
+    // Texto branco
+    errorMsg.style.color = "#ffffff";
 
-    // Campo senha vazio
-    if (msg.includes("senha")) {
-      passwordInput.value = "";
-      passwordInput.focus();
-    }
+    usernameInput.value = "";
+    passwordInput.value = "";
+    usernameInput.focus();
 
-    // Ambos vazios
-    if (msg === "Preencha todos os campos!") {
-      usernameInput.value = "";
-      passwordInput.value = "";
-      usernameInput.focus();
-    }
-
-    // Senha incorreta ou usuário incorreto
-    if (msg === "Usuário ou senha incorretos!") {
-      passwordInput.value = "";
-      passwordInput.focus();
-    }
-
-    setTimeout(() => errorMsg.classList.add("hidden"), 3000);
+    setTimeout(() => errorMsg.classList.add("hidden"), 3500);
   }
 
   // =============================
-  //   MENSAGEM DE BOAS-VINDAS
+  //      BLOQUEIO DO LOGIN
+  // =============================
+  function ativarBloqueio() {
+    const tempoFinal = Date.now() + TEMPO_BLOQUEIO;
+    localStorage.setItem("loginBloqueado", tempoFinal);
+
+    exibirBloqueio();
+  }
+
+  function estaBloqueado() {
+    const bloqueio = localStorage.getItem("loginBloqueado");
+    if (!bloqueio) return false;
+
+    if (Date.now() > Number(bloqueio)) {
+      localStorage.removeItem("loginBloqueado");
+      return false;
+    }
+    return true;
+  }
+
+  function verificarBloqueio() {
+    if (estaBloqueado()) exibirBloqueio();
+  }
+
+  function exibirBloqueio() {
+    const alerta = document.createElement("div");
+    alerta.className =
+      "fixed top-5 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 text-center font-semibold";
+    alerta.textContent =
+      "ACESSO NEGADO: Aguarde 5 minutos e tente novamente";
+
+    document.body.appendChild(alerta);
+
+    usernameInput.disabled = true;
+    passwordInput.disabled = true;
+
+    setTimeout(() => {
+      alerta.remove();
+    }, 5000);
+
+    const tempoRestante = Number(localStorage.getItem("loginBloqueado")) - Date.now();
+
+    setTimeout(() => {
+      usernameInput.disabled = false;
+      passwordInput.disabled = false;
+      tentativas = 0;
+    }, tempoRestante);
+  }
+
+  // =============================
+  //     MENSAGEM DE BOAS-VINDAS
   // =============================
   function mostrarBoasVindas(nomeUsuario) {
     const mensagem = document.createElement("div");

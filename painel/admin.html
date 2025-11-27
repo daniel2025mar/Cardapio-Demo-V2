@@ -5,10 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Administrativo</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     /* Esconde todas as seções por padrão */
     .content-section {
       display: none;
+    }
+
+    /* Estilo item ativo */
+    .menu-item.active {
+      background-color: #2563eb !important;
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+      color: white !important;
+    }
+
+    /* ================================
+          TEXTO E ÍCONE FICAM AZUIS VIVOS
+       ================================ */
+    .menu-item:hover,
+    .menu-item:hover svg,
+    .menu-item:hover span {
+      color: #0EA5E9 !important; /* Azul vivo */
+    }
+
+    .menu-item:hover {
+      background-color: rgba(55, 65, 81, 0.5) !important;
     }
 
     /* Menu lateral escondido no mobile */
@@ -33,10 +54,10 @@
 
       /* Ajuste do título no mobile */
       header h1 {
-        font-size: 1rem; /* Fonte menor */
-        white-space: nowrap; /* Não quebra linha */
+        font-size: 1rem;
+        white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis; /* Adiciona reticências se necessário */
+        text-overflow: ellipsis;
       }
     }
 
@@ -46,18 +67,22 @@
     }
   </style>
 </head>
+
 <body class="h-screen flex flex-col">
 
-  <!-- Topo -->
+  <!-- TOPO -->
   <header class="bg-gray-800 text-white h-16 flex items-center px-6 shadow justify-between">
     <h1 class="text-xl font-bold truncate">Painel Administrativo</h1>
+
     <div class="flex items-center gap-4">
       <button class="menu-toggle bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 text-white">Menu</button>
       <span>Usuário</span>
-      <!-- Botão de logout como ícone -->
+
+      <!-- Logout -->
       <button id="btn-logout" class="p-2 rounded hover:bg-blue-600 transition-colors" title="Sair">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
         </svg>
       </button>
     </div>
@@ -65,18 +90,66 @@
 
   <div class="flex flex-1 overflow-hidden">
 
-    <!-- Menu Lateral -->
-    <aside class="bg-gray-900 text-white w-64 flex-shrink-0 p-6 overflow-y-auto">
-      <nav class="flex flex-col gap-4">
-        <label for="menu-dashboard" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Dashboard</label>
-        <label for="menu-produtos" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Produtos</label>
-        <label for="menu-pedidos" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Pedidos</label>
-        <label for="menu-clientes" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Clientes</label>
-        <label for="menu-funcionarios" class="cursor-pointer hover:bg-gray-700 px-3 py-2 rounded block">Funcionários</label>
+    <!-- MENU LATERAL MODERNO -->
+    <aside id="sidebar"
+      class="bg-gradient-to-b from-gray-900 to-gray-800 text-white w-64 flex-shrink-0 p-4 overflow-y-auto shadow-xl border-r border-gray-700 transition-all duration-300">
+
+      <nav class="flex flex-col gap-2">
+
+        <!-- Dashboard -->
+        <label data-menu="dashboard"
+          class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" />
+          </svg>
+          <span>Dashboard</span>
+        </label>
+
+        <!-- Produtos -->
+        <label data-menu="produtos"
+          class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 13V7a2 2 0 00-2-2h-3M4 7v6m16 0v6a2 2 0 01-2 2h-3m-6 0H6a2 2 0 01-2-2v-6" />
+          </svg>
+          <span>Produtos</span>
+        </label>
+
+        <!-- Pedidos -->
+        <label data-menu="pedidos"
+          class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-3-3v6m9-6a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Pedidos</span>
+        </label>
+
+        <!-- Clientes -->
+        <label data-menu="clientes"
+          class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a4 4 0 00-3-3.87m-4.68 3.93A6 6 0 1114 10.13M9 20H4v-2a4 4 0 013-3.87" />
+          </svg>
+          <span>Clientes</span>
+        </label>
+
+        <!-- Funcionários -->
+        <label data-menu="funcionarios"
+          class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a4 4 0 00-3-3.87m-4.68 3.93A6 6 0 1114 10.13M9 20H4v-2a4 4 0 013-3.87" />
+          </svg>
+          <span>Funcionários</span>
+        </label>
+
       </nav>
     </aside>
 
-    <!-- Conteúdo Principal -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <main class="flex-1 bg-gray-100 p-4 md:p-6 overflow-y-auto">
 
       <!-- Dashboard -->
@@ -107,7 +180,7 @@
       <section id="funcionarios" class="content-section mb-8">
         <h2 class="text-2xl font-bold mb-4">Funcionários</h2>
 
-        <!-- Formulário de cadastro -->
+        <!-- Formulário -->
         <form id="funcionario-form" class="bg-white p-4 md:p-6 rounded shadow mb-6 flex flex-col gap-4">
           <div class="flex flex-col md:flex-row gap-4">
             <input type="text" placeholder="Nome" class="border p-2 rounded flex-1" required>
@@ -116,7 +189,6 @@
             <input type="password" placeholder="Senha" class="border p-2 rounded flex-1" required>
           </div>
 
-          <!-- Permissões -->
           <div class="flex flex-wrap gap-2 md:gap-4">
             <label class="flex items-center gap-2"><input type="checkbox" value="dashboard"> Dashboard</label>
             <label class="flex items-center gap-2"><input type="checkbox" value="produtos"> Produtos</label>
@@ -131,7 +203,6 @@
           <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full md:w-auto">Adicionar</button>
         </form>
 
-        <!-- Lista de funcionários -->
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white rounded shadow text-left">
             <thead>
@@ -145,11 +216,11 @@
             </thead>
             <tbody>
               <tr class="hover:bg-gray-100">
-                <td class="py-2 px-4 border-b align-middle">Administrador</td>
-                <td class="py-2 px-4 border-b align-middle">Admin</td>
-                <td class="py-2 px-4 border-b align-middle">admin@admin.com</td>
-                <td class="py-2 px-4 border-b align-middle">Acesso total do painel</td>
-                <td class="py-2 px-4 border-b align-middle flex gap-2">
+                <td class="py-2 px-4 border-b">Administrador</td>
+                <td class="py-2 px-4 border-b">Admin</td>
+                <td class="py-2 px-4 border-b">admin@admin.com</td>
+                <td class="py-2 px-4 border-b">Acesso total do painel</td>
+                <td class="py-2 px-4 border-b flex gap-2">
                   <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Editar</button>
                   <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Excluir</button>
                 </td>
@@ -163,15 +234,16 @@
     </main>
   </div>
 
-  <!-- Script -->
   <script type="module" src="admin.js"></script>
+
   <script>
-    // Toggle menu no mobile
     const toggleBtn = document.querySelector('.menu-toggle');
     const aside = document.querySelector('aside');
+
     toggleBtn.addEventListener('click', () => {
       aside.classList.toggle('open');
     });
   </script>
+
 </body>
 </html>

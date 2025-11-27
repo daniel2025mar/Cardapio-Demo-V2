@@ -1,3 +1,15 @@
+// =============================
+//   CONFIGURAÇÃO DO SUPABASE
+// =============================
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
 const menu = document.getElementById("menu")
 const carbtn = document.getElementById("card-btn")
 const cardmodal = document.getElementById("card-modal")
@@ -170,6 +182,36 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
+// =============================
+// 📌 FUNÇÃO PARA SALVAR PEDIDO NO SUPABASE
+// =============================
+async function salvarPedidoSupabase(cart, usuarioNome, endereco, retirarLocal, totalFinal) {
+  try {
+    const { data, error } = await supabase
+      .from("pedidos")
+      .insert([
+        {
+          cliente: usuarioNome,
+          itens: cart,
+          endereco: retirarLocal ? "RETIRADA NO LOCAL" : endereco,
+          total: totalFinal,
+          status: "PENDENTE",
+          criado_em: new Date().toISOString()
+        }
+      ]);
+
+    if (error) {
+      console.error("Erro ao salvar pedido:", error);
+      return false;
+    }
+
+    return true;
+
+  } catch (err) {
+    console.error("Erro inesperado:", err);
+    return false;
+  }
+}
 
 
 checkout.addEventListener("click", function() {
@@ -276,7 +318,26 @@ checkout.addEventListener("click", function() {
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-   
+   // ===============================
+// 📌 SALVAR PEDIDO NO SUPABASE
+// ===============================
+const usuarioGoogle = JSON.parse(localStorage.getItem("userGoogle"));
+const usuarioNome = usuarioGoogle?.displayName || "Cliente Desconhecido";
+
+salvarPedidoSupabase(
+  cart,
+  usuarioNome,
+  andressInput.value,
+  retirarLocal.checked,
+  totalComTaxa
+).then((ok) => {
+  if (ok) {
+    console.log("Pedido salvo no Supabase com sucesso!");
+  } else {
+    console.log("Falha ao salvar o pedido no Supabase.");
+  }
+});
+
   
     // Adiciona os pedidos finalizados no localStorage
   let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];

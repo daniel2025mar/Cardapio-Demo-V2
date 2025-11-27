@@ -13,12 +13,12 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
 // ===================================================
 const MENU_MAP = {
-  "dashboard": "dashboard",
-  "produtos": "produtos",
-  "pedidos": "pedidos",
-  "clientes": "clientes",
+  dashboard: "dashboard",
+  produtos: "produtos",
+  pedidos: "pedidos",
+  clientes: "clientes",
   "funcionários": "funcionarios",
-  "funcionarios": "funcionarios"
+  funcionarios: "funcionarios"
 };
 
 // ===================================================
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   aplicarPermissoes(usuario);
-  ativarMenuMobile(); // inicializa função de abrir/fechar menu mobile
+  ativarMenuMobile();
 });
 
 // ===============================
@@ -75,15 +75,14 @@ function aplicarPermissoes(usuario) {
     permCells.forEach(c => c.textContent = "Acesso total do painel");
 
     ativarMenu();
-    abrirDashboard(); // abre o Dashboard por padrão
+    abrirDashboard();
     return;
   }
 
-  // Apenas seções permitidas
   mostrarSecaoPermitida(permissoes);
   filtrarMenu(permissoes);
   ativarMenu();
-  abrirDashboard(); // abre o Dashboard por padrão
+  abrirDashboard();
 }
 
 // ======================
@@ -96,7 +95,6 @@ function abrirDashboard() {
   const dashboard = document.getElementById("dashboard");
   if (dashboard) dashboard.style.display = "block";
 
-  // Destacar menu ativo
   document.querySelectorAll("aside nav label").forEach(label => label.classList.remove("active"));
   const dashLabel = Array.from(document.querySelectorAll("aside nav label"))
     .find(l => l.dataset.menu === "dashboard");
@@ -127,11 +125,13 @@ function filtrarMenu(permissoes) {
 }
 
 // ======================
-//   TROCAR SEÇÕES
+//   TROCAR SEÇÕES + FECHAR MENU
 // ======================
 function ativarMenu() {
   const labels = document.querySelectorAll("aside nav label");
   const sections = document.querySelectorAll(".content-section");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
 
   labels.forEach(label => {
     label.addEventListener("click", () => {
@@ -146,26 +146,35 @@ function ativarMenu() {
       labels.forEach(l => l.classList.remove("active"));
       label.classList.add("active");
 
-      // Fecha menu no mobile após clicar
-      const aside = document.querySelector("aside");
+      // FECHA MENU + OVERLAY NO MOBILE
       if (window.innerWidth <= 768) {
-        aside.classList.remove("open");
+        sidebar.classList.remove("open");
+        overlay.classList.remove("show");
       }
     });
   });
 }
 
 // ======================
-// ATIVAR MENU MOBILE (ABRIR/FECHAR)
+// ATIVAR MENU MOBILE
 // ======================
 function ativarMenuMobile() {
-  const toggleBtn = document.querySelector('.menu-toggle');
-  const aside = document.querySelector('aside');
+  const btnMenu = document.getElementById("btn-menu");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
 
-  if (!toggleBtn) return; // evita erro se não existir
+  if (!btnMenu) return;
 
-  toggleBtn.addEventListener('click', () => {
-    aside.classList.toggle('open');
+  // Abrir
+  btnMenu.addEventListener("click", () => {
+    sidebar.classList.add("open");
+    overlay.classList.add("show");
+  });
+
+  // Fechar ao clicar na sombra
+  overlay.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
   });
 }
 
@@ -175,21 +184,4 @@ function ativarMenuMobile() {
 document.getElementById("btn-logout").addEventListener("click", () => {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "login.html";
-});
-
-// ==== MENU MOBILE ====
-const btnMenu = document.getElementById("btn-menu");
-const sidebar = document.getElementById("sidebar");
-const overlay = document.getElementById("overlay");
-
-// Abre o menu no mobile
-btnMenu.addEventListener("click", () => {
-  sidebar.classList.add("open");
-  overlay.classList.add("show");
-});
-
-// Fecha ao tocar no overlay
-overlay.addEventListener("click", () => {
-  sidebar.classList.remove("open");
-  overlay.classList.remove("show");
 });

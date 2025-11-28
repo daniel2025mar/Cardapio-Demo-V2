@@ -1,3 +1,15 @@
+// =============================
+//   CONFIGURAÇÃO DO SUPABASE
+// =============================
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
 const menu = document.getElementById("menu")
 const carbtn = document.getElementById("card-btn")
 const cardmodal = document.getElementById("card-modal")
@@ -170,14 +182,37 @@ andressInput.addEventListener("input", function(event){
   }
 })
 
+// =============================
+//   FUNÇÃO → Salvar pedido no Supabase
+// =============================
+async function salvarPedidoNoSupabase(pedido) {
+  const { data, error } = await supabase
+    .from("pedidos")
+    .insert([pedido]);
 
+  if (error) {
+    console.error("Erro ao salvar pedido no Supabase:", error);
 
-checkout.addEventListener("click", function() {
+    Toastify({
+      text: "Erro ao salvar pedido no sistema",
+      duration: 4000,
+      close: true,
+      gravity: "top",
+      position: "center",
+      style: { background: "linear-gradient(to right, #ff0000, #660000)" }
+    }).showToast();
+
+    return false;
+  }
+
+  return true;
+}
+
+checkout.addEventListener("click", async function () {
 
   // 🔹 Verifica se o usuário está logado
   const storedUser = localStorage.getItem("userGoogle");
   if (!storedUser) {
-    // Abre o modal de login
     loginModal.classList.remove("hidden");
     setTimeout(() => {
       loginModalBox.classList.remove("scale-95", "opacity-0");
@@ -193,7 +228,7 @@ checkout.addEventListener("click", function() {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
-    return; // interrompe o envio do pedido
+    return;
   }
 
   // ==============================
@@ -249,13 +284,12 @@ checkout.addEventListener("click", function() {
   }
 
   // ==============================
-  // Continua com a lógica atual de montagem do pedido e envio
+  // Monta o pedido
   // ==============================
-  const cartItens = cart.map((item) => {
+  const cartItens = cart.map(item => {
     let nomeProduto = item.name;
     if (item.custom && item.removidos && item.removidos.length > 0) {
-      const removidosTexto = item.removidos.join(", ");
-      nomeProduto += ` (Sem ${removidosTexto})`;
+      nomeProduto += ` (Sem ${item.removidos.join(", ")})`;
     }
     return `${nomeProduto} | Quantidade: ${item.quantity} | Preço: R$ ${item.price.toFixed(2)}`;
   }).join("\n");
@@ -264,36 +298,66 @@ checkout.addEventListener("click", function() {
   let taxaEntrega = retirarLocalChecked ? 0 : 3.00;
   const totalComTaxa = totalProdutos + taxaEntrega;
 
+  // ==============================
+  // ENVIA PARA O WHATSAPP
+  // ==============================
   let mensagemTexto = `🛍️ *Resumo do Pedido:*\n\n${cartItens}\n\n`;
+
   if (retirarLocalChecked) {
     mensagemTexto += `🏃 *Retirada no Local*\n📦 *Taxa de Entrega:* R$ 0,00\n`;
   } else {
     mensagemTexto += `📦 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2)}\n🏠 *Endereço:* ${andressInput.value}\n`;
   }
+
   mensagemTexto += `💰 *Total:* R$ ${totalComTaxa.toFixed(2)}`;
 
   const mensagem = encodeURIComponent(mensagemTexto);
   const phone = "+5534998276982";
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
-   
-  
-    // Adiciona os pedidos finalizados no localStorage
+  // ================================================
+  // 🔥 NOVO → SALVAR NO SUPABASE
+  // ================================================
+  const usuario = JSON.parse(storedUser);
+
+  const pedidoSupabase = {
+    numero_pedido: Date.now().toString(),
+    tipo_entrega: retirarLocalChecked ? "retirar" : "entregar",
+    horario_recebido: new Date().toLocaleString(),
+    status: "Recebido",
+    subtotal: totalProdutos,
+    total: totalComTaxa,
+    cliente: usuario.name,
+    telefone: usuario.phone || "",
+    endereco: retirarLocalChecked ? "Retirada no Local" : andressInput.value,
+    referencia: "",
+    pagamento: "Pagar na entrega",
+    observacoes: "",
+    horario_recebido_status: new Date().toISOString(),
+    horario_preparo_status: "",
+    horario_entrega_status: "",
+    criado_em: new Date().toISOString(),
+    itens: cart
+  };
+
+  await salvarPedidoNoSupabase(pedidoSupabase);
+
+  // =====================================================
+  // Salva no "Meus Pedidos" (localStorage)
+  // =====================================================
   let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
-  // Adiciona data e hora em cada pedido do carrinho
-const cartComData = cart.map(pedido => {
-  return {
+
+  const cartComData = cart.map(pedido => ({
     ...pedido,
     dataHora: new Date().toISOString()
-  };
-});
+  }));
+
   pedidosFinalizados = [...pedidosFinalizados, ...cartComData];
   localStorage.setItem("pedidosFinalizados", JSON.stringify(pedidosFinalizados));
 
-  // Função para atualizar o modal "Meus Pedidos"
   (function atualizarMeusPedidos() {
     const lista = document.getElementById("listaMeusPedidos");
-    lista.innerHTML = ""; // limpa a lista antes de inserir os itens
+    lista.innerHTML = "";
 
     if (pedidosFinalizados.length === 0) {
       lista.innerHTML = "<li class='p-2 text-gray-500'>Nenhum pedido finalizado ainda.</li>";
@@ -301,19 +365,21 @@ const cartComData = cart.map(pedido => {
     }
 
     pedidosFinalizados.forEach((pedido, index) => {
-  const li = document.createElement('li');
-  li.className = "border-b border-gray-200 py-2";
-  li.innerHTML = `
-    <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
-  `;
-  listaMeusPedidos.appendChild(li);
-});
+      const li = document.createElement('li');
+      li.className = "border-b border-gray-200 py-2";
+      li.innerHTML = `
+        <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
+      `;
+      listaMeusPedidos.appendChild(li);
+    });
+  })();
 
-  })(); 
+  // Limpa tudo
   cart = [];
   updateCartModal();
   cardmodal.style.display = "none";
 
+  // Modal de Sucesso
   setTimeout(() => {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
@@ -332,11 +398,6 @@ const cartComData = cart.map(pedido => {
   }, 500);
 
 });
-
-
-
-
-
 //horario de funcionamento
 function checkRestauranteOpen(){
    const data = new Date();

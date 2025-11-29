@@ -207,6 +207,7 @@ async function salvarPedidoNoSupabase(pedido) {
 
   return true;
 }
+
 checkout.addEventListener("click", async function () {
 
   // 🔹 Verifica se o usuário está logado
@@ -432,55 +433,58 @@ checkout.addEventListener("click", async function () {
 
 // ================================================
 // 🔥 NOVO → ATUALIZAR OU INSERIR CLIENTE NO SUPABASE
-// ================================================
-async function atualizarClienteSupabase(usuario, endereco) {
+async function atualizarClienteSupabase(usuario, enderecoTratado) {
   try {
-    // Verifica se o cliente já existe
-    const { data: clienteExistente, error: selectError } = await supabase
-      .from('clientes')
-      .select('*')
-      .eq('telefone', usuario.phone)
-      .single(); // Assume que o telefone é único
+    const email = usuario.email;
 
-    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = Not found
-      console.error("Erro ao buscar cliente:", selectError);
+    // 🔎 Verifica se o cliente já existe
+    const { data: clienteExistente, error: erroBusca } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (erroBusca && erroBusca.code !== "PGRST116") {
+      console.error("Erro ao buscar cliente:", erroBusca);
       return;
     }
 
+    // =======================================================
+    // 📌 CASO 1 → Cliente já existe → ATUALIZAR
+    // =======================================================
     if (clienteExistente) {
-      // Atualiza os dados do cliente
-      const { error: updateError } = await supabase
-        .from('clientes')
+      const { error: erroUpdate } = await supabase
+        .from("clientes")
         .update({
           nome: usuario.name,
-          telefone: usuario.phone,
-          cidade: usuario.city || clienteExistente.cidade || '',
-          up: usuario.up || clienteExistente.up || '',
-          endereco: endereco
+          telefone: usuario.phone || "",
+          endereco: enderecoTratado,
+          atualizado_em: new Date().toISOString()
         })
-        .eq('id', clienteExistente.id);
+        .eq("email", email);
 
-      if (updateError) {
-        console.error("Erro ao atualizar cliente:", updateError);
-      }
-    } else {
-      // Insere novo cliente
-      const { error: insertError } = await supabase
-        .from('clientes')
-        .insert({
-          nome: usuario.name,
-          telefone: usuario.phone,
-          cidade: usuario.city || '',
-          up: usuario.up || '',
-          endereco: endereco
-        });
-
-      if (insertError) {
-        console.error("Erro ao inserir cliente:", insertError);
-      }
+      if (erroUpdate) console.error("Erro ao atualizar cliente:", erroUpdate);
+      return;
     }
-  } catch (err) {
-    console.error("Erro geral ao atualizar cliente:", err);
+
+    // =======================================================
+    // 📌 CASO 2 → Cliente NÃO existe → INSERIR NOVO
+    // =======================================================
+    const { error: erroInsert } = await supabase
+      .from("clientes")
+      .insert({
+        nome: usuario.name,
+        email: email,
+        telefone: usuario.phone || "",
+        endereco: enderecoTratado,
+        bloqueado: false, // padrão
+        criado_em: new Date().toISOString()
+      });
+
+    if (erroInsert) console.error("Erro ao inserir cliente:", erroInsert);
+
+  } catch (e) {
+    console.error("Erro inesperado ao salvar cliente:", e);
   }
 }
 

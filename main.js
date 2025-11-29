@@ -207,7 +207,6 @@ async function salvarPedidoNoSupabase(pedido) {
 
   return true;
 }
-
 checkout.addEventListener("click", async function () {
 
   // 🔹 Verifica se o usuário está logado
@@ -228,6 +227,35 @@ checkout.addEventListener("click", async function () {
       style: { background: "linear-gradient(to right, #ff6a00, #ff0000)" }
     }).showToast();
 
+    return;
+  }
+
+  // ==============================================
+  // 🔒 VERIFICA SE O CLIENTE ESTÁ BLOQUEADO
+  // ==============================================
+  const usuarioLogado = JSON.parse(storedUser);
+  const emailUsuario = usuarioLogado.email;
+
+  const { data: clienteData, error: clienteError } = await supabase
+    .from("clientes")
+    .select("bloqueado")
+    .eq("email", emailUsuario)
+    .single();
+
+  if (clienteError) {
+    console.error("Erro ao verificar bloqueio do cliente:", clienteError);
+  }
+
+  // 🚫 Se estiver bloqueado → impede o pedido
+  if (clienteData && clienteData.bloqueado === true) {
+    Toastify({
+      text: "❌ Você está bloqueado e não pode finalizar pedidos.",
+      duration: 4000,
+      close: true,
+      gravity: "top",
+      position: "center",
+      style: { background: "linear-gradient(to right, #ff0000, #8b0000)" }
+    }).showToast();
     return;
   }
 
@@ -343,6 +371,7 @@ checkout.addEventListener("click", async function () {
   await salvarPedidoNoSupabase(pedidoSupabase);
 
   await atualizarClienteSupabase(usuario, retirarLocalChecked ? "Retirada no Local" : andressInput.value);
+
   // =====================================================
   // Salva no "Meus Pedidos" (localStorage)
   // =====================================================
@@ -371,7 +400,7 @@ checkout.addEventListener("click", async function () {
       li.innerHTML = `
         <strong>Pedido ${index + 1}:</strong> ${pedido.name} | Quantidade: ${pedido.quantity} | R$ ${pedido.price.toFixed(2)}
       `;
-      listaMeusPedidos.appendChild(li);
+      lista.appendChild(li);
     });
   })();
 
@@ -399,6 +428,7 @@ checkout.addEventListener("click", async function () {
   }, 500);
 
 });
+
 
 // ================================================
 // 🔥 NOVO → ATUALIZAR OU INSERIR CLIENTE NO SUPABASE

@@ -351,41 +351,28 @@ async function carregarClientes() {
   lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Carregando clientes...</td></tr>`;
 
   try {
-    // Buscar todos os pedidos
-    const { data: pedidos, error } = await supabase
-      .from("pedidos")
+    // Buscar todos os clientes da tabela "clientes"
+    const { data: clientes, error } = await supabase
+      .from("clientes")
       .select("*")
-      .order("id", { ascending: false });
+      .order("nome", { ascending: true });
 
     if (error) throw error;
-
-    // Extrair clientes únicos pelo nome
-    const clientesMap = new Map();
-    pedidos.forEach(p => {
-      if (!clientesMap.has(p.cliente)) {
-        clientesMap.set(p.cliente, {
-          nome: p.cliente || "—",
-          telefone: p.telefone || "—",
-          cidade: p.cidade || "—",
-          up: p.up || "—",
-        });
-      }
-    });
 
     // Limpar lista
     lista.innerHTML = "";
 
     // Adicionar linhas na tabela
-    Array.from(clientesMap.values()).forEach((cliente, index) => {
+    clientes.forEach((cliente, index) => {
       const tr = document.createElement("tr");
       tr.className = "hover:bg-gray-50";
 
       tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.nome}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.nome || "—"}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up || "—"}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
           <button class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold" data-acao="editar">Editar</button>
           <button class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold" data-acao="excluir">Excluir</button>
@@ -394,30 +381,37 @@ async function carregarClientes() {
       `;
 
       // Eventos dos botões
-      tr.querySelectorAll("button").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const acao = btn.dataset.acao;
-          switch (acao) {
-            case "editar":
-              alert(`Editar cliente: ${cliente.nome}`);
-              break;
-            case "excluir":
-              if (confirm(`Deseja realmente excluir ${cliente.nome}?`)) {
-                alert(`Cliente ${cliente.nome} excluído (implementação futura)`);
-              }
-              break;
-            case "bloquear":
-              alert(`Cliente ${cliente.nome} bloqueado (implementação futura)`);
-              break;
-          }
-        });
-      });
+      // Eventos dos botões
+tr.querySelectorAll("button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const acao = btn.dataset.acao;
+
+    switch (acao) {
+      case "editar":
+        editarCliente(cliente.id);
+        break;
+
+      case "excluir":
+        if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
+          excluirCliente(cliente.id);
+        }
+        break;
+
+      case "bloquear":
+        // Agora envia também o valor atual
+        bloquearCliente(cliente.id, cliente.bloqueado);
+        break;
+    }
+  });
+
+});
+
 
       lista.appendChild(tr);
     });
 
     // Se não houver clientes
-    if (clientesMap.size === 0) {
+    if (!clientes || clientes.length === 0) {
       lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
     }
 
@@ -440,6 +434,179 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+async function bloquearCliente(idCliente, statusAtual) {
+  const novoStatus = !statusAtual; // inverte (true → false / false → true)
+
+  const texto = novoStatus
+    ? "Deseja bloquear este cliente?"
+    : "Deseja desbloquear este cliente?";
+
+  if (!confirm(texto)) return;
+
+  const { error } = await supabase
+    .from("clientes")
+    .update({ bloqueado: novoStatus })
+    .eq("id", idCliente);
+
+  if (error) {
+    console.error("Erro ao atualizar bloqueio:", error);
+    alert("Erro ao atualizar o status do cliente.");
+    return;
+  }
+
+  // Atualiza a lista instantaneamente
+  carregarClientes();
+
+  // Mensagem moderna
+  showToast(
+    novoStatus
+      ? "Cliente bloqueado com sucesso!"
+      : "Cliente desbloqueado com sucesso!"
+  );
+}
+
+// =============================
+//     ABRIR MODAL EDITAR
+// =============================
+async function editarCliente(id) {
+  console.log("Abrindo edição para cliente:", id);
+
+  // Busca o cliente no Supabase
+  const { data: cliente, error } = await supabase
+    .from("clientes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !cliente) {
+    console.error("Erro ao carregar cliente:", error);
+    alert("Erro ao carregar dados do cliente.");
+    return;
+  }
+
+  // Preenche os campos do modal
+  document.getElementById("edit-id").value = cliente.id;
+  document.getElementById("edit-nome").value = cliente.nome || "";
+  document.getElementById("edit-telefone").value = cliente.telefone || "";
+  document.getElementById("edit-cidade").value = cliente.cidade || "";
+  document.getElementById("edit-up").value = cliente.up || "";
+
+  // Abre o modal
+  document.getElementById("modal-editar-cliente").classList.remove("hidden");
+  document.getElementById("modal-editar-cliente").classList.add("flex");
+}
+
+
+// =============================
+//     FECHAR MODAL EDITAR
+// =============================
+function fecharModalEditar() {
+  const modal = document.getElementById("modal-editar-cliente");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+
+// Eventos dos botões de fechar
+document.getElementById("fechar-modal-editar").addEventListener("click", fecharModalEditar);
+document.getElementById("cancelar-edicao").addEventListener("click", fecharModalEditar);
+// =============================
+//     SALVAR ALTERAÇÕES
+// =============================
+document.getElementById("form-editar-cliente").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById("edit-id").value;
+
+  // Aplicar máscara antes de salvar
+  const telefoneFormatado = aplicarMascaraTelefone(
+    document.getElementById("edit-telefone").value
+  );
+
+  const dadosAtualizados = {
+    nome: document.getElementById("edit-nome").value.trim(),
+    telefone: telefoneFormatado,
+    cidade: document.getElementById("edit-cidade").value.trim(),
+    up: document.getElementById("edit-up").value.trim(),
+  };
+
+  console.log("Salvando alterações do cliente:", dadosAtualizados);
+
+  const { error } = await supabase
+    .from("clientes")
+    .update(dadosAtualizados)
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao atualizar cliente:", error);
+    mostrarToast("Erro ao salvar alterações!", "bg-red-600"); // ⚠️ Toast de erro
+    return;
+  }
+
+  fecharModalEditar();
+  carregarClientes(); // Atualiza a lista sem reload
+
+  mostrarToast("Cliente atualizado com sucesso!", "bg-green-600"); // 🎉 Toast moderno
+});
+
+function mostrarToast(mensagem, cor = "bg-green-600") {
+  const toast = document.getElementById("toast");
+
+  // Muda o texto da mensagem
+  toast.textContent = mensagem;
+
+  // Remove qualquer cor antiga e aplica a nova
+  toast.classList.remove("bg-green-600", "bg-red-600", "bg-yellow-600", "bg-blue-600");
+  toast.classList.add(cor);
+
+  // Mostra o toast
+  toast.classList.remove("hidden");
+  setTimeout(() => toast.classList.add("opacity-100"), 10);
+
+  // Oculta após 3 segundos
+  setTimeout(() => {
+    toast.classList.remove("opacity-100");
+    setTimeout(() => toast.classList.add("hidden"), 300);
+  }, 3000);
+}
+
+
+// =============================
+//   MÁSCARA PARA TELEFONE
+// =============================
+function aplicarMascaraTelefone(valor) {
+  valor = valor.replace(/\D/g, ""); // remove tudo que não é número
+
+  if (valor.length <= 10) {
+    // Formato fixo
+    return valor.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+  } else {
+    // Formato celular
+    return valor.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
+  }
+}
+
+// ===============================
+//   MÁSCARA DO TELEFONE NO MODAL
+// ===============================
+document.getElementById("edit-telefone").addEventListener("input", function (e) {
+  let valor = e.target.value.replace(/\D/g, ""); // remove tudo que não é número
+
+  if (valor.length > 11) valor = valor.slice(0, 11); // limita a 11 dígitos
+
+  if (valor.length <= 10) {
+    // formato (11) 3456-7890
+    valor = valor.replace(/^(\d{2})(\d)/, "($1) $2");
+    valor = valor.replace(/(\d{4})(\d)/, "$1-$2");
+  } else {
+    // formato (11) 98765-4321
+    valor = valor.replace(/^(\d{2})(\d)/, "($1) $2");
+    valor = valor.replace(/(\d{5})(\d)/, "$1-$2");
+  }
+
+  e.target.value = valor;
+});
 
 // =============================
 //   REALTIME — Atualizações ao vivo

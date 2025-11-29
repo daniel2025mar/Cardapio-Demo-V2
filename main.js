@@ -207,7 +207,6 @@ async function salvarPedidoNoSupabase(pedido) {
 
   return true;
 }
-
 checkout.addEventListener("click", async function () {
 
   // 🔹 Verifica se o usuário está logado
@@ -345,7 +344,7 @@ checkout.addEventListener("click", async function () {
   window.open(`https://wa.me/${phone}?text=${mensagem}`);
 
   // ================================================
-  // 🔥 NOVO → SALVAR NO SUPABASE
+  // 🔥 SALVAR NO SUPABASE
   // ================================================
   const usuario = JSON.parse(storedUser);
 
@@ -374,7 +373,7 @@ checkout.addEventListener("click", async function () {
   await atualizarClienteSupabase(usuario, retirarLocalChecked ? "Retirada no Local" : andressInput.value);
 
   // =====================================================
-  // Salva no "Meus Pedidos" (localStorage)
+  // Salva no "Meus Pedidos"
   // =====================================================
   let pedidosFinalizados = JSON.parse(localStorage.getItem("pedidosFinalizados")) || [];
 
@@ -415,7 +414,7 @@ checkout.addEventListener("click", async function () {
     const modal = document.getElementById('pedido-sucesso-modal');
     const modalBox = document.getElementById('pedido-modal-box');
     modal.classList.remove('hidden');
-    
+
     setTimeout(() => {
       modalBox.classList.remove('scale-90', 'opacity-0');
       modalBox.classList.add('scale-100', 'opacity-100');
@@ -429,7 +428,6 @@ checkout.addEventListener("click", async function () {
   }, 500);
 
 });
-
 
 // ================================================
 // 🔥 NOVO → ATUALIZAR OU INSERIR CLIENTE NO SUPABASE

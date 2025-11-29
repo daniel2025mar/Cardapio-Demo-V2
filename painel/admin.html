@@ -117,9 +117,12 @@
         </label>
 
         <label data-menu="pedidos" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
-          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M9 12h6m-3-3v6m9-6A9 9 0 113 12a9 9 0 0118 0z"/></svg>
-          <span>Pedidos</span>
-        </label>
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+  <span>Pedidos</span>
+</label>
+
 
         <label data-menu="clientes" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87"/></svg>
@@ -321,24 +324,29 @@
     </div>
 
     <!-- Ações principais -->
-    <div class="flex items-center justify-between mt-6 gap-4">
-      <div class="flex items-center gap-3">
-        <button class="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold">Em Preparo</button>
+    <!-- Ações principais -->
+<div class="flex flex-wrap md:flex-nowrap items-center justify-start gap-3 mt-4">
+  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
+    Em Preparo
+  </button>
 
-        <button class="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold">
-  Em Entrega
-</button>
+  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
+    Em Entrega
+  </button>
 
-      <button class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold">
-  Cancelar
-</button>
-  
-      </div>
+  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
+    Cancelar
+  </button>
 
-      <div class="flex items-center gap-3">
-        <button class="px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50">Imprimir</button>
-        <button class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold">Salvar Resposta</button>
-      </div>
+  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold text-center whitespace-nowrap transition-colors">
+    Imprimir
+  </button>
+
+  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
+    Finalizar
+  </button>
+</div>
+
     </div>
 
   </div>
@@ -361,6 +369,10 @@
     </main>
   </div>
 
+  <!-- FOOTER -->
+  <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">
+    Desenvolvido por DM DESIGN GRAFICO
+  </footer>
   <!-- seu script (mantive para que seu admin.js continue sendo carregado) -->
   <script type="module" src="admin.js"></script>
 

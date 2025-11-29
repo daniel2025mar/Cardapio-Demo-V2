@@ -151,12 +151,12 @@
         <div class="flex items-center justify-between mb-6">
           <div>
             <h2 class="text-3xl font-bold">Pedidos Recebidos</h2>
-            <p class="text-sm text-gray-500 mt-1">Lista completa com detalhes do pedido — layout visual pronto para integração.</p>
+            <p class="text-sm text-gray-500 mt-1">Lista completa com detalhes do pedido.</p>
           </div>
 
           <div class="flex items-center gap-3">
-            <button class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold">Novo Pedido (demo)</button>
-            <button class="px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 font-medium">Imprimir</button>
+            
+  
           </div>
         </div>
 
@@ -168,9 +168,11 @@
             <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-4">
               <div class="flex items-center justify-between mb-4">
                 <div>
-                  <p class="font-semibold text-lg">Fila de Pedidos</p>
-                  <p class="text-sm text-gray-500">Últimos pedidos recebidos</p>
-                </div>
+                 <p class="font-bold text-xl tracking-wide text-gray-800">Fila de Pedidos</p>
+
+  <p class="text-sm text-gray-500">Últimos pedidos recebidos</p>
+</div>
+
                 <span class="text-sm text-gray-600">3</span>
               </div>
 
@@ -223,135 +225,125 @@
               </div>
             </div>
           </div>
+        <!-- DETALHE DO PEDIDO (col 2-3) -->
+<div class="col-span-2">
+  <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
 
-          <!-- DETALHE DO PEDIDO (col 2-3) -->
-          <div class="col-span-2">
-            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
-              <!-- header topo do detalhe -->
-              <div class="flex items-start justify-between gap-6 mb-6">
-                <div class="flex-1">
-                  <p class="text-2xl font-bold text-gray-900">Pedido <span class="text-indigo-600">#1024</span></p>
-                  <p class="text-sm text-gray-500 mt-1">Recebido em <strong>14:32</strong> — Pedido para entrega</p>
-                </div>
+    <!-- header topo do detalhe -->
+    <div class="flex items-start justify-between gap-6 mb-6">
+      <div class="flex-1">
+        <p class="text-2xl font-bold text-gray-900">
+          Pedido <span class="text-indigo-600" id="pedido-numero">0000</span>
+        </p>
+        <p class="text-sm text-gray-500 mt-1">
+          Recebido em <strong id="pedido-hora">--:--</strong> — 
+          <span id="pedido-tipo">Pedido para entrega</span>
+        </p>
+      </div>
 
-                <div class="flex flex-col items-end gap-3">
-                  <div class="badge bg-green-100 text-green-800">🟢 Recebido</div>
-                  <div class="text-right">
-                    <p class="text-sm text-gray-500">Total</p>
-                    <p class="text-xl font-extrabold text-gray-900">R$ 34,00</p>
-                  </div>
-                </div>
-              </div>
+      <div class="flex flex-col items-end gap-3">
+        <div class="badge bg-green-100 text-green-800" id="pedido-status">🟢 Recebido</div>
+        <div class="text-right">
+          <p class="text-sm text-gray-500">Total</p>
+          <p class="text-xl font-extrabold text-gray-900" id="total-pedido">R$ 0,00</p>
+        </div>
+      </div>
+    </div>
 
-              <div class="grid md:grid-cols-3 gap-6">
-                <!-- coluna 1: cliente -->
-                <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
-                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Cliente</h4>
-                  <p class="font-semibold text-gray-900">João Pereira</p>
-                  <p class="text-sm text-gray-600">Telefone: (11) 98888-1122</p>
-                  <p class="text-sm text-gray-600 mt-2">Endereço:</p>
-                  <p class="text-sm font-medium text-gray-800">Rua das Flores, 123 — Centro</p>
-                  <p class="text-xs text-gray-500 mt-1">Referência: Portão azul</p>
+    <div class="grid md:grid-cols-3 gap-6">
 
-                  <div class="mt-4">
-                    <h5 class="text-sm font-semibold text-gray-700">Pagamento</h5>
-                    <div class="mt-2">
-                      <div class="badge bg-indigo-100 text-indigo-700">PIX</div>
-                    </div>
-                  </div>
-                </div>
+      <!-- coluna 1: cliente -->
+      <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
+  
+  <h4 class="text-sm font-semibold text-gray-700 mb-3">Cliente</h4>
 
-                <!-- coluna 2: itens -->
-                <div class="md:col-span-1 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Itens do Pedido</h4>
+  <!-- Nome -->
+  <p class="font-semibold text-gray-900" id="cliente-nome">—</p>
 
-                  <ul class="space-y-3">
-                    <li class="flex justify-between items-center">
-                      <div>
-                        <p class="font-medium text-gray-900">🍔 X-Burguer</p>
-                        <p class="text-xs text-gray-500">Sem cebola</p>
-                      </div>
-                      <p class="font-semibold text-gray-900">R$ 18,00</p>
-                    </li>
+  <!-- Telefone -->
+  <p class="text-sm text-gray-600">
+    Telefone: <span id="cliente-telefone">—</span>
+  </p>
 
-                    <li class="flex justify-between items-center">
-                      <div>
-                        <p class="font-medium text-gray-900">🍟 Batata Média</p>
-                        <p class="text-xs text-gray-500">Extra crocante</p>
-                      </div>
-                      <p class="font-semibold text-gray-900">R$ 10,00</p>
-                    </li>
+  <!-- Endereço -->
+  <p class="text-sm text-gray-600 mt-2">Endereço:</p>
+  <p class="text-sm font-medium text-gray-800" id="cliente-endereco">—</p>
 
-                    <li class="flex justify-between items-center">
-                      <div>
-                        <p class="font-medium text-gray-900">🥤 Refrigerante</p>
-                        <p class="text-xs text-gray-500">Pouco gelo</p>
-                      </div>
-                      <p class="font-semibold text-gray-900">R$ 6,00</p>
-                    </li>
-                  </ul>
+  <!-- Referência -->
+  <p class="text-xs text-gray-500 mt-1">
+    Referência: <span id="cliente-referencia">—</span>
+  </p>
 
-                  <div class="border-t mt-4 pt-3">
-                    <div class="flex justify-between text-gray-600">
-                      <span>Sub-total</span>
-                      <span>R$ 34,00</span>
-                    </div>
-                  </div>
-                </div>
+  <!-- Pagamento -->
+  <div class="mt-4">
+    <h5 class="text-sm font-semibold text-gray-700">Pagamento</h5>
+    <div class="mt-2">
+      <div class="badge bg-indigo-100 text-indigo-700" id="tipo-pagamento">—</div>
+    </div>
+  </div>
 
-                <!-- coluna 3: observações + timeline -->
-                <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
-                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Observações</h4>
-                  <p class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-100">Tirar cebola do lanche. Refrigerante com pouco gelo.</p>
+</div>
 
-                  <div class="mt-5">
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Linha do tempo</h4>
-                    <div class="space-y-3 text-sm text-gray-600">
-                      <div class="flex items-start gap-3">
-                        <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
-                        <div>
-                          <div class="font-medium text-gray-900">Recebido</div>
-                          <div class="text-xs text-gray-500">14:32</div>
-                        </div>
-                      </div>
 
-                      <div class="flex items-start gap-3">
-                        <div class="w-2 h-2 rounded-full bg-yellow-400 mt-2"></div>
-                        <div>
-                          <div class="font-medium text-gray-900">Em preparo</div>
-                          <div class="text-xs text-gray-500">—</div>
-                        </div>
-                      </div>
+      <!-- coluna 2: itens -->
+      <div class="md:col-span-1 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+    <h4 class="text-sm font-semibold text-gray-700 mb-3">Itens do Pedido</h4>
 
-                      <div class="flex items-start gap-3">
-                        <div class="w-2 h-2 rounded-full bg-gray-300 mt-2"></div>
-                        <div>
-                          <div class="font-medium text-gray-900">Saiu para entrega</div>
-                          <div class="text-xs text-gray-500">—</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+    <ul class="space-y-3" id="lista-itens">
+        <!-- ITENS ENTRAM AQUI -->
+    </ul>
 
-                </div>
-              </div>
+    <div class="border-t mt-4 pt-3">
+        <div class="flex justify-between text-gray-600">
+            <span>Sub-total</span>
+            <span id="subtotal-pedido">R$ 0,00</span>
+        </div>
+    </div>
+</div>
 
-              <!-- Ações principais -->
-              <div class="flex items-center justify-between mt-6 gap-4">
-                <div class="flex items-center gap-3">
-                  <button class="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-semibold">Marcar Em Preparo</button>
-                  <button class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold">Marcar Saiu para Entrega</button>
-                  <button class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold">Cancelar</button>
-                </div>
+      <!-- coluna 3: observações + timeline -->
+      <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3">Observações</h4>
 
-                <div class="flex items-center gap-3">
-                  <button class="px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50">Imprimir</button>
-                  <button class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold">Salvar Resposta</button>
-                </div>
-              </div>
+        <p id="pedido-observacoes"
+           class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-100">
+           Nenhuma observação.
+        </p>
 
-            </div>
+        <div class="mt-5">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">Linha do tempo</h4>
+          <div class="space-y-3 text-sm text-gray-600" id="pedido-timeline">
+            <!-- TIMELINE GERADA PELO JS -->
           </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Ações principais -->
+    <div class="flex items-center justify-between mt-6 gap-4">
+      <div class="flex items-center gap-3">
+        <button class="px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold">Em Preparo</button>
+
+        <button class="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold">
+  Em Entrega
+</button>
+
+      <button class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold">
+  Cancelar
+</button>
+  
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button class="px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50">Imprimir</button>
+        <button class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold">Salvar Resposta</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
         </div>
       </section>

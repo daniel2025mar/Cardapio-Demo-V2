@@ -342,6 +342,7 @@ checkout.addEventListener("click", async function () {
 
   await salvarPedidoNoSupabase(pedidoSupabase);
 
+  await atualizarClienteSupabase(usuario, retirarLocalChecked ? "Retirada no Local" : andressInput.value);
   // =====================================================
   // Salva no "Meus Pedidos" (localStorage)
   // =====================================================
@@ -398,6 +399,61 @@ checkout.addEventListener("click", async function () {
   }, 500);
 
 });
+
+// ================================================
+// 🔥 NOVO → ATUALIZAR OU INSERIR CLIENTE NO SUPABASE
+// ================================================
+async function atualizarClienteSupabase(usuario, endereco) {
+  try {
+    // Verifica se o cliente já existe
+    const { data: clienteExistente, error: selectError } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('telefone', usuario.phone)
+      .single(); // Assume que o telefone é único
+
+    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = Not found
+      console.error("Erro ao buscar cliente:", selectError);
+      return;
+    }
+
+    if (clienteExistente) {
+      // Atualiza os dados do cliente
+      const { error: updateError } = await supabase
+        .from('clientes')
+        .update({
+          nome: usuario.name,
+          telefone: usuario.phone,
+          cidade: usuario.city || clienteExistente.cidade || '',
+          up: usuario.up || clienteExistente.up || '',
+          endereco: endereco
+        })
+        .eq('id', clienteExistente.id);
+
+      if (updateError) {
+        console.error("Erro ao atualizar cliente:", updateError);
+      }
+    } else {
+      // Insere novo cliente
+      const { error: insertError } = await supabase
+        .from('clientes')
+        .insert({
+          nome: usuario.name,
+          telefone: usuario.phone,
+          cidade: usuario.city || '',
+          up: usuario.up || '',
+          endereco: endereco
+        });
+
+      if (insertError) {
+        console.error("Erro ao inserir cliente:", insertError);
+      }
+    }
+  } catch (err) {
+    console.error("Erro geral ao atualizar cliente:", err);
+  }
+}
+
 //horario de funcionamento
 function checkRestauranteOpen(){
    const data = new Date();

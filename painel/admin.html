@@ -22,10 +22,7 @@
     }
 
     @media (max-width: 1024px) {
-      /* transforma para layout single-column em telas menores */
-      .orders-grid {
-        grid-template-columns: 1fr !important;
-      }
+      .orders-grid { grid-template-columns: 1fr !important; }
       aside {
         position: fixed;
         left: -100%;
@@ -39,12 +36,8 @@
       header h1 { display: none; }
     }
 
-    @media (max-width: 768px) {
-      .menu-toggle { display: block; }
-    }
-
+    @media (max-width: 768px) { .menu-toggle { display: block; } }
     .menu-toggle { display: none; }
-
     #overlay {
       display: none;
       position: fixed;
@@ -53,28 +46,26 @@
       z-index: 40;
     }
     #overlay.show { display: block; }
-
     aside { top: 64px; }
 
     /* small enhancements */
-    .badge {
-      font-weight: 700;
-      font-size: 0.8rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 9999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
+    .badge { font-weight: 700; font-size: 0.8rem; padding: 0.25rem 0.6rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .order-list-item:hover { transform: translateY(-3px); transition: transform .18s ease; }
+
+    /* SCROLL SÓ PARA A FILA DE PEDIDOS: mostra 3 itens */
+    .fila-pedidos-list {
+      max-height: calc(3 * 6rem);
+      overflow-y: auto;
+      padding-right: 0.25rem;
+      scroll-behavior: smooth;
     }
-    .order-list-item:hover {
-      transform: translateY(-3px);
-      transition: transform .18s ease;
-    }
+    .fila-pedidos-list::-webkit-scrollbar { width: 6px; }
+    .fila-pedidos-list::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.2); border-radius: 9999px; }
+    .fila-pedidos-list::-webkit-scrollbar-track { background: transparent; }
   </style>
 </head>
 
 <body class="h-screen flex flex-col bg-gray-100">
-
   <div id="overlay"></div>
 
   <!-- TOPO -->
@@ -85,12 +76,9 @@
               d="M4 6h16M4 12h16M4 18h16"/>
       </svg>
     </button>
-
     <h1 class="text-xl font-bold truncate hidden md:block">Painel Administrativo</h1>
-
     <div class="flex items-center gap-4 ml-auto">
       <span id="usuario-logado" class="hidden md:block">Usuário</span>
-
       <button id="btn-logout" class="p-2 rounded hover:bg-blue-600 transition-colors" title="Sair" aria-label="Sair">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
              viewBox="0 0 24 24" stroke="currentColor">
@@ -102,7 +90,6 @@
   </header>
 
   <div class="flex flex-1 overflow-hidden">
-
     <!-- SIDEBAR -->
     <aside id="sidebar" class="bg-gradient-to-b from-gray-900 to-gray-800 text-white w-64 flex-shrink-0 p-4 overflow-y-auto shadow-xl border-r border-gray-700 transition-all duration-300">
       <nav class="flex flex-col gap-2">
@@ -110,25 +97,20 @@
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M3 12l2-2m7-7l7 7M5 10v10h3m10-11l2 2v10h-3M9 20h6"/></svg>
           <span>Dashboard</span>
         </label>
-
         <label data-menu="produtos" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M20 13V7H5v6m15 0v6H6V13"/></svg>
           <span>Produtos</span>
         </label>
-
         <label data-menu="pedidos" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-  <span>Pedidos</span>
-</label>
-
-
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span>Pedidos</span>
+        </label>
         <label data-menu="clientes" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87"/></svg>
           <span>Clientes</span>
         </label>
-
         <label data-menu="funcionarios" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87"/></svg>
           <span>Funcionários</span>
@@ -149,38 +131,30 @@
         <p>Aqui você gerencia os produtos do cardápio.</p>
       </section>
 
-      <!-- PEDIDOS - SUPER COMPLETO (VISUAL) -->
+      <!-- PEDIDOS -->
       <section id="pedidos" class="content-section mb-10">
         <div class="flex items-center justify-between mb-6">
           <div>
             <h2 class="text-3xl font-bold">Pedidos Recebidos</h2>
             <p class="text-sm text-gray-500 mt-1">Lista completa com detalhes do pedido.</p>
           </div>
-
-          <div class="flex items-center gap-3">
-            
-  
-          </div>
         </div>
 
         <!-- GRID: lista lateral + detalhe -->
         <div class="orders-grid grid grid-cols-3 gap-6">
-
           <!-- LISTA DE PEDIDOS (col 1) -->
           <div class="col-span-1">
             <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-4">
               <div class="flex items-center justify-between mb-4">
                 <div>
                  <p class="font-bold text-xl tracking-wide text-gray-800">Fila de Pedidos</p>
-
-  <p class="text-sm text-gray-500">Últimos pedidos recebidos</p>
-</div>
-
+                  <p class="text-sm text-gray-500">Últimos pedidos recebidos</p>
+              </div>
                 <span class="text-sm text-gray-600">3</span>
               </div>
 
-              <div class="space-y-3">
-                <!-- item 1 -->
+              <div class="space-y-3 fila-pedidos-list">
+                <!-- exemplo de itens -->
                 <div class="order-list-item bg-gray-50 p-3 rounded-lg border-l-4 border-yellow-400 cursor-pointer">
                   <div class="flex justify-between items-start">
                     <div>
@@ -194,172 +168,129 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- item 2 -->
-                <div class="order-list-item bg-white p-3 rounded-lg border border-gray-200 order-shadow cursor-pointer">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <p class="font-semibold">#1026 — Carlos Silva</p>
-                      <p class="text-sm text-gray-500">Av. Central, 230 • Cartão</p>
-                      <p class="text-xs text-gray-400 mt-1">Retirar na loja</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="font-semibold">R$ 34,00</p>
-                      <p class="text-sm text-gray-500">15:10</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- item 3 -->
-                <div class="order-list-item bg-white p-3 rounded-lg border border-gray-200 cursor-pointer">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <p class="font-semibold">#1024 — João Pereira</p>
-                      <p class="text-sm text-gray-500">Rua das Flores, 123 • PIX</p>
-                      <p class="text-xs text-gray-400 mt-1">Portão azul</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="font-semibold">R$ 34,00</p>
-                      <p class="text-sm text-gray-500">14:32</p>
-                    </div>
-                  </div>
-                </div>
-
+                <!-- demais itens repetidos -->
               </div>
             </div>
           </div>
-        <!-- DETALHE DO PEDIDO (col 2-3) -->
-<div class="col-span-2">
-  <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
 
-    <!-- header topo do detalhe -->
-    <div class="flex items-start justify-between gap-6 mb-6">
-      <div class="flex-1">
-        <p class="text-2xl font-bold text-gray-900">
-          Pedido <span class="text-indigo-600" id="pedido-numero">0000</span>
-        </p>
-        <p class="text-sm text-gray-500 mt-1">
-          Recebido em <strong id="pedido-hora">--:--</strong> — 
-          <span id="pedido-tipo">Pedido para entrega</span>
-        </p>
-      </div>
+          <!-- DETALHE DO PEDIDO (col 2-3) -->
+          <div class="col-span-2">
+            <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+              <!-- detalhe do pedido (mesmo conteúdo atual) -->
+              <div class="flex items-start justify-between gap-6 mb-6">
+                <div class="flex-1">
+                  <p class="text-2xl font-bold text-gray-900">
+                    Pedido <span class="text-indigo-600" id="pedido-numero">0000</span>
+                  </p>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Recebido em <strong id="pedido-hora">--:--</strong> — 
+                    <span id="pedido-tipo">Pedido para entrega</span>
+                  </p>
+                </div>
 
-      <div class="flex flex-col items-end gap-3">
-        <div class="badge bg-green-100 text-green-800" id="pedido-status">🟢 Recebido</div>
-        <div class="text-right">
-          <p class="text-sm text-gray-500">Total</p>
-          <p class="text-xl font-extrabold text-gray-900" id="total-pedido">R$ 0,00</p>
-        </div>
-      </div>
-    </div>
+                <div class="flex flex-col items-end gap-3">
+                  <div class="badge bg-green-100 text-green-800" id="pedido-status">🟢 Recebido</div>
+                  <div class="text-right">
+                    <p class="text-sm text-gray-500">Total</p>
+                    <p class="text-xl font-extrabold text-gray-900" id="total-pedido">R$ 0,00</p>
+                  </div>
+                </div>
+              </div>
 
-    <div class="grid md:grid-cols-3 gap-6">
+              <div class="grid md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Cliente</h4>
+                  <p class="font-semibold text-gray-900" id="cliente-nome">—</p>
+                  <p class="text-sm text-gray-600">Telefone: <span id="cliente-telefone">—</span></p>
+                  <p class="text-sm text-gray-600 mt-2">Endereço:</p>
+                  <p class="text-sm font-medium text-gray-800" id="cliente-endereco">—</p>
+                  <p class="text-xs text-gray-500 mt-1">Referência: <span id="cliente-referencia">—</span></p>
+                  <div class="mt-4">
+                    <h5 class="text-sm font-semibold text-gray-700">Pagamento</h5>
+                    <div class="mt-2">
+                      <div class="badge bg-indigo-100 text-indigo-700" id="tipo-pagamento">—</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="md:col-span-1 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Itens do Pedido</h4>
+                  <ul class="space-y-3" id="lista-itens"></ul>
+                  <div class="border-t mt-4 pt-3">
+                    <div class="flex justify-between text-gray-600">
+                      <span>Sub-total</span>
+                      <span id="subtotal-pedido">R$ 0,00</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
+                  <h4 class="text-sm font-semibold text-gray-700 mb-3">Observações</h4>
+                  <p id="pedido-observacoes" class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-100">Nenhuma observação.</p>
+                  <div class="mt-5">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Linha do tempo</h4>
+                    <div class="space-y-3 text-sm text-gray-600" id="pedido-timeline"></div>
+                  </div>
+                </div>
+              </div>
 
-      <!-- coluna 1: cliente -->
-      <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
-  
-  <h4 class="text-sm font-semibold text-gray-700 mb-3">Cliente</h4>
-
-  <!-- Nome -->
-  <p class="font-semibold text-gray-900" id="cliente-nome">—</p>
-
-  <!-- Telefone -->
-  <p class="text-sm text-gray-600">
-    Telefone: <span id="cliente-telefone">—</span>
-  </p>
-
-  <!-- Endereço -->
-  <p class="text-sm text-gray-600 mt-2">Endereço:</p>
-  <p class="text-sm font-medium text-gray-800" id="cliente-endereco">—</p>
-
-  <!-- Referência -->
-  <p class="text-xs text-gray-500 mt-1">
-    Referência: <span id="cliente-referencia">—</span>
-  </p>
-
-  <!-- Pagamento -->
-  <div class="mt-4">
-    <h5 class="text-sm font-semibold text-gray-700">Pagamento</h5>
-    <div class="mt-2">
-      <div class="badge bg-indigo-100 text-indigo-700" id="tipo-pagamento">—</div>
-    </div>
-  </div>
-
-</div>
-
-
-      <!-- coluna 2: itens -->
-      <div class="md:col-span-1 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-    <h4 class="text-sm font-semibold text-gray-700 mb-3">Itens do Pedido</h4>
-
-    <ul class="space-y-3" id="lista-itens">
-        <!-- ITENS ENTRAM AQUI -->
-    </ul>
-
-    <div class="border-t mt-4 pt-3">
-        <div class="flex justify-between text-gray-600">
-            <span>Sub-total</span>
-            <span id="subtotal-pedido">R$ 0,00</span>
-        </div>
-    </div>
-</div>
-
-      <!-- coluna 3: observações + timeline -->
-      <div class="md:col-span-1 bg-gray-50 rounded-xl p-4">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Observações</h4>
-
-        <p id="pedido-observacoes"
-           class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-100">
-           Nenhuma observação.
-        </p>
-
-        <div class="mt-5">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3">Linha do tempo</h4>
-          <div class="space-y-3 text-sm text-gray-600" id="pedido-timeline">
-            <!-- TIMELINE GERADA PELO JS -->
+              <div class="flex flex-wrap md:flex-nowrap items-center justify-start gap-3 mt-4">
+                <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">Em Preparo</button>
+                <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">Em Entrega</button>
+                <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">Cancelar</button>
+                <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold text-center whitespace-nowrap transition-colors">Imprimir</button>
+                <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">Finalizar</button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-    </div>
-
-    <!-- Ações principais -->
-    <!-- Ações principais -->
-<div class="flex flex-wrap md:flex-nowrap items-center justify-start gap-3 mt-4">
-  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
-    Em Preparo
-  </button>
-
-  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
-    Em Entrega
-  </button>
-
-  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
-    Cancelar
-  </button>
-
-  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold text-center whitespace-nowrap transition-colors">
-    Imprimir
-  </button>
-
-  <button class="flex-1 md:flex-none md:min-w-[0] px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold text-center whitespace-nowrap transition-colors">
-    Finalizar
-  </button>
-</div>
-
-    </div>
-
-  </div>
-</div>
-
-
+        <!-- NOVO CARD DE ACOMPANHAMENTO -->
+        <div class="mt-6 bg-white rounded-2xl shadow-md border border-gray-200 p-4">
+          <h3 class="text-xl font-bold mb-3">Acompanhamento de Pedidos</h3>
+          <div class="grid grid-cols-3 gap-4 text-center">
+            <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+              <p class="font-semibold text-yellow-800">Preparados</p>
+              <p class="text-2xl font-bold" id="total-preparados">0</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+              <p class="font-semibold text-green-800">Saiu para Entrega</p>
+              <p class="text-2xl font-bold" id="total-entrega">0</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-400">
+              <p class="font-semibold text-gray-800">Finalizados</p>
+              <p class="text-2xl font-bold" id="total-finalizados">0</p>
+            </div>
+          </div>
         </div>
+
       </section>
 
       <section id="clientes" class="content-section mb-8">
-        <h2 class="text-3xl font-bold mb-4">Clientes</h2>
-        <p>Gerencie os clientes cadastrados.</p>
-      </section>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-3xl font-bold mb-4">Clientes</h2>
+    <button id="btn-cadastrar-cliente" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors">
+      Cadastrar Cliente
+    </button>
+  </div>
+
+  <div class="overflow-x-auto bg-white rounded-2xl shadow-md border border-gray-200">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cidade</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UP</th>
+          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200" id="lista-clientes">
+        <!-- Clientes serão adicionados dinamicamente via JS -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
 
       <section id="funcionarios" class="content-section mb-8">
         <h2 class="text-3xl font-bold mb-4">Funcionários</h2>
@@ -373,8 +304,7 @@
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">
     Desenvolvido por DM DESIGN GRAFICO
   </footer>
-  <!-- seu script (mantive para que seu admin.js continue sendo carregado) -->
-  <script type="module" src="admin.js"></script>
 
+  <script type="module" src="admin.js"></script>
 </body>
 </html>

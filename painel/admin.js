@@ -342,6 +342,106 @@ function mostrarItensPedido(itens) {
 }
 
 // =============================
+//   CARREGAR CLIENTES DO SUPABASE
+// =============================
+async function carregarClientes() {
+  const lista = document.getElementById("lista-clientes");
+  if (!lista) return;
+
+  lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Carregando clientes...</td></tr>`;
+
+  try {
+    // Buscar todos os pedidos
+    const { data: pedidos, error } = await supabase
+      .from("pedidos")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) throw error;
+
+    // Extrair clientes únicos pelo nome
+    const clientesMap = new Map();
+    pedidos.forEach(p => {
+      if (!clientesMap.has(p.cliente)) {
+        clientesMap.set(p.cliente, {
+          nome: p.cliente || "—",
+          telefone: p.telefone || "—",
+          cidade: p.cidade || "—",
+          up: p.up || "—",
+        });
+      }
+    });
+
+    // Limpar lista
+    lista.innerHTML = "";
+
+    // Adicionar linhas na tabela
+    Array.from(clientesMap.values()).forEach((cliente, index) => {
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-gray-50";
+
+      tr.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.nome}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
+          <button class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold" data-acao="editar">Editar</button>
+          <button class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold" data-acao="excluir">Excluir</button>
+          <button class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold" data-acao="bloquear">Bloquear</button>
+        </td>
+      `;
+
+      // Eventos dos botões
+      tr.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const acao = btn.dataset.acao;
+          switch (acao) {
+            case "editar":
+              alert(`Editar cliente: ${cliente.nome}`);
+              break;
+            case "excluir":
+              if (confirm(`Deseja realmente excluir ${cliente.nome}?`)) {
+                alert(`Cliente ${cliente.nome} excluído (implementação futura)`);
+              }
+              break;
+            case "bloquear":
+              alert(`Cliente ${cliente.nome} bloqueado (implementação futura)`);
+              break;
+          }
+        });
+      });
+
+      lista.appendChild(tr);
+    });
+
+    // Se não houver clientes
+    if (clientesMap.size === 0) {
+      lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
+    }
+
+  } catch (err) {
+    console.error("Erro ao carregar clientes:", err);
+    lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
+  }
+}
+
+// Chamar a função após carregar o DOM
+document.addEventListener("DOMContentLoaded", () => {
+  carregarClientes();
+
+  // Botão cadastrar cliente
+  const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
+  if (btnCadastrar) {
+    btnCadastrar.addEventListener("click", () => {
+      alert("Abrir formulário de cadastro de cliente (implementação futura)");
+    });
+  }
+});
+
+
+// =============================
 //   REALTIME — Atualizações ao vivo
 // =============================
 supabase

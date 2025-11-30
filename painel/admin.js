@@ -46,7 +46,87 @@ document.addEventListener("DOMContentLoaded", async () => {
   aplicarPermissoes(usuario);
   ativarMenuMobile();
   carregarPedidos();
+
+  // ================================
+  // BOTÃO FINALIZAR PEDIDO
+  // ================================
+  const btnFinalizar = document.getElementById("btn-finalizar-pedido");
+
+  if (btnFinalizar) {
+    btnFinalizar.addEventListener("click", async () => { // <- async para usar Supabase
+
+      // ⚠️ VALIDAÇÃO: verificar se existe um pedido carregado
+      const numeroPedido = document.getElementById("pedido-numero").textContent;
+
+      if (!numeroPedido || numeroPedido === "0000") {
+        mostrarToast("Nenhum pedido selecionado.", "bg-red-600");
+        return;
+      }
+
+      try {
+        // ================================
+        // Atualizar status no Supabase
+        // ================================
+        const { error } = await supabase
+          .from("pedidos")
+          .update({ status: "Finalizado" })
+          .eq("id", numeroPedido);
+
+        if (error) {
+          console.error("Erro ao atualizar status:", error);
+          mostrarToast("Erro ao finalizar pedido.", "bg-red-600");
+          return;
+        }
+
+        // ================================
+        // Atualizar contador de pedidos finalizados
+        // ================================
+        const contador = document.getElementById("total-finalizados");
+        contador.textContent = Number(contador.textContent || 0) + 1;
+
+        // ================================
+        // Remover pedido da fila de pedidos
+        // ================================
+        const filaPedidos = document.querySelectorAll(".fila-pedidos-list .order-list-item");
+        filaPedidos.forEach(item => {
+          const texto = item.querySelector("p.font-semibold").textContent;
+          const idItem = texto.split("—")[0].replace("#", "").trim();
+          if (idItem === numeroPedido) {
+            item.remove(); // remove o card da fila
+          }
+        });
+
+        // ================================
+        // Limpar informações do card de detalhes do pedido
+        // ================================
+        document.getElementById("pedido-numero").textContent = "0000";
+        document.getElementById("pedido-hora").textContent = "--:--";
+        document.getElementById("pedido-tipo").textContent = "Pedido para entrega";
+        document.getElementById("pedido-status").textContent = "🟢 Recebido";
+        document.getElementById("total-pedido").textContent = "R$ 0,00";
+
+        document.getElementById("cliente-nome").textContent = "—";
+        document.getElementById("cliente-telefone").textContent = "—";
+        document.getElementById("cliente-endereco").textContent = "—";
+        document.getElementById("cliente-referencia").textContent = "—";
+        document.getElementById("tipo-pagamento").textContent = "—";
+
+        document.getElementById("lista-itens").innerHTML = "";
+        document.getElementById("subtotal-pedido").textContent = "R$ 0,00";
+
+        document.getElementById("pedido-observacoes").textContent = "Nenhuma observação.";
+        document.getElementById("pedido-timeline").innerHTML = "";
+
+        mostrarToast("Pedido finalizado e removido da fila!", "bg-indigo-600");
+
+      } catch (err) {
+        console.error("Erro ao finalizar pedido:", err);
+        mostrarToast("Erro ao finalizar pedido.", "bg-red-600");
+      }
+    });
+  }
 });
+
 
 // ===============================
 //   APLICAR PERMISSÕES
@@ -364,24 +444,32 @@ async function carregarClientes() {
 
     // Adicionar linhas na tabela
     clientes.forEach((cliente, index) => {
-      const tr = document.createElement("tr");
-      tr.className = "hover:bg-gray-50";
+  const tr = document.createElement("tr");
+  tr.className = "hover:bg-gray-50";
 
-      tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.nome || "—"}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up || "—"}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
-          <button class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold" data-acao="editar">Editar</button>
-          <button class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold" data-acao="excluir">Excluir</button>
-          <button class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold" data-acao="bloquear">Bloquear</button>
-        </td>
-      `;
+  // Se estiver bloqueado, muda o fundo da linha
+  if (cliente.bloqueado) tr.classList.add("bg-red-50");
+
+  tr.innerHTML = `
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      ${cliente.nome || "—"}
+      ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up || "—"}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
+      <button class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold" data-acao="editar">Editar</button>
+      <button class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold" data-acao="excluir">Excluir</button>
+      <button class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold" data-acao="bloquear">
+        ${cliente.bloqueado ? 'Desbloquear' : 'Bloquear'}
+      </button>
+    </td>
+  `;
 
       // Eventos dos botões
-      // Eventos dos botões
+  
 tr.querySelectorAll("button").forEach(btn => {
   btn.addEventListener("click", () => {
     const acao = btn.dataset.acao;

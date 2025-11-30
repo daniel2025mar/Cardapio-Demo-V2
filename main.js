@@ -438,10 +438,11 @@ async function atualizarClienteSupabase(usuario, enderecoTratado) {
     // 🔎 Verifica se o cliente já existe
     const { data: clienteExistente, error: erroBusca } = await supabase
       .from("clientes")
-      .select("*")
+      .select("email")
       .eq("email", email)
       .single();
 
+    // Se houver erro diferente de "registro não encontrado", interrompe
     if (erroBusca && erroBusca.code !== "PGRST116") {
       console.error("Erro ao buscar cliente:", erroBusca);
       return;
@@ -462,6 +463,7 @@ async function atualizarClienteSupabase(usuario, enderecoTratado) {
         .eq("email", email);
 
       if (erroUpdate) console.error("Erro ao atualizar cliente:", erroUpdate);
+      else console.log("Cliente atualizado com sucesso!");
       return;
     }
 
@@ -480,11 +482,13 @@ async function atualizarClienteSupabase(usuario, enderecoTratado) {
       });
 
     if (erroInsert) console.error("Erro ao inserir cliente:", erroInsert);
+    else console.log("Cliente inserido com sucesso!");
 
   } catch (e) {
     console.error("Erro inesperado ao salvar cliente:", e);
   }
 }
+
 
 //horario de funcionamento
 function checkRestauranteOpen(){

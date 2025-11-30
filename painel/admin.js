@@ -32,6 +32,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // ================================
+  // BUSCA USUÁRIO LOGADO
+  // ================================
   const { data: usuario, error } = await supabase
     .from("usuarios")
     .select("*")
@@ -62,16 +65,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const contador = document.getElementById("total-finalizados");
-    contador.textContent = pedidosFinalizados.length || 0;
+    if (contador) contador.textContent = pedidosFinalizados?.length || 0;
   }
 
   // ================================
-  // CARREGA FILA DE PEDIDOS (status !== "Finalizado")
+  // CARREGA FILA DE PEDIDOS (APENAS STATUS "RECEBIDO")
   // ================================
   async function carregarFilaPedidos() {
     const { data: pedidos, error } = await supabase
       .from("pedidos")
       .select("*")
+      .eq("status", "Recebido")
       .order("id", { ascending: true });
 
     if (error) {
@@ -80,40 +84,75 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const listaPedidos = document.querySelector(".fila-pedidos-list");
+    if (!listaPedidos) return;
     listaPedidos.innerHTML = "";
 
-    pedidos.forEach(pedido => {
-      // Mostra somente pedidos que NÃO estão finalizados
-      if (pedido.status === "Finalizado") return;
+    // Atualiza contador de pedidos recebidos
+    const contador = document.getElementById("contador-pedidos");
+    if (contador) contador.textContent = pedidos.length;
 
+    pedidos.forEach(pedido => {
       const item = document.createElement("div");
-      item.classList.add("order-list-item");
+      item.classList.add(
+        "order-list-item",
+        "bg-gray-50",
+        "p-3",
+        "rounded-lg",
+        "border-l-4",
+        "border-yellow-400",
+        "cursor-pointer",
+        "hover:bg-gray-100"
+      );
       item.dataset.id = pedido.id;
 
+      // ================================
+      // Formata horário corretamente (HH:MM)
+      // ================================
+      let horario = "";
+      if (pedido.horario_recebido) {
+        try {
+          const date = new Date(pedido.horario_recebido);
+          if (!isNaN(date.getTime())) {
+            const h = date.getHours().toString().padStart(2, "0");
+            const m = date.getMinutes().toString().padStart(2, "0");
+            horario = `${h}:${m}`;
+          }
+        } catch (e) {
+          console.warn("Erro ao formatar horário:", e);
+          horario = "";
+        }
+      }
+
       item.innerHTML = `
-        <p class="font-semibold">#${pedido.id} — ${pedido.cliente}</p>
-        <p>${pedido.endereco || "Endereço não informado"} • ${pedido.pagamento || "Pagar na entrega"}</p>
-        <p>R$ ${Number(pedido.total || 0).toFixed(2)}</p>
-        <p>${pedido.horario_recebido || ""}</p>
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="font-semibold">#${pedido.id} — ${pedido.cliente}</p>
+            <p class="text-sm text-gray-500">${pedido.endereco || "Endereço não informado"} • ${pedido.pagamento || "Pagar na entrega"}</p>
+            <p class="text-xs text-gray-400 mt-1">${pedido.observacoes || ""}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-500">${horario}</p>
+          </div>
+        </div>
       `;
+
+      // Evento para abrir detalhes do pedido
+      item.addEventListener("click", () => abrirDetalhesPedido(pedido.id));
 
       listaPedidos.appendChild(item);
     });
   }
 
-  // Atualiza ao carregar a página
-  await atualizarTotalFinalizados();
-  await carregarFilaPedidos();
-  carregarPedidos(); // mantém sua função original se houver lógica extra
-
   // ================================
-  // BOTÃO FINALIZAR PEDIDO
+  // FUNÇÃO PARA FINALIZAR PEDIDO
   // ================================
   const btnFinalizar = document.getElementById("btn-finalizar-pedido");
 
   if (btnFinalizar) {
     btnFinalizar.addEventListener("click", async () => {
-      const numeroPedido = document.getElementById("pedido-numero").textContent;
+      const numeroPedidoEl = document.getElementById("pedido-numero");
+      if (!numeroPedidoEl) return;
+      const numeroPedido = numeroPedidoEl.textContent;
 
       if (!numeroPedido || numeroPedido === "0000") {
         mostrarToast("Nenhum pedido selecionado.", "bg-red-600");
@@ -121,40 +160,51 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
-        // Atualiza status no Supabase
-        const { error } = await supabase
+        const { data: pedidoAtual, error } = await supabase
+          .from("pedidos")
+          .select("status")
+          .eq("id", numeroPedido)
+          .single();
+
+        if (error || !pedidoAtual) {
+          console.error("Erro ao buscar pedido:", error);
+          mostrarToast("Erro ao verificar status do pedido.", "bg-red-600");
+          return;
+        }
+
+        if (pedidoAtual.status === "Finalizado") {
+          mostrarToast("Este pedido já está finalizado!", "bg-red-600");
+          return;
+        }
+
+        const { error: updateError } = await supabase
           .from("pedidos")
           .update({ status: "Finalizado" })
           .eq("id", numeroPedido);
 
-        if (error) {
-          console.error("Erro ao atualizar status:", error);
+        if (updateError) {
+          console.error("Erro ao finalizar pedido:", updateError);
           mostrarToast("Erro ao finalizar pedido.", "bg-red-600");
           return;
         }
 
-        // Atualiza contador e fila
+        // Atualiza contador e recarrega fila
         await atualizarTotalFinalizados();
         await carregarFilaPedidos();
 
-        // Limpa informações do card de detalhes
-        document.getElementById("pedido-numero").textContent = "0000";
-        document.getElementById("pedido-hora").textContent = "--:--";
-        document.getElementById("pedido-tipo").textContent = "Pedido para entrega";
-        document.getElementById("pedido-status").textContent = "🟢 Recebido";
-        document.getElementById("total-pedido").textContent = "R$ 0,00";
+        // Limpa campos do card de pedido
+        const camposCard = [
+          "pedido-numero","pedido-hora","pedido-tipo","pedido-status","total-pedido",
+          "cliente-nome","cliente-telefone","cliente-endereco","cliente-referencia","tipo-pagamento",
+          "lista-itens","subtotal-pedido","pedido-observacoes","pedido-timeline"
+        ];
 
-        document.getElementById("cliente-nome").textContent = "—";
-        document.getElementById("cliente-telefone").textContent = "—";
-        document.getElementById("cliente-endereco").textContent = "—";
-        document.getElementById("cliente-referencia").textContent = "—";
-        document.getElementById("tipo-pagamento").textContent = "—";
-
-        document.getElementById("lista-itens").innerHTML = "";
-        document.getElementById("subtotal-pedido").textContent = "R$ 0,00";
-
-        document.getElementById("pedido-observacoes").textContent = "Nenhuma observação.";
-        document.getElementById("pedido-timeline").innerHTML = "";
+        camposCard.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if(el.tagName === "DIV" || el.tagName === "UL") el.innerHTML = "";
+          else el.textContent = id.includes("total") || id.includes("subtotal") ? "R$ 0,00" : "";
+        });
 
         mostrarToast("Pedido finalizado e removido da fila!", "bg-indigo-600");
 
@@ -164,6 +214,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
+
+  // ================================
+  // CHAMA FUNÇÕES INICIAIS
+  // ================================
+  await atualizarTotalFinalizados();
+  await carregarFilaPedidos();
 });
 
 // ===============================
@@ -561,14 +617,47 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// Função de modal moderno
+function mostrarConfirmacao(novoStatus) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("modal-confirm");
+    const textoModal = document.getElementById("modal-text");
+    const btnOk = document.getElementById("modal-ok");
+    const btnCancelar = document.getElementById("modal-cancel");
+
+    textoModal.textContent = novoStatus
+      ? "Deseja bloquear este cliente?"
+      : "Deseja desbloquear este cliente?";
+
+    modal.classList.remove("hidden");
+
+    function limparEventos() {
+      btnOk.removeEventListener("click", okHandler);
+      btnCancelar.removeEventListener("click", cancelHandler);
+    }
+
+    function okHandler() {
+      limparEventos();
+      modal.classList.add("hidden");
+      resolve(true);
+    }
+
+    function cancelHandler() {
+      limparEventos();
+      modal.classList.add("hidden");
+      resolve(false);
+    }
+
+    btnOk.addEventListener("click", okHandler);
+    btnCancelar.addEventListener("click", cancelHandler);
+  });
+}
+// Função atualizada para bloquear/desbloquear cliente
 async function bloquearCliente(idCliente, statusAtual) {
-  const novoStatus = !statusAtual; // inverte (true → false / false → true)
+  const novoStatus = !statusAtual; // inverte status
 
-  const texto = novoStatus
-    ? "Deseja bloquear este cliente?"
-    : "Deseja desbloquear este cliente?";
-
-  if (!confirm(texto)) return;
+  const confirmado = await mostrarConfirmacao(novoStatus);
+  if (!confirmado) return;
 
   const { error } = await supabase
     .from("clientes")
@@ -577,18 +666,19 @@ async function bloquearCliente(idCliente, statusAtual) {
 
   if (error) {
     console.error("Erro ao atualizar bloqueio:", error);
-    alert("Erro ao atualizar o status do cliente.");
+    showToast("Erro ao atualizar o status do cliente.", "bg-red-600");
     return;
   }
 
-  // Atualiza a lista instantaneamente
+  // Atualiza a lista de clientes instantaneamente
   carregarClientes();
 
-  // Mensagem moderna
+  // Mensagem moderna de sucesso
   showToast(
     novoStatus
       ? "Cliente bloqueado com sucesso!"
-      : "Cliente desbloqueado com sucesso!"
+      : "Cliente desbloqueado com sucesso!",
+    "bg-green-600"
   );
 }
 

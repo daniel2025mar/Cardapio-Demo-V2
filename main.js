@@ -249,12 +249,12 @@ checkout.addEventListener("click", async function () {
   // 🚫 Se estiver bloqueado → impede o pedido
   if (clienteData && clienteData.bloqueado === true) {
     Toastify({
-      text: "❌ Você está bloqueado e não pode finalizar pedidos.",
+      text: "Seu acesso para finalizar pedidos está temporariamente bloqueado.",
       duration: 4000,
       close: true,
       gravity: "top",
       position: "center",
-      style: { background: "linear-gradient(to right, #ff0000, #8b0000)" }
+      style: { background: "linear-gradient(to right, #610202ff, #8b0000)" }
     }).showToast();
     return;
   }

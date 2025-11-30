@@ -24,6 +24,7 @@ const MENU_MAP = {
 // ===================================================
 //  VERIFICAR LOGIN E CARREGAR USUÁRIO
 // ===================================================
+
 document.addEventListener("DOMContentLoaded", async () => {
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
@@ -45,7 +46,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   aplicarPermissoes(usuario);
   ativarMenuMobile();
-  carregarPedidos();
+  carregarPedidos(); // mantém sua função original
+
+  // ================================
+  // ATUALIZA TOTAL DE PEDIDOS FINALIZADOS
+  // ================================
+  async function atualizarTotalFinalizados() {
+    const { data: pedidosFinalizados, error } = await supabase
+      .from("pedidos")
+      .select("id")
+      .eq("status", "Finalizado");
+
+    if (error) {
+      console.error("Erro ao contar pedidos finalizados:", error);
+      return;
+    }
+
+    const contador = document.getElementById("total-finalizados");
+    contador.textContent = pedidosFinalizados.length || 0;
+  }
+
+  // Atualiza ao carregar a página
+  atualizarTotalFinalizados();
 
   // ================================
   // BOTÃO FINALIZAR PEDIDO
@@ -53,11 +75,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnFinalizar = document.getElementById("btn-finalizar-pedido");
 
   if (btnFinalizar) {
-    btnFinalizar.addEventListener("click", async () => { // <- async para usar Supabase
+    btnFinalizar.addEventListener("click", async () => {
 
       // ⚠️ VALIDAÇÃO: verificar se existe um pedido carregado
       const numeroPedido = document.getElementById("pedido-numero").textContent;
-
       if (!numeroPedido || numeroPedido === "0000") {
         mostrarToast("Nenhum pedido selecionado.", "bg-red-600");
         return;
@@ -81,8 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // ================================
         // Atualizar contador de pedidos finalizados
         // ================================
-        const contador = document.getElementById("total-finalizados");
-        contador.textContent = Number(contador.textContent || 0) + 1;
+        await atualizarTotalFinalizados();
 
         // ================================
         // Remover pedido da fila de pedidos
@@ -126,7 +146,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
-
 
 // ===============================
 //   APLICAR PERMISSÕES

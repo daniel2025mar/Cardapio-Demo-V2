@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   aplicarPermissoes(usuario);
   ativarMenuMobile();
-  carregarPedidos(); // mantém sua função original
 
   // ================================
   // ATUALIZA TOTAL DE PEDIDOS FINALIZADOS
@@ -66,8 +65,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     contador.textContent = pedidosFinalizados.length || 0;
   }
 
+  // ================================
+  // CARREGA FILA DE PEDIDOS (status !== "Finalizado")
+  // ================================
+  async function carregarFilaPedidos() {
+    const { data: pedidos, error } = await supabase
+      .from("pedidos")
+      .select("*")
+      .order("id", { ascending: true });
+
+    if (error) {
+      console.error("Erro ao carregar pedidos:", error);
+      return;
+    }
+
+    const listaPedidos = document.querySelector(".fila-pedidos-list");
+    listaPedidos.innerHTML = "";
+
+    pedidos.forEach(pedido => {
+      // Mostra somente pedidos que NÃO estão finalizados
+      if (pedido.status === "Finalizado") return;
+
+      const item = document.createElement("div");
+      item.classList.add("order-list-item");
+      item.dataset.id = pedido.id;
+
+      item.innerHTML = `
+        <p class="font-semibold">#${pedido.id} — ${pedido.cliente}</p>
+        <p>${pedido.endereco || "Endereço não informado"} • ${pedido.pagamento || "Pagar na entrega"}</p>
+        <p>R$ ${Number(pedido.total || 0).toFixed(2)}</p>
+        <p>${pedido.horario_recebido || ""}</p>
+      `;
+
+      listaPedidos.appendChild(item);
+    });
+  }
+
   // Atualiza ao carregar a página
-  atualizarTotalFinalizados();
+  await atualizarTotalFinalizados();
+  await carregarFilaPedidos();
+  carregarPedidos(); // mantém sua função original se houver lógica extra
 
   // ================================
   // BOTÃO FINALIZAR PEDIDO
@@ -76,18 +113,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (btnFinalizar) {
     btnFinalizar.addEventListener("click", async () => {
-
-      // ⚠️ VALIDAÇÃO: verificar se existe um pedido carregado
       const numeroPedido = document.getElementById("pedido-numero").textContent;
+
       if (!numeroPedido || numeroPedido === "0000") {
         mostrarToast("Nenhum pedido selecionado.", "bg-red-600");
         return;
       }
 
       try {
-        // ================================
-        // Atualizar status no Supabase
-        // ================================
+        // Atualiza status no Supabase
         const { error } = await supabase
           .from("pedidos")
           .update({ status: "Finalizado" })
@@ -99,26 +133,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
 
-        // ================================
-        // Atualizar contador de pedidos finalizados
-        // ================================
+        // Atualiza contador e fila
         await atualizarTotalFinalizados();
+        await carregarFilaPedidos();
 
-        // ================================
-        // Remover pedido da fila de pedidos
-        // ================================
-        const filaPedidos = document.querySelectorAll(".fila-pedidos-list .order-list-item");
-        filaPedidos.forEach(item => {
-          const texto = item.querySelector("p.font-semibold").textContent;
-          const idItem = texto.split("—")[0].replace("#", "").trim();
-          if (idItem === numeroPedido) {
-            item.remove(); // remove o card da fila
-          }
-        });
-
-        // ================================
-        // Limpar informações do card de detalhes do pedido
-        // ================================
+        // Limpa informações do card de detalhes
         document.getElementById("pedido-numero").textContent = "0000";
         document.getElementById("pedido-hora").textContent = "--:--";
         document.getElementById("pedido-tipo").textContent = "Pedido para entrega";

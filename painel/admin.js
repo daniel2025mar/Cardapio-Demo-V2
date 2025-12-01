@@ -226,36 +226,57 @@ document.addEventListener("DOMContentLoaded", async () => {
 //   APLICAR PERMISSÕES
 // ===============================
 function aplicarPermissoes(usuario) {
-  // permissoes agora é um objeto
-  const permissoes = usuario.permissoes || {};
+  // permissoes agora é um array de strings
+  const permissoes = usuario.permissoes || [];
 
   // Atualiza nome do usuário no header
   const userSpan = document.querySelector("header span");
-  userSpan.textContent = usuario.username;
+  if (userSpan) userSpan.textContent = usuario.username;
 
   // Esconde todas as seções inicialmente
   document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+  document.querySelectorAll("aside nav label").forEach(label => label.style.display = "none");
 
-  // Se acesso_total for true, libera tudo
-  if (permissoes.acesso_total) {
+  // Se tiver "Acesso Total", libera tudo
+  if (permissoes.includes("Acesso Total")) {
     document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "block");
-    ativarMenu();
+    document.querySelectorAll("aside nav label").forEach(label => label.style.display = "flex");
     abrirDashboard();
+    ativarMenu();
     ativarMenuConfiguracoes();
-
     return;
   }
 
-  // Caso contrário, habilita apenas as seções permitidas
-  const secoesPermitidas = Object.keys(permissoes).filter(key => permissoes[key]);
-  mostrarSecaoPermitida(secoesPermitidas);
-  filtrarMenu(secoesPermitidas);
+  // Mapeia nomes das permissões para IDs das seções
+  const PERMISSAO_MAP = {
+    "Dashboard": "dashboard",
+    "Clientes": "clientes",
+    "Pedidos": "pedidos",
+    "Produtos": "produtos",
+    "Funcionarios": "funcionarios",
+    "Relatorios": "relatorios",
+    "Configuracoes": "configuracoes"
+  };
 
-  ativarMenu();
+  // Libera apenas as seções e menus permitidos
+  permissoes.forEach(p => {
+    const secaoID = PERMISSAO_MAP[p];
+    if (!secaoID) return;
+
+    const secao = document.getElementById(secaoID);
+    if (secao) secao.style.display = "block";
+
+    const menuItem = Array.from(document.querySelectorAll("aside nav label")).find(
+      l => l.textContent.trim() === p
+    );
+    if (menuItem) menuItem.style.display = "flex";
+  });
+
   abrirDashboard();
+  ativarMenu();
   ativarMenuConfiguracoes();
-
 }
+
 
 // ======================
 // ABRIR DASHBOARD POR PADRÃO
@@ -1185,6 +1206,7 @@ function ativarMenuConfiguracoes() {
     }
   });
 }
+
 // ===============================
 // CARREGAR HORÁRIOS DO SUPABASE
 // ===============================
@@ -1211,38 +1233,50 @@ async function carregarHorariosSemana() {
       "domingo": "dom"
     };
 
+    // Resetar todos os dias
+    Object.values(diasMap).forEach(id => {
+      const checkbox = document.getElementById(id);
+      const filete = document.querySelector(`#${id}_card .filete`);
+      if (checkbox) checkbox.checked = false;
+      if (filete) {
+        filete.classList.remove("bg-blue-500");
+        filete.classList.add("bg-red-500");
+      }
+      document.getElementById(`${id}_inicio`).value = "";
+      document.getElementById(`${id}_fim`).value = "";
+    });
+
+    // Preencher com dados do banco
     data.forEach(item => {
       const dia = item.dia_semana?.toLowerCase();
       const id = diasMap[dia];
       if (!id) return;
 
       const checkbox = document.getElementById(id);
-      checkbox.checked = true;
-
-      // Aplica cor azul quando vem do banco
       const filete = document.querySelector(`#${id}_card .filete`);
-      if (filete) {
-        filete.classList.remove("bg-red-500");
-        filete.classList.add("bg-blue-500");
-      }
-
       const inicio = document.getElementById(`${id}_inicio`);
       const fim = document.getElementById(`${id}_fim`);
-      const campo = document.getElementById(`${id}_campo`);
 
-      if (inicio) inicio.value = item.hora_inicio || "";
-      if (fim) fim.value = item.hora_fim || "";
+      if (checkbox) checkbox.checked = !!item.hora_inicio || !!item.hora_fim;
 
-      if (campo && item.hora_inicio && item.hora_fim) {
-        campo.value = `${item.hora_inicio} às ${item.hora_fim}`;
+      if (filete) {
+        if (checkbox.checked) {
+          filete.classList.remove("bg-red-500");
+          filete.classList.add("bg-blue-500");
+        } else {
+          filete.classList.remove("bg-blue-500");
+          filete.classList.add("bg-red-500");
+        }
       }
+
+      if (inicio) inicio.value = item.hora_inicio ? item.hora_inicio.slice(0,5) : "";
+      if (fim) fim.value = item.hora_fim ? item.hora_fim.slice(0,5) : "";
     });
 
   } catch (e) {
     console.error("Falha ao carregar horários:", e);
   }
 }
-
 
 // =======================================
 // MARCAR/DESMARCAR → trocando a cor
@@ -1252,24 +1286,75 @@ function configurarFiletes() {
 
   dias.forEach(id => {
     const checkbox = document.getElementById(id);
+    if (!checkbox) return;
 
     checkbox.addEventListener("change", () => {
       const filete = document.querySelector(`#${id}_card .filete`);
       if (!filete) return;
 
       if (checkbox.checked) {
-        // marcado → azul
         filete.classList.remove("bg-red-500");
         filete.classList.add("bg-blue-500");
       } else {
-        // desmarcado → vermelho
         filete.classList.remove("bg-blue-500");
         filete.classList.add("bg-red-500");
+        document.getElementById(`${id}_inicio`).value = "";
+        document.getElementById(`${id}_fim`).value = "";
       }
     });
   });
 }
 
+// =======================================
+// SALVAR CONFIGURAÇÕES NO SUPABASE
+// =======================================
+async function salvarHorariosSemana() {
+  const dias = [
+    { nome: "segunda", id: "seg" },
+    { nome: "terca", id: "ter" },
+    { nome: "quarta", id: "qua" },
+    { nome: "quinta", id: "qui" },
+    { nome: "sexta", id: "sex" },
+    { nome: "sabado", id: "sab" },
+    { nome: "domingo", id: "dom" }
+  ];
+
+  for (const dia of dias) {
+    const checkbox = document.getElementById(dia.id);
+    const hora_inicio_input = document.getElementById(`${dia.id}_inicio`).value;
+    const hora_fim_input = document.getElementById(`${dia.id}_fim`).value;
+
+    const hora_inicio = hora_inicio_input ? `${hora_inicio_input}:00` : null;
+    const hora_fim = hora_fim_input ? `${hora_fim_input}:00` : null;
+
+    if (checkbox.checked) {
+      // Upsert usando dia_semana como chave única
+      const { error } = await supabase
+        .from("horarios_semana")
+        .upsert({
+          dia_semana: dia.nome,
+          hora_inicio,
+          hora_fim
+        }, { onConflict: ["dia_semana"] });
+
+      if (error) console.error(`Erro ao salvar ${dia.nome}:`, error);
+
+    } else {
+      // Desmarcado → deixar NULL
+      const { error } = await supabase
+        .from("horarios_semana")
+        .update({
+          hora_inicio: null,
+          hora_fim: null
+        })
+        .eq("dia_semana", dia.nome);
+
+      if (error) console.error(`Erro ao desativar ${dia.nome}:`, error);
+    }
+  }
+
+  alert("Configurações salvas com sucesso!");
+}
 
 // ===============================
 // INICIAR SISTEMA
@@ -1277,4 +1362,7 @@ function configurarFiletes() {
 document.addEventListener("DOMContentLoaded", () => {
   carregarHorariosSemana();
   configurarFiletes();
+
+  const btnSalvar = document.querySelector("button.bg-blue-600");
+  if (btnSalvar) btnSalvar.addEventListener("click", salvarHorariosSemana);
 });

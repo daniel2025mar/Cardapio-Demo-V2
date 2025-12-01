@@ -454,162 +454,145 @@
   </div>
 </section>
 
+<section id="configuracoes" class="content-section mb-10 flex justify-center">
+  <div class="w-full max-w-5xl"> <!-- Limita largura do card -->
 
+    <h2 class="text-3xl font-bold mb-2 text-center">Configurações</h2>
+    <p class="text-gray-600 mb-6 text-center">Aqui você pode ajustar as configurações do sistema.</p>
 
-<section id="configuracoes" class="content-section mb-10">
-  <h2 class="text-3xl font-bold mb-2">Configurações</h2>
-  <p class="text-gray-600 mb-6">Aqui você pode ajustar as configurações do sistema.</p>
+    <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
 
-  <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-    <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
-      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M9 12l2 2 4-4"></path>
-        <circle cx="12" cy="12" r="10"></circle>
-      </svg>
-      Preferências do Sistema
-    </h3>
+      <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+        Preferências do Sistema
+      </h3>
 
-    <div class="space-y-8">
+      <div class="space-y-8">
 
-      <!-- DIAS + HORÁRIOS -->
-      <div>
-        <label class="block font-medium text-gray-700 mb-3 text-lg">Dias de Funcionamento</label>
+        <!-- DIAS + HORÁRIOS -->
+        <div>
+          <label class="block font-medium text-gray-700 mb-3 text-lg">Dias de Funcionamento</label>
 
-        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          <!-- MODELO PARA TODOS OS DIAS -->
+            <!-- SEGUNDA (exemplo, repetir para todos os dias) -->
+            <div id="seg_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
 
-          <!-- SEGUNDA -->
-          <div id="seg_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="seg" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Segunda-feira</span>
+              </label>
 
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="seg" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Segunda-feira</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="seg_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="seg_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              <div class="flex gap-3">
+                <input id="seg_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="seg_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
-          <!-- TERÇA -->
-          <div id="ter_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
-
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="ter" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Terça-feira</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="ter_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="ter_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            <!-- TERÇA -->
+            <div id="ter_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="ter" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Terça-feira</span>
+              </label>
+              <div class="flex gap-3">
+                <input id="ter_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="ter_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
-          <!-- QUARTA -->
-          <div id="qua_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="qua" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Quarta-feira</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="qua_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="qua_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            <!-- QUARTA -->
+            <div id="qua_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="qua" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Quarta-feira</span>
+              </label>
+              <div class="flex gap-3">
+                <input id="qua_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="qua_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
-          <!-- QUINTA -->
-          <div id="qui_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
-
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="qui" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Quinta-feira</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="qui_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="qui_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            <!-- QUINTA -->
+            <div id="qui_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="qui" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Quinta-feira</span>
+              </label>
+              <div class="flex gap-3">
+                <input id="qui_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="qui_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
-          <!-- SEXTA -->
-          <div id="sex_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="sex" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Sexta-feira</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="sex_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="sex_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            <!-- SEXTA -->
+            <div id="sex_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="sex" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Sexta-feira</span>
+              </label>
+              <div class="flex gap-3">
+                <input id="sex_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="sex_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
-          <!-- SÁBADO -->
-          <div id="sab_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="sab" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Sábado</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="sab_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="sab_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            <!-- SÁBADO -->
+            <div id="sab_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="sab" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Sábado</span>
+              </label>
+              <div class="flex gap-3">
+                <input id="sab_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="sab_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
-          <!-- DOMINGO -->
-          <div id="dom_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
-  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
-
-
-
-            <label class="flex items-center gap-3 mb-4">
-              <input type="checkbox" id="dom" class="w-5 h-5 accent-blue-600">
-              <span class="font-semibold text-gray-800">Domingo</span>
-            </label>
-
-            <div class="flex gap-3">
-              <input id="dom_inicio" type="time" class="border p-2 rounded-lg w-1/2">
-              <input id="dom_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            <!-- DOMINGO -->
+            <div id="dom_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+              <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+              <label class="flex items-center gap-3 mb-4">
+                <input type="checkbox" id="dom" class="w-5 h-5 accent-blue-600">
+                <span class="font-semibold text-gray-800">Domingo</span>
+              </label>
+              <div class="flex gap-3">
+                <input id="dom_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+                <input id="dom_fim" type="time" class="border p-2 rounded-lg w-1/2">
+              </div>
             </div>
-          </div>
 
+          </div>
         </div>
+
+        <!-- NOTIFICAÇÕES -->
+        <!-- NOTIFICAÇÕES -->
+<div class="flex items-center gap-3">
+  <label class="font-medium text-gray-700">Notificações</label>
+  <select class="px-3 py-1 border rounded-lg bg-gray-50 text-sm">
+    <option>Ativadas</option>
+    <option>Desativadas</option>
+  </select>
+</div>
+
+
+        <button class="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md">
+          Salvar Configurações
+        </button>
+
       </div>
-
-      <!-- NOTIFICAÇÕES -->
-      <div>
-        <label class="block font-medium text-gray-700 mb-1">Notificações</label>
-        <select class="w-full px-4 py-2 border rounded-lg bg-gray-50">
-          <option>Ativadas</option>
-          <option>Desativadas</option>
-        </select>
-      </div>
-
-      <button class="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md">
-        Salvar Configurações
-      </button>
-
     </div>
   </div>
 </section>
-
-
 
     </main>
   </div>

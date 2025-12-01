@@ -241,6 +241,8 @@ function aplicarPermissoes(usuario) {
     document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "block");
     ativarMenu();
     abrirDashboard();
+    ativarMenuConfiguracoes();
+
     return;
   }
 
@@ -251,6 +253,8 @@ function aplicarPermissoes(usuario) {
 
   ativarMenu();
   abrirDashboard();
+  ativarMenuConfiguracoes();
+
 }
 
 // ======================
@@ -1131,6 +1135,8 @@ function traducirPermissao(key) {
 // ==============================
 listarFuncionarios();
 
+
+
 // =============================
 //   REALTIME — Atualizações ao vivo
 // =============================
@@ -1145,3 +1151,130 @@ supabase
     }
   )
   .subscribe();
+
+  // ======================
+//  ABRIR CONFIGURAÇÕES
+// ======================
+function ativarMenuConfiguracoes() {
+  const configBtn = document.querySelector('label[data-menu="configuracoes"]');
+  const sections = document.querySelectorAll(".content-section");
+
+  if (!configBtn) {
+    console.error("Botão de Configurações não encontrado!");
+    return;
+  }
+
+  configBtn.addEventListener("click", () => {
+    // Esconde todas as seções
+    sections.forEach(sec => sec.style.display = "none");
+
+    // Mostra a seção de Configurações
+    const secaoConfig = document.getElementById("configuracoes");
+    if (secaoConfig) secaoConfig.style.display = "block";
+
+    // Marca o menu como ativo
+    document.querySelectorAll("aside nav label").forEach(l => l.classList.remove("active"));
+    configBtn.classList.add("active");
+
+    // Fecha menu mobile (se estiver aberto)
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    if (window.innerWidth <= 768) {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    }
+  });
+}
+// ===============================
+// CARREGAR HORÁRIOS DO SUPABASE
+// ===============================
+async function carregarHorariosSemana() {
+  try {
+    const { data, error } = await supabase
+      .from("horarios_semana")
+      .select("*");
+
+    if (error) {
+      console.error("Erro ao buscar horários:", error);
+      return;
+    }
+
+    const diasMap = {
+      "segunda": "seg",
+      "terca": "ter",
+      "terça": "ter",
+      "quarta": "qua",
+      "quinta": "qui",
+      "sexta": "sex",
+      "sabado": "sab",
+      "sábado": "sab",
+      "domingo": "dom"
+    };
+
+    data.forEach(item => {
+      const dia = item.dia_semana?.toLowerCase();
+      const id = diasMap[dia];
+      if (!id) return;
+
+      const checkbox = document.getElementById(id);
+      checkbox.checked = true;
+
+      // Aplica cor azul quando vem do banco
+      const filete = document.querySelector(`#${id}_card .filete`);
+      if (filete) {
+        filete.classList.remove("bg-red-500");
+        filete.classList.add("bg-blue-500");
+      }
+
+      const inicio = document.getElementById(`${id}_inicio`);
+      const fim = document.getElementById(`${id}_fim`);
+      const campo = document.getElementById(`${id}_campo`);
+
+      if (inicio) inicio.value = item.hora_inicio || "";
+      if (fim) fim.value = item.hora_fim || "";
+
+      if (campo && item.hora_inicio && item.hora_fim) {
+        campo.value = `${item.hora_inicio} às ${item.hora_fim}`;
+      }
+    });
+
+  } catch (e) {
+    console.error("Falha ao carregar horários:", e);
+  }
+}
+
+
+// =======================================
+// MARCAR/DESMARCAR → trocando a cor
+// =======================================
+function configurarFiletes() {
+  const dias = ["seg", "ter", "qua", "qui", "sex", "sab", "dom"];
+
+  dias.forEach(id => {
+    const checkbox = document.getElementById(id);
+
+    checkbox.addEventListener("change", () => {
+      const filete = document.querySelector(`#${id}_card .filete`);
+      if (!filete) return;
+
+      if (checkbox.checked) {
+        // marcado → azul
+        filete.classList.remove("bg-red-500");
+        filete.classList.add("bg-blue-500");
+      } else {
+        // desmarcado → vermelho
+        filete.classList.remove("bg-blue-500");
+        filete.classList.add("bg-red-500");
+      }
+    });
+  });
+}
+
+
+// ===============================
+// INICIAR SISTEMA
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+  carregarHorariosSemana();
+  configurarFiletes();
+});

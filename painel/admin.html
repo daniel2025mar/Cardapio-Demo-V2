@@ -120,6 +120,15 @@
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"><path stroke="currentColor" fill="none" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87"/></svg>
           <span>Funcionários</span>
         </label>
+
+        <label data-menu="configuracoes" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
+  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M10.325 4.317a1 1 0 011.35-.937l1.618.54a1 1 0 00.958-.174l1.2-.9a1 1 0 011.497.32l.9 1.2a1 1 0 00.174.958l-.54 1.618a1 1 0 00.937 1.35l1.7.283a1 1 0 01.83.99v1.8a1 1 0 01-.83.99l-1.7.284a1 1 0 00-.937 1.35l.54 1.618a1 1 0 01-.174.958l-.9 1.2a1 1 0 01-1.497.32l-1.2-.9a1 1 0 00-.958-.174l-1.618.54a1 1 0 01-1.35-.937l-.283-1.7a1 1 0 00-.99-.83h-1.8a1 1 0 00-.99.83l-.283 1.7a1 1 0 01-1.35.937l-1.618-.54a1 1 0 00-.958.174l-1.2.9a1 1 0 01-1.497-.32l-.9-1.2a1 1 0 01-.174-.958l.54-1.618a1 1 0 00-.937-1.35l-1.7-.283A1 1 0 013 13.575v-1.8a1 1 0 01.83-.99l1.7-.283a1 1 0 00.937-1.35l-.54-1.618a1 1 0 01.174-.958l.9-1.2a1 1 0 011.497-.32l1.2.9a1 1 0 00.958.174l1.618-.54z" />
+  </svg>
+  <span>Configurações</span>
+</label>
+
       </nav>
     </aside>
 
@@ -347,6 +356,7 @@
   </div>
 </div>
 
+
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>
   <p class="text-gray-600 mb-4">Gerencie os funcionários e permissões.</p>
@@ -359,16 +369,24 @@
       <!-- 1️⃣ Informações do funcionário -->
       <div class="border-b border-gray-200 pb-4">
         <h4 class="font-semibold mb-2">Informações do funcionário</h4>
-        <div>
-          <label class="block font-medium mb-1" for="nomeFuncionario">Nome completo</label>
-          <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="text" id="nomeFuncionario" required />
+        <div class="flex gap-4">
+          <!-- Nome completo -->
+          <div class="flex-1">
+            <label class="block font-medium mb-1" for="nomeFuncionario">Nome completo</label>
+            <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="text" id="nomeFuncionario" required />
+          </div>
+
+          <!-- CPF -->
+          <div class="w-1/3">
+            <label class="block font-medium mb-1" for="cpfFuncionario">CPF</label>
+            <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="text" id="cpfFuncionario" maxlength="14" placeholder="000.000.000-00" required />
+          </div>
         </div>
       </div>
 
       <!-- 2️⃣ Login do funcionário -->
       <div class="border-b border-gray-200 pb-4">
         <h4 class="font-semibold mb-2">Login do funcionário</h4>
-
         <div class="flex gap-4">
           <div class="flex-1">
             <label class="block font-medium mb-1" for="usuarioFuncionario">Usuário</label>
@@ -390,11 +408,33 @@
       <div>
         <h4 class="font-semibold mb-2">Permissões do sistema</h4>
         <div class="flex flex-col gap-2">
-          <label><input type="checkbox" id="permAcessoTotal" /> Acesso total ao painel</label>
-          <label><input type="checkbox" id="permClientes" /> Acesso ao menu de Clientes</label>
-          <label><input type="checkbox" id="permPedidos" /> Acesso ao menu de Pedidos</label>
-          <label><input type="checkbox" id="permProdutos" /> Acesso ao menu de Produtos</label>
-          <label><input type="checkbox" id="permRelatorios" /> Acesso a relatórios</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+    <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
+    <span class="font-medium text-gray-700">Acesso total ao painel</span>
+  </label>
+
+  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+    <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
+    <span class="font-medium text-gray-700">Menu de Clientes</span>
+  </label>
+
+  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+    <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
+    <span class="font-medium text-gray-700">Menu de Pedidos</span>
+  </label>
+
+  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+    <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
+    <span class="font-medium text-gray-700">Menu de Produtos</span>
+  </label>
+
+  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+    <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
+    <span class="font-medium text-gray-700">Acesso a relatórios</span>
+  </label>
+</div>
+
         </div>
       </div>
 
@@ -410,6 +450,161 @@
     <h3 class="text-xl font-semibold mb-3">Lista de funcionários</h3>
     <div id="lista-funcionarios" class="space-y-2">
       <!-- Funcionários cadastrados serão inseridos aqui via JS -->
+    </div>
+  </div>
+</section>
+
+
+
+<section id="configuracoes" class="content-section mb-10">
+  <h2 class="text-3xl font-bold mb-2">Configurações</h2>
+  <p class="text-gray-600 mb-6">Aqui você pode ajustar as configurações do sistema.</p>
+
+  <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+    <h3 class="text-xl font-semibold mb-6 flex items-center gap-2">
+      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 12l2 2 4-4"></path>
+        <circle cx="12" cy="12" r="10"></circle>
+      </svg>
+      Preferências do Sistema
+    </h3>
+
+    <div class="space-y-8">
+
+      <!-- DIAS + HORÁRIOS -->
+      <div>
+        <label class="block font-medium text-gray-700 mb-3 text-lg">Dias de Funcionamento</label>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+
+          <!-- MODELO PARA TODOS OS DIAS -->
+
+          <!-- SEGUNDA -->
+          <div id="seg_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="seg" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Segunda-feira</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="seg_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="seg_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+          <!-- TERÇA -->
+          <div id="ter_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="ter" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Terça-feira</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="ter_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="ter_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+          <!-- QUARTA -->
+          <div id="qua_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="qua" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Quarta-feira</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="qua_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="qua_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+          <!-- QUINTA -->
+          <div id="qui_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="qui" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Quinta-feira</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="qui_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="qui_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+          <!-- SEXTA -->
+          <div id="sex_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="sex" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Sexta-feira</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="sex_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="sex_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+          <!-- SÁBADO -->
+          <div id="sab_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="sab" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Sábado</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="sab_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="sab_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+          <!-- DOMINGO -->
+          <div id="dom_card" class="bg-gray-50 p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition relative">
+  <div class="absolute left-0 top-0 h-full w-1 bg-blue-500 rounded-l-xl filete"></div>
+
+
+
+            <label class="flex items-center gap-3 mb-4">
+              <input type="checkbox" id="dom" class="w-5 h-5 accent-blue-600">
+              <span class="font-semibold text-gray-800">Domingo</span>
+            </label>
+
+            <div class="flex gap-3">
+              <input id="dom_inicio" type="time" class="border p-2 rounded-lg w-1/2">
+              <input id="dom_fim" type="time" class="border p-2 rounded-lg w-1/2">
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- NOTIFICAÇÕES -->
+      <div>
+        <label class="block font-medium text-gray-700 mb-1">Notificações</label>
+        <select class="w-full px-4 py-2 border rounded-lg bg-gray-50">
+          <option>Ativadas</option>
+          <option>Desativadas</option>
+        </select>
+      </div>
+
+      <button class="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md">
+        Salvar Configurações
+      </button>
+
     </div>
   </div>
 </section>

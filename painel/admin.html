@@ -112,8 +112,9 @@
           <span>Pedidos</span>
         </label>
         <label data-menu="clientes" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
-  <i class="fi fi-rr-users text-xl"></i>
-  <span>Clientes</span>
+  <i class="fi fi-rr-users text-xl"></i> Clientes
+</label>
+
 </label>
 
         <label data-menu="funcionarios" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
@@ -356,7 +357,6 @@
   </div>
 </div>
 
-
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>
   <p class="text-gray-600 mb-4">Gerencie os funcionários e permissões.</p>
@@ -369,17 +369,21 @@
       <!-- 1️⃣ Informações do funcionário -->
       <div class="border-b border-gray-200 pb-4">
         <h4 class="font-semibold mb-2">Informações do funcionário</h4>
+
         <div class="flex gap-4">
           <!-- Nome completo -->
           <div class="flex-1">
             <label class="block font-medium mb-1" for="nomeFuncionario">Nome completo</label>
-            <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="text" id="nomeFuncionario" required />
+            <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                   type="text" id="nomeFuncionario" required />
           </div>
 
           <!-- CPF -->
           <div class="w-1/3">
             <label class="block font-medium mb-1" for="cpfFuncionario">CPF</label>
-            <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="text" id="cpfFuncionario" maxlength="14" placeholder="000.000.000-00" required />
+            <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                   type="text" id="cpfFuncionario" maxlength="14"
+                   placeholder="000.000.000-00" required />
           </div>
         </div>
       </div>
@@ -387,58 +391,66 @@
       <!-- 2️⃣ Login do funcionário -->
       <div class="border-b border-gray-200 pb-4">
         <h4 class="font-semibold mb-2">Login do funcionário</h4>
+
         <div class="flex gap-4">
           <div class="flex-1">
             <label class="block font-medium mb-1" for="usuarioFuncionario">Usuário</label>
-            <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="text" id="usuarioFuncionario" required />
+            <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                   type="text" id="usuarioFuncionario" required />
           </div>
+
           <div class="flex-1">
             <label class="block font-medium mb-1" for="senhaFuncionario">Senha</label>
-            <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="password" id="senhaFuncionario" required />
+            <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                   type="password" id="senhaFuncionario" required />
           </div>
         </div>
 
         <div class="mt-2">
           <label class="block font-medium mb-1" for="emailFuncionario">E-mail</label>
-          <input class="w-full border border-gray-300 rounded-lg px-3 py-2" type="email" id="emailFuncionario" required />
+          <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                 type="email" id="emailFuncionario" required />
         </div>
       </div>
 
       <!-- 3️⃣ Permissões do sistema -->
       <div>
         <h4 class="font-semibold mb-2">Permissões do sistema</h4>
+
         <div class="flex flex-col gap-2">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
-  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-    <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
-    <span class="font-medium text-gray-700">Acesso total ao painel</span>
-  </label>
 
-  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-    <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
-    <span class="font-medium text-gray-700">Menu de Clientes</span>
-  </label>
+            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+              <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
+              <span class="font-medium text-gray-700">Acesso total ao painel</span>
+            </label>
 
-  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-    <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
-    <span class="font-medium text-gray-700">Menu de Pedidos</span>
-  </label>
+            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+              <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
+              <span class="font-medium text-gray-700">Menu de Clientes</span>
+            </label>
 
-  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-    <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
-    <span class="font-medium text-gray-700">Menu de Produtos</span>
-  </label>
+            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+              <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
+              <span class="font-medium text-gray-700">Menu de Pedidos</span>
+            </label>
 
-  <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-    <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
-    <span class="font-medium text-gray-700">Acesso a relatórios</span>
-  </label>
-</div>
+            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+              <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
+              <span class="font-medium text-gray-700">Menu de Produtos</span>
+            </label>
 
-        </div>
-      </div>
+            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+              <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
+              <span class="font-medium text-gray-700">Acesso a relatórios</span>
+            </label>
 
-      <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">
+          </div> <!-- fecha grid -->
+        </div> <!-- fecha flex-col -->
+      </div> <!-- fecha block permissões -->
+
+      <button type="submit"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">
         Cadastrar funcionário
       </button>
 
@@ -453,6 +465,7 @@
     </div>
   </div>
 </section>
+
 
 <section id="configuracoes" class="content-section mb-10 flex justify-center">
   <div class="w-full max-w-5xl"> <!-- Limita largura do card -->

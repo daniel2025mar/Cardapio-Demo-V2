@@ -47,8 +47,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // ================================
+  // APLICA PERMISSÕES NO MENU
+  // ================================
   aplicarPermissoes(usuario);
+   await carregarPermissoesDoUsuario(usuario.id);
+  aplicarRestricoesCliente(usuario);
+
+  // ================================
+  // ATIVA MENU MOBILE
+  // ================================
   ativarMenuMobile();
+
+  // ================================
+  // BLOQUEIO DE BOTÕES NO CLIENTE
+  // ================================
+  function aplicarRestricoesCliente(usuario) {
+  const permissoes = usuario.permissoes || [];
+
+  // Se o usuário tem apenas "acesso_clientes" (não tem Acesso Total)
+  if (permissoes.includes("acesso_clientes") && !permissoes.includes("Acesso Total")) {
+    // Seleciona todos os botões de bloquear/desbloquear cliente
+    document.querySelectorAll('button[data-acao="bloquear"]').forEach(btn => {
+      btn.disabled = true; // desabilita o botão
+      btn.classList.add("opacity-50", "cursor-not-allowed"); // estilo visual de desabilitado
+      // opcional: muda o texto
+      btn.textContent = "Acesso Restrito";
+    });
+  }
+}
+
+
+  aplicarRestricoesCliente(usuario);
 
   // ================================
   // ATUALIZA TOTAL DE PEDIDOS FINALIZADOS
@@ -87,7 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!listaPedidos) return;
     listaPedidos.innerHTML = "";
 
-    // Atualiza contador de pedidos recebidos
     const contador = document.getElementById("contador-pedidos");
     if (contador) contador.textContent = pedidos.length;
 
@@ -105,9 +134,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       item.dataset.id = pedido.id;
 
-      // ================================
-      // Formata horário corretamente (HH:MM)
-      // ================================
       let horario = "";
       if (pedido.horario_recebido) {
         try {
@@ -119,7 +145,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         } catch (e) {
           console.warn("Erro ao formatar horário:", e);
-          horario = "";
         }
       }
 
@@ -136,82 +161,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       `;
 
-      // Evento para abrir detalhes do pedido
       item.addEventListener("click", () => abrirDetalhesPedido(pedido.id));
-
       listaPedidos.appendChild(item);
-    });
-  }
-
-  // ================================
-  // FUNÇÃO PARA FINALIZAR PEDIDO
-  // ================================
-  const btnFinalizar = document.getElementById("btn-finalizar-pedido");
-
-  if (btnFinalizar) {
-    btnFinalizar.addEventListener("click", async () => {
-      const numeroPedidoEl = document.getElementById("pedido-numero");
-      if (!numeroPedidoEl) return;
-      const numeroPedido = numeroPedidoEl.textContent;
-
-      if (!numeroPedido || numeroPedido === "0000") {
-        mostrarToast("Nenhum pedido selecionado.", "bg-red-600");
-        return;
-      }
-
-      try {
-        const { data: pedidoAtual, error } = await supabase
-          .from("pedidos")
-          .select("status")
-          .eq("id", numeroPedido)
-          .single();
-
-        if (error || !pedidoAtual) {
-          console.error("Erro ao buscar pedido:", error);
-          mostrarToast("Erro ao verificar status do pedido.", "bg-red-600");
-          return;
-        }
-
-        if (pedidoAtual.status === "Finalizado") {
-          mostrarToast("Este pedido já está finalizado!", "bg-red-600");
-          return;
-        }
-
-        const { error: updateError } = await supabase
-          .from("pedidos")
-          .update({ status: "Finalizado" })
-          .eq("id", numeroPedido);
-
-        if (updateError) {
-          console.error("Erro ao finalizar pedido:", updateError);
-          mostrarToast("Erro ao finalizar pedido.", "bg-red-600");
-          return;
-        }
-
-        // Atualiza contador e recarrega fila
-        await atualizarTotalFinalizados();
-        await carregarFilaPedidos();
-
-        // Limpa campos do card de pedido
-        const camposCard = [
-          "pedido-numero","pedido-hora","pedido-tipo","pedido-status","total-pedido",
-          "cliente-nome","cliente-telefone","cliente-endereco","cliente-referencia","tipo-pagamento",
-          "lista-itens","subtotal-pedido","pedido-observacoes","pedido-timeline"
-        ];
-
-        camposCard.forEach(id => {
-          const el = document.getElementById(id);
-          if (!el) return;
-          if(el.tagName === "DIV" || el.tagName === "UL") el.innerHTML = "";
-          else el.textContent = id.includes("total") || id.includes("subtotal") ? "R$ 0,00" : "";
-        });
-
-        mostrarToast("Pedido finalizado e removido da fila!", "bg-indigo-600");
-
-      } catch (err) {
-        console.error("Erro ao finalizar pedido:", err);
-        mostrarToast("Erro ao finalizar pedido.", "bg-red-600");
-      }
     });
   }
 
@@ -222,11 +173,45 @@ document.addEventListener("DOMContentLoaded", async () => {
   await carregarFilaPedidos();
 });
 
+
+// ================================
+// BLOQUEIA FUNÇÕES SE TIVER "acesso_cliente"
+// ================================
+function aplicarRestricoesCliente(usuario) {
+  if (!usuario?.permissoes) return;
+
+  const permissoes = Array.isArray(usuario.permissoes)
+    ? usuario.permissoes
+    : JSON.parse(usuario.permissoes || "[]");
+
+  // Se NÃO tiver acesso_cliente → não bloqueia nada
+  if (!permissoes.includes("acesso_clientes")) return;
+
+  console.log("⚠ Restrição ativada: acesso_clientes detectado");
+
+  // Aguarda carregamento da lista
+  setTimeout(() => {
+    const botoesExcluir = document.querySelectorAll(".btn-excluir-cliente");
+    const botoesBloquear = document.querySelectorAll(".btn-bloquear-cliente");
+
+    botoesExcluir.forEach(btn => {
+      btn.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      btn.title = "Você não tem permissão para excluir clientes.";
+    });
+
+    botoesBloquear.forEach(btn => {
+      btn.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      btn.title = "Você não tem permissão para bloquear clientes.";
+    });
+  }, 500);
+}
+
 // ===============================
 //   APLICAR PERMISSÕES
 // ===============================
 function aplicarPermissoes(usuario) {
-  // permissoes agora é um array de strings
   const permissoes = usuario.permissoes || [];
 
   // Atualiza nome do usuário no header
@@ -247,27 +232,29 @@ function aplicarPermissoes(usuario) {
     return;
   }
 
-  // Mapeia nomes das permissões para IDs das seções
+  // Mapeia valores do banco para IDs das seções e texto do menu
   const PERMISSAO_MAP = {
-    "Dashboard": "dashboard",
-    "Clientes": "clientes",
-    "Pedidos": "pedidos",
-    "Produtos": "produtos",
-    "Funcionarios": "funcionarios",
-    "Relatorios": "relatorios",
-    "Configuracoes": "configuracoes"
+    "dashboard": { id: "dashboard", texto: "Dashboard" },
+    "acesso_clientes": { id: "clientes", texto: "Clientes" },
+    "Pedidos": { id: "pedidos", texto: "Pedidos" },
+    "Produtos": { id: "produtos", texto: "Produtos" },
+    "Funcionários": { id: "funcionarios", texto: "Funcionários" },
+    "Relatórios": { id: "relatorios", texto: "Relatórios" },
+    "Configuracoes": { id: "configuracoes", texto: "Configurações" }
   };
 
   // Libera apenas as seções e menus permitidos
   permissoes.forEach(p => {
-    const secaoID = PERMISSAO_MAP[p];
-    if (!secaoID) return;
+    const map = PERMISSAO_MAP[p];
+    if (!map) return;
 
-    const secao = document.getElementById(secaoID);
+    // Exibe a seção
+    const secao = document.getElementById(map.id);
     if (secao) secao.style.display = "block";
 
+    // Exibe o menu lateral
     const menuItem = Array.from(document.querySelectorAll("aside nav label")).find(
-      l => l.textContent.trim() === p
+      l => l.textContent.trim() === map.texto
     );
     if (menuItem) menuItem.style.display = "flex";
   });
@@ -276,6 +263,7 @@ function aplicarPermissoes(usuario) {
   ativarMenu();
   ativarMenuConfiguracoes();
 }
+
 
 
 // ======================
@@ -568,63 +556,82 @@ async function carregarClientes() {
     // Limpar lista
     lista.innerHTML = "";
 
+    // Recupera usuário logado
+    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+    const { data: usuario } = await supabase
+      .from("usuarios")
+      .select("*")
+      .eq("username", usuarioLogado.username)
+      .single();
+
+    const permissoes = usuario?.permissoes || [];
+
     // Adicionar linhas na tabela
     clientes.forEach((cliente, index) => {
-  const tr = document.createElement("tr");
-  tr.className = "hover:bg-gray-50";
+      const tr = document.createElement("tr");
+      tr.className = "hover:bg-gray-50";
 
-  // Se estiver bloqueado, muda o fundo da linha
-  if (cliente.bloqueado) tr.classList.add("bg-red-50");
+      if (cliente.bloqueado) tr.classList.add("bg-red-50");
 
-  tr.innerHTML = `
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-      ${cliente.nome || "—"}
-      ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up || "—"}</td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
-      <button class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold" data-acao="editar">Editar</button>
-      <button class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold" data-acao="excluir">Excluir</button>
-      <button class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold" data-acao="bloquear">
-        ${cliente.bloqueado ? 'Desbloquear' : 'Bloquear'}
-      </button>
-    </td>
-  `;
+      tr.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+          ${cliente.nome || "—"}
+          ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up || "—"}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
+          <button class="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold" data-acao="editar">Editar</button>
+          <button class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold" data-acao="excluir">Excluir</button>
+          <button class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold" data-acao="bloquear">
+            ${cliente.bloqueado ? 'Desbloquear' : 'Bloquear'}
+          </button>
+        </td>
+      `;
+
+      // Bloquear botões se usuário tiver apenas "acesso_clientes"
+      if (permissoes.includes("acesso_clientes") && !permissoes.includes("Acesso Total")) {
+        const btnExcluir = tr.querySelector('button[data-acao="excluir"]');
+        const btnBloquear = tr.querySelector('button[data-acao="bloquear"]');
+        if (btnExcluir) {
+          btnExcluir.disabled = true;
+          btnExcluir.classList.add("opacity-50", "cursor-not-allowed");
+        }
+        if (btnBloquear) {
+          btnBloquear.disabled = true;
+          btnBloquear.classList.add("opacity-50", "cursor-not-allowed");
+          btnBloquear.textContent = "Acesso Restrito";
+        }
+      }
 
       // Eventos dos botões
-  
-tr.querySelectorAll("button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const acao = btn.dataset.acao;
+      tr.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const acao = btn.dataset.acao;
 
-    switch (acao) {
-      case "editar":
-        editarCliente(cliente.id);
-        break;
+          switch (acao) {
+            case "editar":
+              editarCliente(cliente.id);
+              break;
 
-      case "excluir":
-        if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
-          excluirCliente(cliente.id);
-        }
-        break;
+            case "excluir":
+              if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
+                excluirCliente(cliente.id);
+              }
+              break;
 
-      case "bloquear":
-        // Agora envia também o valor atual
-        bloquearCliente(cliente.id, cliente.bloqueado);
-        break;
-    }
-  });
-
-});
-
+            case "bloquear":
+              bloquearCliente(cliente.id, cliente.bloqueado);
+              break;
+          }
+        });
+      });
 
       lista.appendChild(tr);
     });
 
-    // Se não houver clientes
     if (!clientes || clientes.length === 0) {
       lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
     }
@@ -639,7 +646,6 @@ tr.querySelectorAll("button").forEach(btn => {
 document.addEventListener("DOMContentLoaded", () => {
   carregarClientes();
 
-  // Botão cadastrar cliente
   const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
   if (btnCadastrar) {
     btnCadastrar.addEventListener("click", () => {
@@ -647,6 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 
 
 // Função de modal moderno
@@ -856,6 +863,8 @@ document.getElementById("edit-telefone").addEventListener("input", function (e) 
   e.target.value = valor;
 });
 
+
+
 // ==============================
 // CADASTRAR / ATUALIZAR FUNCIONÁRIO (formulário principal)
 // ==============================
@@ -863,45 +872,58 @@ const formFuncionario = document.getElementById("form-cadastro-funcionario");
 
 formFuncionario.addEventListener("submit", async (e) => {
   e.preventDefault();
+  console.log("=== 📌 INICIANDO PROCESSO DE SALVAR FUNCIONÁRIO ===");
 
   const nome = document.getElementById("nomeFuncionario").value.trim();
   const usuario = document.getElementById("usuarioFuncionario").value.trim();
   const senha = document.getElementById("senhaFuncionario").value.trim();
   const email = document.getElementById("emailFuncionario").value.trim();
 
-  const permissoes = {
-    acesso_total: document.getElementById("permAcessoTotal").checked,
-    clientes: document.getElementById("permClientes").checked,
-    pedidos: document.getElementById("permPedidos").checked,
-    produtos: document.getElementById("permProdutos").checked,
-    relatorios: document.getElementById("permRelatorios").checked,
-    funcionarios: false
-  };
+  console.log("➡️ Dados capturados do formulário:", { nome, usuario, senha, email });
 
   try {
+    let funcionarioId;
+    let usuarioId;
+
+    console.log("📌 Editando funcionário?", !!formFuncionario.dataset.editingId);
+
+    /* ============================================
+       ATUALIZAR FUNCIONÁRIO EXISTENTE
+    ============================================ */
     if (formFuncionario.dataset.editingId) {
-      // ATUALIZAR FUNCIONÁRIO EXISTENTE
+
       const idUsuario = formFuncionario.dataset.editingId;
+      console.log("✏️ Atualizando usuário ID:", idUsuario);
 
       const { data: usuarioAtualizado, error: errorUsuario } = await supabase
         .from("usuarios")
-        .update({ username: usuario, password: senha, email, permissoes })
-        .eq("id", idUsuario);
+        .update({ username: usuario, password: senha, email })
+        .eq("id", idUsuario)
+        .select();
 
       if (errorUsuario) throw errorUsuario;
 
-      const funcionarioId = usuarioAtualizado[0].funcionario_id;
+      usuarioId = usuarioAtualizado[0].id;
+      funcionarioId = usuarioAtualizado[0].funcionario_id;
 
-      const { error: errorFuncionario } = await supabase
+      console.log("✔️ Usuário atualizado. ID usuário:", usuarioId);
+
+      const { error: errorFuncUpdate } = await supabase
         .from("funcionarios")
         .update({ nome_completo: nome })
         .eq("id", funcionarioId);
-      if (errorFuncionario) throw errorFuncionario;
 
-      alert("Funcionário atualizado com sucesso!");
-      delete formFuncionario.dataset.editingId;
+      if (errorFuncUpdate) throw errorFuncUpdate;
+
+      // 🔥 Limpa permissões antigas
+      await supabase.from("permissoes").delete().eq("usuario_id", usuarioId);
+
     } else {
-      // CADASTRAR NOVO FUNCIONÁRIO
+      /* ============================================
+         CADASTRAR NOVO FUNCIONÁRIO
+      ============================================ */
+      console.log("➕ Criando novo funcionário...");
+
       const { data: funcionarioData, error: errorFuncionario } = await supabase
         .from("funcionarios")
         .insert([{ nome_completo: nome }])
@@ -909,31 +931,199 @@ formFuncionario.addEventListener("submit", async (e) => {
 
       if (errorFuncionario) throw errorFuncionario;
 
-      const funcionarioId = funcionarioData[0].id;
+      funcionarioId = funcionarioData[0].id;
 
-      const { data, error } = await supabase
+      console.log("✔️ Funcionário criado. ID:", funcionarioId);
+
+      console.log("➕ Criando usuário associado...");
+
+      const { data: usuarioData, error: errorUsuario } = await supabase
         .from("usuarios")
-        .insert([{
-          username: usuario,
-          password: senha,
-          email: email,
-          cargo: "Funcionário",
-          permissoes,
-          funcionario_id: funcionarioId
-        }]);
+        .insert([
+          {
+            username: usuario,
+            password: senha,
+            email,
+            cargo: "Funcionário",
+            funcionario_id: funcionarioId
+          }
+        ])
+        .select();
 
-      if (error) throw error;
+      if (errorUsuario) throw errorUsuario;
 
-      alert("Funcionário cadastrado com sucesso!");
+      usuarioId = usuarioData[0].id;
+
+      console.log("✔️ Usuário criado. ID:", usuarioId);
     }
 
+    /* ============================================
+       PERMISSÕES (LÓGICA NOVA + TABELA PERMISSOES)
+    ============================================ */
+
+    console.log("📌 Coletando permissões selecionadas...");
+
+    let permissoes = [];
+
+    const permAcessoTotal = document.getElementById("permAcessoTotal").checked;
+    const permClientes = document.getElementById("permClientes").checked;
+    const permPedidos = document.getElementById("permPedidos").checked;
+    const permProdutos = document.getElementById("permProdutos").checked;
+    const permFuncionarios = document.getElementById("permFuncionarios")?.checked;
+    const permRelatorios = document.getElementById("permRelatorios")?.checked;
+
+    // ⭐ SALVA NO ARRAY de usuarios.permissoes
+    if (permAcessoTotal) permissoes.push("Acesso Total");
+    if (permClientes) permissoes.push("acesso_clientes");
+    if (permPedidos) permissoes.push("acesso_pedidos");
+    if (permProdutos) permissoes.push("acesso_produtos");
+    if (permFuncionarios) permissoes.push("acesso_funcionarios");
+    if (permRelatorios) permissoes.push("acesso_relatorios");
+
+    // 🔥 Se nada marcado → salva array vazio
+    if (permissoes.length === 0) permissoes = [];
+
+    console.log("➡️ Permissões finais para salvar:", permissoes);
+
+    /* ============================================
+       SALVAR PERMISSÕES NA TABELA PERMISSOES
+    ============================================ */
+
+    // Regra especial para Acesso Total → salva somente ela
+    if (permAcessoTotal) {
+      await supabase.from("permissoes").insert({
+        usuario_id: usuarioId,
+        tipo_permissao: "Acesso Total",
+        restricoes: null
+      });
+    } else {
+
+      // ➤ ACESSO CLIENTES
+      if (permClientes) {
+        await supabase.from("permissoes").insert({
+          usuario_id: usuarioId,
+          tipo_permissao: "acesso_clientes",
+          restricoes: {
+            excluir: false,
+            bloquear: false,
+            editar: true
+          }
+        });
+      }
+
+      // ➤ ACESSO PEDIDOS
+      if (permPedidos) {
+        await supabase.from("permissoes").insert({
+          usuario_id: usuarioId,
+          tipo_permissao: "acesso_pedidos",
+          restricoes: null
+        });
+      }
+
+      // ➤ ACESSO PRODUTOS
+      if (permProdutos) {
+        await supabase.from("permissoes").insert({
+          usuario_id: usuarioId,
+          tipo_permissao: "acesso_produtos",
+          restricoes: null
+        });
+      }
+
+      // ➤ ACESSO FUNCIONÁRIOS
+      if (permFuncionarios) {
+        await supabase.from("permissoes").insert({
+          usuario_id: usuarioId,
+          tipo_permissao: "acesso_funcionarios",
+          restricoes: null
+        });
+      }
+
+      // ➤ ACESSO RELATÓRIOS
+      if (permRelatorios) {
+        await supabase.from("permissoes").insert({
+          usuario_id: usuarioId,
+          tipo_permissao: "acesso_relatorios",
+          restricoes: null
+        });
+      }
+    }
+
+    /* ============================================
+       ATUALIZA A COLUNA usuarios.permissoes
+    ============================================ */
+
+    await supabase
+      .from("usuarios")
+      .update({ permissoes })
+      .eq("id", usuarioId);
+
+    console.log("✔️ Permissões atualizadas no usuário");
+
+    /* ============================================
+       FINALIZAÇÃO
+    ============================================ */
+
+    alert(
+      formFuncionario.dataset.editingId
+        ? "Funcionário atualizado com sucesso!"
+        : "Funcionário cadastrado com sucesso!"
+    );
+
     formFuncionario.reset();
+    delete formFuncionario.dataset.editingId;
     listarFuncionarios();
+
   } catch (err) {
-    console.error("Erro ao salvar funcionário:", err);
-    alert("Erro ao salvar funcionário. Veja o console.");
+    console.error("❌ ERRO FATAL AO SALVAR FUNCIONÁRIO:", err);
+    alert("Erro ao salvar funcionário. Veja o console para detalhes.");
   }
 });
+
+
+
+
+async function carregarPermissoesDoUsuario(usuarioId) {
+  console.log("📌 Buscando permissões do usuário:", usuarioId);
+
+  const { data: permissoes, error } = await supabase
+    .from("permissoes")
+    .select("tipo_permissao")
+    .eq("usuario_id", usuarioId);
+
+  console.log("➡️ Permissões encontradas:", permissoes, error);
+
+  if (error || !permissoes) {
+    console.error("Erro ao carregar permissões:", error);
+    return;
+  }
+
+  // Extrai apenas os nomes das permissões
+  const lista = permissoes.map(p => p.tipo_permissao);
+
+  // Primeiro limpa tudo
+  document.getElementById("permAcessoTotal").checked = false;
+  document.getElementById("permClientes").checked = false;
+  document.getElementById("permPedidos").checked = false;
+  document.getElementById("permProdutos").checked = false;
+  document.getElementById("permFuncionarios").checked = false;
+
+  // Marca os checkboxes com base no banco:
+  if (lista.includes("Acesso Total"))
+    document.getElementById("permAcessoTotal").checked = true;
+
+  if (lista.includes("acesso_clientes"))
+    document.getElementById("permClientes").checked = true;
+
+  if (lista.includes("acesso_pedidos"))
+    document.getElementById("permPedidos").checked = true;
+
+  if (lista.includes("acesso_produtos"))
+    document.getElementById("permProdutos").checked = true;
+
+  if (lista.includes("acesso_funcionarios"))
+    document.getElementById("permFuncionarios").checked = true;
+}
+
 
 // ==============================
 // LISTAR FUNCIONÁRIOS COM BOTÕES EDITAR, BLOQUEAR E EXCLUIR
@@ -962,22 +1152,39 @@ async function listarFuncionarios() {
 
   funcionarios.forEach(f => {
     const div = document.createElement("div");
-    div.classList.add("flex", "items-center", "justify-between", "p-4", "mb-2", "border", "rounded-lg", "bg-gray-50", "shadow-sm");
+    div.classList.add(
+      "flex", "items-center", "justify-between",
+      "p-4", "mb-2", "border", "rounded-lg",
+      "bg-gray-50", "shadow-sm"
+    );
 
-    // Nome + permissão
+    // ================================
+    // Nome + Permissão
+    // ================================
     const nomeDiv = document.createElement("div");
     nomeDiv.classList.add("flex", "flex-col");
 
     const nome = document.createElement("span");
     nome.classList.add("font-semibold", "text-gray-800");
-    nome.textContent = f.funcionarios?.nome_completo || '—';
+    nome.textContent = f.funcionarios?.nome_completo || "—";
 
-    let permText;
+    // ================================
+    // Lógica CORRIGIDA da permissão
+    // ================================
+    let permText = "-";
+
     if (f.username.toLowerCase() === "admin") {
-      permText = "Acesso Total"; // Admin sempre mostra Acesso Total
-    } else {
-      const permissoesLiberadas = Object.entries(f.permissoes).filter(([k,v]) => v);
-      permText = permissoesLiberadas.length ? traducirPermissao(permissoesLiberadas[0][0]) : "-";
+      permText = "Acesso Total";
+    } else if (Array.isArray(f.permissoes)) {
+      // Caso seja um array vindo do banco: ["Acesso Total"]
+      permText = f.permissoes.length > 0 ? f.permissoes.join(", ") : "-";
+    } else if (typeof f.permissoes === "object" && f.permissoes !== null) {
+      // Caso seja um objeto
+      const permissoesLiberadas = Object.entries(f.permissoes)
+        .filter(([k, v]) => v)
+        .map(([k]) => traducirPermissao(k));
+      
+      permText = permissoesLiberadas.length > 0 ? permissoesLiberadas[0] : "-";
     }
 
     const perm = document.createElement("span");
@@ -988,21 +1195,31 @@ async function listarFuncionarios() {
     nomeDiv.appendChild(perm);
     div.appendChild(nomeDiv);
 
-    // Botões (não mostrar para admin)
+    // ================================
+    // Botões (não aparecem para admin)
+    // ================================
     if (f.username.toLowerCase() !== "admin") {
       const botoesDiv = document.createElement("div");
       botoesDiv.classList.add("flex", "gap-2");
 
-      // Botão Editar abre modal
+      // Botão editar
       const btnEditar = document.createElement("button");
       btnEditar.textContent = "Editar";
-      btnEditar.classList.add("px-3", "py-1", "bg-red-500", "hover:bg-red-600", "text-white", "rounded", "text-sm");
+      btnEditar.classList.add(
+        "px-3", "py-1", "bg-red-500",
+        "hover:bg-red-600", "text-white",
+        "rounded", "text-sm"
+      );
       btnEditar.addEventListener("click", () => abrirModalEdicao(f));
 
-      // Botão Bloquear
+      // Botão bloquear
       const btnBloquear = document.createElement("button");
       btnBloquear.textContent = "Bloquear";
-      btnBloquear.classList.add("px-3", "py-1", "bg-gray-400", "hover:bg-gray-500", "text-white", "rounded", "text-sm");
+      btnBloquear.classList.add(
+        "px-3", "py-1", "bg-gray-400",
+        "hover:bg-gray-500", "text-white",
+        "rounded", "text-sm"
+      );
       btnBloquear.addEventListener("click", async () => {
         if (confirm(`Deseja bloquear o funcionário ${f.funcionarios?.nome_completo}?`)) {
           try {
@@ -1010,7 +1227,9 @@ async function listarFuncionarios() {
               .from("usuarios")
               .update({ ativo: false })
               .eq("id", f.id);
+
             if (error) throw error;
+
             alert("Funcionário bloqueado com sucesso!");
             listarFuncionarios();
           } catch (err) {
@@ -1020,25 +1239,31 @@ async function listarFuncionarios() {
         }
       });
 
-      // Botão Excluir
+      // Botão excluir
       const btnExcluir = document.createElement("button");
       btnExcluir.textContent = "Excluir";
-      btnExcluir.classList.add("px-3", "py-1", "bg-red-700", "hover:bg-red-800", "text-white", "rounded", "text-sm");
+      btnExcluir.classList.add(
+        "px-3", "py-1", "bg-red-700",
+        "hover:bg-red-800", "text-white",
+        "rounded", "text-sm"
+      );
       btnExcluir.addEventListener("click", async () => {
         if (confirm(`Deseja realmente excluir o funcionário ${f.funcionarios?.nome_completo}? Essa ação não pode ser desfeita.`)) {
           try {
-            // Exclui da tabela usuarios
+            // Exclui usuario
             const { error: errorUsuario } = await supabase
               .from("usuarios")
               .delete()
               .eq("id", f.id);
+
             if (errorUsuario) throw errorUsuario;
 
-            // Exclui da tabela funcionarios
+            // Exclui funcionário
             const { error: errorFuncionario } = await supabase
               .from("funcionarios")
               .delete()
               .eq("id", f.funcionario_id);
+
             if (errorFuncionario) throw errorFuncionario;
 
             alert("Funcionário excluído com sucesso!");
@@ -1053,6 +1278,7 @@ async function listarFuncionarios() {
       botoesDiv.appendChild(btnEditar);
       botoesDiv.appendChild(btnBloquear);
       botoesDiv.appendChild(btnExcluir);
+
       div.appendChild(botoesDiv);
     }
 
@@ -1060,6 +1286,10 @@ async function listarFuncionarios() {
   });
 }
 
+
+// ==============================
+// ABRIR MODAL DE EDIÇÃO
+// ==============================
 // ==============================
 // ABRIR MODAL DE EDIÇÃO
 // ==============================
@@ -1072,14 +1302,31 @@ function abrirModalEdicao(f) {
   document.getElementById("editarSenhaFuncionario").value = f.password;
   document.getElementById("editarEmailFuncionario").value = f.email;
 
-  document.getElementById("editarPermAcessoTotal").checked = f.permissoes.acesso_total;
-  document.getElementById("editarPermClientes").checked = f.permissoes.clientes;
-  document.getElementById("editarPermPedidos").checked = f.permissoes.pedidos;
-  document.getElementById("editarPermProdutos").checked = f.permissoes.produtos;
-  document.getElementById("editarPermRelatorios").checked = f.permissoes.relatorios;
+  // Mapeamento de permissões amigáveis para chave do banco
+  const permissoesMap = {
+    "Acesso Total": "Acesso Total",
+    "Clientes": "acesso_clientes",
+    "Pedidos": "acesso_pedidos",
+    "Produtos": "acesso_produtos",
+    "Funcionários": "acesso_funcionarios",
+    "Relatórios": "acesso_relatorios"
+  };
+
+  // Permissões atuais do usuário
+  const permissoes = f.permissoes || [];
+
+  // Marca os checkboxes no modal
+  document.getElementById("editarPermAcessoTotal").checked = permissoes.includes("Acesso Total") || permissoes.includes("acesso_total");
+  document.getElementById("editarPermClientes").checked    = permissoes.includes("Clientes") || permissoes.includes("acesso_clientes");
+  document.getElementById("editarPermPedidos").checked     = permissoes.includes("Pedidos") || permissoes.includes("acesso_pedidos");
+  document.getElementById("editarPermProdutos").checked    = permissoes.includes("Produtos") || permissoes.includes("acesso_produtos");
+  document.getElementById("editarPermFuncionarios").checked= permissoes.includes("Funcionários") || permissoes.includes("acesso_funcionarios");
+  document.getElementById("editarPermRelatorios").checked  = permissoes.includes("Relatórios") || permissoes.includes("acesso_relatorios");
 }
 
-// Fechar modal
+// ==============================
+// FECHAR MODAL
+// ==============================
 document.getElementById("btnFecharModal").addEventListener("click", () => {
   document.getElementById("modal-editar-funcionario").classList.add("hidden");
 });
@@ -1096,14 +1343,19 @@ document.getElementById("form-editar-funcionario").addEventListener("submit", as
   const senha = document.getElementById("editarSenhaFuncionario").value.trim();
   const email = document.getElementById("editarEmailFuncionario").value.trim();
 
-  const permissoes = {
-    acesso_total: document.getElementById("editarPermAcessoTotal").checked,
-    clientes: document.getElementById("editarPermClientes").checked,
-    pedidos: document.getElementById("editarPermPedidos").checked,
-    produtos: document.getElementById("editarPermProdutos").checked,
-    relatorios: document.getElementById("editarPermRelatorios").checked,
-    funcionarios: false
-  };
+  // Map checkboxes para chaves corretas do banco
+  const checkboxes = [
+    { id: "editarPermAcessoTotal", chave: "Acesso Total" },
+    { id: "editarPermClientes", chave: "acesso_clientes" },
+    { id: "editarPermPedidos", chave: "acesso_pedidos" },
+    { id: "editarPermProdutos", chave: "acesso_produtos" },
+    { id: "editarPermRelatorios", chave: "acesso_relatorios" },
+    { id: "editarPermFuncionarios", chave: "acesso_funcionarios" }
+  ];
+
+  const novasPermissoes = checkboxes
+    .filter(c => document.getElementById(c.id)?.checked)
+    .map(c => c.chave);
 
   try {
     const { data: usuarioExistente, error: errorUsuarioFetch } = await supabase
@@ -1115,12 +1367,19 @@ document.getElementById("form-editar-funcionario").addEventListener("submit", as
 
     const funcionarioId = usuarioExistente.funcionario_id;
 
+    // Atualiza usuário com array de permissões correto
     const { error: errorUsuario } = await supabase
       .from("usuarios")
-      .update({ username: usuario, password: senha, email, permissoes })
+      .update({
+        username: usuario,
+        password: senha,
+        email,
+        permissoes: novasPermissoes
+      })
       .eq("id", id);
     if (errorUsuario) throw errorUsuario;
 
+    // Atualiza nome do funcionário
     const { error: errorFuncionario } = await supabase
       .from("funcionarios")
       .update({ nome_completo: nome })
@@ -1136,20 +1395,91 @@ document.getElementById("form-editar-funcionario").addEventListener("submit", as
   }
 });
 
+
+// ==============================
+// SALVAR ALTERAÇÕES DO MODAL
+// ==============================
+document.getElementById("form-editar-funcionario").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById("editarIdFuncionario").value;
+  const nome = document.getElementById("editarNomeFuncionario").value.trim();
+  const usuario = document.getElementById("editarUsuarioFuncionario").value.trim();
+  const senha = document.getElementById("editarSenhaFuncionario").value.trim();
+  const email = document.getElementById("editarEmailFuncionario").value.trim();
+
+  // Map checkboxes para as chaves corretas do banco
+  const checkboxes = [
+    { id: "editarPermAcessoTotal", chave: "Acesso Total" },
+    { id: "editarPermClientes", chave: "acesso_clientes" },
+    { id: "editarPermPedidos", chave: "acesso_pedidos" },
+    { id: "editarPermProdutos", chave: "acesso_produtos" },
+    { id: "editarPermRelatorios", chave: "acesso_relatorios" },
+    { id: "editarPermFuncionarios", chave: "acesso_funcionarios" }
+  ];
+
+  // Cria array de permissões baseado nas checkboxes marcadas
+  const novasPermissoes = checkboxes
+    .filter(c => document.getElementById(c.id)?.checked)
+    .map(c => c.chave);
+
+  try {
+    // Pega o ID do funcionário relacionado
+    const { data: usuarioExistente, error: errorUsuarioFetch } = await supabase
+      .from("usuarios")
+      .select("funcionario_id")
+      .eq("id", id)
+      .single();
+    if (errorUsuarioFetch) throw errorUsuarioFetch;
+
+    const funcionarioId = usuarioExistente.funcionario_id;
+
+    // Atualiza usuário com array de permissões correto
+    const { error: errorUsuario } = await supabase
+      .from("usuarios")
+      .update({
+        username: usuario,
+        password: senha,
+        email,
+        permissoes: novasPermissoes
+      })
+      .eq("id", id);
+    if (errorUsuario) throw errorUsuario;
+
+    // Atualiza nome do funcionário
+    const { error: errorFuncionario } = await supabase
+      .from("funcionarios")
+      .update({ nome_completo: nome })
+      .eq("id", funcionarioId);
+    if (errorFuncionario) throw errorFuncionario;
+
+    alert("Funcionário atualizado com sucesso!");
+    document.getElementById("modal-editar-funcionario").classList.add("hidden");
+    listarFuncionarios();
+  } catch (err) {
+    console.error("Erro ao atualizar funcionário:", err);
+    alert("Erro ao atualizar funcionário. Veja o console.");
+  }
+});
+
+
+
 // ==============================
 // FUNÇÃO AUXILIAR PARA NOME DE PERMISSÃO
 // ==============================
 function traducirPermissao(key) {
   switch(key) {
-    case "acesso_total": return "Acesso Total";
-    case "clientes": return "Clientes";
-    case "pedidos": return "Pedidos";
-    case "produtos": return "Produtos";
-    case "relatorios": return "Relatórios";
-    case "funcionarios": return "Funcionários";
-    default: return key;
+    case "Acesso Total": return "Acesso Total";
+    case "acesso_clientes": return "Menu de Clientes";
+    case "acesso_pedidos": return "Menu de Pedidos";
+    case "acesso_produtos": return "Menu de Produtos";
+    case "acesso_relatorios": return "Acesso a Relatórios";
+    case "acesso_funcionarios": return "Menu de Funcionários";
+    default: return key; // Retorna a chave original se não encontrar tradução
   }
 }
+
+
 
 // ==============================
 // CHAMA LISTAR FUNCIONÁRIOS AO CARREGAR

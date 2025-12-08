@@ -886,6 +886,7 @@ document.getElementById("edit-telefone").addEventListener("input", function (e) 
 // ==============================
 // CADASTRAR / ATUALIZAR FUNCIONÁRIO (formulário principal)
 // ==============================
+
 const formFuncionario = document.getElementById("form-cadastro-funcionario");
 
 formFuncionario.addEventListener("submit", async (e) => {
@@ -904,18 +905,26 @@ formFuncionario.addEventListener("submit", async (e) => {
     let usuarioId;
 
     // =============================
-    // COLETAR PERMISSÕES SELECIONADAS COMO OBJETO JSON
+    // 1️⃣ Capturar permissões como ARRAY
     // =============================
-    const permissoesObj = {
-      "Acesso Total": document.getElementById("permAcessoTotal")?.checked || false,
-      clientes: document.getElementById("permClientes")?.checked || false,
-      pedidos: document.getElementById("permPedidos")?.checked || false,
-      produtos: document.getElementById("permProdutos")?.checked || false,
-      funcionarios: document.getElementById("permFuncionarios")?.checked || false,
-      relatorios: document.getElementById("permRelatorios")?.checked || false
-    };
+    const permissoes = [];
+    const checkboxes = [
+      { id: "permAcessoTotal", valor: "Acesso Total" },
+      { id: "permClientes", valor: "acesso_clientes" },
+      { id: "permPedidos", valor: "acesso_pedidos" },
+      { id: "permProdutos", valor: "acesso_produtos" },
+      { id: "permFuncionarios", valor: "acesso_funcionarios" },
+      { id: "permRelatorios", valor: "acesso_relatorios" }
+    ];
 
-    console.log("📌 Permissões selecionadas:", permissoesObj);
+    checkboxes.forEach(item => {
+      const chk = document.getElementById(item.id);
+      if (chk && chk.checked) {
+        permissoes.push(item.valor);
+      }
+    });
+
+    console.log("📌 Permissões selecionadas (ARRAY):", permissoes);
 
     if (formFuncionario.dataset.editingId) {
       // =============================
@@ -929,8 +938,8 @@ formFuncionario.addEventListener("submit", async (e) => {
         .update({
           username: usuario,
           password: senha,
-          email,
-          permissoes: JSON.stringify(permissoesObj)// salva como JSON
+          email: email,
+          permissoes: permissoes // ← array de strings
         })
         .eq("id", idUsuario)
         .select();
@@ -962,12 +971,13 @@ formFuncionario.addEventListener("submit", async (e) => {
       const { data: usuarioData, error: errorUsuario } = await supabase
         .from("usuarios")
         .insert([{
+          id: crypto.randomUUID(),       // gera UUID
           username: usuario,
           password: senha,
-          email,
+          email: email || null,
           cargo: "Funcionário",
           funcionario_id: funcionarioId,
-          permissoes: JSON.stringify(permissoesObj) // salva corretamente no JSON
+          permissoes: permissoes        // ← array de strings
         }])
         .select();
 
@@ -988,8 +998,6 @@ formFuncionario.addEventListener("submit", async (e) => {
   }
 });
 
-
-
 // ==============================
 // LISTAR FUNCIONÁRIOS COM BOTÕES EDITAR, BLOQUEAR E EXCLUIR
 // ==============================
@@ -1005,7 +1013,7 @@ async function listarFuncionarios() {
         email,
         permissoes,
         funcionario_id,
-        funcionarios:funcionario_id(nome_completo)
+        funcionarios:funcionarios!left(nome_completo)
       `);
 
     if (error) {
@@ -1031,7 +1039,7 @@ async function listarFuncionarios() {
       nome.classList.add("font-semibold", "text-gray-800");
       nome.textContent = f.funcionarios?.nome_completo || '—';
 
-      // Corrige leitura do JSONB de permissões
+      // Corrige leitura do ARRAY de permissões
       let permText;
       if (f.username.toLowerCase() === "admin") {
         permText = "Acesso Total"; // Admin sempre mostra Acesso Total
@@ -1053,10 +1061,10 @@ async function listarFuncionarios() {
         const botoesDiv = document.createElement("div");
         botoesDiv.classList.add("flex", "gap-2");
 
-        // Botão Editar abre modal
+        // Botão Editar
         const btnEditar = document.createElement("button");
         btnEditar.textContent = "Editar";
-        btnEditar.classList.add("px-3", "py-1", "bg-red-500", "hover:bg-red-600", "text-white", "rounded", "text-sm");
+        btnEditar.classList.add("px-3", "py-1", "bg-blue-500", "hover:bg-blue-600", "text-white", "rounded", "text-sm");
         btnEditar.addEventListener("click", () => abrirModalEdicao(f));
 
         // Botão Bloquear
@@ -1437,45 +1445,68 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function salvarUsuario() {
+  console.log("=== 📌 INICIANDO PROCESSO DE SALVAR FUNCIONÁRIO ===");
+
   try {
     // 1️⃣ Pegar dados do formulário
     const username = document.getElementById("inputUsername").value.trim();
-    const email = document.getElementById("inputEmail").value.trim();
+    const email = document.getElementById("inputEmail").value.trim() || null;
     const password = document.getElementById("inputSenha").value.trim();
-    const cargo = document.getElementById("inputCargo").value.trim() || "Funcionário";
+    const cargo = document.getElementById("inputCargo").value.trim() || null;
 
-    // 2️⃣ Montar array de permissões como strings
+    console.log("➡️ Dados capturados do formulário:", { username, email, password, cargo });
+
+    // 2️⃣ Capturar permissões como ARRAY
     const permissoes = [];
-    if (document.getElementById("permAcessoTotal").checked) permissoes.push("Acesso Total");
-    if (document.getElementById("permClientes").checked) permissoes.push("acesso_clientes");
-    if (document.getElementById("permPedidos").checked) permissoes.push("acesso_pedidos");
-    if (document.getElementById("permProdutos").checked) permissoes.push("acesso_produtos");
-    if (document.getElementById("permFuncionarios").checked) permissoes.push("acesso_funcionarios");
-    if (document.getElementById("permRelatorios")?.checked) permissoes.push("acesso_relatorios");
+    const checkboxes = [
+      { id: "permAcessoTotal", valor: "Acesso Total" },
+      { id: "permClientes", valor: "acesso_clientes" },
+      { id: "permPedidos", valor: "acesso_pedidos" },
+      { id: "permProdutos", valor: "acesso_produtos" },
+      { id: "permFuncionarios", valor: "acesso_funcionarios" },
+      { id: "permRelatorios", valor: "acesso_relatorios" }
+    ];
 
-    console.log("Permissões a salvar:", permissoes);
+    checkboxes.forEach(item => {
+      const chk = document.getElementById(item.id);
+      if (chk && chk.checked) {
+        permissoes.push(item.valor);
+      }
+    });
+
+    console.log("📌 Permissões selecionadas (ARRAY):", permissoes);
 
     // 3️⃣ Salvar no Supabase
     const { data, error } = await supabase
       .from("usuarios")
-      .insert({
-        username,
-        email,
-        password,
-        cargo,
-        permissoes // ⚠️ salva o array direto, incluindo "acesso_clientes"
-      });
+      .insert([
+        {
+          id: crypto.randomUUID(),       // gera UUID
+          username: username,
+          password: password,
+          cargo: cargo,
+          email: email,
+          funcionario_id: null,         // sempre null por padrão
+          permissoes: permissoes        // array de strings
+        }
+      ]);
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌ Erro Supabase:", error);
+      throw error;
+    }
 
     alert("Funcionário cadastrado com sucesso!");
     document.getElementById("formFuncionario").reset();
+
     listarFuncionarios();
+
   } catch (err) {
     console.error("Erro ao cadastrar usuário:", err);
     alert("Erro ao cadastrar usuário. Veja o console.");
   }
 }
+
 
 // ===============================
 // EVENTO PARA O FORMULÁRIO

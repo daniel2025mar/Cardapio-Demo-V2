@@ -112,9 +112,8 @@
           <span>Pedidos</span>
         </label>
         <label data-menu="clientes" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
-  <i class="fi fi-rr-users text-xl"></i> Clientes
-</label>
-
+  <i class="fi fi-rr-users text-xl"></i>
+  <span>Clientes</span>
 </label>
 
         <label data-menu="funcionarios" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
@@ -413,46 +412,56 @@
         </div>
       </div>
 
-      <!-- 3️⃣ Permissões do sistema -->
-      <div>
-        <h4 class="font-semibold mb-2">Permissões do sistema</h4>
+      <div class="mt-4">
+        <label class="block font-medium mb-1" for="cargoFuncionario">Cargo</label>
+        <select id="cargoFuncionario" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="Funcionário">Funcionário</option>
+          <option value="Administrador">Administrador</option>
+        </select>
+      </div>
+<form id="formFuncionario">
+  
 
-        <div class="flex flex-col gap-2">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+  <!-- 2️⃣ Permissões do sistema -->
+  <div>
+    <h4 class="font-semibold mb-2">Permissões do sistema</h4>
+    <div class="flex flex-col gap-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+        <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
+          <span class="font-medium text-gray-700">Acesso total ao painel</span>
+        </label>
 
-            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-              <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
-              <span class="font-medium text-gray-700">Acesso total ao painel</span>
-            </label>
+        <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
+          <span class="font-medium text-gray-700">Menu de Clientes</span>
+        </label>
 
-            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-              <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
-              <span class="font-medium text-gray-700">Menu de Clientes</span>
-            </label>
+        <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
+          <span class="font-medium text-gray-700">Menu de Pedidos</span>
+        </label>
 
-            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-              <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
-              <span class="font-medium text-gray-700">Menu de Pedidos</span>
-            </label>
+        <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
+          <span class="font-medium text-gray-700">Menu de Produtos</span>
+        </label>
 
-            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-              <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
-              <span class="font-medium text-gray-700">Menu de Produtos</span>
-            </label>
+        <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
+          <span class="font-medium text-gray-700">Acesso a relatórios</span>
+        </label>
+      </div>
+    </div>
+  </div>
 
-            <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-              <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
-              <span class="font-medium text-gray-700">Acesso a relatórios</span>
-            </label>
+  <!-- 3️⃣ Botão de submit -->
+  <button type="submit"
+          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">
+    Cadastrar funcionário
+  </button>
+</form>
 
-          </div> <!-- fecha grid -->
-        </div> <!-- fecha flex-col -->
-      </div> <!-- fecha block permissões -->
-
-      <button type="submit"
-              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">
-        Cadastrar funcionário
-      </button>
 
     </form>
   </div>

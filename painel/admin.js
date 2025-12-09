@@ -9,6 +9,92 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
+let painelBloqueado = false;
+
+function bloquearPainel() {
+  if (painelBloqueado) return; // evita múltiplos overlays
+  painelBloqueado = true;
+
+  const overlay = document.createElement("div");
+  overlay.id = "bloqueio-acesso";
+  overlay.className = `
+    fixed inset-0 bg-black bg-opacity-80 flex items-center 
+    justify-center z-[999999]
+  `;
+  
+  overlay.innerHTML = `
+    <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md w-[90%] sm:w-auto">
+        <h2 class="text-2xl font-bold text-red-600 mb-4">Acesso Bloqueado</h2>
+        <p class="text-gray-700 mb-6">
+          Seu acesso foi desativado pelo administrador.<br>
+          Entre em contato com o suporte.
+        </p>
+        <button onclick="logout()" 
+          class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold">
+          Sair
+        </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+}
+
+// 🔎 VARIÁVEL GLOBAL
+let usuarioBloqueado = false;
+
+// ==========================================
+// 🔎 FUNÇÃO PARA VERIFICAR STATUS DO USUÁRIO
+// ==========================================
+async function verificarAcessoUsuario() {
+  try {
+    const usuarioLogadoRaw = localStorage.getItem("usuarioLogado");
+    const usuarioLogado = usuarioLogadoRaw ? JSON.parse(usuarioLogadoRaw) : null;
+    if (!usuarioLogado) return;
+
+    const username = usuarioLogado.username;
+    const email = usuarioLogado.email;
+
+    let query = supabase.from("usuarios").select("*");
+    if (username) query = query.eq("username", username);
+    else if (email) query = query.eq("email", email);
+
+    const { data: usuario, error } = await query.maybeSingle();
+    if (error || !usuario) return;
+
+    if (usuario.ativo === false) {
+      usuarioBloqueado = true;
+      bloquearPainel();
+    } else {
+      usuarioBloqueado = false;
+    }
+
+  } catch (e) {
+    console.error("Erro em verificarAcessoUsuario():", e);
+  }
+}
+
+// ==========================================
+// 🔄 MONITORAR CLIQUES NO PAINEL
+// ==========================================
+document.addEventListener("click", (e) => {
+  if (usuarioBloqueado) {
+    if (!e.target.closest("#bloqueio-acesso")) {
+      bloquearPainel();
+    }
+  }
+});
+
+// ==========================================
+// 🔑 MONITORAMENTO PERIÓDICO EM TEMPO REAL
+// ==========================================
+setInterval(verificarAcessoUsuario, 5000); // verifica a cada 5 segundos
+
+// ==========================================
+// 🔑 CHAMADA INICIAL
+// ==========================================
+verificarAcessoUsuario();
 
 
 // ===================================================
@@ -28,6 +114,7 @@ const MENU_MAP = {
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", async () => {
+  verificarAcessoUsuario();
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";
@@ -587,13 +674,21 @@ async function carregarClientes() {
 
     if (error) throw error;
 
+    // Se clientes vier null ou undefined, transforma em array vazio
+    const clientesArray = Array.isArray(clientes) ? clientes : [];
+
     lista.innerHTML = "";
 
-    // Checa se o usuário tem apenas acesso_clientes
-    const permissoesCliente = window.permissoesDetalhadas["acesso_clientes"];
-    const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
+    // Fallback para permissões
+    const permissoesCliente = (window.permissoesDetalhadas && window.permissoesDetalhadas["acesso_clientes"]) || {};
+    const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas || {}).length === 1;
 
-    clientes.forEach((cliente, index) => {
+    if (clientesArray.length === 0) {
+      lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
+      return;
+    }
+
+    clientesArray.forEach((cliente, index) => {
       const tr = document.createElement("tr");
       tr.className = "hover:bg-gray-50";
       if (cliente.bloqueado) tr.classList.add("bg-red-50");
@@ -616,50 +711,51 @@ async function carregarClientes() {
         </td>
       `;
 
+      // Seleção segura de botões
       const btnEditar = tr.querySelector(".btn-editar");
       const btnExcluir = tr.querySelector(".btn-excluir");
       const btnBloquear = tr.querySelector(".btn-bloquear");
 
-      // Botão Editar sempre funciona se permitido
-      btnEditar.addEventListener("click", () => {
-        if (!isAcessoClienteExclusivo || permissoesCliente.editar) {
-          editarCliente(cliente.id);
-        } else {
-          mostrarToast("Você não tem permissão para editar.", "bg-red-600");
-        }
-      });
-
-      // Bloquear apenas se usuário tiver somente acesso_clientes
-      btnExcluir.addEventListener("click", (e) => {
-        if (isAcessoClienteExclusivo) {
-          e.preventDefault();
-          mostrarToast("Você não tem permissão para excluir.", "bg-red-600");
-        } else {
-          if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
-            excluirCliente(cliente.id);
+      if (btnEditar) {
+        btnEditar.addEventListener("click", () => {
+          if (!isAcessoClienteExclusivo || permissoesCliente.editar) {
+            editarCliente(cliente.id);
+          } else {
+            mostrarToast("Você não tem permissão para editar.", "bg-red-600");
           }
-        }
-      });
+        });
+      }
 
-      btnBloquear.addEventListener("click", (e) => {
-        if (isAcessoClienteExclusivo) {
-          e.preventDefault();
-          mostrarToast("Você não tem permissão.", "bg-red-600");
-        } else {
-          bloquearCliente(cliente.id, cliente.bloqueado);
-        }
-      });
+      if (btnExcluir) {
+        btnExcluir.addEventListener("click", (e) => {
+          if (isAcessoClienteExclusivo) {
+            e.preventDefault();
+            mostrarToast("Você não tem permissão para excluir.", "bg-red-600");
+          } else {
+            if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
+              excluirCliente(cliente.id);
+            }
+          }
+        });
+      }
+
+      if (btnBloquear) {
+        btnBloquear.addEventListener("click", (e) => {
+          if (isAcessoClienteExclusivo) {
+            e.preventDefault();
+            mostrarToast("Você não tem permissão.", "bg-red-600");
+          } else {
+            bloquearCliente(cliente.id, cliente.bloqueado);
+          }
+        });
+      }
 
       lista.appendChild(tr);
     });
 
-    if (!clientes || clientes.length === 0) {
-      lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
-    }
-
   } catch (err) {
     console.error("Erro ao carregar clientes:", err);
-    lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
+    lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes. Tente novamente.</td></tr>`;
   }
 }
 
@@ -674,6 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 
 
 // Função de modal moderno

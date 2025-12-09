@@ -9,139 +9,8 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ==========================================
-// 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
-// ==========================================
-function bloquearPainel() {
-
-  // Criar overlay
-  const overlay = document.createElement("div");
-  overlay.id = "bloqueio-acesso";
-  overlay.className = `
-    fixed inset-0 bg-black bg-opacity-80 flex items-center 
-    justify-center z-[999999]
-  `;
-
-  // Modal responsivo
-  overlay.innerHTML = `
-    <div class="
-      bg-white rounded-lg shadow-xl text-center 
-      max-w-md w-[90%]
-      p-5 sm:p-6 md:p-8
-    ">
-        <h2 class="font-bold text-red-600 mb-3 text-xl sm:text-2xl">
-          Acesso Bloqueado
-        </h2>
-
-        <p class="text-gray-700 mb-5 leading-relaxed text-sm sm:text-base">
-          Seu acesso foi desativado pelo administrador.<br>
-          Entre em contato com o suporte.
-        </p>
-
-        <button onclick="logout()" 
-          class="bg-red-600 hover:bg-red-700 text-white 
-          px-5 py-2 rounded-lg font-semibold 
-          text-sm sm:text-base w-full sm:w-auto">
-          Sair
-        </button>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  document.body.style.overflow = "hidden"; // trava scroll
-}
-
-// ====================================================
-// 🔥 MONITORAMENTO EM TEMPO REAL DO BLOQUEIO DO USUÁRIO
-// ====================================================
-function monitorarBloqueioTempoReal() {
-  const usuarioRaw = localStorage.getItem("usuarioLogado");
-  const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null;
-
-  if (!usuario || !usuario.id) {
-    console.warn("⚠️ Não é possível monitorar: usuário sem ID.");
-    return;
-  }
-
-  console.log("📡 Monitorando bloqueio em tempo real para ID:", usuario.id);
-
-  supabase
-    .channel("canal-bloqueio-" + usuario.id)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "usuarios",
-        filter: "id=eq." + usuario.id,
-      },
-      (payload) => {
-
-        console.log("⚡ Atualização detectada no usuário:", payload);
-
-        const novo = payload.new;
-
-        // se houver alteração e ativo = false → BLOQUEAR
-        if (novo && novo.ativo === false) {
-          console.warn("🚫 BLOQUEADO EM TEMPO REAL!");
-          bloquearPainel();
-        }
-      }
-    )
-    .subscribe();
-}
 
 
-
-// =======================================
-// 🔍 VERIFICAR ACESSO DO USUÁRIO AO ENTRAR
-// =======================================
-async function verificarAcessoUsuario() {
-  try {
-    console.log("📌 [ACESSO] Iniciando verificação de acesso...");
-
-    const usuarioRaw = localStorage.getItem("usuarioLogado");
-    const usuarioLogado = usuarioRaw ? JSON.parse(usuarioRaw) : null;
-
-    console.log("📌 usuarioLogado:", usuarioLogado);
-
-    if (!usuarioLogado || !usuarioLogado.id) {
-      console.warn("⚠️ Usuário não encontrado no localStorage.");
-      return;
-    }
-
-    console.log("🔎 Consultando Supabase pelo ID:", usuarioLogado.id);
-
-    const { data: usuario, error } = await supabase
-      .from("usuarios")
-      .select("id, ativo, username, cargo, email")
-      .eq("id", usuarioLogado.id)
-      .maybeSingle();
-
-    console.log("📥 Retorno Supabase:", { usuario, error });
-
-    if (error) {
-      console.error("❌ Erro ao consultar usuário:", error);
-      return;
-    }
-
-    if (!usuario) {
-      console.warn("⚠️ Usuário não existe mais no banco.");
-      return;
-    }
-
-    if (usuario.ativo === false) {
-      console.warn("🚫 Usuário BLOQUEADO → Bloqueando painel...");
-      bloquearPainel();
-      return;
-    }
-
-    console.log("🟢 Usuário ativo. Painel permitido.");
-
-  } catch (e) {
-    console.error("❌ Erro inesperado na verificação:", e);
-  }
-}
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
 // ===================================================
@@ -159,17 +28,11 @@ const MENU_MAP = {
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", async () => {
-
-  // 🔥 PRIMEIRA COISA QUE RODA: TRAVA SE ESTIVER FALSE
-  await verificarAcessoUsuario();
-  monitorarBloqueioTempoReal();   // ← SUPER IMPORTANTE
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";
     return;
   }
-
- 
 
   // ================================
   // BUSCA USUÁRIO LOGADO
@@ -538,7 +401,6 @@ document.getElementById("btn-logout").addEventListener("click", () => {
 //   CARREGAR PEDIDOS DO SUPABASE
 // =============================
 async function carregarPedidos() {
-  
   const lista = document.querySelector(".orders-grid .col-span-1 .space-y-3");
   if (!lista) return;
 
@@ -1078,7 +940,6 @@ function abrirModalConfirmacao(acao, funcionario, callbackConfirmar) {
 // LISTAR FUNCIONÁRIOS COM BOTÕES
 // ==============================
 async function listarFuncionarios() {
-
   try {
     const { data: funcionarios, error } = await supabase
       .from("funcionarios")

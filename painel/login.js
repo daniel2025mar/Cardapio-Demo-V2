@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Verifica se o usuário está bloqueado na tabela (ativo = false)
     if (usuario.ativo === false) {
-      return mostrarErro("Seu acesso foi bloqueado! Contate o administrador.");
+      return mostrarErro("Acesso ao sistema bloqueado. Contate o suporte.");
     }
 
     tentativas = 0;

@@ -9,9 +9,13 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
+// 🔥 VARIÁVEIS GLOBAIS
 let painelBloqueado = false;
+let usuarioBloqueado = false;
+let timeoutLiberacao;
+let intervalContador;
 
+// 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
 function bloquearPainel() {
   if (painelBloqueado) return; // evita múltiplos overlays
   painelBloqueado = true;
@@ -37,8 +41,52 @@ function bloquearPainel() {
   document.body.style.overflow = "hidden";
 }
 
-// 🔎 VARIÁVEL GLOBAL
-let usuarioBloqueado = false;
+// 🔥 FUNÇÃO PARA EXIBIR ACESSO LIBERADO COM CONTADOR
+function mostrarAcessoLiberado() {
+  // remove overlay de bloqueio se existir
+  const overlayExistente = document.getElementById("bloqueio-acesso");
+  if (overlayExistente) overlayExistente.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "acesso-liberado";
+  overlay.className = `
+    fixed inset-0 bg-black bg-opacity-50 flex items-center 
+    justify-center z-[999999] backdrop-blur-sm
+  `;
+
+  overlay.innerHTML = `
+    <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300">
+        <h2 class="text-3xl font-extrabold text-blue-800 mb-4 drop-shadow-md">Acesso Liberado</h2>
+        <p class="text-black mb-4 text-base sm:text-lg leading-relaxed">
+          Seu acesso foi restaurado pelo administrador.<br>
+          O painel voltará a funcionar em <span id="contador">60</span> segundos.
+        </p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
+
+  // contador regressivo de 60 segundos
+  let segundosRestantes = 60;
+  const contadorElemento = document.getElementById("contador");
+  clearInterval(intervalContador);
+  intervalContador = setInterval(() => {
+    segundosRestantes--;
+    if (contadorElemento) contadorElemento.textContent = segundosRestantes;
+    if (segundosRestantes <= 0) {
+      clearInterval(intervalContador);
+    }
+  }, 1000);
+
+  // após 1 minuto, remove o overlay e libera o painel
+  clearTimeout(timeoutLiberacao);
+  timeoutLiberacao = setTimeout(() => {
+    overlay.remove();
+    painelBloqueado = false;
+    document.body.style.overflow = "auto";
+  }, 60000); // 60000ms = 1 minuto
+}
 
 // ==========================================
 // 🔎 FUNÇÃO PARA VERIFICAR STATUS DO USUÁRIO
@@ -63,7 +111,10 @@ async function verificarAcessoUsuario() {
       usuarioBloqueado = true;
       bloquearPainel();
     } else {
-      usuarioBloqueado = false;
+      if (usuarioBloqueado) {
+        usuarioBloqueado = false;
+        mostrarAcessoLiberado(); // exibe modal de acesso liberado
+      }
     }
 
   } catch (e) {
@@ -91,6 +142,7 @@ setInterval(verificarAcessoUsuario, 5000); // verifica a cada 5 segundos
 // 🔑 CHAMADA INICIAL
 // ==========================================
 verificarAcessoUsuario();
+
 
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES

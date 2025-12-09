@@ -9,6 +9,8 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
+
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
 // ===================================================
@@ -672,8 +674,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-
 
 
 // Função de modal moderno
@@ -1659,6 +1659,7 @@ async function salvarUsuario() {
 }
 
 
+
 // ===============================
 // EVENTO PARA O FORMULÁRIO
 // ===============================
@@ -1671,3 +1672,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// Seleciona os elementos
+const btnNotificacoes = document.getElementById('btn-notificacoes');
+const balao = document.getElementById('balao-notificacoes');
+const contador = document.getElementById('contador-notificacoes');
+const lista = document.getElementById('lista-notificacoes');
+const btnLimpar = document.getElementById('btnLimpar');
+
+// Exemplo de notificações
+let notificacoes = [
+  "Novo pedido recebido!",
+  "Usuário X se registrou.",
+  "Atualização disponível."
+];
+
+// Função para atualizar o contador
+function atualizarContador() {
+  if (notificacoes.length > 0) {
+    contador.textContent = notificacoes.length;
+    contador.classList.remove('hidden'); // mostra o contador
+  } else {
+    contador.classList.add('hidden'); // esconde o contador
+  }
+}
+
+// Função para preencher a lista do balão com hover azul
+function atualizarLista() {
+  lista.innerHTML = ''; // limpa a lista
+  notificacoes.forEach(n => {
+    const li = document.createElement('li');
+    li.textContent = n;
+    li.className = "px-4 py-2 hover:bg-blue-600 cursor-pointer"; // hover azul
+    lista.appendChild(li);
+  });
+}
+
+// Função para limpar as notificações
+btnLimpar.addEventListener('click', () => {
+  notificacoes = []; // limpa o array de notificações
+  atualizarLista();  // atualiza a lista (fica vazia)
+  atualizarContador(); // zera o contador
+});
+
+// Mostra ou esconde o balão ao clicar no botão
+btnNotificacoes.addEventListener('click', () => {
+  atualizarLista(); // atualiza a lista ao abrir
+  balao.classList.toggle('hidden'); // alterna visibilidade
+});
+
+// Fecha o balão ao clicar fora dele
+document.addEventListener('click', (e) => {
+  if (!btnNotificacoes.contains(e.target) && !balao.contains(e.target)) {
+    balao.classList.add('hidden');
+  }
+});
+
+// Atualiza o contador ao carregar a página
+atualizarContador();

@@ -14,33 +14,42 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ==========================================
 function bloquearPainel() {
 
-  // já existe — mantenho!
+  // Criar overlay
   const overlay = document.createElement("div");
   overlay.id = "bloqueio-acesso";
   overlay.className = `
     fixed inset-0 bg-black bg-opacity-80 flex items-center 
     justify-center z-[999999]
   `;
-  
+
+  // Modal responsivo
   overlay.innerHTML = `
-    <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md">
-        <h2 class="text-2xl font-bold text-red-600 mb-4">Acesso Bloqueado</h2>
-        <p class="text-gray-700 mb-6">
+    <div class="
+      bg-white rounded-lg shadow-xl text-center 
+      max-w-md w-[90%]
+      p-5 sm:p-6 md:p-8
+    ">
+        <h2 class="font-bold text-red-600 mb-3 text-xl sm:text-2xl">
+          Acesso Bloqueado
+        </h2>
+
+        <p class="text-gray-700 mb-5 leading-relaxed text-sm sm:text-base">
           Seu acesso foi desativado pelo administrador.<br>
           Entre em contato com o suporte.
         </p>
+
         <button onclick="logout()" 
-          class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold">
+          class="bg-red-600 hover:bg-red-700 text-white 
+          px-5 py-2 rounded-lg font-semibold 
+          text-sm sm:text-base w-full sm:w-auto">
           Sair
         </button>
     </div>
   `;
 
   document.body.appendChild(overlay);
-  document.body.style.overflow = "hidden";
+  document.body.style.overflow = "hidden"; // trava scroll
 }
-
-
 
 // ====================================================
 // 🔥 MONITORAMENTO EM TEMPO REAL DO BLOQUEIO DO USUÁRIO

@@ -884,6 +884,209 @@ document.getElementById("edit-telefone").addEventListener("input", function (e) 
 });
 
 // ==============================
+// FUNÇÃO PARA EXIBIR NOTIFICAÇÃO
+// ==============================
+function mostrarNotificacao(mensagem, tipo = "sucesso") {
+  const modal = document.getElementById("modal-notificacao");
+  const texto = document.getElementById("modal-notificacao-texto");
+
+  texto.textContent = mensagem;
+
+  modal.classList.remove("bg-green-500", "bg-red-500", "bg-yellow-500");
+  if (tipo === "sucesso") modal.classList.add("bg-green-500");
+  else if (tipo === "erro") modal.classList.add("bg-red-500");
+  else if (tipo === "alerta") modal.classList.add("bg-yellow-500");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("scale-100");
+
+  setTimeout(() => {
+    modal.classList.add("scale-95");
+    setTimeout(() => modal.classList.add("hidden"), 300);
+  }, 3000);
+}
+
+// ==============================
+// Modal de confirmação
+// ==============================
+function abrirModalConfirmacao(acao, funcionario, callbackConfirmar) {
+  const modal = document.getElementById("modal-confirmacao");
+  const texto = document.getElementById("modal-texto");
+  const btnConfirmar = document.getElementById("btn-confirmar");
+  const btnCancelar = document.getElementById("btn-cancelar");
+
+  texto.textContent = `Deseja realmente ${acao} o funcionário ${funcionario.nome_completo}?`;
+
+  modal.classList.remove("hidden");
+
+  // Remove eventos antigos
+  btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
+  btnCancelar.replaceWith(btnCancelar.cloneNode(true));
+
+  const novoConfirm = document.getElementById("btn-confirmar");
+  const novoCancelar = document.getElementById("btn-cancelar");
+
+  novoConfirm.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    callbackConfirmar();
+  });
+
+  novoCancelar.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+}
+
+// ==============================
+// LISTAR FUNCIONÁRIOS COM BOTÕES
+// ==============================
+async function listarFuncionarios() {
+  try {
+    const { data: funcionarios, error } = await supabase
+      .from("funcionarios")
+      .select(`
+        id,
+        nome_completo,
+        usuario_id:usuarios!usuarios_funcionario_id_fkey (
+          id,
+          username,
+          email,
+          cargo,
+          permissoes,
+          ativo
+        )
+      `)
+      .order('nome_completo', { ascending: true });
+
+    if (error) {
+      console.error("Erro ao listar funcionários:", error);
+      return;
+    }
+
+    const lista = document.getElementById("lista-funcionarios");
+    lista.innerHTML = "";
+
+    funcionarios.forEach(f => {
+      const div = document.createElement("div");
+      div.classList.add(
+        "flex", "items-center", "justify-between", "p-4", "mb-2",
+        "border", "rounded-lg", "bg-gray-50", "shadow-sm"
+      );
+
+      // Nome + permissões
+      const nomeDiv = document.createElement("div");
+      nomeDiv.classList.add("flex", "flex-col");
+
+      const nome = document.createElement("span");
+      nome.classList.add("font-semibold", "text-gray-800");
+      nome.textContent = f.nome_completo || "—";
+
+      const usuario = f.usuario_id?.[0];
+      let permissoesLiberadas = [];
+      if (usuario && Array.isArray(usuario.permissoes)) {
+        permissoesLiberadas = usuario.permissoes;
+      } else if (usuario && typeof usuario?.permissoes === "string") {
+        try { permissoesLiberadas = JSON.parse(usuario.permissoes); } catch(e){ permissoesLiberadas = []; }
+      }
+
+      let permText = usuario?.username?.toLowerCase() === "admin"
+        ? "Acesso Total"
+        : (permissoesLiberadas.length ? permissoesLiberadas.join(", ") : "-");
+
+      const perm = document.createElement("span");
+      perm.classList.add("text-sm", "text-gray-600");
+      perm.textContent = permText;
+
+      nomeDiv.appendChild(nome);
+      nomeDiv.appendChild(perm);
+      div.appendChild(nomeDiv);
+
+      // Botões (não mostrar para admin)
+      if (usuario?.username?.toLowerCase() !== "admin") {
+        const botoesDiv = document.createElement("div");
+        botoesDiv.classList.add("flex", "gap-2");
+
+        const btnEditar = document.createElement("button");
+        btnEditar.textContent = "Editar";
+        btnEditar.classList.add("px-3", "py-1", "bg-blue-500", "hover:bg-blue-600", "text-white", "rounded", "text-sm");
+        btnEditar.addEventListener("click", () => abrirModalEdicao(f));
+
+        // Bloquear / Desbloquear
+        const btnBloquear = document.createElement("button");
+        btnBloquear.textContent = usuario.ativo === false ? "Desbloquear" : "Bloquear";
+        btnBloquear.classList.add("px-3", "py-1", "bg-gray-400", "hover:bg-gray-500", "text-white", "rounded", "text-sm");
+        btnBloquear.addEventListener("click", () => {
+          const acao = usuario.ativo === false ? "desbloquear" : "bloquear";
+          abrirModalConfirmacao(acao, f, async () => {
+            try {
+              const { error } = await supabase
+                .from("usuarios")
+                .update({ ativo: usuario.ativo === false ? true : false })
+                .eq("id", usuario.id);
+
+              if (error) throw error;
+
+              // Mensagens corrigidas
+              let mensagem = "";
+              if (acao === "bloquear") mensagem = "Funcionário bloqueado com sucesso!";
+              else if (acao === "desbloquear") mensagem = "Funcionário desbloqueado com sucesso!";
+              mostrarNotificacao(mensagem, "sucesso");
+
+              listarFuncionarios();
+            } catch (err) {
+              console.error(`Erro ao ${acao} funcionário:`, err);
+              mostrarNotificacao(`Erro ao ${acao} funcionário!`, "erro");
+            }
+          });
+        });
+
+        // Excluir
+        const btnExcluir = document.createElement("button");
+        btnExcluir.textContent = "Excluir";
+        btnExcluir.classList.add("px-3", "py-1", "bg-red-700", "hover:bg-red-800", "text-white", "rounded", "text-sm");
+        btnExcluir.addEventListener("click", () => {
+          abrirModalConfirmacao("excluir", f, async () => {
+            try {
+              if (usuario?.id) {
+                const { error: errorUsuario } = await supabase
+                  .from("usuarios")
+                  .delete()
+                  .eq("id", usuario.id);
+                if (errorUsuario) throw errorUsuario;
+              }
+
+              const { error: errorFuncionario } = await supabase
+                .from("funcionarios")
+                .delete()
+                .eq("id", f.id);
+              if (errorFuncionario) throw errorFuncionario;
+
+              mostrarNotificacao("Funcionário excluído com sucesso!", "sucesso");
+              listarFuncionarios();
+            } catch (err) {
+              console.error("Erro ao excluir funcionário:", err);
+              mostrarNotificacao("Erro ao excluir funcionário!", "erro");
+            }
+          });
+        });
+
+        botoesDiv.appendChild(btnEditar);
+        botoesDiv.appendChild(btnBloquear);
+        botoesDiv.appendChild(btnExcluir);
+        div.appendChild(botoesDiv);
+      }
+
+      lista.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Erro ao listar funcionários:", err);
+  }
+}
+
+// Chamada inicial ao carregar o painel
+listarFuncionarios();
+
+
+// ==============================
 // CADASTRAR / ATUALIZAR FUNCIONÁRIO (formulário principal)
 // ==============================
 
@@ -999,164 +1202,114 @@ formFuncionario.addEventListener("submit", async (e) => {
 });
 
 // ==============================
-// LISTAR FUNCIONÁRIOS COM BOTÕES EDITAR, BLOQUEAR E EXCLUIR
+// FUNÇÃO PARA CARREGAR FUNCIONÁRIO COM USUÁRIO
 // ==============================
-async function listarFuncionarios() {
-  try {
-    const { data: funcionarios, error } = await supabase
-      .from("usuarios")
-      .select(`
+async function carregarFuncionario(idFuncionario) {
+  const { data, error } = await supabase
+    .from('funcionarios')
+    .select(`
+      id,
+      nome_completo,
+      usuarios (
         id,
         username,
-        password,
-        cargo,
         email,
-        permissoes,
-        funcionario_id,
-        funcionarios:funcionarios!left(nome_completo)
-      `);
+        password,
+        permissoes
+      )
+    `)
+    .eq('id', idFuncionario)
+    .single(); // pega apenas 1 registro
 
-    if (error) {
-      console.error("Erro ao listar funcionários:", error);
-      return;
-    }
-
-    const lista = document.getElementById("lista-funcionarios");
-    lista.innerHTML = "";
-
-    funcionarios.forEach(f => {
-      const div = document.createElement("div");
-      div.classList.add(
-        "flex", "items-center", "justify-between", "p-4", "mb-2",
-        "border", "rounded-lg", "bg-gray-50", "shadow-sm"
-      );
-
-      // Nome + permissões
-      const nomeDiv = document.createElement("div");
-      nomeDiv.classList.add("flex", "flex-col");
-
-      const nome = document.createElement("span");
-      nome.classList.add("font-semibold", "text-gray-800");
-      nome.textContent = f.funcionarios?.nome_completo || '—';
-
-      // Corrige leitura do ARRAY de permissões
-      let permText;
-      if (f.username.toLowerCase() === "admin") {
-        permText = "Acesso Total"; // Admin sempre mostra Acesso Total
-      } else {
-        const permissoesLiberadas = Array.isArray(f.permissoes) ? f.permissoes : [];
-        permText = permissoesLiberadas.length ? permissoesLiberadas.map(p => traducirPermissao(p)).join(", ") : "-";
-      }
-
-      const perm = document.createElement("span");
-      perm.classList.add("text-sm", "text-gray-600");
-      perm.textContent = permText;
-
-      nomeDiv.appendChild(nome);
-      nomeDiv.appendChild(perm);
-      div.appendChild(nomeDiv);
-
-      // Botões (não mostrar para admin)
-      if (f.username.toLowerCase() !== "admin") {
-        const botoesDiv = document.createElement("div");
-        botoesDiv.classList.add("flex", "gap-2");
-
-        // Botão Editar
-        const btnEditar = document.createElement("button");
-        btnEditar.textContent = "Editar";
-        btnEditar.classList.add("px-3", "py-1", "bg-blue-500", "hover:bg-blue-600", "text-white", "rounded", "text-sm");
-        btnEditar.addEventListener("click", () => abrirModalEdicao(f));
-
-        // Botão Bloquear
-        const btnBloquear = document.createElement("button");
-        btnBloquear.textContent = "Bloquear";
-        btnBloquear.classList.add("px-3", "py-1", "bg-gray-400", "hover:bg-gray-500", "text-white", "rounded", "text-sm");
-        btnBloquear.addEventListener("click", async () => {
-          if (confirm(`Deseja bloquear o funcionário ${f.funcionarios?.nome_completo}?`)) {
-            try {
-              const { error } = await supabase
-                .from("usuarios")
-                .update({ ativo: false })
-                .eq("id", f.id);
-              if (error) throw error;
-              alert("Funcionário bloqueado com sucesso!");
-              listarFuncionarios();
-            } catch (err) {
-              console.error("Erro ao bloquear funcionário:", err);
-              alert("Erro ao bloquear funcionário.");
-            }
-          }
-        });
-
-        // Botão Excluir
-        const btnExcluir = document.createElement("button");
-        btnExcluir.textContent = "Excluir";
-        btnExcluir.classList.add("px-3", "py-1", "bg-red-700", "hover:bg-red-800", "text-white", "rounded", "text-sm");
-        btnExcluir.addEventListener("click", async () => {
-          if (confirm(`Deseja realmente excluir o funcionário ${f.funcionarios?.nome_completo}? Essa ação não pode ser desfeita.`)) {
-            try {
-              // Exclui da tabela usuarios
-              const { error: errorUsuario } = await supabase
-                .from("usuarios")
-                .delete()
-                .eq("id", f.id);
-              if (errorUsuario) throw errorUsuario;
-
-              // Exclui da tabela funcionarios
-              const { error: errorFuncionario } = await supabase
-                .from("funcionarios")
-                .delete()
-                .eq("id", f.funcionario_id);
-              if (errorFuncionario) throw errorFuncionario;
-
-              alert("Funcionário excluído com sucesso!");
-              listarFuncionarios();
-            } catch (err) {
-              console.error("Erro ao excluir funcionário:", err);
-              alert("Erro ao excluir funcionário. Veja o console.");
-            }
-          }
-        });
-
-        botoesDiv.appendChild(btnEditar);
-        botoesDiv.appendChild(btnBloquear);
-        botoesDiv.appendChild(btnExcluir);
-        div.appendChild(botoesDiv);
-      }
-
-      lista.appendChild(div);
-    });
-  } catch (err) {
-    console.error("Erro ao listar funcionários:", err);
+  if (error) {
+    console.error(error);
+    return null;
   }
+
+  return data;
 }
 
-
-
 // ==============================
-// ABRIR MODAL DE EDIÇÃO
+// ABRIR MODAL DE EDIÇÃO COM FUNCIONÁRIO + USUÁRIO
 // ==============================
-// Função para abrir modal de edição
 async function abrirModalEdicao(f) {
-  document.getElementById("modal-editar-funcionario").classList.remove("hidden");
+  const modal = document.getElementById("modal-editar-funcionario");
+  if (!modal) return console.error("Modal não encontrado!");
 
-  // Preenche campos básicos
-  document.getElementById("editarIdFuncionario").value = f.id;
-  document.getElementById("editarNomeFuncionario").value = f.funcionarios?.nome_completo || '';
-  document.getElementById("editarUsuarioFuncionario").value = f.username;
-  document.getElementById("editarSenhaFuncionario").value = f.password;
-  document.getElementById("editarEmailFuncionario").value = f.email;
+  // Abre o modal
+  modal.classList.remove("hidden");
 
-  // Verifica se permissoes é array
-  const permissoes = Array.isArray(f.permissoes) ? f.permissoes : [];
+  // Função auxiliar para preencher campo se existir
+  const setValue = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value || '';
+  };
 
-  // Reflete as permissões no modal
-  document.getElementById("editarPermAcessoTotal").checked = permissoes.includes("Acesso Total");
-  document.getElementById("editarPermClientes").checked = permissoes.includes("acesso_clientes");
-  document.getElementById("editarPermPedidos").checked = permissoes.includes("acesso_pedidos");
-  document.getElementById("editarPermProdutos").checked = permissoes.includes("acesso_produtos");
-  document.getElementById("editarPermFuncionarios").checked = permissoes.includes("acesso_funcionarios");
-  document.getElementById("editarPermRelatorios").checked = permissoes.includes("acesso_relatorios");
+  const setChecked = (id, condition) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = condition;
+  };
+
+  // Preenche campos do funcionário
+  setValue("editarIdFuncionario", f.id);
+  setValue("editarNomeFuncionario", f.nome_completo);
+
+  // Busca usuário associado se f.usuarios não existir
+  let usuario = f.usuarios?.[0];
+  if (!usuario) {
+    const { data: usuarios, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('funcionario_id', f.id);
+
+    if (error) {
+      console.error("Erro ao buscar usuário:", error);
+    }
+
+    usuario = usuarios?.[0] || null;
+  }
+
+  // Preenche campos do usuário se existir
+  if (usuario) {
+    setValue("editarUsuarioFuncionario", usuario.username);
+    setValue("editarSenhaFuncionario", usuario.password);
+    setValue("editarEmailFuncionario", usuario.email);
+
+    const permissoes = usuario.permissoes || [];
+    setChecked("editarPermAcessoTotal", permissoes.includes("Acesso Total"));
+    setChecked("editarPermClientes", permissoes.includes("acesso_clientes"));
+    setChecked("editarPermPedidos", permissoes.includes("acesso_pedidos"));
+    setChecked("editarPermProdutos", permissoes.includes("acesso_produtos"));
+    setChecked("editarPermRelatorios", permissoes.includes("acesso_relatorios"));
+  }
+
+  // ==============================
+  // FUNÇÃO PARA VISUALIZAR SENHA
+  // ==============================
+  const toggleSenha = document.getElementById("toggleSenha");
+  const inputSenha = document.getElementById("editarSenhaFuncionario");
+  const iconOlho = document.getElementById("iconOlho");
+
+  // Remove event listener antigo para evitar duplicação
+  toggleSenha.replaceWith(toggleSenha.cloneNode(true));
+  const novoToggle = document.getElementById("toggleSenha");
+
+  novoToggle.addEventListener("click", () => {
+    if (inputSenha.type === "password") {
+      inputSenha.type = "text";
+      // Olho fechado (substitui paths)
+      iconOlho.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.135-3.314M6.293 6.293l11.414 11.414"/>
+      `;
+    } else {
+      inputSenha.type = "password";
+      // Olho aberto
+      iconOlho.innerHTML = `
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      `;
+    }
+  });
 }
 
 // ==============================
@@ -1166,67 +1319,65 @@ document.getElementById("btnFecharModal").addEventListener("click", () => {
   document.getElementById("modal-editar-funcionario").classList.add("hidden");
 });
 
-// ==============================
-// SALVAR ALTERAÇÕES DO MODAL
-// ==============================
 
 document.getElementById("form-editar-funcionario").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const id = document.getElementById("editarIdFuncionario").value;
+  const idFuncionario = document.getElementById("editarIdFuncionario").value;
   const nome = document.getElementById("editarNomeFuncionario").value.trim();
-  const usuario = document.getElementById("editarUsuarioFuncionario").value.trim();
-  const senha = document.getElementById("editarSenhaFuncionario").value.trim();
+  const username = document.getElementById("editarUsuarioFuncionario").value.trim();
+  const password = document.getElementById("editarSenhaFuncionario").value.trim();
   const email = document.getElementById("editarEmailFuncionario").value.trim();
 
-  // Monta objeto de permissões para salvar no banco como JSON
-  const permissoesObj = {
-    "Acesso Total": document.getElementById("editarPermAcessoTotal")?.checked || false,
-    clientes: document.getElementById("editarPermClientes")?.checked || false,
-    pedidos: document.getElementById("editarPermPedidos")?.checked || false,
-    produtos: document.getElementById("editarPermProdutos")?.checked || false,
-    funcionarios: document.getElementById("editarPermFuncionarios")?.checked || false,
-    relatorios: document.getElementById("editarPermRelatorios")?.checked || false
-  };
+  // Monta array de permissões
+  const permissoes = [];
+  if (document.getElementById("editarPermAcessoTotal")?.checked) permissoes.push("Acesso Total");
+  if (document.getElementById("editarPermClientes")?.checked) permissoes.push("acesso_clientes");
+  if (document.getElementById("editarPermPedidos")?.checked) permissoes.push("acesso_pedidos");
+  if (document.getElementById("editarPermProdutos")?.checked) permissoes.push("acesso_produtos");
+  if (document.getElementById("editarPermFuncionarios")?.checked) permissoes.push("acesso_funcionarios");
+  if (document.getElementById("editarPermRelatorios")?.checked) permissoes.push("acesso_relatorios");
 
   try {
-    // Pegar id do funcionário relacionado
-    const { data: usuarioExistente, error: errorUsuarioFetch } = await supabase
-      .from("usuarios")
-      .select("funcionario_id")
-      .eq("id", id)
-      .single();
-    if (errorUsuarioFetch) throw errorUsuarioFetch;
-
-    const funcionarioId = usuarioExistente.funcionario_id;
-
-    // Atualiza usuário com JSON de permissões
-    const { error: errorUsuario } = await supabase
-      .from("usuarios")
-      .update({
-        username: usuario,
-        password: senha,
-        email,
-        permissoes: JSON.stringify(permissoesObj) // salva JSON no banco
-      })
-      .eq("id", id);
-    if (errorUsuario) throw errorUsuario;
-
-    // Atualiza funcionário
+    // 1️⃣ Atualiza funcionário
     const { error: errorFuncionario } = await supabase
       .from("funcionarios")
       .update({ nome_completo: nome })
-      .eq("id", funcionarioId);
+      .eq("id", idFuncionario);
     if (errorFuncionario) throw errorFuncionario;
 
-    alert("Funcionário atualizado com sucesso!\nPermissões salvas no banco: " + JSON.stringify(permissoesObj));
+    // 2️⃣ Busca usuário associado ao funcionário
+    const { data: usuarios, error: errorUsuarioFetch } = await supabase
+      .from("usuarios")
+      .select("*")
+      .eq("funcionario_id", idFuncionario);
+
+    if (errorUsuarioFetch) throw errorUsuarioFetch;
+
+    const usuario = usuarios?.[0];
+    if (!usuario) throw new Error("Usuário associado não encontrado");
+
+    // 3️⃣ Atualiza usuário
+    const { error: errorUsuario } = await supabase
+      .from("usuarios")
+      .update({
+        username,
+        password,
+        email,
+        permissoes
+      })
+      .eq("id", usuario.id);
+    if (errorUsuario) throw errorUsuario;
+
+    alert("Funcionário e usuário atualizados com sucesso!");
     document.getElementById("modal-editar-funcionario").classList.add("hidden");
-    listarFuncionarios();
+    listarFuncionarios(); // atualiza tabela
   } catch (err) {
     console.error("Erro ao atualizar funcionário:", err);
     alert("Erro ao atualizar funcionário. Veja o console.");
   }
 });
+
 
 // ==============================
 // CHAMA LISTAR FUNCIONÁRIOS AO CARREGAR
@@ -1520,5 +1671,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-

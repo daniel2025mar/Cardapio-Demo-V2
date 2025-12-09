@@ -72,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .eq("username", username)
       .single();
 
+    // Verifica usuário e senha
     if (!usuario || error || usuario.password !== password) {
       tentativas++;
 
@@ -82,6 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       return mostrarErro(`Usuário ou senha incorretos! Tentativas restantes: ${restantes}`);
+    }
+
+    // Verifica se o usuário está bloqueado na tabela (ativo = false)
+    if (usuario.ativo === false) {
+      return mostrarErro("Seu acesso foi bloqueado! Contate o administrador.");
     }
 
     tentativas = 0;
@@ -133,42 +139,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function exibirBloqueio() {
-  const alerta = document.createElement("div");
-  alerta.textContent = "ACESSO NEGADO: Aguarde 5 minutos e tente novamente";
+    const alerta = document.createElement("div");
+    alerta.textContent = "ACESSO NEGADO: Aguarde 5 minutos e tente novamente";
 
-  alerta.className =
-    "fixed top-5 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 font-semibold text-center";
+    alerta.className =
+      "fixed top-5 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50 font-semibold text-center";
 
-  // Estilo inline para responsividade
-  alerta.style.whiteSpace = "nowrap";       // mantém em uma linha por padrão
-  alerta.style.overflow = "hidden";         // evita overflow
-  alerta.style.maxWidth = "95vw";           // nunca ultrapassa largura da tela
-  alerta.style.fontSize = "clamp(14px, 2vw, 18px)"; // fonte proporcional
+    alerta.style.whiteSpace = "nowrap";
+    alerta.style.overflow = "hidden";
+    alerta.style.maxWidth = "95vw";
+    alerta.style.fontSize = "clamp(14px, 2vw, 18px)";
 
-  // Permitir quebra de linha somente em telas muito pequenas
-  if (window.innerWidth <= 400) {
-    alerta.style.whiteSpace = "normal";      // permite quebra de linha
-    alerta.style.wordBreak = "break-word";   // quebra palavras se necessário
+    if (window.innerWidth <= 400) {
+      alerta.style.whiteSpace = "normal";
+      alerta.style.wordBreak = "break-word";
+    }
+
+    document.body.appendChild(alerta);
+
+    usernameInput.disabled = true;
+    passwordInput.disabled = true;
+
+    setTimeout(() => {
+      alerta.remove();
+    }, 5000);
+
+    const tempoRestante = Number(localStorage.getItem("loginBloqueado")) - Date.now();
+
+    setTimeout(() => {
+      usernameInput.disabled = false;
+      passwordInput.disabled = false;
+      tentativas = 0;
+    }, tempoRestante);
   }
-
-  document.body.appendChild(alerta);
-
-  usernameInput.disabled = true;
-  passwordInput.disabled = true;
-
-  setTimeout(() => {
-    alerta.remove();
-  }, 5000);
-
-  const tempoRestante = Number(localStorage.getItem("loginBloqueado")) - Date.now();
-
-  setTimeout(() => {
-    usernameInput.disabled = false;
-    passwordInput.disabled = false;
-    tentativas = 0;
-  }, tempoRestante);
-}
-
 
   // =============================
   //     MENSAGEM DE BOAS-VINDAS

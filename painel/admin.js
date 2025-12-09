@@ -10,6 +10,148 @@ const SUPABASE_KEY =
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
+// ==========================================
+// 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
+// ==========================================
+function bloquearPainel() {
+
+  // Criar overlay bloqueador
+  const overlay = document.createElement("div");
+  overlay.id = "bloqueio-acesso";
+  overlay.className = `
+    fixed inset-0 bg-black bg-opacity-80 flex items-center 
+    justify-center z-[999999]
+  `;
+  
+  overlay.innerHTML = `
+    <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-md">
+        <h2 class="text-2xl font-bold text-red-600 mb-4">Acesso Bloqueado</h2>
+        <p class="text-gray-700 mb-6">
+          Seu acesso foi desativado pelo administrador.<br>
+          Entre em contato com o suporte.
+        </p>
+        <button onclick="logout()" 
+          class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold">
+          Sair
+        </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden"; // trava scroll e painel todo
+}
+
+// =======================================
+// VERIFICAR ACESSO DO USUÁRIO AO ENTRAR (COM LOGS)
+// =======================================
+// =======================================
+// VERIFICAR ACESSO DO USUÁRIO AO ENTRAR (ROBUSTA - usa usuarioLogado se user_id não existir)
+// =======================================
+async function verificarAcessoUsuario() {
+  try {
+    console.log("📌 [ACESSO] Iniciando verificação de acesso...");
+
+    // tenta pegar user_id diretamente (caso o login salve)
+    let userId = localStorage.getItem("user_id");
+
+    // pega o objeto salvo (se existir)
+    const usuarioLogadoRaw = localStorage.getItem("usuarioLogado");
+    const usuarioLogado = usuarioLogadoRaw ? JSON.parse(usuarioLogadoRaw) : null;
+
+    console.log("📌 user_id (localStorage):", userId);
+    console.log("📌 usuarioLogado (localStorage):", usuarioLogado);
+
+    // se não existir userId tente extrair do objeto usuarioLogado (campo id)
+    if (!userId && usuarioLogado) {
+      // tenta vários nomes de campo possíveis para o id
+      userId = usuarioLogado.id || usuarioLogado.user_id || usuarioLogado.uid || usuarioLogado.usuario_id || null;
+      if (userId) console.log("ℹ️ user_id obtido de usuarioLogado:", userId);
+    }
+
+    // Se ainda não tem userId, vamos tentar buscar pelo username ou email como fallback
+    if (!userId) {
+      const username = usuarioLogado?.username;
+      const email = usuarioLogado?.email;
+      if (!username && !email) {
+        console.warn("⚠️ Não foi possível obter userId, username ou email. Verificação de acesso abortada.");
+        return;
+      }
+
+      console.log("🔎 Fazendo busca por fallback (username/email).");
+
+      // busca pelo username primeiro, se tiver
+      if (username) {
+        const { data: userByName, error: errName } = await supabase
+          .from("usuarios")
+          .select("id, ativo, username, email")
+          .eq("username", username)
+          .maybeSingle();
+
+        console.log("📥 Resultado busca por username:", userByName, errName);
+        if (errName) { console.error("Erro na busca por username:", errName); }
+        if (userByName) {
+          if (userByName.ativo === false) { console.warn("🚫 Usuário bloqueado (por username)."); bloquearPainel(); return; }
+          console.log("🟢 Usuário ativo (por username)."); return;
+        }
+      }
+
+      // se não encontrou por username, tenta por email
+      if (email) {
+        const { data: userByEmail, error: errEmail } = await supabase
+          .from("usuarios")
+          .select("id, ativo, username, email")
+          .eq("email", email)
+          .maybeSingle();
+
+        console.log("📥 Resultado busca por email:", userByEmail, errEmail);
+        if (errEmail) { console.error("Erro na busca por email:", errEmail); }
+        if (userByEmail) {
+          if (userByEmail.ativo === false) { console.warn("🚫 Usuário bloqueado (por email)."); bloquearPainel(); return; }
+          console.log("🟢 Usuário ativo (por email)."); return;
+        }
+      }
+
+      console.warn("⚠️ Não foi possível localizar o usuário via username/email. Abortando verificação.");
+      return;
+    }
+
+    // se chegamos aqui temos um userId — busca pelo id
+    console.log("🔎 Consultando Supabase pelo ID:", userId);
+    const { data: usuario, error } = await supabase
+      .from("usuarios")
+      .select("id, ativo, username, cargo, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    console.log("📥 Retorno Supabase:", { usuario, error });
+
+    if (error) {
+      console.error("❌ Erro ao verificar acesso no Supabase:", error);
+      return;
+    }
+
+    if (!usuario) {
+      console.warn("⚠️ Nenhum usuário encontrado com esse ID!");
+      return;
+    }
+
+    console.log("👤 Usuário encontrado:", usuario.username);
+    console.log("🔐 Status ativo:", usuario.ativo);
+
+    if (usuario.ativo === false) {
+      console.warn("🚫 USUÁRIO BLOQUEADO! Ativo = false → bloqueando painel...");
+      bloquearPainel();
+      return;
+    }
+
+    console.log("🟢 Usuário ativo. Painel liberado.");
+  } catch (e) {
+    console.error("Erro inesperado em verificarAcessoUsuario():", e);
+  }
+}
+
+
+
 
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
@@ -28,11 +170,16 @@ const MENU_MAP = {
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", async () => {
+
+  // 🔥 PRIMEIRA COISA QUE RODA: TRAVA SE ESTIVER FALSE
+  await verificarAcessoUsuario();
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";
     return;
   }
+
+ 
 
   // ================================
   // BUSCA USUÁRIO LOGADO
@@ -401,6 +548,7 @@ document.getElementById("btn-logout").addEventListener("click", () => {
 //   CARREGAR PEDIDOS DO SUPABASE
 // =============================
 async function carregarPedidos() {
+  
   const lista = document.querySelector(".orders-grid .col-span-1 .space-y-3");
   if (!lista) return;
 
@@ -940,6 +1088,7 @@ function abrirModalConfirmacao(acao, funcionario, callbackConfirmar) {
 // LISTAR FUNCIONÁRIOS COM BOTÕES
 // ==============================
 async function listarFuncionarios() {
+
   try {
     const { data: funcionarios, error } = await supabase
       .from("funcionarios")

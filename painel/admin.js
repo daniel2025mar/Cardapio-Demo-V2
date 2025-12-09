@@ -17,18 +17,19 @@ let intervalContador;
 
 // 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
 function bloquearPainel() {
-  if (painelBloqueado) return; // evita múltiplos overlays
+  if (painelBloqueado) return;
   painelBloqueado = true;
 
   const overlay = document.createElement("div");
   overlay.id = "bloqueio-acesso";
   overlay.className = `
-    fixed inset-0 bg-black bg-opacity-70 flex items-center 
-    justify-center z-[999999] backdrop-blur-sm
+    fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]
   `;
-  
+  // permite interação com o painel
+  overlay.style.pointerEvents = "none";
+
   overlay.innerHTML = `
-    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300">
+    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300" style="pointer-events:auto;">
         <h2 class="text-3xl font-extrabold text-blue-700 mb-4 drop-shadow-md">Acesso Bloqueado</h2>
         <p class="text-black mb-6 text-base sm:text-lg leading-relaxed">
           Seu acesso foi desativado pelo administrador.<br>
@@ -36,26 +37,23 @@ function bloquearPainel() {
         </p>
     </div>
   `;
-
   document.body.appendChild(overlay);
-  document.body.style.overflow = "hidden";
 }
 
-// 🔥 FUNÇÃO PARA EXIBIR ACESSO LIBERADO COM CONTADOR
+// 🔥 FUNÇÃO PARA ACESSO LIBERADO
 function mostrarAcessoLiberado() {
-  // remove overlay de bloqueio se existir
   const overlayExistente = document.getElementById("bloqueio-acesso");
   if (overlayExistente) overlayExistente.remove();
 
   const overlay = document.createElement("div");
   overlay.id = "acesso-liberado";
   overlay.className = `
-    fixed inset-0 bg-black bg-opacity-50 flex items-center 
-    justify-center z-[999999] backdrop-blur-sm
+    fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]
   `;
+  overlay.style.pointerEvents = "none";
 
   overlay.innerHTML = `
-    <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300">
+    <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300" style="pointer-events:auto;">
         <h2 class="text-3xl font-extrabold text-blue-800 mb-4 drop-shadow-md">Acesso Liberado</h2>
         <p class="text-black mb-4 text-base sm:text-lg leading-relaxed">
           Seu acesso foi restaurado pelo administrador.<br>
@@ -63,29 +61,22 @@ function mostrarAcessoLiberado() {
         </p>
     </div>
   `;
-
   document.body.appendChild(overlay);
-  document.body.style.overflow = "hidden";
 
-  // contador regressivo de 60 segundos
   let segundosRestantes = 60;
   const contadorElemento = document.getElementById("contador");
   clearInterval(intervalContador);
   intervalContador = setInterval(() => {
     segundosRestantes--;
     if (contadorElemento) contadorElemento.textContent = segundosRestantes;
-    if (segundosRestantes <= 0) {
-      clearInterval(intervalContador);
-    }
+    if (segundosRestantes <= 0) clearInterval(intervalContador);
   }, 1000);
 
-  // após 1 minuto, remove o overlay e libera o painel
   clearTimeout(timeoutLiberacao);
   timeoutLiberacao = setTimeout(() => {
     overlay.remove();
     painelBloqueado = false;
-    document.body.style.overflow = "auto";
-  }, 60000); // 60000ms = 1 minuto
+  }, 60000);
 }
 
 // ==========================================
@@ -113,34 +104,18 @@ async function verificarAcessoUsuario() {
     } else {
       if (usuarioBloqueado) {
         usuarioBloqueado = false;
-        mostrarAcessoLiberado(); // exibe modal de acesso liberado
+        mostrarAcessoLiberado();
       }
     }
-
   } catch (e) {
     console.error("Erro em verificarAcessoUsuario():", e);
   }
 }
 
 // ==========================================
-// 🔄 MONITORAR CLIQUES NO PAINEL
+// 🔑 MONITORAMENTO PERIÓDICO
 // ==========================================
-document.addEventListener("click", (e) => {
-  if (usuarioBloqueado) {
-    if (!e.target.closest("#bloqueio-acesso")) {
-      bloquearPainel();
-    }
-  }
-});
-
-// ==========================================
-// 🔑 MONITORAMENTO PERIÓDICO EM TEMPO REAL
-// ==========================================
-setInterval(verificarAcessoUsuario, 5000); // verifica a cada 5 segundos
-
-// ==========================================
-// 🔑 CHAMADA INICIAL
-// ==========================================
+setInterval(verificarAcessoUsuario, 5000);
 verificarAcessoUsuario();
 
 
@@ -721,21 +696,13 @@ async function carregarClientes() {
 
     if (error) throw error;
 
-    // Se clientes vier null ou undefined, transforma em array vazio
-    const clientesArray = Array.isArray(clientes) ? clientes : [];
-
     lista.innerHTML = "";
 
-    // Fallback para permissões
-    const permissoesCliente = (window.permissoesDetalhadas && window.permissoesDetalhadas["acesso_clientes"]) || {};
-    const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas || {}).length === 1;
+    // Checa se o usuário tem apenas acesso_clientes
+    const permissoesCliente = window.permissoesDetalhadas["acesso_clientes"];
+    const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
 
-    if (clientesArray.length === 0) {
-      lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
-      return;
-    }
-
-    clientesArray.forEach((cliente, index) => {
+    clientes.forEach((cliente, index) => {
       const tr = document.createElement("tr");
       tr.className = "hover:bg-gray-50";
       if (cliente.bloqueado) tr.classList.add("bg-red-50");
@@ -758,51 +725,50 @@ async function carregarClientes() {
         </td>
       `;
 
-      // Seleção segura de botões
       const btnEditar = tr.querySelector(".btn-editar");
       const btnExcluir = tr.querySelector(".btn-excluir");
       const btnBloquear = tr.querySelector(".btn-bloquear");
 
-      if (btnEditar) {
-        btnEditar.addEventListener("click", () => {
-          if (!isAcessoClienteExclusivo || permissoesCliente.editar) {
-            editarCliente(cliente.id);
-          } else {
-            mostrarToast("Você não tem permissão para editar.", "bg-red-600");
-          }
-        });
-      }
+      // Botão Editar sempre funciona se permitido
+      btnEditar.addEventListener("click", () => {
+        if (!isAcessoClienteExclusivo || permissoesCliente.editar) {
+          editarCliente(cliente.id);
+        } else {
+          mostrarToast("Você não tem permissão para editar.", "bg-red-600");
+        }
+      });
 
-      if (btnExcluir) {
-        btnExcluir.addEventListener("click", (e) => {
-          if (isAcessoClienteExclusivo) {
-            e.preventDefault();
-            mostrarToast("Você não tem permissão para excluir.", "bg-red-600");
-          } else {
-            if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
-              excluirCliente(cliente.id);
-            }
+      // Bloquear apenas se usuário tiver somente acesso_clientes
+      btnExcluir.addEventListener("click", (e) => {
+        if (isAcessoClienteExclusivo) {
+          e.preventDefault();
+          mostrarToast("Você não tem permissão para excluir.", "bg-red-600");
+        } else {
+          if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
+            excluirCliente(cliente.id);
           }
-        });
-      }
+        }
+      });
 
-      if (btnBloquear) {
-        btnBloquear.addEventListener("click", (e) => {
-          if (isAcessoClienteExclusivo) {
-            e.preventDefault();
-            mostrarToast("Você não tem permissão.", "bg-red-600");
-          } else {
-            bloquearCliente(cliente.id, cliente.bloqueado);
-          }
-        });
-      }
+      btnBloquear.addEventListener("click", (e) => {
+        if (isAcessoClienteExclusivo) {
+          e.preventDefault();
+          mostrarToast("Você não tem permissão.", "bg-red-600");
+        } else {
+          bloquearCliente(cliente.id, cliente.bloqueado);
+        }
+      });
 
       lista.appendChild(tr);
     });
 
+    if (!clientes || clientes.length === 0) {
+      lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
+    }
+
   } catch (err) {
     console.error("Erro ao carregar clientes:", err);
-    lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes. Tente novamente.</td></tr>`;
+    lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
   }
 }
 
@@ -817,7 +783,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
 
 
 // Função de modal moderno

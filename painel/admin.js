@@ -9,13 +9,12 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
 // ==========================================
 // 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
 // ==========================================
 function bloquearPainel() {
 
-  // Criar overlay bloqueador
+  // já existe — mantenho!
   const overlay = document.createElement("div");
   overlay.id = "bloqueio-acesso";
   overlay.className = `
@@ -38,121 +37,102 @@ function bloquearPainel() {
   `;
 
   document.body.appendChild(overlay);
-  document.body.style.overflow = "hidden"; // trava scroll e painel todo
+  document.body.style.overflow = "hidden";
 }
 
+
+
+// ====================================================
+// 🔥 MONITORAMENTO EM TEMPO REAL DO BLOQUEIO DO USUÁRIO
+// ====================================================
+function monitorarBloqueioTempoReal() {
+  const usuarioRaw = localStorage.getItem("usuarioLogado");
+  const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null;
+
+  if (!usuario || !usuario.id) {
+    console.warn("⚠️ Não é possível monitorar: usuário sem ID.");
+    return;
+  }
+
+  console.log("📡 Monitorando bloqueio em tempo real para ID:", usuario.id);
+
+  supabase
+    .channel("canal-bloqueio-" + usuario.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "usuarios",
+        filter: "id=eq." + usuario.id,
+      },
+      (payload) => {
+
+        console.log("⚡ Atualização detectada no usuário:", payload);
+
+        const novo = payload.new;
+
+        // se houver alteração e ativo = false → BLOQUEAR
+        if (novo && novo.ativo === false) {
+          console.warn("🚫 BLOQUEADO EM TEMPO REAL!");
+          bloquearPainel();
+        }
+      }
+    )
+    .subscribe();
+}
+
+
+
 // =======================================
-// VERIFICAR ACESSO DO USUÁRIO AO ENTRAR (COM LOGS)
-// =======================================
-// =======================================
-// VERIFICAR ACESSO DO USUÁRIO AO ENTRAR (ROBUSTA - usa usuarioLogado se user_id não existir)
+// 🔍 VERIFICAR ACESSO DO USUÁRIO AO ENTRAR
 // =======================================
 async function verificarAcessoUsuario() {
   try {
     console.log("📌 [ACESSO] Iniciando verificação de acesso...");
 
-    // tenta pegar user_id diretamente (caso o login salve)
-    let userId = localStorage.getItem("user_id");
+    const usuarioRaw = localStorage.getItem("usuarioLogado");
+    const usuarioLogado = usuarioRaw ? JSON.parse(usuarioRaw) : null;
 
-    // pega o objeto salvo (se existir)
-    const usuarioLogadoRaw = localStorage.getItem("usuarioLogado");
-    const usuarioLogado = usuarioLogadoRaw ? JSON.parse(usuarioLogadoRaw) : null;
+    console.log("📌 usuarioLogado:", usuarioLogado);
 
-    console.log("📌 user_id (localStorage):", userId);
-    console.log("📌 usuarioLogado (localStorage):", usuarioLogado);
-
-    // se não existir userId tente extrair do objeto usuarioLogado (campo id)
-    if (!userId && usuarioLogado) {
-      // tenta vários nomes de campo possíveis para o id
-      userId = usuarioLogado.id || usuarioLogado.user_id || usuarioLogado.uid || usuarioLogado.usuario_id || null;
-      if (userId) console.log("ℹ️ user_id obtido de usuarioLogado:", userId);
-    }
-
-    // Se ainda não tem userId, vamos tentar buscar pelo username ou email como fallback
-    if (!userId) {
-      const username = usuarioLogado?.username;
-      const email = usuarioLogado?.email;
-      if (!username && !email) {
-        console.warn("⚠️ Não foi possível obter userId, username ou email. Verificação de acesso abortada.");
-        return;
-      }
-
-      console.log("🔎 Fazendo busca por fallback (username/email).");
-
-      // busca pelo username primeiro, se tiver
-      if (username) {
-        const { data: userByName, error: errName } = await supabase
-          .from("usuarios")
-          .select("id, ativo, username, email")
-          .eq("username", username)
-          .maybeSingle();
-
-        console.log("📥 Resultado busca por username:", userByName, errName);
-        if (errName) { console.error("Erro na busca por username:", errName); }
-        if (userByName) {
-          if (userByName.ativo === false) { console.warn("🚫 Usuário bloqueado (por username)."); bloquearPainel(); return; }
-          console.log("🟢 Usuário ativo (por username)."); return;
-        }
-      }
-
-      // se não encontrou por username, tenta por email
-      if (email) {
-        const { data: userByEmail, error: errEmail } = await supabase
-          .from("usuarios")
-          .select("id, ativo, username, email")
-          .eq("email", email)
-          .maybeSingle();
-
-        console.log("📥 Resultado busca por email:", userByEmail, errEmail);
-        if (errEmail) { console.error("Erro na busca por email:", errEmail); }
-        if (userByEmail) {
-          if (userByEmail.ativo === false) { console.warn("🚫 Usuário bloqueado (por email)."); bloquearPainel(); return; }
-          console.log("🟢 Usuário ativo (por email)."); return;
-        }
-      }
-
-      console.warn("⚠️ Não foi possível localizar o usuário via username/email. Abortando verificação.");
+    if (!usuarioLogado || !usuarioLogado.id) {
+      console.warn("⚠️ Usuário não encontrado no localStorage.");
       return;
     }
 
-    // se chegamos aqui temos um userId — busca pelo id
-    console.log("🔎 Consultando Supabase pelo ID:", userId);
+    console.log("🔎 Consultando Supabase pelo ID:", usuarioLogado.id);
+
     const { data: usuario, error } = await supabase
       .from("usuarios")
       .select("id, ativo, username, cargo, email")
-      .eq("id", userId)
+      .eq("id", usuarioLogado.id)
       .maybeSingle();
 
     console.log("📥 Retorno Supabase:", { usuario, error });
 
     if (error) {
-      console.error("❌ Erro ao verificar acesso no Supabase:", error);
+      console.error("❌ Erro ao consultar usuário:", error);
       return;
     }
 
     if (!usuario) {
-      console.warn("⚠️ Nenhum usuário encontrado com esse ID!");
+      console.warn("⚠️ Usuário não existe mais no banco.");
       return;
     }
 
-    console.log("👤 Usuário encontrado:", usuario.username);
-    console.log("🔐 Status ativo:", usuario.ativo);
-
     if (usuario.ativo === false) {
-      console.warn("🚫 USUÁRIO BLOQUEADO! Ativo = false → bloqueando painel...");
+      console.warn("🚫 Usuário BLOQUEADO → Bloqueando painel...");
       bloquearPainel();
       return;
     }
 
-    console.log("🟢 Usuário ativo. Painel liberado.");
+    console.log("🟢 Usuário ativo. Painel permitido.");
+
   } catch (e) {
-    console.error("Erro inesperado em verificarAcessoUsuario():", e);
+    console.error("❌ Erro inesperado na verificação:", e);
   }
 }
-
-
-
-
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
 // ===================================================
@@ -173,6 +153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 🔥 PRIMEIRA COISA QUE RODA: TRAVA SE ESTIVER FALSE
   await verificarAcessoUsuario();
+  monitorarBloqueioTempoReal();   // ← SUPER IMPORTANTE
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";

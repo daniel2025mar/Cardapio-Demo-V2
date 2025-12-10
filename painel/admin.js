@@ -9,6 +9,116 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+let timerBloqueio = null;
+let canalBloqueio = null;
+
+async function verificarBloqueioPainel(usuario) {
+  const painel = document.getElementById("painel-bloqueado");
+
+  if (!painel) {
+    console.warn("⚠ painel-bloqueado não encontrado no HTML");
+    return;
+  }
+
+  // =============================
+  // FUNÇÃO QUE ATIVA / DESATIVA O BLOQUEIO
+  // =============================
+  function aplicarBloqueio(ativo) {
+    clearTimeout(timerBloqueio);
+
+    // -----------------------------------
+    // 🔥 USUÁRIO BLOQUEADO (ativo = false)
+    // -----------------------------------
+    if (ativo === false) {
+      painel.classList.remove("hidden");
+      painel.classList.add("flex");
+
+      document.body.style.overflow = "hidden";
+
+      timerBloqueio = setTimeout(() => {
+        console.log("⛔ Painel BLOQUEADO (delay concluído)");
+      }, 500);
+
+      return;
+    }
+
+    // -----------------------------------
+    // 🔥 USUÁRIO LIBERADO (ativo = true)
+    // → Aqui vamos chamar o MODAL MODERNO
+    // -----------------------------------
+    painel.classList.add("hidden");
+    painel.classList.remove("flex");
+    document.body.style.overflow = "auto";
+
+    // 🎉 ABRIR MODAL DE ACESSO LIBERADO!
+    mostrarAcessoLiberado();
+  }
+
+  // Executa na primeira carga
+  aplicarBloqueio(usuario.ativo);
+
+  // Remove canal antigo
+  if (canalBloqueio) {
+    await supabase.removeChannel(canalBloqueio);
+  }
+
+  // ===============================================
+  // 🔥 INSCRIÇÃO REALTIME DO USUÁRIO
+  // ===============================================
+  canalBloqueio = supabase
+    .channel(`usuario-bloqueio-${usuario.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "usuarios",
+        filter: `id=eq.${usuario.id}`,
+      },
+      (payload) => {
+        console.log("📡 Realtime detectado:", payload);
+
+        // Aplica bloqueio ou desbloqueio automaticamente
+        aplicarBloqueio(payload.new.ativo);
+      }
+    )
+    .subscribe((status) => {
+      console.log("📡 Listener realtime conectado:", status);
+    });
+
+  // ===============================================
+  // 🔧 RECONNECT AUTOMÁTICO
+  // ===============================================
+  setInterval(async () => {
+    if (!canalBloqueio || canalBloqueio.state !== "joined") {
+      console.warn("⚠ Canal realtime caiu — reconectando...");
+
+      if (canalBloqueio) {
+        await supabase.removeChannel(canalBloqueio);
+      }
+
+      canalBloqueio = supabase
+        .channel(`usuario-bloqueio-${usuario.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "usuarios",
+            filter: `id=eq.${usuario.id}`,
+          },
+          (payload) => {
+            console.log("📡 Realtime (reconectado) detectou update:", payload);
+
+            aplicarBloqueio(payload.new.ativo);
+          }
+        )
+        .subscribe((status) => {
+          console.log("📡 Realtime reconectado:", status);
+        });
+    }
+  }, 5000);
+}
 
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
@@ -27,7 +137,7 @@ const MENU_MAP = {
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", async () => {
-  
+
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";
@@ -50,11 +160,53 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ================================
+  // VERIFICAR SE USUÁRIO ESTÁ BLOQUEADO
+  // ================================
+  verificarBloqueioPainel(usuario); // <-- chamada aqui
+
+  // ================================
   // SALVA PERMISSÕES DETALHADAS
   // ================================
   permissoesDetalhadas = usuario.permissoes_detalhadas || {};
   aplicarPermissoes(usuario);
   ativarMenuMobile();
+
+  // ================================
+  // FUNÇÃO PARA VERIFICAR BLOQUEIO DO PAINEL
+  // ================================
+  async function verificarBloqueioPainel(usuario) {
+    const painel = document.getElementById("painel-bloqueado");
+    if (!painel) return;
+
+    // Função que aplica ou remove o bloqueio
+    function atualizarPainelBloqueio(ativo) {
+      if (ativo === false) {
+        painel.classList.remove("hidden");
+        painel.classList.add("flex"); // centraliza a mensagem
+        // Bloqueia toda interação do painel
+        document.body.style.pointerEvents = "none";
+        painel.style.pointerEvents = "auto"; // permite clicar apenas na mensagem, se necessário
+      } else {
+        painel.classList.add("hidden");
+        painel.classList.remove("flex");
+        document.body.style.pointerEvents = "auto";
+      }
+    }
+
+    // Primeiro carregamento
+    atualizarPainelBloqueio(usuario.ativo);
+
+    // ================================
+    // LISTENER EM TEMPO REAL (Realtime) - para atualizar se o status mudar
+    // ================================
+    supabase
+      .from(`usuarios:id=eq.${usuario.id}`)
+      .on("UPDATE", payload => {
+        const dadosAtualizados = payload.new;
+        atualizarPainelBloqueio(dadosAtualizados.ativo);
+      })
+      .subscribe();
+  }
 
   // ================================
   // ATUALIZA TOTAL DE PEDIDOS FINALIZADOS
@@ -111,9 +263,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       item.dataset.id = pedido.id;
 
-      // ================================
       // Formata horário corretamente (HH:MM)
-      // ================================
       let horario = "";
       if (pedido.horario_recebido) {
         try {
@@ -227,6 +377,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await atualizarTotalFinalizados();
   await carregarFilaPedidos();
 });
+
 
 // ===============================
 //   APLICAR PERMISSÕES

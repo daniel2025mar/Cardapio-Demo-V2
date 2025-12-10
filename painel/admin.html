@@ -72,33 +72,22 @@
 <body class="h-screen flex flex-col bg-gray-100">
 
   <!-- Painel bloqueado moderno -->
-<div id="painel-bloqueado" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
-  <div class="bg-red-600 text-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center animate__animated animate__fadeIn">
+  <div id="painel-bloqueado" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+  <div class="bg-black text-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center animate__animated animate__fadeIn border border-gray-700">
+    
     <h2 class="text-2xl font-bold mb-4">Acesso Bloqueado</h2>
     <p class="text-lg mb-6">Seu acesso está bloqueado. Entre em contato com o administrador.</p>
-    <button onclick="sairSistema()" class="bg-white text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 w-full">
+
+    <button onclick="sairSistema()" 
+      class="bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-gray-200 w-full transition">
       Sair
     </button>
-  </div>
-</div>
-<!-- MODAL DE ACESSO LIBERADO -->
-<div id="painel-liberado" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
-  <div class="bg-green-600 text-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center animate__animated animate__fadeIn">
-    <h2 class="text-2xl font-bold mb-4">Acesso Liberado</h2>
-    <p class="text-lg mb-4">Você tem acesso temporário ao painel.</p>
 
-    <p class="text-xl font-bold mb-6">
-      Tempo restante: <span id="contador-liberado" class="text-white">60</span>s
-    </p>
-
-    <button onclick="fecharAcessoLiberado()" class="bg-white text-green-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 w-full">
-      OK
-    </button>
   </div>
 </div>
 
 
-  <div id="overlay"></div>
+
 
   <!-- TOPO -->
   <header class="bg-gray-800 text-white h-16 flex items-center px-4 shadow justify-between relative">

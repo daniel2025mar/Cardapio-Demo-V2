@@ -9,115 +9,6 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 🔥 VARIÁVEIS GLOBAIS
-let painelBloqueado = false;
-let usuarioBloqueado = false;
-let timeoutLiberacao;
-let intervalContador;
-
-// 🔥 FUNÇÃO PARA BLOQUEAR TODO O PAINEL
-function bloquearPainel() {
-  if (painelBloqueado) return;
-  painelBloqueado = true;
-
-  const overlay = document.createElement("div");
-  overlay.id = "bloqueio-acesso";
-  overlay.className = `
-    fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]
-  `;
-  // permite interação com o painel
-  overlay.style.pointerEvents = "none";
-
-  overlay.innerHTML = `
-    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300" style="pointer-events:auto;">
-        <h2 class="text-3xl font-extrabold text-blue-700 mb-4 drop-shadow-md">Acesso Bloqueado</h2>
-        <p class="text-black mb-6 text-base sm:text-lg leading-relaxed">
-          Seu acesso foi desativado pelo administrador.<br>
-          Entre em contato com o suporte.
-        </p>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-
-// 🔥 FUNÇÃO PARA ACESSO LIBERADO
-function mostrarAcessoLiberado() {
-  const overlayExistente = document.getElementById("bloqueio-acesso");
-  if (overlayExistente) overlayExistente.remove();
-
-  const overlay = document.createElement("div");
-  overlay.id = "acesso-liberado";
-  overlay.className = `
-    fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]
-  `;
-  overlay.style.pointerEvents = "none";
-
-  overlay.innerHTML = `
-    <div class="bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-2xl shadow-2xl text-center max-w-md w-[90%] sm:w-auto border border-blue-300" style="pointer-events:auto;">
-        <h2 class="text-3xl font-extrabold text-blue-800 mb-4 drop-shadow-md">Acesso Liberado</h2>
-        <p class="text-black mb-4 text-base sm:text-lg leading-relaxed">
-          Seu acesso foi restaurado pelo administrador.<br>
-          O painel voltará a funcionar em <span id="contador">60</span> segundos.
-        </p>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  let segundosRestantes = 60;
-  const contadorElemento = document.getElementById("contador");
-  clearInterval(intervalContador);
-  intervalContador = setInterval(() => {
-    segundosRestantes--;
-    if (contadorElemento) contadorElemento.textContent = segundosRestantes;
-    if (segundosRestantes <= 0) clearInterval(intervalContador);
-  }, 1000);
-
-  clearTimeout(timeoutLiberacao);
-  timeoutLiberacao = setTimeout(() => {
-    overlay.remove();
-    painelBloqueado = false;
-  }, 60000);
-}
-
-// ==========================================
-// 🔎 FUNÇÃO PARA VERIFICAR STATUS DO USUÁRIO
-// ==========================================
-async function verificarAcessoUsuario() {
-  try {
-    const usuarioLogadoRaw = localStorage.getItem("usuarioLogado");
-    const usuarioLogado = usuarioLogadoRaw ? JSON.parse(usuarioLogadoRaw) : null;
-    if (!usuarioLogado) return;
-
-    const username = usuarioLogado.username;
-    const email = usuarioLogado.email;
-
-    let query = supabase.from("usuarios").select("*");
-    if (username) query = query.eq("username", username);
-    else if (email) query = query.eq("email", email);
-
-    const { data: usuario, error } = await query.maybeSingle();
-    if (error || !usuario) return;
-
-    if (usuario.ativo === false) {
-      usuarioBloqueado = true;
-      bloquearPainel();
-    } else {
-      if (usuarioBloqueado) {
-        usuarioBloqueado = false;
-        mostrarAcessoLiberado();
-      }
-    }
-  } catch (e) {
-    console.error("Erro em verificarAcessoUsuario():", e);
-  }
-}
-
-// ==========================================
-// 🔑 MONITORAMENTO PERIÓDICO
-// ==========================================
-setInterval(verificarAcessoUsuario, 5000);
-verificarAcessoUsuario();
-
 
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES
@@ -136,7 +27,7 @@ const MENU_MAP = {
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", async () => {
-  verificarAcessoUsuario();
+  
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";

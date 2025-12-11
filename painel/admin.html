@@ -384,53 +384,56 @@
 <!-- ============================= -->
 <!--   MODAL / CARD EDITAR CLIENTE -->
 <!-- ============================= -->
-<div id="modal-editar-cliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-  <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6">
+ <!-- ============================= -->
+<!--   MODAL / CARD EDITAR CLIENTE -->
+<!-- ============================= -->
+<div id="modal-editar-cliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+  <div class="bg-white w-full max-w-md md:max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 overflow-auto max-h-[90vh]">
     
     <!-- Cabeçalho -->
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-bold text-gray-800">Editar Cliente</h3>
-      <button id="fechar-modal-editar" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-bold text-gray-800">Editar Cliente</h3>
+      <button id="fechar-modal-editar" class="text-gray-400 hover:text-gray-700 text-3xl leading-none">
         &times;
       </button>
     </div>
 
     <!-- Formulário -->
-    <form id="form-editar-cliente" class="space-y-4">
+    <form id="form-editar-cliente" class="space-y-5">
 
       <input type="hidden" id="edit-id">
 
       <!-- Nome -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700">Nome</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Nome</label>
         <input id="edit-nome" type="text"
-          class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-base">
       </div>
 
       <!-- Telefone -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700">Telefone</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
         <input id="edit-telefone" type="text"
-          class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-base">
       </div>
 
-      <!-- CIDADE + ESTADO (lado a lado) -->
-      <div class="grid grid-cols-3 gap-4">
+      <!-- CIDADE + ESTADO (lado a lado no desktop, empilhado no celular) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        <!-- Cidade (2/3 da largura) -->
-        <div class="col-span-2">
-          <label class="block text-sm font-semibold text-gray-700">Cidade</label>
+        <!-- Cidade (2/3 da largura no desktop) -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Cidade</label>
           <select id="edit-cidade"
-            class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-base">
             <option value="">Selecione</option>
           </select>
         </div>
 
-        <!-- Estado (1/3 da largura, pequeno, 2 letras) -->
-        <div class="col-span-1">
-          <label class="block text-sm font-semibold text-gray-700">Estado (UP)</label>
+        <!-- Estado (1/3 da largura no desktop) -->
+        <div class="md:col-span-1">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Estado (UP)</label>
           <select id="edit-up"
-            class="w-full px-2 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-center">
+            class="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-center text-base">
             <option value="">UF</option>
           </select>
         </div>
@@ -438,15 +441,14 @@
       </div>
       <!-- FIM CIDADE + ESTADO -->
 
-
       <!-- Botões -->
-      <div class="flex justify-end gap-3 pt-4">
+      <div class="flex flex-col md:flex-row justify-end gap-3 pt-4">
         <button type="button" id="cancelar-edicao"
-          class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-semibold">
+          class="w-full md:w-auto px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl text-sm font-semibold">
           Cancelar
         </button>
         <button type="submit"
-          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold">
+          class="w-full md:w-auto px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold">
           Salvar Alterações
         </button>
       </div>

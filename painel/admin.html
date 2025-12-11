@@ -381,7 +381,6 @@
     </table>
   </div>
 </section>
-
 <!-- ============================= -->
 <!--   MODAL / CARD EDITAR CLIENTE -->
 <!-- ============================= -->
@@ -401,40 +400,60 @@
 
       <input type="hidden" id="edit-id">
 
+      <!-- Nome -->
       <div>
         <label class="block text-sm font-semibold text-gray-700">Nome</label>
-        <input id="edit-nome" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+        <input id="edit-nome" type="text"
+          class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
       </div>
 
+      <!-- Telefone -->
       <div>
         <label class="block text-sm font-semibold text-gray-700">Telefone</label>
-        <input id="edit-telefone" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+        <input id="edit-telefone" type="text"
+          class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
       </div>
 
-      <div>
-        <label class="block text-sm font-semibold text-gray-700">Cidade</label>
-        <input id="edit-cidade" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-      </div>
+      <!-- CIDADE + ESTADO (lado a lado) -->
+      <div class="grid grid-cols-3 gap-4">
 
-      <div>
-        <label class="block text-sm font-semibold text-gray-700">UP</label>
-        <input id="edit-up" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+        <!-- Cidade (2/3 da largura) -->
+        <div class="col-span-2">
+          <label class="block text-sm font-semibold text-gray-700">Cidade</label>
+          <select id="edit-cidade"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">Selecione</option>
+          </select>
+        </div>
+
+        <!-- Estado (1/3 da largura, pequeno, 2 letras) -->
+        <div class="col-span-1">
+          <label class="block text-sm font-semibold text-gray-700">Estado (UP)</label>
+          <select id="edit-up"
+            class="w-full px-2 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-center">
+            <option value="">UF</option>
+          </select>
+        </div>
+
       </div>
+      <!-- FIM CIDADE + ESTADO -->
+
 
       <!-- Botões -->
       <div class="flex justify-end gap-3 pt-4">
         <button type="button" id="cancelar-edicao"
-                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-semibold">
+          class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-semibold">
           Cancelar
         </button>
         <button type="submit"
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold">
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold">
           Salvar Alterações
         </button>
       </div>
     </form>
   </div>
 </div>
+<!-- FIM MODAL EDITAR CLIENTE -->
 
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>

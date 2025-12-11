@@ -723,31 +723,51 @@ async function carregarClientes() {
   try {
     const { data: clientes, error } = await supabase
       .from("clientes")
-      .select("*")
+      .select("id, nome, telefone, cidade, up, bloqueado")
       .order("nome", { ascending: true });
 
     if (error) throw error;
 
     lista.innerHTML = "";
 
+    // 🔥 Mapa de UP para exibição correta
+    const mapaUP = {
+      1: "MG",
+      2: "SP",
+      3: "RJ",
+      "1": "MG",
+      "2": "SP",
+      "3": "RJ"
+    };
+
     // Checa se o usuário tem apenas acesso_clientes
     const permissoesCliente = window.permissoesDetalhadas["acesso_clientes"];
     const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
 
     clientes.forEach((cliente, index) => {
+
+      // 🔥 Corrige a exibição do campo UP
+      const upFormatado =
+        mapaUP[cliente.up] !== undefined ? mapaUP[cliente.up] : cliente.up || "—";
+
       const tr = document.createElement("tr");
       tr.className = "hover:bg-gray-50";
       if (cliente.bloqueado) tr.classList.add("bg-red-50");
 
       tr.innerHTML = `
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
+
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
           ${cliente.nome || "—"}
           ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
         </td>
+
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.up || "—"}</td>
+
+        <!-- 🔥 Agora exibe corretamente MG -->
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${upFormatado}</td>
+
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
           <button class="btn-editar px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold">Editar</button>
           <button class="btn-excluir px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold">Excluir</button>
@@ -770,7 +790,7 @@ async function carregarClientes() {
         }
       });
 
-      // Bloquear apenas se usuário tiver somente acesso_clientes
+      // Excluir somente para quem não é acesso_exclusivo
       btnExcluir.addEventListener("click", (e) => {
         if (isAcessoClienteExclusivo) {
           e.preventDefault();
@@ -803,6 +823,7 @@ async function carregarClientes() {
     lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
   }
 }
+
 
 // DOM carregado
 document.addEventListener("DOMContentLoaded", () => {
@@ -888,7 +909,7 @@ async function bloquearCliente(idCliente, statusAtual) {
 async function editarCliente(id) {
   console.log("Abrindo edição para cliente:", id);
 
-  // Busca o cliente no Supabase
+  // Buscar cliente
   const { data: cliente, error } = await supabase
     .from("clientes")
     .select("*")
@@ -901,18 +922,53 @@ async function editarCliente(id) {
     return;
   }
 
-  // Preenche os campos do modal
+  // Preenche os campos básicos
   document.getElementById("edit-id").value = cliente.id;
   document.getElementById("edit-nome").value = cliente.nome || "";
   document.getElementById("edit-telefone").value = cliente.telefone || "";
-  document.getElementById("edit-cidade").value = cliente.cidade || "";
-  document.getElementById("edit-up").value = cliente.up || "";
 
-  // Abre o modal
+  // =============================
+  //     🔥 CARREGAR ESTADOS
+  // =============================
+  const estados = await carregarEstadosEditar();
+
+  let estadoId = null;
+
+  // Caso UP seja número (ID)
+  if (cliente.up && /^\d+$/.test(String(cliente.up))) {
+    estadoId = Number(cliente.up);
+  }
+  // Caso UP seja sigla
+  else if (cliente.up && isNaN(cliente.up)) {
+    estadoId = await buscarEstadoIdPorSigla(cliente.up);
+  }
+
+  // =============================
+  // SE cliente NÃO tem estado → aparece "Selecione..."
+  // SE tem estado → selecionar estado normalmente
+  // =============================
+  if (estadoId) {
+    document.getElementById("edit-up").value = estadoId;
+
+    // Carrega as cidades do estado normalmente
+    await carregarCidadesPorEstadoEditar(estadoId);
+
+    // Se tiver cidade cadastrada → seleciona
+    if (cliente.cidade) {
+      document.getElementById("edit-cidade").value = cliente.cidade;
+    }
+
+  } else {
+    // Cliente NÃO tem estado cadastrado
+    document.getElementById("edit-up").value = "";
+    document.getElementById("edit-cidade").innerHTML =
+      '<option value="">Selecione</option>';
+  }
+
+  // Abrir modal
   document.getElementById("modal-editar-cliente").classList.remove("hidden");
   document.getElementById("modal-editar-cliente").classList.add("flex");
 }
-
 
 // =============================
 //     FECHAR MODAL EDITAR
@@ -923,10 +979,9 @@ function fecharModalEditar() {
   modal.classList.remove("flex");
 }
 
-
-// Eventos dos botões de fechar
 document.getElementById("fechar-modal-editar").addEventListener("click", fecharModalEditar);
 document.getElementById("cancelar-edicao").addEventListener("click", fecharModalEditar);
+
 // =============================
 //     SALVAR ALTERAÇÕES
 // =============================
@@ -935,7 +990,6 @@ document.getElementById("form-editar-cliente").addEventListener("submit", async 
 
   const id = document.getElementById("edit-id").value;
 
-  // Aplicar máscara antes de salvar
   const telefoneFormatado = aplicarMascaraTelefone(
     document.getElementById("edit-telefone").value
   );
@@ -944,7 +998,7 @@ document.getElementById("form-editar-cliente").addEventListener("submit", async 
     nome: document.getElementById("edit-nome").value.trim(),
     telefone: telefoneFormatado,
     cidade: document.getElementById("edit-cidade").value.trim(),
-    up: document.getElementById("edit-up").value.trim(),
+    up: document.getElementById("edit-up").value.trim(), // sempre ID
   };
 
   console.log("Salvando alterações do cliente:", dadosAtualizados);
@@ -956,14 +1010,89 @@ document.getElementById("form-editar-cliente").addEventListener("submit", async 
 
   if (error) {
     console.error("Erro ao atualizar cliente:", error);
-    mostrarToast("Erro ao salvar alterações!", "bg-red-600"); // ⚠️ Toast de erro
+    mostrarToast("Erro ao salvar alterações!", "bg-red-600");
     return;
   }
 
   fecharModalEditar();
-  carregarClientes(); // Atualiza a lista sem reload
+  carregarClientes();
+  mostrarToast("Cliente atualizado com sucesso!", "bg-green-600");
+});
 
-  mostrarToast("Cliente atualizado com sucesso!", "bg-green-600"); // 🎉 Toast moderno
+// =============================
+//     🔥 CARREGAR ESTADOS
+// =============================
+async function carregarEstadosEditar() {
+  const { data, error } = await supabase
+    .from("estados")
+    .select("*")
+    .order("sigla", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar estados:", error);
+    return [];
+  }
+
+  const selectEstado = document.getElementById("edit-up");
+  selectEstado.innerHTML = '<option value="">Selecione</option>';
+
+  data.forEach(est => {
+    const opt = document.createElement("option");
+    opt.value = est.id;
+    opt.textContent = est.sigla;
+    opt.dataset.sigla = est.sigla;
+    selectEstado.appendChild(opt);
+  });
+
+  return data;
+}
+
+// =============================
+//     🔥 CARREGAR CIDADES
+// =============================
+async function carregarCidadesPorEstadoEditar(estadoId) {
+  if (!estadoId) return;
+
+  const { data, error } = await supabase
+    .from("cidades")
+    .select("*")
+    .eq("estado_id", estadoId)
+    .order("nome", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar cidades:", error);
+    return;
+  }
+
+  const selectCidade = document.getElementById("edit-cidade");
+  selectCidade.innerHTML = '<option value="">Selecione</option>';
+
+  data.forEach(cidade => {
+    const opt = document.createElement("option");
+    opt.value = cidade.nome;
+    opt.textContent = cidade.nome;
+    selectCidade.appendChild(opt);
+  });
+}
+
+// =============================
+//  🔍 Buscar ID por Sigla (MG → 1)
+// =============================
+async function buscarEstadoIdPorSigla(sigla) {
+  const { data, error } = await supabase
+    .from("estados")
+    .select("id")
+    .eq("sigla", sigla)
+    .single();
+
+  return error ? null : data.id;
+}
+
+// =============================
+//   Evento ao mudar estado
+// =============================
+document.getElementById("edit-up").addEventListener("change", async (e) => {
+  await carregarCidadesPorEstadoEditar(e.target.value);
 });
 
 function mostrarToast(mensagem, cor = "bg-green-600") {

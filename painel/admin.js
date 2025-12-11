@@ -11,60 +11,106 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let timerBloqueio = null;
 let canalBloqueio = null;
+let timerTemporario = null;
+let timerBemVindo = null;
 
 async function verificarBloqueioPainel(usuario) {
   const painel = document.getElementById("painel-bloqueado");
+  const painelTemporario = document.getElementById("painel-temporario");
+  const contadorEl = document.getElementById("contador-temporario");
+  const barraEl = document.getElementById("barra-temporario");
 
-  if (!painel) {
-    console.warn("⚠ painel-bloqueado não encontrado no HTML");
+  if (!painel || !painelTemporario || !contadorEl || !barraEl) {
+    console.warn("⚠ Elementos de painel não encontrados no HTML");
     return;
   }
 
-  // =============================
-  // FUNÇÃO QUE ATIVA / DESATIVA O BLOQUEIO
-  // =============================
-  function aplicarBloqueio(ativo) {
+  function aplicarBloqueio(ativo, delay = 0) {
     clearTimeout(timerBloqueio);
 
-    // -----------------------------------
-    // 🔥 USUÁRIO BLOQUEADO (ativo = false)
-    // -----------------------------------
-    if (ativo === false) {
-      painel.classList.remove("hidden");
-      painel.classList.add("flex");
+    timerBloqueio = setTimeout(() => {
+      // 🔥 BLOQUEADO
+      if (ativo === false) {
+        painel.classList.remove("hidden");
+        painel.classList.add("flex");
+        document.body.style.overflow = "hidden";
+        console.log("⛔ Painel BLOQUEADO");
 
-      document.body.style.overflow = "hidden";
+        fecharPainelTemporario();
+        return;
+      }
 
-      timerBloqueio = setTimeout(() => {
-        console.log("⛔ Painel BLOQUEADO (delay concluído)");
-      }, 500);
+      // 🔥 LIBERADO
+      painel.classList.add("hidden");
+      painel.classList.remove("flex");
+      document.body.style.overflow = "auto";
+      console.log("✅ Painel LIBERADO");
 
-      return;
-    }
-
-    // -----------------------------------
-    // 🔥 USUÁRIO LIBERADO (ativo = true)
-    // → Aqui vamos chamar o MODAL MODERNO
-    // -----------------------------------
-    painel.classList.add("hidden");
-    painel.classList.remove("flex");
-    document.body.style.overflow = "auto";
-
-    // 🎉 ABRIR MODAL DE ACESSO LIBERADO!
-    mostrarAcessoLiberado();
+      // Se o usuário estava bloqueado e agora desbloqueado
+      if (usuario.ativo === false) {
+        usuario.ativo = true;
+        mostrarPainelTemporario(60); // 60 segundos
+      }
+    }, delay);
   }
 
-  // Executa na primeira carga
+  function mostrarPainelTemporario(duration = 60) {
+    let segundos = duration;
+    contadorEl.textContent = segundos;
+    barraEl.style.width = "0%";
+
+    painelTemporario.classList.remove("hidden");
+    painelTemporario.classList.add("flex");
+    document.body.style.overflow = "hidden";
+
+    clearInterval(timerTemporario);
+    timerTemporario = setInterval(() => {
+      segundos--;
+      contadorEl.textContent = segundos;
+
+      let porcentagem = ((duration - segundos) / duration) * 100;
+      barraEl.style.width = porcentagem + "%";
+
+      if (segundos <= 0) {
+        fecharPainelTemporario();
+        mostrarBemVindo();
+      }
+    }, 1000);
+  }
+
+  function fecharPainelTemporario() {
+    clearInterval(timerTemporario);
+    painelTemporario.classList.add("hidden");
+    painelTemporario.classList.remove("flex");
+    document.body.style.overflow = "auto";
+    barraEl.style.width = "0%";
+  }
+
+  function mostrarBemVindo(seconds = 3) {
+    const bemVindo = document.createElement("div");
+    bemVindo.id = "bem-vindo-msg";
+    bemVindo.className = "fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg z-[9999] animate__animated animate__fadeIn";
+    bemVindo.textContent = "Bem-vindo de volta!";
+    document.body.appendChild(bemVindo);
+
+    timerBemVindo = setTimeout(() => {
+      bemVindo.classList.remove("animate__fadeIn");
+      bemVindo.classList.add("animate__fadeOut");
+      bemVindo.addEventListener("animationend", () => {
+        bemVindo.remove();
+      });
+    }, seconds * 1000);
+  }
+
+  // Rodar na primeira vez ao carregar o painel
   aplicarBloqueio(usuario.ativo);
 
-  // Remove canal antigo
+  // Remove canal anterior
   if (canalBloqueio) {
     await supabase.removeChannel(canalBloqueio);
   }
 
-  // ===============================================
-  // 🔥 INSCRIÇÃO REALTIME DO USUÁRIO
-  // ===============================================
+  // Listener realtime
   canalBloqueio = supabase
     .channel(`usuario-bloqueio-${usuario.id}`)
     .on(
@@ -76,27 +122,23 @@ async function verificarBloqueioPainel(usuario) {
         filter: `id=eq.${usuario.id}`,
       },
       (payload) => {
-        console.log("📡 Realtime detectado:", payload);
-
-        // Aplica bloqueio ou desbloqueio automaticamente
-        aplicarBloqueio(payload.new.ativo);
+        if (usuario.ativo === false && payload.new.ativo === true) {
+          usuario.ativo = false;
+          aplicarBloqueio(payload.new.ativo, 0);
+        } else {
+          usuario.ativo = payload.new.ativo;
+          aplicarBloqueio(payload.new.ativo, 0);
+        }
       }
     )
     .subscribe((status) => {
       console.log("📡 Listener realtime conectado:", status);
     });
 
-  // ===============================================
-  // 🔧 RECONNECT AUTOMÁTICO
-  // ===============================================
+  // Reconnect automático
   setInterval(async () => {
     if (!canalBloqueio || canalBloqueio.state !== "joined") {
-      console.warn("⚠ Canal realtime caiu — reconectando...");
-
-      if (canalBloqueio) {
-        await supabase.removeChannel(canalBloqueio);
-      }
-
+      if (canalBloqueio) await supabase.removeChannel(canalBloqueio);
       canalBloqueio = supabase
         .channel(`usuario-bloqueio-${usuario.id}`)
         .on(
@@ -108,14 +150,16 @@ async function verificarBloqueioPainel(usuario) {
             filter: `id=eq.${usuario.id}`,
           },
           (payload) => {
-            console.log("📡 Realtime (reconectado) detectou update:", payload);
-
-            aplicarBloqueio(payload.new.ativo);
+            if (usuario.ativo === false && payload.new.ativo === true) {
+              usuario.ativo = false;
+              aplicarBloqueio(payload.new.ativo, 0);
+            } else {
+              usuario.ativo = payload.new.ativo;
+              aplicarBloqueio(payload.new.ativo, 0);
+            }
           }
         )
-        .subscribe((status) => {
-          console.log("📡 Realtime reconectado:", status);
-        });
+        .subscribe();
     }
   }, 5000);
 }
@@ -171,42 +215,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   aplicarPermissoes(usuario);
   ativarMenuMobile();
 
-  // ================================
-  // FUNÇÃO PARA VERIFICAR BLOQUEIO DO PAINEL
-  // ================================
-  async function verificarBloqueioPainel(usuario) {
-    const painel = document.getElementById("painel-bloqueado");
-    if (!painel) return;
-
-    // Função que aplica ou remove o bloqueio
-    function atualizarPainelBloqueio(ativo) {
-      if (ativo === false) {
-        painel.classList.remove("hidden");
-        painel.classList.add("flex"); // centraliza a mensagem
-        // Bloqueia toda interação do painel
-        document.body.style.pointerEvents = "none";
-        painel.style.pointerEvents = "auto"; // permite clicar apenas na mensagem, se necessário
-      } else {
-        painel.classList.add("hidden");
-        painel.classList.remove("flex");
-        document.body.style.pointerEvents = "auto";
-      }
-    }
-
-    // Primeiro carregamento
-    atualizarPainelBloqueio(usuario.ativo);
-
-    // ================================
-    // LISTENER EM TEMPO REAL (Realtime) - para atualizar se o status mudar
-    // ================================
-    supabase
-      .from(`usuarios:id=eq.${usuario.id}`)
-      .on("UPDATE", payload => {
-        const dadosAtualizados = payload.new;
-        atualizarPainelBloqueio(dadosAtualizados.ativo);
-      })
-      .subscribe();
-  }
 
   // ================================
   // ATUALIZA TOTAL DE PEDIDOS FINALIZADOS

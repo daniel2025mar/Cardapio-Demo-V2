@@ -8,11 +8,9 @@ const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 let timerBloqueio = null;
 let canalBloqueio = null;
 let timerTemporario = null;
-let timerBemVindo = null;
 
 async function verificarBloqueioPainel(usuario) {
   const painel = document.getElementById("painel-bloqueado");
@@ -73,7 +71,6 @@ async function verificarBloqueioPainel(usuario) {
 
       if (segundos <= 0) {
         fecharPainelTemporario();
-        mostrarBemVindo();
       }
     }, 1000);
   }
@@ -84,22 +81,6 @@ async function verificarBloqueioPainel(usuario) {
     painelTemporario.classList.remove("flex");
     document.body.style.overflow = "auto";
     barraEl.style.width = "0%";
-  }
-
-  function mostrarBemVindo(seconds = 3) {
-    const bemVindo = document.createElement("div");
-    bemVindo.id = "bem-vindo-msg";
-    bemVindo.className = "fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg z-[9999] animate__animated animate__fadeIn";
-    bemVindo.textContent = "Bem-vindo de volta!";
-    document.body.appendChild(bemVindo);
-
-    timerBemVindo = setTimeout(() => {
-      bemVindo.classList.remove("animate__fadeIn");
-      bemVindo.classList.add("animate__fadeOut");
-      bemVindo.addEventListener("animationend", () => {
-        bemVindo.remove();
-      });
-    }, seconds * 1000);
   }
 
   // Rodar na primeira vez ao carregar o painel
@@ -163,6 +144,7 @@ async function verificarBloqueioPainel(usuario) {
     }
   }, 5000);
 }
+
 
 // ===================================================
 //  MAPA REAL DO MENU → ID DAS SEÇÕES

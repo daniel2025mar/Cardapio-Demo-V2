@@ -2150,3 +2150,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     .subscribe();
 });
 
+// Função do formulário de cadastro de produtos
+document.addEventListener("DOMContentLoaded", () => {
+  const inputFoto = document.getElementById("fotoProduto");
+  const previewImg = document.getElementById("previewImagem");
+  const nomeProduto = document.getElementById("nomeProduto");
+
+  // ============================
+  // PREVIEW DA IMAGEM
+  // ============================
+  inputFoto.addEventListener("change", function () {
+    const arquivo = this.files[0];
+
+    if (arquivo) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        previewImg.src = e.target.result;
+      };
+
+      reader.readAsDataURL(arquivo);
+    }
+  });
+
+  // ============================
+  // BLOQUEAR NÚMEROS NO CAMPO NOME
+  // ============================
+  nomeProduto.addEventListener("input", function () {
+    this.value = this.value.replace(/[0-9]/g, ""); // remove números
+  });
+});
+
+//submenus categorias
+document.addEventListener("DOMContentLoaded", () => {
+  const menuCategorias = document.querySelector('[data-menu="categorias"]');
+  const submenuCategorias = document.getElementById("submenu-categorias");
+  const outrosMenus = document.querySelectorAll('[data-menu]:not([data-menu="categorias"])');
+
+  // Ao clicar em Categorias, alterna visibilidade suavemente
+  if (menuCategorias && submenuCategorias) {
+    menuCategorias.addEventListener("click", (e) => {
+      e.stopPropagation(); // evita que o clique "vaze" para o documento
+      submenuCategorias.classList.toggle("aberto");
+    });
+  }
+
+  // Ao clicar em qualquer outro menu, fecha suavemente
+  outrosMenus.forEach(menu => {
+    menu.addEventListener("click", () => {
+      submenuCategorias.classList.remove("aberto");
+    });
+  });
+
+  // Clicar fora do menu também fecha suavemente
+  document.addEventListener("click", () => {
+    submenuCategorias.classList.remove("aberto");
+  });
+
+  // Evita que clique dentro do submenu feche ele
+  submenuCategorias.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+});

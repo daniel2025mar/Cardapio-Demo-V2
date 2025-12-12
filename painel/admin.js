@@ -943,26 +943,22 @@ async function editarCliente(id) {
     estadoId = await buscarEstadoIdPorSigla(cliente.up);
   }
 
-  // =============================
-  // SE cliente NÃO tem estado → aparece "Selecione..."
-  // SE tem estado → selecionar estado normalmente
-  // =============================
+  // Seleciona estado
   if (estadoId) {
     document.getElementById("edit-up").value = estadoId;
 
-    // Carrega as cidades do estado normalmente
+    // Carrega as cidades do estado no modal
     await carregarCidadesPorEstadoEditar(estadoId);
 
-    // Se tiver cidade cadastrada → seleciona
+    // Seleciona cidade se existir
     if (cliente.cidade) {
       document.getElementById("edit-cidade").value = cliente.cidade;
     }
 
   } else {
-    // Cliente NÃO tem estado cadastrado
     document.getElementById("edit-up").value = "";
-    document.getElementById("edit-cidade").innerHTML =
-      '<option value="">Selecione</option>';
+    document.getElementById("edit-cidade").value = "";
+    listaCidades.innerHTML = '';
   }
 
   // Abrir modal
@@ -1048,8 +1044,36 @@ async function carregarEstadosEditar() {
 }
 
 // =============================
-//     🔥 CARREGAR CIDADES
+//     🔥 CARREGAR CIDADES NO MODAL
 // =============================
+const inputCidade = document.getElementById('edit-cidade');
+const modalCidades = document.getElementById('modal-cidades');
+const fecharModalCidades = document.getElementById('fechar-modal-cidades');
+const listaCidades = document.getElementById('lista-cidades');
+const buscaCidade = document.getElementById('busca-cidade');
+
+// Abrir modal ao clicar no input
+inputCidade.addEventListener('click', () => {
+  if (inputCidade.dataset.estado) {
+    modalCidades.classList.remove('hidden');
+  } else {
+    alert("Selecione um estado primeiro.");
+  }
+});
+
+// Fechar modal
+fecharModalCidades.addEventListener('click', () => {
+  modalCidades.classList.add('hidden');
+  buscaCidade.value = '';
+  filtrarCidades('');
+});
+
+// Buscar cidades dinamicamente ao digitar
+buscaCidade.addEventListener('input', (e) => {
+  filtrarCidades(e.target.value);
+});
+
+// Carrega cidades do estado no modal
 async function carregarCidadesPorEstadoEditar(estadoId) {
   if (!estadoId) return;
 
@@ -1064,14 +1088,28 @@ async function carregarCidadesPorEstadoEditar(estadoId) {
     return;
   }
 
-  const selectCidade = document.getElementById("edit-cidade");
-  selectCidade.innerHTML = '<option value="">Selecione</option>';
+  // Salva estado no input para checagem ao abrir modal
+  inputCidade.dataset.estado = estadoId;
+
+  listaCidades.innerHTML = '';
 
   data.forEach(cidade => {
-    const opt = document.createElement("option");
-    opt.value = cidade.nome;
-    opt.textContent = cidade.nome;
-    selectCidade.appendChild(opt);
+    const li = document.createElement('li');
+    li.textContent = cidade.nome;
+    li.className = 'px-4 py-2 cursor-pointer hover:bg-gray-100 rounded-lg';
+    li.addEventListener('click', () => {
+      inputCidade.value = cidade.nome;
+      modalCidades.classList.add('hidden');
+      buscaCidade.value = '';
+    });
+    listaCidades.appendChild(li);
+  });
+}
+
+// Filtrar cidades no modal
+function filtrarCidades(termo) {
+  Array.from(listaCidades.children).forEach(li => {
+    li.style.display = li.textContent.toLowerCase().includes(termo.toLowerCase()) ? 'block' : 'none';
   });
 }
 
@@ -1094,6 +1132,7 @@ async function buscarEstadoIdPorSigla(sigla) {
 document.getElementById("edit-up").addEventListener("change", async (e) => {
   await carregarCidadesPorEstadoEditar(e.target.value);
 });
+
 
 function mostrarToast(mensagem, cor = "bg-green-600") {
   const toast = document.getElementById("toast");
@@ -1943,60 +1982,122 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Seleciona os elementos
-const btnNotificacoes = document.getElementById('btn-notificacoes');
-const balao = document.getElementById('balao-notificacoes');
-const contador = document.getElementById('contador-notificacoes');
-const lista = document.getElementById('lista-notificacoes');
-const btnLimpar = document.getElementById('btnLimpar');
+document.addEventListener('DOMContentLoaded', async () => {
+  const btnNotificacoes = document.getElementById('btn-notificacoes');
+  const balao = document.getElementById('balao-notificacoes');
+  const contador = document.getElementById('contador-notificacoes');
+  const listaNotificacoes = document.getElementById('lista-notificacoes');
+  const btnLimpar = document.getElementById('btnLimpar');
 
-// Exemplo de notificações
-let notificacoes = [
-  "Novo pedido recebido!",
-  "Usuário X se registrou.",
-  "Atualização disponível."
-];
+  // Recupera notificações e último ID do localStorage
+  let notificacoes = JSON.parse(localStorage.getItem('notificacoes')) || [];
+  let ultimoIdNotificado = parseInt(localStorage.getItem('ultimoIdNotificado')) || 0;
 
-// Função para atualizar o contador
-function atualizarContador() {
-  if (notificacoes.length > 0) {
+  // Som de notificação
+  const somNotificacao = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+
+  function atualizarContador() {
+    if (!contador) return;
     contador.textContent = notificacoes.length;
-    contador.classList.remove('hidden'); // mostra o contador
-  } else {
-    contador.classList.add('hidden'); // esconde o contador
+    contador.classList.toggle('hidden', notificacoes.length === 0);
   }
-}
 
-// Função para preencher a lista do balão com hover azul
-function atualizarLista() {
-  lista.innerHTML = ''; // limpa a lista
-  notificacoes.forEach(n => {
-    const li = document.createElement('li');
-    li.textContent = n;
-    li.className = "px-4 py-2 hover:bg-blue-600 cursor-pointer"; // hover azul
-    lista.appendChild(li);
+  function atualizarListaNotificacoes() {
+    if (!listaNotificacoes) return;
+    listaNotificacoes.innerHTML = '';
+    listaNotificacoes.style.maxHeight = '300px';
+    listaNotificacoes.style.overflowY = 'auto';
+
+    const frag = document.createDocumentFragment();
+    notificacoes.forEach(pedido => {
+      const li = document.createElement('li');
+      li.textContent = `Pedido - ${pedido.cliente} - R$ ${pedido.total.toFixed(2).replace('.', ',')}`;
+      li.className = 'px-4 py-2 hover:bg-blue-600 cursor-pointer';
+      frag.appendChild(li);
+    });
+    listaNotificacoes.appendChild(frag);
+  }
+
+  function salvarEstado() {
+    localStorage.setItem('notificacoes', JSON.stringify(notificacoes));
+    localStorage.setItem('ultimoIdNotificado', ultimoIdNotificado);
+  }
+
+  if (btnLimpar) {
+    btnLimpar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notificacoes = [];
+      ultimoIdNotificado = 0;
+      salvarEstado();
+      atualizarListaNotificacoes();
+      atualizarContador();
+    });
+  }
+
+  if (btnNotificacoes && balao) {
+    btnNotificacoes.addEventListener('click', (e) => {
+      e.stopPropagation();
+      balao.classList.toggle('hidden');
+      atualizarListaNotificacoes();
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (balao && btnNotificacoes && !btnNotificacoes.contains(e.target) && !balao.contains(e.target)) {
+      balao.classList.add('hidden');
+    }
   });
-}
 
-// Função para limpar as notificações
-btnLimpar.addEventListener('click', () => {
-  notificacoes = []; // limpa o array de notificações
-  atualizarLista();  // atualiza a lista (fica vazia)
-  atualizarContador(); // zera o contador
-});
-
-// Mostra ou esconde o balão ao clicar no botão
-btnNotificacoes.addEventListener('click', () => {
-  atualizarLista(); // atualiza a lista ao abrir
-  balao.classList.toggle('hidden'); // alterna visibilidade
-});
-
-// Fecha o balão ao clicar fora dele
-document.addEventListener('click', (e) => {
-  if (!btnNotificacoes.contains(e.target) && !balao.contains(e.target)) {
-    balao.classList.add('hidden');
+  // Inicializa último ID existente
+  async function inicializarUltimoId() {
+    if (ultimoIdNotificado > 0) return;
+    try {
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('id')
+        .eq('status', 'Recebido')
+        .order('id', { ascending: false })
+        .limit(1);
+      if (!error && data && data.length > 0) {
+        ultimoIdNotificado = data[0].id;
+        salvarEstado();
+      }
+    } catch (err) {
+      console.error('Erro ao inicializar último ID:', err);
+    }
   }
+
+  // Função para adicionar novo pedido à lista de notificações
+  function adicionarNotificacao(pedido) {
+    if (!notificacoes.some(n => n.id === pedido.id)) {
+      notificacoes.push(pedido);
+      ultimoIdNotificado = Math.max(ultimoIdNotificado, pedido.id);
+      salvarEstado();
+      atualizarContador();
+      atualizarListaNotificacoes();
+
+      somNotificacao.play().catch(err => console.warn('Erro ao tocar som:', err));
+      btnNotificacoes.classList.add('animate-pulse');
+      setTimeout(() => btnNotificacoes.classList.remove('animate-pulse'), 1000);
+    }
+  }
+
+  await inicializarUltimoId();
+  atualizarContador();
+  atualizarListaNotificacoes();
+
+  // =======================
+  // Realtime Supabase
+  // =======================
+  supabase
+    .channel('realtime-pedidos')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'pedidos', filter: 'status=eq.Recebido' },
+      (payload) => {
+        adicionarNotificacao(payload.new);
+      }
+    )
+    .subscribe();
 });
 
-// Atualiza o contador ao carregar a página
-atualizarContador();

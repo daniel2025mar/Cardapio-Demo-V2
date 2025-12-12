@@ -730,25 +730,74 @@ async function carregarClientes() {
 
     lista.innerHTML = "";
 
-    // 🔥 Mapa de UP para exibição correta
+    // 🔥 Mapa completo de todos os estados
     const mapaUP = {
       1: "MG",
-      2: "SP",
-      3: "RJ",
+      2: "AC",
+      3: "AL",
+      4: "AP",
+      5: "AM",
+      6: "BA",
+      7: "CE",
+      8: "DF",
+      9: "ES",
+      10: "GO",
+      11: "MA",
+      12: "MT",
+      13: "MS",
+      14: "PA",
+      15: "PB",
+      16: "PR",
+      17: "PE",
+      18: "PI",
+      19: "RJ",
+      20: "RN",
+      21: "RS",
+      22: "RO",
+      23: "RR",
+      24: "SC",
+      25: "SP",
+      26: "SE",
+      27: "TO",
+
+      // 🔥 Caso o Supabase envie como STRING
       "1": "MG",
-      "2": "SP",
-      "3": "RJ"
+      "2": "AC",
+      "3": "AL",
+      "4": "AP",
+      "5": "AM",
+      "6": "BA",
+      "7": "CE",
+      "8": "DF",
+      "9": "ES",
+      "10": "GO",
+      "11": "MA",
+      "12": "MT",
+      "13": "MS",
+      "14": "PA",
+      "15": "PB",
+      "16": "PR",
+      "17": "PE",
+      "18": "PI",
+      "19": "RJ",
+      "20": "RN",
+      "21": "RS",
+      "22": "RO",
+      "23": "RR",
+      "24": "SC",
+      "25": "SP",
+      "26": "SE",
+      "27": "TO",
     };
 
     // Checa se o usuário tem apenas acesso_clientes
     const permissoesCliente = window.permissoesDetalhadas["acesso_clientes"];
-    const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
+    const isAcessoClienteExclusivo =
+      permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
 
     clientes.forEach((cliente, index) => {
-
-      // 🔥 Corrige a exibição do campo UP
-      const upFormatado =
-        mapaUP[cliente.up] !== undefined ? mapaUP[cliente.up] : cliente.up || "—";
+      // 🔥 Corrige exibição do campo UP
+      const upFormatado = mapaUP[cliente.up] || "—";
 
       const tr = document.createElement("tr");
       tr.className = "hover:bg-gray-50";
@@ -765,14 +814,14 @@ async function carregarClientes() {
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
 
-        <!-- 🔥 Agora exibe corretamente MG -->
+        <!-- 🔥 Agora exibe corretamente a sigla do estado -->
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${upFormatado}</td>
 
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
           <button class="btn-editar px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold">Editar</button>
           <button class="btn-excluir px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold">Excluir</button>
           <button class="btn-bloquear px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold">
-            ${cliente.bloqueado ? 'Desbloquear' : 'Bloquear'}
+            ${cliente.bloqueado ? "Desbloquear" : "Bloquear"}
           </button>
         </td>
       `;
@@ -817,12 +866,12 @@ async function carregarClientes() {
     if (!clientes || clientes.length === 0) {
       lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
     }
-
   } catch (err) {
     console.error("Erro ao carregar clientes:", err);
     lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
   }
 }
+
 
 
 // DOM carregado

@@ -151,12 +151,16 @@ async function verificarBloqueioPainel(usuario) {
 // ===================================================
 const MENU_MAP = {
   dashboard: "dashboard",
-  produtos: "produtos",
   pedidos: "pedidos",
   clientes: "clientes",
   "funcionários": "funcionarios",
-  funcionarios: "funcionarios"
+  funcionarios: "funcionarios",
+
+  // SUBMENUS DE PRODUTOS
+  "cadastro de produtos": "produtos",
+  "lista de produtos": "lista-produtos"
 };
+
 
 // ===================================================
 //  VERIFICAR LOGIN E CARREGAR USUÁRIO
@@ -372,75 +376,146 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===============================
 //   APLICAR PERMISSÕES
 // ===============================
-// Objeto global para armazenar permissões detalhadas
 let permissoesDetalhadas = {};
+
 function aplicarPermissoes(usuario) {
   const permissoes = usuario.permissoes || [];
-  window.permissoesDetalhadas = usuario.permissoes_detalhadas || {}; // global para usar no carregarClientes
+  window.permissoesDetalhadas = usuario.permissoes_detalhadas || {};
 
-  // Atualiza nome do usuário no header
+  // ===============================
+  // ATUALIZA NOME DO USUÁRIO
+  // ===============================
   const userSpan = document.querySelector("header span");
   if (userSpan) userSpan.textContent = usuario.username;
 
-  // Esconde todas as seções e menus inicialmente
-  document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
-  document.querySelectorAll("aside nav label").forEach(label => label.style.display = "none");
+  // ===============================
+  // ESCONDE TUDO INICIALMENTE
+  // ===============================
+  document.querySelectorAll(".content-section").forEach(sec => {
+    sec.style.display = "none";
+  });
 
-  // Verifica se é Acesso Total
+  document.querySelectorAll("aside nav label").forEach(label => {
+    label.style.display = "none";
+  });
+
+  /**
+   * 🔥 MUITO IMPORTANTE
+   * Submenus NÃO podem ficar display:none
+   * Quem controla abrir/fechar é o JS (classe .aberto)
+   */
+  const submenuProdutos = document.getElementById("submenu-produtos");
+  if (submenuProdutos) {
+    submenuProdutos.style.display = "block";
+  }
+
+  // ===============================
+  // VERIFICA ACESSO TOTAL
+  // ===============================
   const isAcessoTotal = permissoes.includes("Acesso Total");
 
-  // Se tiver "Acesso Total", libera tudo e não bloqueia botões
   if (isAcessoTotal) {
-    document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "block");
-    document.querySelectorAll("aside nav label").forEach(label => label.style.display = "flex");
+    // Libera tudo
+    document.querySelectorAll(".content-section").forEach(sec => {
+      sec.style.display = "block";
+    });
+
+    document.querySelectorAll("aside nav label").forEach(label => {
+      label.style.display = "flex";
+    });
+
     abrirDashboard();
     ativarMenu();
     ativarMenuConfiguracoes();
 
-    // Usuário com Acesso Total tem todas as permissões
-    window.permissoesDetalhadas["Acesso Total"] = { excluir: true, bloquear: true, editar: true };
+    // Acesso Total = todas permissões
+    window.permissoesDetalhadas["Acesso Total"] = {
+      excluir: true,
+      bloquear: true,
+      editar: true
+    };
+
     return;
   }
 
-  // Mapeia permissões do banco para os IDs das seções
+  // ===============================
+  // MAPA DE PERMISSÕES
+  // ===============================
   const PERMISSAO_MAP = {
-    "acesso_dashboard": "dashboard",
-    "acesso_clientes": "clientes",
-    "acesso_pedidos": "pedidos",
-    "acesso_produtos": "produtos",
-    "acesso_funcionarios": "funcionarios",
-    "acesso_relatorios": "relatorios",
-    "acesso_configuracoes": "configuracoes"
+    acesso_dashboard: "dashboard",
+    acesso_clientes: "clientes",
+    acesso_pedidos: "pedidos",
+    acesso_produtos: "produtos",
+    acesso_funcionarios: "funcionarios",
+    acesso_relatorios: "relatorios",
+    acesso_configuracoes: "configuracoes"
   };
 
+  // ===============================
+  // APLICA PERMISSÕES INDIVIDUAIS
+  // ===============================
   permissoes.forEach(p => {
     const secaoID = PERMISSAO_MAP[p];
     if (!secaoID) return;
 
+    // Libera seção
     const secao = document.getElementById(secaoID);
     if (secao) secao.style.display = "block";
 
-    const menuItem = Array.from(document.querySelectorAll("aside nav label")).find(label => label.dataset.menu === secaoID);
-    if (menuItem) menuItem.style.display = "flex";
+    // Libera menu principal
+    const menuItem = Array.from(
+      document.querySelectorAll("aside nav label")
+    ).find(label => label.dataset.menu === secaoID);
+
+    if (menuItem) {
+      menuItem.style.display = "flex";
+    }
+
+    /**
+     * 🔓 REGRA ESPECÍFICA → PRODUTOS
+     * Se tem acesso_produtos:
+     * - menu aparece
+     * - submenus ficam visíveis (JS controla animação)
+     */
+    if (secaoID === "produtos") {
+      document
+        .querySelectorAll("#submenu-produtos label")
+        .forEach(sub => {
+          sub.style.display = "flex";
+        });
+    }
   });
 
-  const primeiraSecao = document.querySelector(".content-section[style*='display: block']");
+  // ===============================
+  // MOSTRA PRIMEIRA SEÇÃO PERMITIDA
+  // ===============================
+  const primeiraSecao = document.querySelector(
+    ".content-section[style*='display: block']"
+  );
+
   if (primeiraSecao) {
-    document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+    document.querySelectorAll(".content-section").forEach(sec => {
+      sec.style.display = "none";
+    });
     primeiraSecao.style.display = "block";
   }
 
   ativarMenu();
   ativarMenuConfiguracoes();
 
-  // =====================================
-  // Define permissoes para buttons baseado na permissão
-  // =====================================
-  if (permissoes.includes("acesso_clientes") && !isAcessoTotal) {
-    // Usuário com apenas acesso_clientes: bloqueia excluir e bloquear
-    window.permissoesDetalhadas["acesso_clientes"] = { editar: true, excluir: false, bloquear: false };
+  // ===============================
+  // PERMISSÕES ESPECÍFICAS (EXEMPLO)
+  // ===============================
+  if (permissoes.includes("acesso_clientes")) {
+    window.permissoesDetalhadas["acesso_clientes"] = {
+      editar: true,
+      excluir: false,
+      bloquear: false
+    };
   }
 }
+
+
 
 // ======================
 // ABRIR DASHBOARD POR PADRÃO
@@ -490,22 +565,32 @@ function ativarMenu() {
 
   labels.forEach(label => {
     label.addEventListener("click", () => {
-      const textoMenu = label.textContent.trim().toLowerCase();
-      const secaoID = MENU_MAP[textoMenu];
-      if (!secaoID) return;
+  const textoMenu = label.textContent.trim().toLowerCase();
 
-      sections.forEach(sec => sec.style.display = "none");
-      const target = document.getElementById(secaoID);
-      if (target) target.style.display = "block";
+  // ⛔ Produtos agora é apenas menu pai (tem submenu)
+  if (textoMenu === "produtos") return;
 
-      labels.forEach(l => l.classList.remove("active"));
-      label.classList.add("active");
+  const secaoID = MENU_MAP[textoMenu];
+  if (!secaoID) return;
 
-      if (window.innerWidth <= 768) {
-        sidebar.classList.remove("open");
-        overlay.classList.remove("show");
-      }
-    });
+  // Esconde todas as seções
+  sections.forEach(sec => sec.style.display = "none");
+
+  // Mostra a seção correta
+  const target = document.getElementById(secaoID);
+  if (target) target.style.display = "block";
+
+  // Controle de item ativo
+  labels.forEach(l => l.classList.remove("active"));
+  label.classList.add("active");
+
+  // Fecha sidebar no mobile
+  if (window.innerWidth <= 768) {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+  }
+});
+
   });
 }
 
@@ -2211,4 +2296,57 @@ document.addEventListener("DOMContentLoaded", () => {
   submenuCategorias.addEventListener("click", (e) => {
     e.stopPropagation();
   });
+});
+
+// =============================
+//   MENU PRODUTOS (SUBMENU)
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+  const menuProdutos = document.querySelector('[data-menu="produtos"]');
+  const submenuProdutos = document.getElementById("submenu-produtos");
+  const setaProdutos = document.querySelector(".seta-produtos");
+
+  const todosMenus = document.querySelectorAll(".menu-item");
+
+  if (!menuProdutos || !submenuProdutos) return;
+
+  menuProdutos.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 🔐 PERMISSÃO REAL (SE O MENU ESTÁ VISÍVEL, ELE TEM ACESSO)
+    const menuVisivel = getComputedStyle(menuProdutos).display !== "none";
+
+    if (!menuVisivel) {
+      mostrarToast?.(
+        "Você não tem permissão para acessar Produtos.",
+        "bg-red-600"
+      );
+      return;
+    }
+
+    // 🔁 TOGGLE NORMAL
+    const aberto = submenuProdutos.classList.contains("aberto");
+
+    fecharSubmenuProdutos();
+
+    if (!aberto) {
+      submenuProdutos.classList.add("aberto");
+      setaProdutos?.classList.add("rotated");
+    }
+  });
+
+  // FECHAR AO CLICAR EM OUTRO MENU
+  todosMenus.forEach(menu => {
+    if (menu !== menuProdutos) {
+      menu.addEventListener("click", () => {
+        fecharSubmenuProdutos();
+      });
+    }
+  });
+
+  function fecharSubmenuProdutos() {
+    submenuProdutos.classList.remove("aberto");
+    setaProdutos?.classList.remove("rotated");
+  }
 });

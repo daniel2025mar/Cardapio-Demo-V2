@@ -531,6 +531,105 @@
   </div>
 </section>
 
+<!-- =========================
+     LISTA DE PRODUTOS
+========================= -->
+<style>
+  /* ===== ESTILO PADRÃO ERP ===== */
+  #lista-produtos {
+    display: none; /* Escondido por padrão */
+  }
+
+  .label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
+  }
+
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    outline: none;
+    background: #fff;
+  }
+
+  .input:focus {
+    border-color: #000;
+    box-shadow: 0 0 0 1px #000;
+  }
+
+  /* Estilo dos botões de ação */
+  .btn-acao {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-editar {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  .btn-editar:hover {
+    background-color: #2563eb;
+  }
+
+  .btn-excluir {
+    background-color: #ef4444;
+    color: white;
+  }
+
+  .btn-excluir:hover {
+    background-color: #b91c1c;
+  }
+
+  .btn-bloquear {
+    background-color: #f59e0b;
+    color: white;
+  }
+
+  .btn-bloquear:hover {
+    background-color: #b45309;
+  }
+</style>
+
+<!-- Label do menu -->
+
+
+<!-- Seção da lista de produtos -->
+<section id="lista-produtos" class="content-section mb-8 mt-12">
+  <div class="mb-6">
+    <h2 class="text-3xl font-bold text-black">Produtos Cadastrados</h2>
+    <p class="text-gray-700">Aqui estão todos os produtos cadastrados no sistema.</p>
+  </div>
+
+  <div class="max-w-6xl mx-auto bg-white border border-gray-300 rounded-xl shadow-sm overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="corpoTabelaProdutos" class="bg-white divide-y divide-gray-200">
+        <tr>
+          <td colspan="6" class="text-gray-400 text-center py-4">Nenhum produto cadastrado ainda.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
       <!-- PEDIDOS -->
       <section id="pedidos" class="content-section mb-10">
@@ -1262,10 +1361,9 @@
     <span id="modal-notificacao-texto">Funcionário bloqueado com sucesso!</span>
   </div>
 </div>
-
 <!-- Modal de aviso -->
 <div id="modalAviso" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
     <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
     <p id="modalMensagem" class="text-gray-700 dark:text-gray-300 mb-6"></p>
     <button type="button" id="btnFecharModal" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
@@ -1276,11 +1374,9 @@
 
 <!-- Modal de erro -->
 <div id="modalErro" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
     <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
-    <p id="modalMensagemErro" class="text-gray-700 dark:text-gray-300 mb-6">
-      <!-- Mensagem será inserida via JS -->
-    </p>
+    <p id="modalMensagemErro" class="text-gray-700 dark:text-gray-300 mb-6"></p>
     <button id="btnFecharModalErro" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
       OK
     </button>
@@ -1289,11 +1385,9 @@
 
 <!-- Modal Valor Sugerido -->
 <div id="modalValorSugerido" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
     <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
-    <p id="modalMensagemValorSugerido" class="text-gray-700 dark:text-gray-300 mb-6">
-      <!-- Mensagem será inserida via JS -->
-    </p>
+    <p id="modalMensagemValorSugerido" class="text-gray-700 dark:text-gray-300 mb-6"></p>
     <button id="btnFecharValorSugerido" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
       OK
     </button>
@@ -1302,16 +1396,15 @@
 
 <!-- Modal de erro genérico -->
 <div id="modalErroUsuario" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
     <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
-    <p id="modalMensagemErroUsuario" class="text-gray-700 dark:text-gray-300 mb-6">
-      <!-- Mensagem será inserida via JS -->
-    </p>
+    <p id="modalMensagemErroUsuario" class="text-gray-700 dark:text-gray-300 mb-6"></p>
     <button id="btnFecharErroUsuario" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
       OK
     </button>
   </div>
 </div>
+
 
   <!-- FOOTER -->
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">

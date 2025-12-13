@@ -210,12 +210,14 @@
   >
 
     <!-- ÍCONE DE PRODUTOS -->
-    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        d="M20 13V7H5v6m15 0v6H6V13" />
-    </svg>
+    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+     viewBox="0 0 24 24" stroke="currentColor">
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M20 7l-8-4-8 4m16 0v10a2 2 0 01-1 1.73l-7 4a2 2 0 01-2 0l-7-4A2 2 0 014 17V7m16 0l-8 4-8-4" />
+</svg>
 
-    <span>Produtos</span>
+<span>Produtos</span>
+
 
     <!-- SETA -->
     <svg
@@ -403,9 +405,15 @@
       <!-- LINHA 1 -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label class="label">Código</label>
-          <input class="input bg-gray-100" disabled>
-        </div>
+  <label class="label">Código</label>
+  <input
+    id="codigoPreview"
+    class="input bg-gray-100"
+    disabled
+    value="0000"
+  >
+</div>
+
 
         <div>
           <label class="label">Data Cadastro</label>
@@ -434,7 +442,7 @@
         </div>
 
         <div>
-          <label class="label">Descrição</label>
+          <label class="label">Nome do Produto</label>
           <input id="descricao" class="input">
         </div>
       </div>
@@ -483,19 +491,21 @@
       <!-- CUSTOS -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
-          <label class="label">Valor de Custo</label>
-          <input id="valorCusto" type="number" class="input">
-        </div>
+  <label class="label">Valor de Custo</label>
+  <input id="valorCusto" type="text" class="input" value="R$ 0,00">
+</div>
+
 
         <div>
-          <label class="label">Margem de Lucro (%)</label>
-          <input id="margemLucro" type="number" class="input">
-        </div>
+  <label class="label">Margem de Lucro (%)</label>
+  <input id="margemLucro" type="text" class="input" value="0%" readonly>
+</div>
+
 
         <div>
-          <label class="label">Valor Sugerido</label>
-          <input id="valorSugerido" type="number" class="input">
-        </div>
+  <label class="label">Valor Venda</label>
+  <input id="valorSugerido" type="text" class="input" value="R$ 0,00">
+</div>
 
         <div>
           <label class="label">Grupo ICMS</label>
@@ -509,11 +519,12 @@
           Cancelar
         </button>
         <button
-          onclick="salvarProduto()"
-          class="px-6 py-2 rounded-lg bg-black text-white hover:bg-gray-900"
-        >
-          Salvar Produto
-        </button>
+  id="btnSalvarProduto"
+  class="px-6 py-2 rounded-lg bg-black text-white hover:bg-gray-900"
+>
+  Salvar Produto
+</button>
+
       </div>
 
     </div>
@@ -1249,6 +1260,56 @@
       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
     </svg>
     <span id="modal-notificacao-texto">Funcionário bloqueado com sucesso!</span>
+  </div>
+</div>
+
+<!-- Modal de aviso -->
+<div id="modalAviso" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
+    <p id="modalMensagem" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+    <button type="button" id="btnFecharModal" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      OK
+    </button>
+  </div>
+</div>
+
+<!-- Modal de erro -->
+<div id="modalErro" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
+    <p id="modalMensagemErro" class="text-gray-700 dark:text-gray-300 mb-6">
+      <!-- Mensagem será inserida via JS -->
+    </p>
+    <button id="btnFecharModalErro" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+      OK
+    </button>
+  </div>
+</div>
+
+<!-- Modal Valor Sugerido -->
+<div id="modalValorSugerido" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
+    <p id="modalMensagemValorSugerido" class="text-gray-700 dark:text-gray-300 mb-6">
+      <!-- Mensagem será inserida via JS -->
+    </p>
+    <button id="btnFecharValorSugerido" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      OK
+    </button>
+  </div>
+</div>
+
+<!-- Modal de erro genérico -->
+<div id="modalErroUsuario" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full p-6 text-center">
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
+    <p id="modalMensagemErroUsuario" class="text-gray-700 dark:text-gray-300 mb-6">
+      <!-- Mensagem será inserida via JS -->
+    </p>
+    <button id="btnFecharErroUsuario" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+      OK
+    </button>
   </div>
 </div>
 

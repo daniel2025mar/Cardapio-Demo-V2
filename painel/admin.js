@@ -165,13 +165,32 @@ const MENU_MAP = {
 // ===================================================
 //  VERIFICAR LOGIN E CARREGAR USUÁRIO
 // ===================================================
-
 document.addEventListener("DOMContentLoaded", async () => {
 
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado) {
     window.location.href = "login.html";
     return;
+  }
+
+  // ================================
+  // MODAL DE ERRO AO CARREGAR USUÁRIO
+  // ================================
+  const modalErroUsuario = document.getElementById('modalErroUsuario');
+  const textoModalErroUsuario = document.getElementById('modalMensagemErroUsuario');
+  const btnFecharErroUsuario = document.getElementById('btnFecharErroUsuario');
+
+  function mostrarModalErroUsuario(mensagem) {
+    if (modalErroUsuario && textoModalErroUsuario) {
+      textoModalErroUsuario.textContent = mensagem;
+      modalErroUsuario.classList.remove('hidden');
+    }
+  }
+
+  if (btnFecharErroUsuario && modalErroUsuario) {
+    btnFecharErroUsuario.addEventListener('click', () => {
+      modalErroUsuario.classList.add('hidden');
+    });
   }
 
   // ================================
@@ -184,7 +203,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     .single();
 
   if (!usuario || error) {
-    alert("Erro ao carregar usuário!");
+    mostrarModalErroUsuario("Erro ao carregar usuário!");
     console.error("ERRO SUPABASE:", error);
     return;
   }
@@ -200,7 +219,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   permissoesDetalhadas = usuario.permissoes_detalhadas || {};
   aplicarPermissoes(usuario);
   ativarMenuMobile();
-
 
   // ================================
   // ATUALIZA TOTAL DE PEDIDOS FINALIZADOS
@@ -370,7 +388,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ================================
   await atualizarTotalFinalizados();
   await carregarFilaPedidos();
+
 });
+
 
 
 // ===============================
@@ -2266,6 +2286,87 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
+document.addEventListener("DOMContentLoaded", () => {
+  // ================================
+  // CAMPO DATA
+  // ================================
+  const inputDataCadastro = document.querySelector('input[type="date"]');
+  if (inputDataCadastro) {
+    const hoje = new Date();
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0"); 
+    const ano = hoje.getFullYear();
+    inputDataCadastro.value = `${ano}-${mes}-${dia}`;
+  }
+
+  // ================================
+  // FUNÇÃO PARA FORMATAR MOEDA BRASILEIRA
+  // ================================
+  const formatarMoeda = (valor) => {
+    const numero = Number(valor) / 100;
+    return numero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  // ================================
+  // FUNÇÃO PARA CALCULAR MARGEM DE LUCRO
+  // ================================
+  const calcularMargem = () => {
+    const custo = Number(inputValorCusto.value.replace(/\D/g, '')) / 100;
+    const venda = Number(inputValorSugerido.value.replace(/\D/g, '')) / 100;
+
+    let margem = 0;
+    if (venda > 0) {
+      margem = ((venda - custo) / venda) * 100;
+    }
+
+    // Atualiza o valor do input
+    inputMargem.value = `${margem.toFixed(2)}%`;
+
+    // Atualiza a cor: vermelho se negativo, preto se positivo
+    if (margem < 0) {
+      inputMargem.style.color = 'red';
+    } else {
+      inputMargem.style.color = 'black';
+    }
+  }
+
+  // ================================
+  // CAMPO VALOR VENDA E VALOR CUSTO
+  // ================================
+  const inputValorSugerido = document.getElementById('valorSugerido');
+  const inputValorCusto = document.getElementById('valorCusto');
+  const inputMargem = document.getElementById('margemLucro');
+
+  if (inputValorSugerido && inputValorCusto && inputMargem) {
+    // Inicializar valores
+    inputValorSugerido.value = 'R$ 0,00';
+    inputValorCusto.value = 'R$ 0,00';
+    inputMargem.value = '0%';
+    inputMargem.style.color = 'black';
+
+    const formatarInputMoeda = (input) => {
+      input.addEventListener('input', (e) => {
+        let valor = e.target.value.replace(/\D/g, '');
+        e.target.value = valor ? formatarMoeda(valor) : 'R$ 0,00';
+        calcularMargem(); // atualiza a margem sempre que mudar
+      });
+
+      input.addEventListener('blur', (e) => {
+        if (!e.target.value || e.target.value === 'R$ ,00') {
+          e.target.value = 'R$ 0,00';
+          calcularMargem();
+        }
+      });
+    }
+
+    formatarInputMoeda(inputValorSugerido);
+    formatarInputMoeda(inputValorCusto);
+  }
+});
+
+
+
 //submenus categorias
 document.addEventListener("DOMContentLoaded", () => {
   const menuCategorias = document.querySelector('[data-menu="categorias"]');
@@ -2348,5 +2449,206 @@ document.addEventListener("DOMContentLoaded", () => {
   function fecharSubmenuProdutos() {
     submenuProdutos.classList.remove("aberto");
     setaProdutos?.classList.remove("rotated");
+  }
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const btnSalvar = document.getElementById('btnSalvarProduto');
+  const inputCodigo = document.getElementById('codigoPreview');
+
+  // ================================
+  // Função para criar modais
+  // ================================
+  function criarModal(modalId, textoId, btnId) {
+    const modal = document.getElementById(modalId);
+    const texto = document.getElementById(textoId);
+    const btnFechar = modal ? modal.querySelector(`#${btnId}`) : null;
+
+    function mostrar(mensagem) {
+      if (!modal || !texto) return;
+      texto.textContent = mensagem;
+      modal.classList.remove('hidden');
+    }
+
+    if (btnFechar && modal) {
+      btnFechar.addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
+    }
+
+    return mostrar;
+  }
+
+  const mostrarModalAviso = criarModal('modalAviso', 'modalMensagem', 'btnFecharModal');
+  const mostrarModalErro = criarModal('modalErro', 'modalMensagemErro', 'btnFecharModalErro');
+  const mostrarModalValorSugerido = criarModal('modalValorSugerido', 'modalMensagemValorSugerido', 'btnFecharValorSugerido');
+
+  // ================================
+  // Função para atualizar código
+  // ================================
+  async function atualizarCodigo() {
+    try {
+      const { data, error } = await supabase
+        .from('produtos')
+        .select('codigo')
+        .order('codigo', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Erro ao buscar último código:', error);
+        inputCodigo.value = '0001';
+        return;
+      }
+
+      const ultimoCodigo = data.length ? parseInt(data[0].codigo) : 0;
+      const proximoCodigo = ultimoCodigo + 1;
+      inputCodigo.value = proximoCodigo.toString().padStart(4, '0');
+    } catch (err) {
+      console.error('Erro ao atualizar código:', err);
+      inputCodigo.value = '0001';
+    }
+  }
+
+  // ================================
+  // Formatação de moeda e cálculos
+  // ================================
+  const formatarMoeda = (valor) => {
+    const numero = Number(valor) / 100;
+    return numero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const inputDataCadastro = document.querySelector('input[type="date"]');
+  const inputValorSugerido = document.getElementById('valorSugerido');
+  const inputValorCusto = document.getElementById('valorCusto');
+  const inputMargem = document.getElementById('margemLucro');
+
+  const atualizarData = () => {
+    if (!inputDataCadastro) return;
+    const hoje = new Date();
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const ano = hoje.getFullYear();
+    inputDataCadastro.value = `${ano}-${mes}-${dia}`;
+  };
+
+  const calcularMargem = () => {
+    const custo = Number(inputValorCusto.value.replace(/\D/g, '')) / 100;
+    const venda = Number(inputValorSugerido.value.replace(/\D/g, '')) / 100;
+    let margem = 0;
+    if (venda > 0) margem = ((venda - custo) / venda) * 100;
+    inputMargem.value = `${margem.toFixed(2)}%`;
+    inputMargem.style.color = margem < 0 ? 'red' : 'black';
+  };
+
+  const formatarInputMoeda = (input) => {
+    input.value = 'R$ 0,00';
+    input.addEventListener('input', (e) => {
+      let valor = e.target.value.replace(/\D/g, '');
+      e.target.value = valor ? formatarMoeda(valor) : 'R$ 0,00';
+      calcularMargem();
+    });
+    input.addEventListener('blur', (e) => {
+      if (!e.target.value || e.target.value === 'R$ ,00') {
+        e.target.value = 'R$ 0,00';
+        calcularMargem();
+      }
+    });
+  };
+
+  if (inputValorSugerido && inputValorCusto && inputMargem) {
+    formatarInputMoeda(inputValorSugerido);
+    formatarInputMoeda(inputValorCusto);
+    inputMargem.value = '0%';
+    inputMargem.style.color = 'black';
+  }
+
+  atualizarData();
+  await atualizarCodigo();
+
+  // ================================
+  // Clique no botão Salvar Produto
+  // ================================
+  if (btnSalvar) {
+    btnSalvar.addEventListener('click', async () => {
+      const descricao = document.getElementById('descricao')?.value.trim();
+      const converterMoedaParaFloat = (valor) => {
+        if (!valor) return 0;
+        return parseFloat(valor.replace(/\./g, '').replace('R$', '').replace(',', '.').trim());
+      };
+
+      const valorCusto = converterMoedaParaFloat(inputValorCusto?.value);
+      const valorSugerido = converterMoedaParaFloat(inputValorSugerido?.value);
+      const margem = parseFloat(inputMargem?.value.replace('%', '')) || 0;
+
+      // Validações
+      if (!descricao) {
+        mostrarModalErro('Por favor, informe o nome do produto antes de salvar.');
+        return;
+      }
+
+      if (valorSugerido === 0) {
+        mostrarModalValorSugerido('O Valor de venda não pode ser R$ 0,00. Por favor, informe um valor válido.');
+        return;
+      }
+
+      // Verificar duplicidade
+      const { data: produtosExistentes, error: erroBusca } = await supabase
+        .from('produtos')
+        .select('id')
+        .eq('descricao', descricao);
+
+      if (erroBusca) {
+        console.error('Erro ao verificar produto existente:', erroBusca);
+        mostrarModalErro('Erro ao verificar se o produto já existe.');
+        return;
+      }
+
+      if (produtosExistentes.length > 0) {
+        mostrarModalAviso('Já existe um produto cadastrado com essa descrição. Não é possível cadastrar novamente.');
+        return;
+      }
+
+      // Inserir produto
+      const produto = {
+        codigo: parseInt(inputCodigo.value),
+        data_cadastro: new Date().toISOString().split('T')[0],
+        data_atualizacao: new Date().toISOString().split('T')[0],
+        situacao: document.querySelector('select')?.value || 'Ativo',
+        codigo_alternativo: document.getElementById('codigoAlternativo')?.value || '',
+        descricao: descricao,
+        descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
+        categoria: document.getElementById('categoriaProduto')?.value || '',
+        unidade_medida: document.getElementById('unidadeMedida')?.value || '',
+        origem: document.getElementById('origem')?.value || '0',
+        ncm: document.getElementById('ncm')?.value || '',
+        cest: document.getElementById('cest')?.value || '',
+        valor_custo: valorCusto,
+        margem_lucro: margem,
+        valor_sugerido: valorSugerido,
+        grupo_icms: document.getElementById('grupoIcms')?.value || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('produtos')
+        .insert([produto])
+        .select();
+
+      if (error) {
+        mostrarModalErro('Erro ao salvar produto: ' + error.message);
+        console.error(error);
+      } else {
+        mostrarModalAviso('Produto salvo com sucesso!');
+        atualizarData();
+        inputValorSugerido.value = 'R$ 0,00';
+        inputValorCusto.value = 'R$ 0,00';
+        inputMargem.value = '0%';
+        inputMargem.style.color = 'black';
+        ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','grupoIcms','codigoAlternativo']
+          .forEach(id => document.getElementById(id).value = '');
+        await atualizarCodigo();
+      }
+    });
   }
 });

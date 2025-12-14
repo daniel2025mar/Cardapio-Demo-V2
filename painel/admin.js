@@ -1443,15 +1443,17 @@ async function listarFuncionarios() {
       nome.classList.add("font-semibold", "text-gray-800");
       nome.textContent = f.nome_completo || "—";
 
-      const usuario = f.usuario_id?.[0];
+      // ✅ Garante que não quebre se usuario_id estiver vazio
+      const usuario = f.usuario_id?.[0] || {};
       let permissoesLiberadas = [];
-      if (usuario && Array.isArray(usuario.permissoes)) {
+
+      if (Array.isArray(usuario.permissoes)) {
         permissoesLiberadas = usuario.permissoes;
-      } else if (usuario && typeof usuario?.permissoes === "string") {
+      } else if (typeof usuario.permissoes === "string") {
         try { permissoesLiberadas = JSON.parse(usuario.permissoes); } catch(e){ permissoesLiberadas = []; }
       }
 
-      let permText = usuario?.username?.toLowerCase() === "admin"
+      let permText = usuario.username?.toLowerCase() === "admin"
         ? "Acesso Total"
         : (permissoesLiberadas.length ? permissoesLiberadas.join(", ") : "-");
 
@@ -1464,7 +1466,7 @@ async function listarFuncionarios() {
       div.appendChild(nomeDiv);
 
       // Botões (não mostrar para admin)
-      if (usuario?.username?.toLowerCase() !== "admin") {
+      if (usuario.username?.toLowerCase() !== "admin") {
         const botoesDiv = document.createElement("div");
         botoesDiv.classList.add("flex", "gap-2");
 
@@ -1473,7 +1475,6 @@ async function listarFuncionarios() {
         btnEditar.classList.add("px-3", "py-1", "bg-blue-500", "hover:bg-blue-600", "text-white", "rounded", "text-sm");
         btnEditar.addEventListener("click", () => abrirModalEdicao(f));
 
-        // Bloquear / Desbloquear
         const btnBloquear = document.createElement("button");
         btnBloquear.textContent = usuario.ativo === false ? "Desbloquear" : "Bloquear";
         btnBloquear.classList.add("px-3", "py-1", "bg-gray-400", "hover:bg-gray-500", "text-white", "rounded", "text-sm");
@@ -1488,10 +1489,7 @@ async function listarFuncionarios() {
 
               if (error) throw error;
 
-              // Mensagens corrigidas
-              let mensagem = "";
-              if (acao === "bloquear") mensagem = "Funcionário bloqueado com sucesso!";
-              else if (acao === "desbloquear") mensagem = "Funcionário desbloqueado com sucesso!";
+              let mensagem = acao === "bloquear" ? "Funcionário bloqueado com sucesso!" : "Funcionário desbloqueado com sucesso!";
               mostrarNotificacao(mensagem, "sucesso");
 
               listarFuncionarios();
@@ -1502,7 +1500,6 @@ async function listarFuncionarios() {
           });
         });
 
-        // Excluir
         const btnExcluir = document.createElement("button");
         btnExcluir.textContent = "Excluir";
         btnExcluir.classList.add("px-3", "py-1", "bg-red-700", "hover:bg-red-800", "text-white", "rounded", "text-sm");
@@ -1547,6 +1544,7 @@ async function listarFuncionarios() {
 
 // Chamada inicial ao carregar o painel
 listarFuncionarios();
+
 
 
 // ==============================
@@ -2286,8 +2284,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
 document.addEventListener("DOMContentLoaded", () => {
+
   // ================================
   // CAMPO DATA
   // ================================
@@ -2295,21 +2293,31 @@ document.addEventListener("DOMContentLoaded", () => {
   if (inputDataCadastro) {
     const hoje = new Date();
     const dia = String(hoje.getDate()).padStart(2, "0");
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0"); 
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
     const ano = hoje.getFullYear();
     inputDataCadastro.value = `${ano}-${mes}-${dia}`;
   }
 
   // ================================
-  // FUNÇÃO PARA FORMATAR MOEDA BRASILEIRA
+  // FUNÇÃO PARA FORMATAR MOEDA BR
   // ================================
   const formatarMoeda = (valor) => {
     const numero = Number(valor) / 100;
-    return numero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  }
+    return numero.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+  };
 
   // ================================
-  // FUNÇÃO PARA CALCULAR MARGEM DE LUCRO
+  // CAMPOS DE VALOR
+  // ================================
+  const inputValorSugerido = document.getElementById('valorSugerido');
+  const inputValorCusto = document.getElementById('valorCusto');
+  const inputMargem = document.getElementById('margemLucro');
+
+  // ================================
+  // CALCULAR MARGEM
   // ================================
   const calcularMargem = () => {
     const custo = Number(inputValorCusto.value.replace(/\D/g, '')) / 100;
@@ -2320,36 +2328,20 @@ document.addEventListener("DOMContentLoaded", () => {
       margem = ((venda - custo) / venda) * 100;
     }
 
-    // Atualiza o valor do input
     inputMargem.value = `${margem.toFixed(2)}%`;
-
-    // Atualiza a cor: vermelho se negativo, preto se positivo
-    if (margem < 0) {
-      inputMargem.style.color = 'red';
-    } else {
-      inputMargem.style.color = 'black';
-    }
-  }
-
-  // ================================
-  // CAMPO VALOR VENDA E VALOR CUSTO
-  // ================================
-  const inputValorSugerido = document.getElementById('valorSugerido');
-  const inputValorCusto = document.getElementById('valorCusto');
-  const inputMargem = document.getElementById('margemLucro');
+    inputMargem.style.color = margem < 0 ? 'red' : 'black';
+  };
 
   if (inputValorSugerido && inputValorCusto && inputMargem) {
-    // Inicializar valores
     inputValorSugerido.value = 'R$ 0,00';
     inputValorCusto.value = 'R$ 0,00';
     inputMargem.value = '0%';
-    inputMargem.style.color = 'black';
 
     const formatarInputMoeda = (input) => {
       input.addEventListener('input', (e) => {
         let valor = e.target.value.replace(/\D/g, '');
         e.target.value = valor ? formatarMoeda(valor) : 'R$ 0,00';
-        calcularMargem(); // atualiza a margem sempre que mudar
+        calcularMargem();
       });
 
       input.addEventListener('blur', (e) => {
@@ -2358,11 +2350,75 @@ document.addEventListener("DOMContentLoaded", () => {
           calcularMargem();
         }
       });
-    }
+    };
 
     formatarInputMoeda(inputValorSugerido);
     formatarInputMoeda(inputValorCusto);
   }
+
+  // ================================
+  // CONTROLE DE ABAS
+  // ================================
+  const abas = document.querySelectorAll(".aba");
+  const abaPrincipal = document.getElementById("abaPrincipal");
+  const abaEstoque = document.getElementById("abaEstoque");
+
+  abas.forEach(btn => {
+    btn.addEventListener("click", () => {
+      abas.forEach(b => b.classList.remove("border-b-2", "border-black", "text-black"));
+      btn.classList.add("border-b-2", "border-black", "text-black");
+
+      abaPrincipal.classList.add("hidden");
+      abaEstoque.classList.add("hidden");
+
+      if (btn.dataset.aba === "estoque") {
+        abaEstoque.classList.remove("hidden");
+      } else {
+        abaPrincipal.classList.remove("hidden");
+      }
+    });
+  });
+
+  // ================================
+  // ATUALIZAÇÃO DE ESTOQUE
+  // ================================
+  const btnAtualizarEstoque = document.getElementById("btnAtualizarEstoque");
+
+  if (btnAtualizarEstoque) {
+    btnAtualizarEstoque.addEventListener("click", () => {
+
+      const inputEstoqueAtual = document.getElementById("estoqueAtual");
+      const tipoMovimentacao = document.getElementById("tipoMovimentacao");
+      const quantidadeInput = document.getElementById("quantidadeMovimentacao");
+
+      const estoqueAtual = parseInt(inputEstoqueAtual.value) || 0;
+      const tipo = tipoMovimentacao.value;
+      const quantidade = parseInt(quantidadeInput.value);
+
+      if (!quantidade || quantidade <= 0) {
+        alert("Informe uma quantidade válida.");
+        return;
+      }
+
+      let novoEstoque = estoqueAtual;
+
+      if (tipo === "entrada") {
+        novoEstoque += quantidade;
+      } else {
+        if (quantidade > estoqueAtual) {
+          alert("Quantidade maior que o estoque disponível.");
+          return;
+        }
+        novoEstoque -= quantidade;
+      }
+
+      inputEstoqueAtual.value = novoEstoque;
+      quantidadeInput.value = "";
+
+      alert("Estoque atualizado com sucesso!");
+    });
+  }
+
 });
 
 
@@ -2451,154 +2507,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setaProdutos?.classList.remove("rotated");
   }
 });
-
-document.addEventListener("DOMContentLoaded", async () => {
-  const listaProdutos = document.getElementById("lista-produtos");
-  const corpoTabela = document.getElementById("corpoTabelaProdutos");
-
-  // Exibe a seção de produtos
-  listaProdutos.style.display = "block";
-
-  // Função para carregar produtos do Supabase
-  async function carregarProdutos() {
-    corpoTabela.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Carregando produtos...</td></tr>`;
-
-    const { data: produtos, error } = await supabase
-      .from("produtos") // tudo minúsculo
-      .select("*")
-      .order("data_cadastro", { ascending: true });
-
-    if (error) {
-      corpoTabela.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar produtos: ${error.message}</td></tr>`;
-      return;
-    }
-
-    if (!produtos || produtos.length === 0) {
-      corpoTabela.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum produto cadastrado ainda.</td></tr>`;
-      return;
-    }
-
-    corpoTabela.innerHTML = produtos.map(produto => `
-      <tr data-id="${produto.id}">
-        <td class="px-6 py-4">${produto.codigo || "-"}</td>
-        <td class="px-6 py-4">${produto.descricao || "-"}</td>
-        <td class="px-6 py-4">${produto.categoria || "-"}</td>
-        <td class="px-6 py-4">R$ ${produto.valor_sugerido ? produto.valor_sugerido.toFixed(2) : "0,00"}</td>
-        <td class="px-6 py-4">${produto.situacao || "-"}</td>
-        <td class="px-6 py-4">
-          <button class="btn-acao btn-editar">Editar</button>
-          <button class="btn-acao btn-excluir" onclick="excluirProduto('${produto.id}')">Excluir</button>
-        </td>
-      </tr>
-    `).join("");
-  }
-
-  // Torna a função global para poder ser chamada pelo onclick
-  window.excluirProduto = async function(produtoId) {
-    const confirmar = confirm("Tem certeza de que deseja excluir este produto?");
-    if (!confirmar) return;
-
-    const { error } = await supabase
-      .from("produtos")
-      .delete()
-      .match({ id: produtoId });
-
-    if (error) {
-      alert("Erro ao excluir o produto: " + error.message);
-    } else {
-      alert("Produto excluído com sucesso!");
-      carregarProdutos(); // Atualiza a lista de produtos
-    }
-  };
-
-  // Torna a função de carregar produtos global para ser chamada depois de excluir
-  window.carregarProdutos = carregarProdutos;
-
-  // Chama a função para carregar os produtos ao carregar a página
-  carregarProdutos();
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const menuListaProdutos = document.querySelector('[data-menu="lista-produtos"]');
-  const sectionListaProdutos = document.getElementById("lista-produtos");
-  const submenuProdutos = document.getElementById("submenu-produtos");
-  const modal = document.getElementById("modal-permissao");
-  const btnFechar = modal?.querySelector("#btnFecharModal");
-
-  const homeSection = document.getElementById("home");
-  const menuHome = document.querySelector('[data-menu="home"]');
-
-  // Usuário logado
-  let usuarioLogado = {};
-  try {
-    usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado") || "{}");
-  } catch (err) {
-    console.error("Erro ao ler usuário logado:", err);
-  }
-
-  // Certifica que permissoes é um array
-  const permissoes = Array.isArray(usuarioLogado.permissoes)
-    ? usuarioLogado.permissoes
-    : JSON.parse(usuarioLogado.permissoes || "[]");
-
-  // Só Acesso Total libera o submenu
-  const temAcessoTotal = permissoes.includes("Acesso Total");
-
-  // Inicialmente esconde seção e submenu
-  if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
-  if (submenuProdutos) submenuProdutos.style.display = "none";
-
-  menuListaProdutos?.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Se NÃO tiver Acesso Total → bloqueia submenu e mostra modal
-    if (!temAcessoTotal) {
-      if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
-      if (submenuProdutos) submenuProdutos.style.display = "none";
-
-      if (modal) {
-        modal.classList.remove("hidden");
-        modal.style.position = "fixed";
-        modal.style.top = "0";
-        modal.style.left = "0";
-        modal.style.width = "100%";
-        modal.style.height = "100%";
-        modal.style.zIndex = "9999";
-      }
-
-      return; // não abre submenu
-    }
-
-    // Usuários com Acesso Total → abre normalmente
-    if (sectionListaProdutos) sectionListaProdutos.style.display = "block";
-    if (submenuProdutos) submenuProdutos.style.display = "flex";
-    if (homeSection) homeSection.style.display = "none";
-
-    menuListaProdutos.classList.add("ativo");
-  });
-
-  function fecharModal() {
-    if (modal) modal.classList.add("hidden");
-
-    if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
-    if (submenuProdutos) submenuProdutos.style.display = "none";
-
-    if (homeSection) homeSection.style.display = "block";
-
-    menuHome?.classList.add("ativo");
-    menuListaProdutos?.classList.remove("ativo");
-  }
-
-  btnFechar?.addEventListener("click", fecharModal);
-  modal?.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      fecharModal();
-    }
-  });
-});
-
-
 
 document.addEventListener('DOMContentLoaded', async () => {
   const btnSalvar = document.getElementById('btnSalvarProduto');
@@ -2796,6 +2704,190 @@ document.addEventListener('DOMContentLoaded', async () => {
         ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','grupoIcms','codigoAlternativo']
           .forEach(id => document.getElementById(id).value = '');
         await atualizarCodigo();
+      }
+    });
+  }
+});
+
+let produtoIdExcluir = null
+
+async function carregarProdutos() {
+  const corpoTabela = document.getElementById("corpoTabelaProdutos")
+  corpoTabela.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Carregando produtos...</td></tr>`
+
+  const { data: produtos, error } = await supabase
+    .from('produtos')
+    .select('*')
+    .order('data_cadastro', { ascending: false })
+
+  if (error) {
+    corpoTabela.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar produtos.</td></tr>`
+    console.error(error)
+    return
+  }
+
+  if (!produtos || produtos.length === 0) {
+    corpoTabela.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum produto cadastrado ainda.</td></tr>`
+    return
+  }
+
+  corpoTabela.innerHTML = ''
+  
+  produtos.forEach(produto => {
+    const tr = document.createElement('tr')
+
+    tr.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap">${produto.codigo || ''}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${produto.descricao || ''}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${produto.categoria || ''}</td>
+      <td class="px-6 py-4 whitespace-nowrap">R$ ${produto.valor_sugerido?.toFixed(2) || '0.00'}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${produto.situacao || ''}</td>
+      <td class="px-6 py-4 whitespace-nowrap space-x-2">
+        <button class="btn-acao btn-editar">Editar</button>
+        <button class="btn-acao btn-excluir">Excluir</button>
+      </td>
+    `
+
+    corpoTabela.appendChild(tr)
+
+    // Adiciona os eventos dinamicamente
+    const btnEditar = tr.querySelector('.btn-editar')
+    btnEditar.addEventListener('click', () => editarProduto(produto.id))
+
+    const btnExcluir = tr.querySelector('.btn-excluir')
+    btnExcluir.addEventListener('click', () => abrirModalExcluir(produto.id))
+  })
+}
+
+// Abrir modal de confirmação
+function abrirModalExcluir(id) {
+  produtoIdExcluir = id
+  const modal = document.getElementById("modalExcluirProduto")
+  modal.classList.remove('hidden')
+  modal.classList.add('flex')
+}
+
+// Cancelar exclusão
+document.getElementById("btnCancelarExcluir").addEventListener("click", () => {
+  produtoIdExcluir = null
+  const modal = document.getElementById("modalExcluirProduto")
+  modal.classList.add('hidden')
+  modal.classList.remove('flex')
+})
+
+// Confirmar exclusão
+document.getElementById("btnConfirmarExcluir").addEventListener("click", async () => {
+  if (!produtoIdExcluir) return
+
+  const { error } = await supabase.from('produtos').delete().eq('id', produtoIdExcluir)
+  if (error) {
+    alert('Erro ao excluir produto.')
+    console.error(error)
+  } else {
+    carregarProdutos()
+  }
+
+  produtoIdExcluir = null
+  const modal = document.getElementById("modalExcluirProduto")
+  modal.classList.add('hidden')
+  modal.classList.remove('flex')
+})
+
+// Função de editar produto
+function editarProduto(id) {
+  alert('Editar produto ' + id)
+}
+
+document.addEventListener('DOMContentLoaded', carregarProdutos)
+
+// ================================
+// FUNÇÃO DE PERMISSÃO
+// ================================
+function podeAcessar(menu) {
+  const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
+  if (!usuario || usuario.ativo !== true) return false;
+
+  let permissoes = usuario.permissoes || [];
+
+  // Garante array
+  if (typeof permissoes === "string") {
+    try {
+      permissoes = JSON.parse(permissoes);
+    } catch {
+      permissoes = [];
+    }
+  }
+
+  // 🔑 Acesso Total NÃO BLOQUEIA NADA
+  if (permissoes.includes("Acesso Total")) {
+    return true;
+  }
+
+  // ❌ REGRA FINAL:
+  // Quem tem acesso_produtos NÃO pode clicar em LISTA DE PRODUTOS
+  if (
+    menu === "lista-produtos" &&
+    permissoes.includes("acesso_produtos")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+// ================================
+// CONTROLE DO MENU LATERAL
+// ================================
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-menu]").forEach((menuEl) => {
+    menuEl.addEventListener("click", (event) => {
+      const menu = menuEl.dataset.menu;
+
+      // 🚫 BLOQUEIO IMEDIATO NO ITEM "LISTA DE PRODUTOS"
+      if (!podeAcessar(menu)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        exibirAvisoPermissao();
+        return;
+      }
+
+      // Fluxo normal (se permitido)
+      document.querySelectorAll(".content-section").forEach((sec) => {
+        sec.style.display = "none";
+      });
+
+      const secao = document.getElementById(menu);
+      if (secao) secao.style.display = "block";
+    });
+  });
+});
+
+// ================================
+// MODAL - AVISO DE PERMISSÃO
+// ================================
+function exibirAvisoPermissao() {
+  const modal = document.getElementById("modalPermissao");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("modalPermissao");
+  const btnFechar = document.getElementById("btnFecharModalPermissao");
+
+  if (modal && btnFechar) {
+    btnFechar.addEventListener("click", () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    });
+
+    // Fecha ao clicar fora do modal
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
       }
     });
   }

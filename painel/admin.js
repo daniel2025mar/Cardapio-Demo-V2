@@ -2452,6 +2452,144 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", async () => {
+  const listaProdutos = document.getElementById("lista-produtos");
+  const corpoTabela = document.getElementById("corpoTabelaProdutos");
+
+  // Exibe a seção de produtos
+  listaProdutos.style.display = "block";
+
+  // Função para carregar produtos do Supabase
+  async function carregarProdutos() {
+    corpoTabela.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Carregando produtos...</td></tr>`;
+
+    const { data: produtos, error } = await supabase
+      .from("produtos") // tudo minúsculo
+      .select("*")
+      .order("data_cadastro", { ascending: true });
+
+    if (error) {
+      corpoTabela.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar produtos: ${error.message}</td></tr>`;
+      return;
+    }
+
+    if (!produtos || produtos.length === 0) {
+      corpoTabela.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum produto cadastrado ainda.</td></tr>`;
+      return;
+    }
+
+    corpoTabela.innerHTML = produtos.map(produto => `
+      <tr data-id="${produto.id}">
+        <td class="px-6 py-4">${produto.codigo || "-"}</td>
+        <td class="px-6 py-4">${produto.descricao || "-"}</td>
+        <td class="px-6 py-4">${produto.categoria || "-"}</td>
+        <td class="px-6 py-4">R$ ${produto.valor_sugerido ? produto.valor_sugerido.toFixed(2) : "0,00"}</td>
+        <td class="px-6 py-4">${produto.situacao || "-"}</td>
+        <td class="px-6 py-4">
+          <button class="btn-acao btn-editar">Editar</button>
+          <button class="btn-acao btn-excluir" onclick="excluirProduto('${produto.id}')">Excluir</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  // Torna a função global para poder ser chamada pelo onclick
+  window.excluirProduto = async function(produtoId) {
+    const confirmar = confirm("Tem certeza de que deseja excluir este produto?");
+    if (!confirmar) return;
+
+    const { error } = await supabase
+      .from("produtos")
+      .delete()
+      .match({ id: produtoId });
+
+    if (error) {
+      alert("Erro ao excluir o produto: " + error.message);
+    } else {
+      alert("Produto excluído com sucesso!");
+      carregarProdutos(); // Atualiza a lista de produtos
+    }
+  };
+
+  // Torna a função de carregar produtos global para ser chamada depois de excluir
+  window.carregarProdutos = carregarProdutos;
+
+  // Chama a função para carregar os produtos ao carregar a página
+  carregarProdutos();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menuListaProdutos = document.querySelector('[data-menu="lista-produtos"]');
+  const sectionListaProdutos = document.getElementById("lista-produtos");
+  const submenuProdutos = document.getElementById("submenu-produtos"); // submenu
+  const modal = document.getElementById("modal-permissao");
+  const btnFechar = modal?.querySelector("#btnFecharModal");
+
+  // Tela inicial
+  const homeSection = document.getElementById("home");
+  const menuHome = document.querySelector('[data-menu="home"]');
+
+  // Usuário logado
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  // Inicialmente esconde seção e submenu
+  if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
+  if (submenuProdutos) submenuProdutos.style.display = "none";
+
+  // Clique no menu Lista de Produtos
+  menuListaProdutos?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Usuário sem acesso_total: mostra só o modal
+    if (!usuarioLogado?.acesso_total) {
+      if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
+      if (submenuProdutos) submenuProdutos.style.display = "none";
+
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.zIndex = "9999";
+      }
+      return;
+    }
+
+    // Usuário com acesso_total abre a seção normalmente
+    if (sectionListaProdutos) sectionListaProdutos.style.display = "block";
+    if (submenuProdutos) submenuProdutos.style.display = "flex";
+    if (homeSection) homeSection.style.display = "none";
+
+    menuListaProdutos.classList.add("ativo");
+  });
+
+  // Fechar modal
+  function fecharModal() {
+    if (modal) modal.classList.add("hidden");
+
+    // Fecha apenas visualmente a seção e submenu
+    if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
+    if (submenuProdutos) submenuProdutos.style.display = "none";
+
+    // Volta para Home
+    if (homeSection) homeSection.style.display = "block";
+
+    // Marca menu Home como ativo, mas sem remover event listeners
+    menuHome?.classList.add("ativo");
+    menuListaProdutos?.classList.remove("ativo");
+  }
+
+  btnFechar?.addEventListener("click", fecharModal);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      fecharModal();
+    }
+  });
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
   const btnSalvar = document.getElementById('btnSalvarProduto');
   const inputCodigo = document.getElementById('codigoPreview');

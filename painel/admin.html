@@ -1375,7 +1375,7 @@
 <!-- Modal de erro -->
 <div id="modalErro" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
   <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
     <p id="modalMensagemErro" class="text-gray-700 dark:text-gray-300 mb-6"></p>
     <button id="btnFecharModalErro" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
       OK
@@ -1397,13 +1397,26 @@
 <!-- Modal de erro genérico -->
 <div id="modalErroUsuario" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
   <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Error</h2>
     <p id="modalMensagemErroUsuario" class="text-gray-700 dark:text-gray-300 mb-6"></p>
     <button id="btnFecharErroUsuario" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
       OK
     </button>
   </div>
 </div>
+<!-- Modal de Acesso Negado estilizado -->
+<div id="modal-permissao" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Acesso Negado</h2>
+    <p class="text-gray-700 dark:text-gray-300 mb-6">
+      Você não tem permissão para acessar este menu.
+    </p>
+    <button id="btnFecharModal" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      OK
+    </button>
+  </div>
+</div>
+
 
 
   <!-- FOOTER -->

@@ -2521,28 +2521,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 document.addEventListener("DOMContentLoaded", () => {
   const menuListaProdutos = document.querySelector('[data-menu="lista-produtos"]');
   const sectionListaProdutos = document.getElementById("lista-produtos");
-  const submenuProdutos = document.getElementById("submenu-produtos"); // submenu
+  const submenuProdutos = document.getElementById("submenu-produtos");
   const modal = document.getElementById("modal-permissao");
   const btnFechar = modal?.querySelector("#btnFecharModal");
 
-  // Tela inicial
   const homeSection = document.getElementById("home");
   const menuHome = document.querySelector('[data-menu="home"]');
 
   // Usuário logado
-  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+  let usuarioLogado = {};
+  try {
+    usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado") || "{}");
+  } catch (err) {
+    console.error("Erro ao ler usuário logado:", err);
+  }
+
+  // Certifica que permissoes é um array
+  const permissoes = Array.isArray(usuarioLogado.permissoes)
+    ? usuarioLogado.permissoes
+    : JSON.parse(usuarioLogado.permissoes || "[]");
+
+  // Só Acesso Total libera o submenu
+  const temAcessoTotal = permissoes.includes("Acesso Total");
 
   // Inicialmente esconde seção e submenu
   if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
   if (submenuProdutos) submenuProdutos.style.display = "none";
 
-  // Clique no menu Lista de Produtos
   menuListaProdutos?.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Usuário sem acesso_total: mostra só o modal
-    if (!usuarioLogado?.acesso_total) {
+    // Se NÃO tiver Acesso Total → bloqueia submenu e mostra modal
+    if (!temAcessoTotal) {
       if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
       if (submenuProdutos) submenuProdutos.style.display = "none";
 
@@ -2555,10 +2566,11 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.height = "100%";
         modal.style.zIndex = "9999";
       }
-      return;
+
+      return; // não abre submenu
     }
 
-    // Usuário com acesso_total abre a seção normalmente
+    // Usuários com Acesso Total → abre normalmente
     if (sectionListaProdutos) sectionListaProdutos.style.display = "block";
     if (submenuProdutos) submenuProdutos.style.display = "flex";
     if (homeSection) homeSection.style.display = "none";
@@ -2566,18 +2578,14 @@ document.addEventListener("DOMContentLoaded", () => {
     menuListaProdutos.classList.add("ativo");
   });
 
-  // Fechar modal
   function fecharModal() {
     if (modal) modal.classList.add("hidden");
 
-    // Fecha apenas visualmente a seção e submenu
     if (sectionListaProdutos) sectionListaProdutos.style.display = "none";
     if (submenuProdutos) submenuProdutos.style.display = "none";
 
-    // Volta para Home
     if (homeSection) homeSection.style.display = "block";
 
-    // Marca menu Home como ativo, mas sem remover event listeners
     menuHome?.classList.add("ativo");
     menuListaProdutos?.classList.remove("ativo");
   }
@@ -2589,6 +2597,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   const btnSalvar = document.getElementById('btnSalvarProduto');

@@ -2892,3 +2892,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+// novidades do painel
+document.addEventListener("DOMContentLoaded", async () => {
+  const modal = document.getElementById("modalNovidades");
+  const btnFechar = document.getElementById("btnFecharNovidades");
+  const conteudo = document.getElementById("conteudoNovidades");
+
+  if (!modal || !btnFechar || !conteudo) return;
+
+  // 🔍 Busca a ÚLTIMA atualização do sistema
+  const { data, error } = await supabase
+    .from("atualizacoes_sistema")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) return;
+
+  const ultimaAtualizacaoId = data.id;
+
+  // 🔐 Atualização que o usuário já visualizou
+  const atualizacaoVista = localStorage.getItem("ultimaAtualizacaoVista");
+
+  // 👉 Se nunca viu OU se tem atualização nova
+  if (atualizacaoVista !== ultimaAtualizacaoId) {
+    conteudo.innerHTML = `
+      <p class="font-semibold text-gray-800">${data.titulo}</p>
+      <p class="text-sm text-gray-600 mt-2">${data.descricao}</p>
+    `;
+
+    modal.classList.remove("hidden");
+  }
+
+  btnFechar.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    localStorage.setItem("ultimaAtualizacaoVista", ultimaAtualizacaoId);
+  });
+});

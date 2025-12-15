@@ -2800,127 +2800,31 @@ function editarProduto(id) {
 
 document.addEventListener('DOMContentLoaded', carregarProdutos)
 
-// ================================
-// FUNÇÃO DE PERMISSÃO
-// ================================
-function podeAcessar(menu) {
-  const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
-  if (!usuario || usuario.ativo !== true) return false;
+document.addEventListener("DOMContentLoaded", () => {
+  const listaProdutos = document.querySelector('[data-menu="lista-produtos"]');
+  const modal = document.getElementById('modalPermissao');
+  const btnFechar = document.getElementById('btnFecharModalPermissao');
+  const sectionListaProdutos = document.getElementById('lista-produtos');
 
-  let permissoes = usuario.permissoes || [];
+  // BUSCAR USUÁRIO LOGADO do localStorage
+  // Suponha que você salve algo assim no login:
+  // localStorage.setItem("usuarioLogado", JSON.stringify({username: "Daniel", permissoes: ["acesso_clientes","acesso_produtos"]}));
+  const usuarioAtual = JSON.parse(localStorage.getItem("usuarioLogado"));
 
-  // Garante array
-  if (typeof permissoes === "string") {
-    try {
-      permissoes = JSON.parse(permissoes);
-    } catch {
-      permissoes = [];
+  listaProdutos.addEventListener('click', (e) => {
+    if (!usuarioAtual || !usuarioAtual.permissoes.includes("Acesso Total")) {
+      // Bloqueia usuário sem acesso
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sectionListaProdutos.style.display = "none";
+      modal.classList.remove('hidden');
+      return false;
     }
-  }
+    // Usuário com "Acesso Total" abre normalmente
+  });
 
-  // 🔑 Acesso Total NÃO BLOQUEIA NADA
-  if (permissoes.includes("Acesso Total")) {
-    return true;
-  }
-
-  // ❌ REGRA FINAL:
-  // Quem tem acesso_produtos NÃO pode clicar em LISTA DE PRODUTOS
-  if (
-    menu === "lista-produtos" &&
-    permissoes.includes("acesso_produtos")
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-// ================================
-// CONTROLE DO MENU LATERAL
-// ================================
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("[data-menu]").forEach((menuEl) => {
-    menuEl.addEventListener("click", (event) => {
-      const menu = menuEl.dataset.menu;
-
-      // 🚫 BLOQUEIO IMEDIATO NO ITEM "LISTA DE PRODUTOS"
-      if (!podeAcessar(menu)) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        exibirAvisoPermissao();
-        return;
-      }
-
-      // Fluxo normal (se permitido)
-      document.querySelectorAll(".content-section").forEach((sec) => {
-        sec.style.display = "none";
-      });
-
-      const secao = document.getElementById(menu);
-      if (secao) secao.style.display = "block";
-    });
+  btnFechar.addEventListener('click', () => {
+    modal.classList.add('hidden');
   });
 });
 
-// ================================
-// MODAL - AVISO DE PERMISSÃO
-// ================================
-function exibirAvisoPermissao() {
-  const modal = document.getElementById("modalPermissao");
-  if (!modal) return;
-
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const modal = document.getElementById("modalPermissao");
-  const btnFechar = document.getElementById("btnFecharModalPermissao");
-
-  if (modal && btnFechar) {
-    btnFechar.addEventListener("click", () => {
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    });
-
-    // Fecha ao clicar fora do modal
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
-      }
-    });
-  }
-});
-
-
-// novidades do painel
-document.addEventListener("DOMContentLoaded", () => {
-  const modal = document.getElementById("modalNovidades");
-  const btnFechar = document.getElementById("btnFecharNovidades");
-  const conteudo = document.getElementById("conteudoNovidades");
-
-  // 🔑 Versão atual das novidades (DEV controla isso)
-  const VERSAO_ATUAL = "1.0.0";
-
-  // Versão que o usuário já visualizou
-  const versaoVista = localStorage.getItem("versaoNovidades");
-
-  // Conteúdo das novidades (temporário)
-  const novidadesHTML = `
-    <p>✅ Nova lista de produtos com controle de permissões</p>
-    <p>🚀 Melhorias de desempenho no painel</p>
-    <p>🔐 Ajustes de segurança</p>
-  `;
-
-  // Se for a primeira vez OU tiver nova versão
-  if (versaoVista !== VERSAO_ATUAL) {
-    conteudo.innerHTML = novidadesHTML;
-    modal.classList.remove("hidden");
-  }
-
-  btnFechar.addEventListener("click", () => {
-    modal.classList.add("hidden");
-    localStorage.setItem("versaoNovidades", VERSAO_ATUAL);
-  });
-});

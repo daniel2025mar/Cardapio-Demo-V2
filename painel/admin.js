@@ -946,24 +946,54 @@ async function carregarClientes() {
 
       // Excluir somente para quem não é acesso_exclusivo
       btnExcluir.addEventListener("click", (e) => {
-        if (isAcessoClienteExclusivo) {
-          e.preventDefault();
-          mostrarToast("Você não tem permissão para excluir.", "bg-red-600");
-        } else {
-          if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
-            excluirCliente(cliente.id);
-          }
-        }
-      });
+  if (isAcessoClienteExclusivo) {
+    e.preventDefault();
+
+    // Atualiza a mensagem do modal, se necessário
+    const modalMensagem = document.getElementById("modalMensagemPermissao");
+    modalMensagem.textContent = "Você não tem permissão para excluir.";
+
+    // Exibe o modal
+    const modalPermissao = document.getElementById("modalPermissao");
+    modalPermissao.classList.remove("hidden");
+
+    // Fecha o modal ao clicar no botão OK
+    const btnFechar = document.getElementById("btnFecharModalPermissao");
+    btnFechar.onclick = () => {
+      modalPermissao.classList.add("hidden");
+    };
+
+  } else {
+    if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
+      excluirCliente(cliente.id);
+    }
+  }
+});
+
 
       btnBloquear.addEventListener("click", (e) => {
-        if (isAcessoClienteExclusivo) {
-          e.preventDefault();
-          mostrarToast("Você não tem permissão.", "bg-red-600");
-        } else {
-          bloquearCliente(cliente.id, cliente.bloqueado);
-        }
-      });
+  if (isAcessoClienteExclusivo) {
+    e.preventDefault();
+
+    // Atualiza a mensagem do modal, se necessário
+    const modalMensagem = document.getElementById("modalMensagemPermissao");
+    modalMensagem.textContent = "Ação não permitida. Seu perfil de usuário não possui autorização para realizar esta operação.";
+
+    // Exibe o modal
+    const modalPermissao = document.getElementById("modalPermissao");
+    modalPermissao.classList.remove("hidden");
+
+    // Fecha o modal ao clicar no botão OK
+    const btnFechar = document.getElementById("btnFecharModalPermissao");
+    btnFechar.onclick = () => {
+      modalPermissao.classList.add("hidden");
+    };
+
+  } else {
+    bloquearCliente(cliente.id, cliente.bloqueado);
+  }
+});
+
 
       lista.appendChild(tr);
     });

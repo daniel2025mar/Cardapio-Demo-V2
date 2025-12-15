@@ -75,7 +75,14 @@
   <div id="painel-bloqueado" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
   <div class="bg-black text-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center animate__animated animate__fadeIn border border-gray-700">
     
-    <h2 class="text-2xl font-bold mb-4">Acesso Bloqueado</h2>
+    <div class="flex items-center justify-center mb-4">
+      <!-- Ícone de cadeado -->
+      <svg class="w-6 h-6 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2v-8a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8z" clip-rule="evenodd"></path>
+      </svg>
+      <h2 class="text-2xl font-bold">Acesso Bloqueado</h2>
+    </div>
+
     <p class="text-lg mb-6">Seu acesso está bloqueado. Entre em contato com o administrador.</p>
 
     <button onclick="sairSistema()" 
@@ -86,15 +93,22 @@
   </div>
 </div>
 
+</div>
 <!-- MODAL DE ACESSO LIBERADO -->
 <div id="painel-temporario" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999]">
   <div class="bg-black text-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md text-center animate__animated animate__fadeIn relative">
 
-    <h2 class="text-2xl sm:text-3xl font-bold mb-4">Acesso Ativo</h2>
+    <div class="flex items-center justify-center mb-4">
+      <!-- Ícone de check -->
+      <svg class="w-6 h-6 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd"></path>
+      </svg>
+      <h2 class="text-2xl sm:text-3xl font-bold">Acesso Ativo</h2>
+    </div>
 
     <!-- Mensagem profissional do desbloqueio -->
     <p class="text-md sm:text-lg text-gray-300 mb-2">
-      Seu acesso foi desbloqueado pelo administrador.
+      Seu acesso foi reativado pelo administrador. Você já pode utilizar o sistema normalmente.
     </p>
 
     <p class="text-lg sm:text-xl mb-6">
@@ -108,6 +122,8 @@
     </div>
 
   </div>
+</div>
+
 </div>
 
 
@@ -1396,55 +1412,59 @@
   </div>
 </div>
 <!-- Modal de aviso -->
-<div id="modalAviso" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
-    <p id="modalMensagem" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+<div id="modalAviso" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 hidden z-50">
+  <div class="bg-black rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
+    <h2 class="text-xl font-bold text-white mb-4">Aviso</h2>
+    <p id="modalMensagem" class="text-white mb-6"></p>
     <button type="button" id="btnFecharModal" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
       OK
     </button>
   </div>
 </div>
 
+
 <!-- Modal de erro -->
-<div id="modalErro" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
-    <p id="modalMensagemErro" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+<div id="modalErro" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 hidden z-50">
+  <div class="bg-black rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
+    <h2 class="text-xl font-bold text-white mb-4">Aviso</h2>
+    <p id="modalMensagemErro" class="text-white mb-6"></p>
     <button id="btnFecharModalErro" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
       OK
     </button>
   </div>
 </div>
 
+
 <!-- Modal Valor Sugerido -->
-<div id="modalValorSugerido" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Aviso</h2>
-    <p id="modalMensagemValorSugerido" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+<div id="modalValorSugerido" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 hidden z-50">
+  <div class="bg-black rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
+    <h2 class="text-xl font-bold text-white mb-4">Aviso</h2>
+    <p id="modalMensagemValorSugerido" class="text-white mb-6"></p>
     <button id="btnFecharValorSugerido" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
       OK
     </button>
   </div>
 </div>
 
+
 <!-- Modal de erro genérico -->
-<div id="modalErroUsuario" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">Erro</h2>
-    <p id="modalMensagemErroUsuario" class="text-gray-700 dark:text-gray-300 mb-6"></p>
+<div id="modalErroUsuario" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 hidden z-50">
+  <div class="bg-black rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
+    <h2 class="text-xl font-bold text-white mb-4">Error</h2>
+    <p id="modalMensagemErroUsuario" class="text-white mb-6"></p>
     <button id="btnFecharErroUsuario" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
       OK
     </button>
   </div>
 </div>
+
 <!-- Modal de confirmação de exclusão -->
-<div id="modalExcluirProduto" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
-    <h2 id="tituloModalExcluir" class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+<div id="modalExcluirProduto" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 hidden z-50">
+  <div class="bg-black rounded-xl shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md p-6 text-center">
+    <h2 id="tituloModalExcluir" class="text-xl font-bold text-white mb-4">
       Deseja realmente excluir este produto?
     </h2>
-    <p id="mensagemModalExcluir" class="text-gray-700 dark:text-gray-300 mb-6">
+    <p id="mensagemModalExcluir" class="text-white mb-6">
       Essa ação não pode ser desfeita.
     </p>
     <div class="flex justify-center gap-4">
@@ -1458,24 +1478,27 @@
   </div>
 </div>
 
-
 <!-- Modal Permissão -->
 <div
   id="modalPermissao"
-  class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden"
 >
   <div
-    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg
+    class="bg-black rounded-xl shadow-lg
            w-full max-w-xs sm:max-w-sm md:max-w-md
            p-6 text-center"
   >
-    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-      Acesso Negado
-    </h2>
+    <div class="flex items-center justify-center mb-4">
+      <!-- Ícone de aviso -->
+      <svg class="w-6 h-6 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.681-1.36 3.446 0l6.518 11.607c.75 1.335-.213 2.994-1.723 2.994H3.462c-1.51 0-2.473-1.659-1.723-2.994L8.257 3.1zM11 13a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-.993.883L9 6v4a1 1 0 001.993.117L11 10V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+      </svg>
+      <h2 class="text-xl font-bold text-white">Acesso Negado</h2>
+    </div>
 
     <p
       id="modalMensagemPermissao"
-      class="text-gray-700 dark:text-gray-300 mb-6"
+      class="text-white mb-6"
     >
       Acesso restrito. Seu perfil de usuário não possui permissão para acessar esta área.
     </p>
@@ -1489,7 +1512,6 @@
     </button>
   </div>
 </div>
-
 
 
   <!-- FOOTER -->

@@ -396,17 +396,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===============================
 //   APLICAR PERMISSÕES
 // ===============================
-let permissoesDetalhadas = {};
-
-function aplicarPermissoes(usuario) {
+let permissoesDetalhadas = {};function aplicarPermissoes(usuario) {
   const permissoes = usuario.permissoes || [];
   window.permissoesDetalhadas = usuario.permissoes_detalhadas || {};
 
   // ===============================
-  // ATUALIZA NOME DO USUÁRIO
+  // ATUALIZA NOME DO USUÁRIO (DESKTOP + MOBILE)
   // ===============================
-  const userSpan = document.querySelector("header span");
-  if (userSpan) userSpan.textContent = usuario.username;
+  const nomeUsuario = usuario.nome || usuario.username || "Usuário";
+
+  // Desktop (header)
+  const userSpanDesktop = document.getElementById("usuario-logado");
+  if (userSpanDesktop) {
+    userSpanDesktop.innerHTML = `
+      Bem-vindo ao painel administrativo, ${nomeUsuario}.
+      <strong style="color:#2563eb;">GestioMax</strong>
+    `;
+  }
+
+  // Mobile (abaixo do header)
+  const userSpanMobile = document.getElementById("usuario-logado-mobile");
+  if (userSpanMobile) {
+    userSpanMobile.innerHTML = `
+      <strong style="color:#2563eb;">GestioMax</strong>
+      <span class="ml-1">· ${nomeUsuario}</span>
+    `;
+  }
 
   // ===============================
   // ESCONDE TUDO INICIALMENTE
@@ -493,9 +508,6 @@ function aplicarPermissoes(usuario) {
 
     /**
      * 🔓 REGRA ESPECÍFICA → PRODUTOS
-     * Se tem acesso_produtos:
-     * - menu aparece
-     * - submenus ficam visíveis (JS controla animação)
      */
     if (secaoID === "produtos") {
       document
@@ -534,6 +546,8 @@ function aplicarPermissoes(usuario) {
     };
   }
 }
+
+
 
 
 

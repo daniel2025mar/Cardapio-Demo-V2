@@ -396,7 +396,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===============================
 //   APLICAR PERMISSÕES
 // ===============================
-let permissoesDetalhadas = {};function aplicarPermissoes(usuario) {
+let permissoesDetalhadas = {};
+
+function aplicarPermissoes(usuario) {
   const permissoes = usuario.permissoes || [];
   window.permissoesDetalhadas = usuario.permissoes_detalhadas || {};
 

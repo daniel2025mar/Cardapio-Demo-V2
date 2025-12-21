@@ -1024,18 +1024,38 @@ async function carregarClientes() {
 }
 
 
-
 // DOM carregado
 document.addEventListener("DOMContentLoaded", () => {
   carregarClientes();
 
   const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
-  if (btnCadastrar) {
+  const modalCadastro = document.getElementById("modalCadastroCliente");
+  const btnCancelar = document.querySelector("#modalCadastroCliente .btn-cancelar");
+  const btnFechar = document.querySelector("#modalCadastroCliente .close-btn");
+
+  // 🔓 Abrir modal
+  if (btnCadastrar && modalCadastro) {
     btnCadastrar.addEventListener("click", () => {
-      alert("Abrir formulário de cadastro de cliente (implementação futura)");
+      modalCadastro.classList.remove("hidden");
+    });
+  }
+
+  // ❌ Fechar modal (Cancelar)
+  if (btnCancelar) {
+    btnCancelar.addEventListener("click", () => {
+      modalCadastro.classList.add("hidden");
+    });
+  }
+
+  // ❌ Fechar modal (X)
+  if (btnFechar) {
+    btnFechar.addEventListener("click", () => {
+      modalCadastro.classList.add("hidden");
     });
   }
 });
+
+
 
 
 // Função de modal moderno
@@ -2872,5 +2892,97 @@ document.addEventListener("DOMContentLoaded", () => {
   btnFechar.addEventListener('click', () => {
     modal.classList.add('hidden');
   });
+});
+
+/* ==============================
+   CONFIGURAÇÃO WHATSAPP PAINEL
+============================== */
+function configurarWhatsAppPainel() {
+  const btnWhats = document.getElementById("whatsapp-dashboard");
+  if (!btnWhats) return;
+
+  // 🔹 CONFIGURAÇÕES
+  const numeroEmpresa = "5534998217498"; // coloque o número real
+  const mensagemPadrao = "Olá! Preciso de suporte no painel.";
+
+  // 🔹 Detecta mobile ou desktop
+  const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(
+    navigator.userAgent
+  );
+
+  // 🔹 Define o link correto
+  const link = isMobile
+    ? `https://wa.me/${numeroEmpresa}?text=${encodeURIComponent(mensagemPadrao)}`
+    : `https://web.whatsapp.com/send?phone=${numeroEmpresa}&text=${encodeURIComponent(mensagemPadrao)}`;
+
+  // 🔹 Aplica no botão
+  btnWhats.setAttribute("href", link);
+  btnWhats.setAttribute("target", "_blank");
+  btnWhats.setAttribute("rel", "noopener noreferrer");
+}
+
+/* ==============================
+   INICIALIZAÇÃO
+============================== */
+document.addEventListener("DOMContentLoaded", () => {
+  configurarWhatsAppPainel();
+});
+
+//senha de atendimento
+  document.addEventListener("DOMContentLoaded", function () {
+
+  const modalSenha = document.getElementById("modalSenha");
+  const inputSenha = document.getElementById("senhaAtendimento");
+  const erroSenha = document.getElementById("erroSenha");
+
+  // 🔓 Abrir modal
+  window.abrirModalSenha = function () {
+    modalSenha.classList.remove("hidden");
+    erroSenha.classList.add("hidden");
+    inputSenha.value = "";
+  };
+
+  // ❌ Fechar modal
+  window.fecharModalSenha = function () {
+    modalSenha.classList.add("hidden");
+  };
+
+  // ✅ Validar senha no Supabase
+  window.validarAcessoAtendimento = async function () {
+    const password = inputSenha.value.trim();
+
+    if (!password) {
+      erroSenha.textContent = "Digite a senha";
+      erroSenha.classList.remove("hidden");
+      return;
+    }
+
+    try {
+      const { data: usuario, error } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("password", password)
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !usuario) {
+        erroSenha.textContent = "Senha incorreta";
+        erroSenha.classList.remove("hidden");
+        return;
+      }
+
+      // ✅ ACESSO LIBERADO
+      fecharModalSenha();
+
+      // 🔥 CAMINHO CORRETO
+      window.location.href = "/painel-whatsapp/atendimentos.html";
+
+    } catch (err) {
+      console.error("Erro ao validar senha:", err);
+      erroSenha.textContent = "Erro ao validar acesso";
+      erroSenha.classList.remove("hidden");
+    }
+  };
+
 });
 

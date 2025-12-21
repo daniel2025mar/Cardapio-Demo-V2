@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM WhatsApp - Atendimento</title>
+
+<style>
+/* RESET */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* BODY */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f2f5f7;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HEADER */
+header {
+    background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.6rem;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* MAIN */
+main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* COLUNA CLIENTES */
+#clientes {
+    width: 320px;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#clientes h2 {
+    padding: 1rem;
+    font-size: 1.3rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* FILTROS */
+#filtros {
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+    background-color: #fafafa;
+}
+
+#filtros button {
+    background-color: #e5e7eb;
+    border: none;
+    border-radius: 25px;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+#filtros button.active {
+    background-color: #2563eb;
+    color: white;
+}
+
+/* CHAT */
+#conversa-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #e5e7eb;
+}
+
+/* CHAT LIST */
+#chat-list {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* INPUT */
+#mensagem {
+    display: flex;
+    padding: 0.6rem 1rem;
+    background-color: #f9fafb;
+    border-top: 1px solid #ddd;
+    gap: 0.5rem;
+}
+
+#mensagem textarea {
+    flex: 1;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    padding: 0.6rem 1rem;
+    resize: none;
+}
+
+#btn-enviar {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 0 18px;
+    cursor: pointer;
+}
+
+/* ================= MODAL AVISO ================= */
+#modalAviso {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+#modalAviso .box {
+    background: #fff;
+    width: 90%;
+    max-width: 420px;
+    padding: 2rem;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    animation: fadeIn .25s ease-out;
+}
+
+#modalAviso .icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1rem;
+    background: #dbeafe;
+    color: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+#modalAviso h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+    color: #1e293b;
+}
+
+#modalAviso p {
+    font-size: 0.95rem;
+    color: #475569;
+    margin-bottom: 1.5rem;
+}
+
+#modalAviso button {
+    width: 100%;
+    padding: 0.7rem;
+    background: #2563eb;
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+#modalAviso button:hover {
+    background: #1e40af;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    CRM WhatsApp - Atendimentos
+</header>
+
+<main>
+    <aside id="clientes">
+        <h2>Contatos / Grupos</h2>
+        <div id="filtros">
+            <button class="active">Contatos</button>
+            <button>Grupos</button>
+        </div>
+        <input type="text" placeholder="Pesquisar..." style="margin:10px;padding:8px;border-radius:20px;border:1px solid #ccc;">
+        <div id="lista-clientes"></div>
+    </aside>
+
+    <section id="conversa-container">
+        <div id="chat-list"></div>
+        <div id="mensagem">
+            <textarea placeholder="Digite sua mensagem..."></textarea>
+            <button id="btn-enviar">Enviar</button>
+        </div>
+    </section>
+</main>
+
+<!-- MODAL AVISO -->
+<div id="modalAviso">
+  <div class="box">
+    <div class="icon">ℹ️</div>
+    <h2>Função indisponível</h2>
+    <p>
+      O módulo de atendimento ainda está em desenvolvimento.
+      Em breve esta funcionalidade estará disponível.
+    </p>
+    <button onclick="fecharModalAviso()">Entendi</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("modalAviso");
+    modal.style.display = "flex";
+
+    window.fecharModalAviso = function () {
+        // 🔁 Caminho CORRETO para o admin.html
+        window.location.href = "../painel/admin.html";
+    };
+});
+</script>
+
+<script src="atendimento.js"></script>
+</body>
+</html>

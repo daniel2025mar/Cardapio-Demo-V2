@@ -4,7 +4,7 @@
  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Painel Administrativo</title>
+  <title>GestioMax</title>
   <script src="https://cdn.tailwindcss.com"></script>
   
 
@@ -376,9 +376,111 @@
     <main class="flex-1 bg-gray-100 p-4 md:p-6 overflow-y-auto">
 
       <section id="dashboard" class="content-section mb-8">
-        <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
-        <p class="text-gray-700">Resumo geral do sistema.</p>
-      </section>
+  <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
+  <p class="text-gray-700">Resumo geral do sistema.</p>
+
+  <!-- BOTÃO FLUTUANTE WHATSAPP (SOMENTE DASHBOARD) -->
+<a
+  href="#"
+  onclick="abrirModalSenha()"
+  class="fixed bottom-6 right-6 z-50
+         flex items-center justify-center
+         w-14 h-14 rounded-full
+         bg-green-500 hover:bg-green-600
+         shadow-2xl"
+  aria-label="Atendimento via WhatsApp"
+>
+  <img
+  src="/dist/Imagem/whatsapp.png"
+  alt="Atendimento WhatsApp"
+  class="w-7 h-7 filter invert brightness-200"
+/>
+
+</a>
+
+
+<!-- Modal Senha -->
+<div
+  id="modalSenha"
+  class="fixed inset-0 z-50 hidden
+         flex items-center justify-center
+         bg-slate-900/70 backdrop-blur-sm"
+>
+  <div
+    class="relative w-full max-w-sm
+           rounded-2xl bg-white
+           p-6 shadow-2xl
+           animate-[fadeIn_.25s_ease-out]"
+  >
+
+    <!-- Ícone -->
+    <div class="flex justify-center mb-4">
+      <div class="w-12 h-12 flex items-center justify-center
+                  rounded-full bg-blue-100">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24"
+             fill="currentColor"
+             class="w-6 h-6 text-blue-600">
+          <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 016 0v3H9zm3 4a2 2 0 110 4 2 2 0 010-4z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Título -->
+    <h2 class="text-xl font-semibold text-center text-slate-800">
+      Acesso restrito
+    </h2>
+    <p class="text-sm text-slate-500 text-center mb-5">
+      Digite a senha para continuar
+    </p>
+
+    <!-- Input -->
+    <input
+      type="password"
+      id="senhaAtendimento"
+      placeholder="Senha de acesso"
+      class="w-full rounded-xl border border-slate-300
+             px-4 py-3 mb-3 text-sm
+             focus:outline-none focus:ring-2
+             focus:ring-blue-500 focus:border-transparent"
+    />
+
+    <!-- Erro -->
+    <p
+      id="erroSenha"
+      class="hidden text-sm text-red-500 text-center mb-3"
+    >
+      Senha incorreta
+    </p>
+
+    <!-- Botões -->
+    <div class="flex gap-3">
+      <button
+        onclick="fecharModalSenha()"
+        class="flex-1 rounded-xl
+               border border-slate-300
+               py-2 text-sm font-medium
+               text-slate-600 hover:bg-slate-100"
+      >
+        Cancelar
+      </button>
+
+      <button
+        onclick="validarAcessoAtendimento()"
+        class="flex-1 rounded-xl
+               bg-blue-600 hover:bg-blue-700
+               py-2 text-sm font-semibold
+               text-white shadow-lg"
+      >
+        Entrar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+</section>
+
 <style>
   /* ===== ESTILO PADRÃO ERP ===== */
   .label {
@@ -955,6 +1057,236 @@
   </div>
 </div>
 <!-- FIM MODAL EDITAR CLIENTE -->
+
+<!-- ================= MODAL CADASTRO CLIENTE ================= -->
+<style>
+/* OVERLAY */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* ESCONDIDO */
+.hidden {
+  display: none;
+}
+
+/* BOX */
+.modal-box {
+  background: #ffffff;
+  width: 95%;
+  max-width: 560px;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+  animation: modalFade .25s ease-out;
+  overflow: hidden;
+}
+
+/* HEADER */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.4rem 1.6rem;
+  background: linear-gradient(90deg, #1e3a8a, #2563eb);
+}
+
+.modal-header h2 {
+  font-size: 1.3rem;
+  color: #ffffff;
+}
+
+.close-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: white;
+}
+
+/* BODY */
+.modal-body {
+  padding: 1.6rem;
+  display: grid;
+  gap: 1.2rem;
+}
+
+/* GRID */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* INPUTS */
+.input-group {
+  position: relative;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.95rem;
+  outline: none;
+  background: transparent;
+}
+
+.input-group label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  background: white;
+  padding: 0 6px;
+  color: #64748b;
+  font-size: 0.85rem;
+  pointer-events: none;
+  transition: .2s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #2563eb;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label,
+.input-group select:focus + label,
+.input-group select:not([value=""]) + label {
+  top: -6px;
+  font-size: 0.75rem;
+  color: #2563eb;
+}
+
+/* FOOTER */
+.modal-footer {
+  padding: 1.2rem 1.6rem;
+  display: flex;
+  gap: 0.8rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.btn-cancelar {
+  flex: 1;
+  background: #e5e7eb;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #334155;
+}
+
+.btn-cancelar:hover {
+  background: #d1d5db;
+}
+
+.btn-salvar {
+  flex: 1;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-salvar:hover {
+  background: #1e40af;
+}
+
+/* ANIMATION */
+@keyframes modalFade {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
+
+<div id="modalCadastroCliente" class="modal-overlay hidden">
+  <div class="modal-box">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+      <h2>Novo cliente</h2>
+      <button class="close-btn" type="button">×</button>
+    </div>
+
+    <!-- BODY -->
+    <div class="modal-body">
+
+      <div class="input-group">
+        <input type="text" name="nome" required placeholder=" ">
+        <label>Nome completo</label>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <input type="text" name="telefone" required placeholder=" ">
+          <label>Telefone / WhatsApp</label>
+        </div>
+
+        <div class="input-group">
+          <input type="email" name="email" placeholder=" ">
+          <label>Email</label>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <input type="text" name="cidade" placeholder=" ">
+          <label>Cidade</label>
+        </div>
+
+        <div class="input-group">
+          <input type="text" name="estado" placeholder=" ">
+          <label>Estado (UF)</label>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <select name="origem" value="">
+          <option value="" disabled selected></option>
+          <option>WhatsApp</option>
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>Indicação</option>
+          <option>Outro</option>
+        </select>
+        <label>Origem do cliente</label>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer">
+      <button class="btn-cancelar" type="button">Cancelar</button>
+      <button class="btn-salvar" type="button">Salvar cliente</button>
+    </div>
+
+  </div>
+</div>
+<!-- ================= FIM MODAL ================= -->
+
 
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>

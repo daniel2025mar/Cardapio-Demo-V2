@@ -14,8 +14,17 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@supabase/supabase-js": "^2.88.0",
     "@tailwindcss/vite": "^4.1.17",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daniel2025mar/Cardapio-Demo-V2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/daniel2025mar/Cardapio-Demo-V2/issues"
+  },
+  "homepage": "https://github.com/daniel2025mar/Cardapio-Demo-V2#readme"
 }

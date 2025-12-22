@@ -1026,36 +1026,37 @@ async function carregarClientes() {
 
 // DOM carregado
 document.addEventListener("DOMContentLoaded", () => {
-  carregarClientes();
+  carregarClientes(); // Função que popula a tabela de clientes
 
-  const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
-  const modalCadastro = document.getElementById("modalCadastroCliente");
-  const btnCancelar = document.querySelector("#modalCadastroCliente .btn-cancelar");
-  const btnFechar = document.querySelector("#modalCadastroCliente .close-btn");
+  const btnCadastrar = document.getElementById("btn-cadastrar-cliente"); // botão "Cadastrar Cliente"
+  const modalCadastro = document.getElementById("modalCadastroCliente"); // modal de cadastro
+  const btnCancelar = document.getElementById("cancelar-cadastro"); // botão "Cancelar"
+  const btnFechar = document.getElementById("fechar-modal-cadastro"); // botão "X"
+
+  if (!btnCadastrar || !modalCadastro) return;
 
   // 🔓 Abrir modal
-  if (btnCadastrar && modalCadastro) {
-    btnCadastrar.addEventListener("click", () => {
-      modalCadastro.classList.remove("hidden");
-    });
-  }
+  btnCadastrar.addEventListener("click", () => {
+    modalCadastro.classList.remove("hidden");
+  });
 
   // ❌ Fechar modal (Cancelar)
-  if (btnCancelar) {
-    btnCancelar.addEventListener("click", () => {
-      modalCadastro.classList.add("hidden");
-    });
-  }
+  btnCancelar?.addEventListener("click", () => {
+    modalCadastro.classList.add("hidden");
+  });
 
   // ❌ Fechar modal (X)
-  if (btnFechar) {
-    btnFechar.addEventListener("click", () => {
+  btnFechar?.addEventListener("click", () => {
+    modalCadastro.classList.add("hidden");
+  });
+
+  // 🔄 Fechar modal clicando fora da caixa
+  modalCadastro.addEventListener("click", (e) => {
+    if (e.target === modalCadastro) {
       modalCadastro.classList.add("hidden");
-    });
-  }
+    }
+  });
 });
-
-
 
 
 // Função de modal moderno
@@ -2986,3 +2987,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ❌ Não aplica no login
+  const paginaAtual = window.location.pathname.split("/").pop();
+  if (paginaAtual === "login.html") return;
+
+  const TEMPO_INATIVIDADE = 1 * 60 * 1000; // 1 minuto
+  const TEMPO_REDIRECIONAR = 15000; // segundos de contagem regressiva no modal
+
+  const modalAviso = document.getElementById("modalAvisoInatividade");
+  const btnFechar = document.getElementById("fechar-modal-aviso");
+  const btnOk = document.getElementById("ok-modal-aviso");
+  const contadorSpan = document.getElementById("contador-logout");
+
+  // Som de aviso
+  const somAviso = new Audio("alerta.mp3"); // coloque o arquivo de som no mesmo diretório
+
+  let timerInatividade;
+  let timerLogout;
+  let contadorInterval;
+
+  function iniciarTimer() {
+    clearTimeout(timerInatividade);
+    clearTimeout(timerLogout);
+    clearInterval(contadorInterval);
+
+    timerInatividade = setTimeout(() => {
+      mostrarModalAviso();
+      somAviso.play();
+      iniciarContagemRegressiva();
+    }, TEMPO_INATIVIDADE);
+  }
+
+  function mostrarModalAviso() {
+    if (modalAviso) modalAviso.classList.remove("hidden");
+  }
+
+  function fecharModalAviso() {
+    if (modalAviso) modalAviso.classList.add("hidden");
+    clearTimeout(timerLogout);
+    clearInterval(contadorInterval);
+    iniciarTimer(); // reinicia o timer de inatividade
+  }
+
+  function iniciarContagemRegressiva() {
+    let tempoRestante = TEMPO_REDIRECIONAR / 1000;
+    if (contadorSpan) contadorSpan.textContent = tempoRestante;
+
+    contadorInterval = setInterval(() => {
+      tempoRestante -= 1;
+      if (contadorSpan) contadorSpan.textContent = tempoRestante;
+
+      if (tempoRestante <= 0) {
+        clearInterval(contadorInterval);
+      }
+    }, 1000);
+
+    // Redireciona após TEMPO_REDIRECIONAR
+    timerLogout = setTimeout(() => {
+      window.location.href = "login.html";
+    }, TEMPO_REDIRECIONAR);
+  }
+
+  // Fechar modal clicando no X ou no OK
+  btnFechar?.addEventListener("click", fecharModalAviso);
+  btnOk?.addEventListener("click", fecharModalAviso);
+
+  // Reiniciar timer ao detectar interação do usuário
+  ["mousemove", "mousedown", "keydown", "scroll", "touchstart"].forEach(evento => {
+    document.addEventListener(evento, iniciarTimer);
+  });
+
+  // Inicia o timer
+  iniciarTimer();
+
+});

@@ -375,7 +375,8 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="flex-1 bg-gray-100 p-4 md:p-6 overflow-y-auto">
 
-      <section id="dashboard" class="content-section mb-8">
+
+          <section id="dashboard" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
   <p class="text-gray-700">Resumo geral do sistema.</p>
 
@@ -1058,234 +1059,106 @@
 </div>
 <!-- FIM MODAL EDITAR CLIENTE -->
 
-<!-- ================= MODAL CADASTRO CLIENTE ================= -->
+<!-- ================= MODAL CADASTRO CLIENTE MODERNO ================= -->
+<div id="modalCadastroCliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+  <div class="bg-white/90 backdrop-blur-lg w-full max-w-lg rounded-3xl shadow-2xl p-6 animate__animated animate__fadeIn">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-400 shadow-md">
+      <h3 class="text-2xl font-bold text-white drop-shadow-md">Cadastrar Cliente</h3>
+      <button id="fechar-modal-cadastro" class="text-white hover:text-gray-200 text-3xl leading-none">&times;</button>
+    </div>
+
+    <!-- Formulário -->
+    <form id="form-cadastro-cliente" class="space-y-5">
+
+      <!-- Nome -->
+      <div class="relative">
+        <input type="text" id="cad-nome" required placeholder=" " 
+          class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        <label for="cad-nome" 
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Nome do Cliente</label>
+      </div>
+
+      <!-- Email -->
+      <div class="relative">
+        <input type="email" id="cad-email" placeholder=" " 
+          class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        <label for="cad-email" 
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Email</label>
+      </div>
+
+      <!-- Telefone -->
+      <div class="relative">
+        <input type="text" id="cad-telefone" required placeholder=" " 
+          class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        <label for="cad-telefone" 
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Telefone / WhatsApp</label>
+      </div>
+
+      <!-- Cidade e UP -->
+      <div class="grid grid-cols-3 gap-4">
+        <!-- Cidade -->
+        <div class="col-span-2 relative">
+          <input type="text" id="cad-cidade" placeholder=" " 
+            class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          <label for="cad-cidade" 
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Cidade</label>
+        </div>
+
+        <!-- UP / Estado -->
+        <div class="col-span-1">
+          <select id="cad-up" class="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-center transition">
+            <option value="">UF</option>
+            <option value="SP">SP</option>
+            <option value="RJ">RJ</option>
+            <option value="MG">MG</option>
+            <option value="RS">RS</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="flex justify-end gap-3 pt-4">
+        <button type="button" id="cancelar-cadastro" 
+          class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl text-sm font-semibold transition shadow-md">Cancelar</button>
+        <button type="submit" 
+          class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow-md">Salvar Cliente</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
 <style>
-/* OVERLAY */
-.modal-overlay {
+/* ================= MODAL CADASTRO MODERNO ================= */
+#modalCadastroCliente.hidden { display: none; }
+
+#modalCadastroCliente {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(6px);
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
 }
 
-/* ESCONDIDO */
-.hidden {
-  display: none;
-}
+#modalCadastroCliente .animate__animated { animation-duration: 0.25s; }
 
-/* BOX */
-.modal-box {
-  background: #ffffff;
-  width: 95%;
-  max-width: 560px;
-  border-radius: 20px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.35);
-  animation: modalFade .25s ease-out;
-  overflow: hidden;
-}
-
-/* HEADER */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.4rem 1.6rem;
-  background: linear-gradient(90deg, #1e3a8a, #2563eb);
-}
-
-.modal-header h2 {
-  font-size: 1.3rem;
-  color: #ffffff;
-}
-
-.close-btn {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: white;
-}
-
-/* BODY */
-.modal-body {
-  padding: 1.6rem;
-  display: grid;
-  gap: 1.2rem;
-}
-
-/* GRID */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 600px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* INPUTS */
-.input-group {
-  position: relative;
-}
-
-.input-group input,
-.input-group select {
-  width: 100%;
-  padding: 14px 12px;
-  border-radius: 12px;
-  border: 1px solid #cbd5e1;
-  font-size: 0.95rem;
-  outline: none;
-  background: transparent;
-}
-
-.input-group label {
-  position: absolute;
-  top: 50%;
-  left: 14px;
-  transform: translateY(-50%);
-  background: white;
-  padding: 0 6px;
-  color: #64748b;
-  font-size: 0.85rem;
-  pointer-events: none;
-  transition: .2s;
-}
-
-.input-group input:focus,
-.input-group select:focus {
-  border-color: #2563eb;
-}
-
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label,
-.input-group select:focus + label,
-.input-group select:not([value=""]) + label {
+/* Labels flutuantes animadas */
+input:focus + label,
+input:not(:placeholder-shown) + label {
   top: -6px;
   font-size: 0.75rem;
   color: #2563eb;
 }
 
-/* FOOTER */
-.modal-footer {
-  padding: 1.2rem 1.6rem;
-  display: flex;
-  gap: 0.8rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f8fafc;
-}
-
-.btn-cancelar {
-  flex: 1;
-  background: #e5e7eb;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #334155;
-}
-
-.btn-cancelar:hover {
-  background: #d1d5db;
-}
-
-.btn-salvar {
-  flex: 1;
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-salvar:hover {
-  background: #1e40af;
-}
-
-/* ANIMATION */
-@keyframes modalFade {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+@media (max-width: 640px) {
+  #modalCadastroCliente > div { width: 95%; padding: 1.5rem; }
 }
 </style>
-
-<div id="modalCadastroCliente" class="modal-overlay hidden">
-  <div class="modal-box">
-
-    <!-- HEADER -->
-    <div class="modal-header">
-      <h2>Novo cliente</h2>
-      <button class="close-btn" type="button">×</button>
-    </div>
-
-    <!-- BODY -->
-    <div class="modal-body">
-
-      <div class="input-group">
-        <input type="text" name="nome" required placeholder=" ">
-        <label>Nome completo</label>
-      </div>
-
-      <div class="grid-2">
-        <div class="input-group">
-          <input type="text" name="telefone" required placeholder=" ">
-          <label>Telefone / WhatsApp</label>
-        </div>
-
-        <div class="input-group">
-          <input type="email" name="email" placeholder=" ">
-          <label>Email</label>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="input-group">
-          <input type="text" name="cidade" placeholder=" ">
-          <label>Cidade</label>
-        </div>
-
-        <div class="input-group">
-          <input type="text" name="estado" placeholder=" ">
-          <label>Estado (UF)</label>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <select name="origem" value="">
-          <option value="" disabled selected></option>
-          <option>WhatsApp</option>
-          <option>Instagram</option>
-          <option>Facebook</option>
-          <option>Indicação</option>
-          <option>Outro</option>
-        </select>
-        <label>Origem do cliente</label>
-      </div>
-
-    </div>
-
-    <!-- FOOTER -->
-    <div class="modal-footer">
-      <button class="btn-cancelar" type="button">Cancelar</button>
-      <button class="btn-salvar" type="button">Salvar cliente</button>
-    </div>
-
-  </div>
-</div>
-<!-- ================= FIM MODAL ================= -->
 
 
 <section id="funcionarios" class="content-section mb-8">
@@ -1851,6 +1724,69 @@
     </button>
   </div>
 </div>
+
+<!-- ================= MODAL AVISO INATIVIDADE ================= -->
+<div id="modalAvisoInatividade" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+  <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 animate__animated animate__fadeIn">
+    
+    <!-- Cabeçalho com ícone -->
+    <div class="flex items-center gap-3 mb-4">
+      <div class="flex-shrink-0 w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl">
+        ⚠️
+      </div>
+      <h3 class="text-xl font-bold text-indigo-700">Atenção</h3>
+      <button id="fechar-modal-aviso" class="ml-auto text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+    </div>
+
+    <!-- Mensagem -->
+    <div class="mb-6 text-gray-700 text-sm">
+      Você ficou inativo por muito tempo.<br>
+      O sistema será desconectado automaticamente em <span id="contador-logout">4</span> segundos.
+    </div>
+
+    <!-- Rodapé / Botão -->
+    <div class="flex justify-end">
+      <button id="ok-modal-aviso" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-md">
+        OK
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+/* ================= MODAL AVISO INATIVIDADE ================= */
+#modalAvisoInatividade.hidden { display: none; }
+
+#modalAvisoInatividade {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+#modalAvisoInatividade .animate__animated { 
+  animation-duration: 0.3s; 
+  animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  #modalAvisoInatividade > div {
+    width: 95%;
+    padding: 1.5rem;
+  }
+}
+</style>
+<!-- ================= FIM MODAL ================= -->
 
 
   <!-- FOOTER -->

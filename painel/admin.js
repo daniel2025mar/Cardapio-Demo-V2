@@ -1028,35 +1028,66 @@ async function carregarClientes() {
 document.addEventListener("DOMContentLoaded", () => {
   carregarClientes(); // Função que popula a tabela de clientes
 
-  const btnCadastrar = document.getElementById("btn-cadastrar-cliente"); // botão "Cadastrar Cliente"
-  const modalCadastro = document.getElementById("modalCadastroCliente"); // modal de cadastro
-  const btnCancelar = document.getElementById("cancelar-cadastro"); // botão "Cancelar"
-  const btnFechar = document.getElementById("fechar-modal-cadastro"); // botão "X"
+  const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
+  const modalCadastro = document.getElementById("modalCadastroCliente");
+  const btnCancelar = document.getElementById("cancelar-cadastro");
+  const btnFechar = document.getElementById("fechar-modal-cadastro");
+  const inputNome = document.getElementById("cad-nome");
+  const formCadastro = document.getElementById("form-cadastro-cliente");
 
-  if (!btnCadastrar || !modalCadastro) return;
+  if (!btnCadastrar || !modalCadastro || !inputNome || !formCadastro) return;
 
   // 🔓 Abrir modal
   btnCadastrar.addEventListener("click", () => {
     modalCadastro.classList.remove("hidden");
+    inputNome.focus();
   });
 
-  // ❌ Fechar modal (Cancelar)
-  btnCancelar?.addEventListener("click", () => {
-    modalCadastro.classList.add("hidden");
-  });
-
-  // ❌ Fechar modal (X)
-  btnFechar?.addEventListener("click", () => {
-    modalCadastro.classList.add("hidden");
-  });
-
-  // 🔄 Fechar modal clicando fora da caixa
+  // ❌ Fechar modal
+  const fecharModal = () => modalCadastro.classList.add("hidden");
+  btnCancelar?.addEventListener("click", fecharModal);
+  btnFechar?.addEventListener("click", fecharModal);
   modalCadastro.addEventListener("click", (e) => {
-    if (e.target === modalCadastro) {
-      modalCadastro.classList.add("hidden");
+    if (e.target === modalCadastro) fecharModal();
+  });
+
+  // 📝 Permitir somente letras, acentos e espaços no nome
+  inputNome.addEventListener("input", () => {
+    inputNome.value = inputNome.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+  });
+
+  // 🔒 Função para validar se parece um nome real
+  function nomeValido(nome) {
+    if (nome.length < 3) return false; // mínimo de 3 caracteres
+    if (!/[aeiouáéíóúãõàèìòùâêîôû]/i.test(nome)) return false; // deve ter vogais
+    if (nome.trim().split(" ").length < 2) return false; // deve ter nome e sobrenome
+    return true;
+  }
+
+  // 🔒 Validar nome antes de enviar
+  formCadastro.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nome = inputNome.value.trim();
+
+    if (!nome) {
+      alert("Digite o nome do cliente.");
+      return;
     }
+
+    if (!nomeValido(nome)) {
+      alert("Nome inválido! Digite um nome real de cliente.");
+      inputNome.value = ""; // apaga o campo
+      inputNome.focus();
+      return;
+    }
+
+    // ✅ Nome válido, prosseguir com cadastro
+    alert("Cliente cadastrado com sucesso!");
+    modalCadastro.classList.add("hidden");
+    formCadastro.reset();
   });
 });
+
 
 
 // Função de modal moderno
@@ -2986,7 +3017,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
 });
-
+ 
+//aqui o sistema fecha se tiver ausente
 document.addEventListener("DOMContentLoaded", () => {
 
   // ❌ Não aplica no login

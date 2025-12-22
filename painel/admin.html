@@ -1057,56 +1057,69 @@
 </div>
 <!-- FIM MODAL EDITAR CLIENTE -->
 
-<!-- ================= MODAL CADASTRO CLIENTE MODERNO ================= -->
-<div id="modalCadastroCliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
-  <div class="bg-white/90 backdrop-blur-lg w-full max-w-lg rounded-3xl shadow-2xl p-6 animate__animated animate__fadeIn">
+<!-- ================= MODAL CADASTRO CLIENTE ELEGANTE ================= -->
+<div id="modalCadastroCliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+  <div class="modal-container bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-6 animate__animated animate__fadeIn">
 
     <!-- Cabeçalho -->
-    <div class="flex items-center justify-between mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-400 shadow-md">
-      <h3 class="text-2xl font-bold text-white drop-shadow-md">Cadastrar Cliente</h3>
-      <button id="fechar-modal-cadastro" class="text-white hover:text-gray-200 text-3xl leading-none">&times;</button>
+    <div class="flex items-center justify-between mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-500 to-blue-500 shadow-lg">
+      <h3 class="text-xl sm:text-2xl font-bold text-white drop-shadow-md">Cadastrar Cliente</h3>
+      <button id="fechar-modal-cadastro" class="text-white hover:text-gray-200 text-2xl sm:text-3xl leading-none">&times;</button>
     </div>
 
     <!-- Formulário -->
-    <form id="form-cadastro-cliente" class="space-y-5">
+    <form id="form-cadastro-cliente" class="space-y-4">
 
-      <!-- Nome -->
-      <div class="relative">
-        <input type="text" id="cad-nome" required placeholder=" " 
-          class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-        <label for="cad-nome" 
-          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Nome do Cliente</label>
-      </div>
-
-      <!-- Email -->
-      <div class="relative">
-        <input type="email" id="cad-email" placeholder=" " 
-          class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-        <label for="cad-email" 
-          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Email</label>
-      </div>
-
-      <!-- Telefone -->
-      <div class="relative">
-        <input type="text" id="cad-telefone" required placeholder=" " 
-          class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-        <label for="cad-telefone" 
-          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Telefone / WhatsApp</label>
-      </div>
-
-      <!-- Cidade e UP -->
-      <div class="grid grid-cols-3 gap-4">
-        <!-- Cidade -->
-        <div class="col-span-2 relative">
-          <input type="text" id="cad-cidade" placeholder=" " 
-            class="peer w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-          <label for="cad-cidade" 
-            class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base transition-all">Cidade</label>
+      <!-- Foto do Cliente -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+        <div class="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-indigo-300 overflow-hidden shadow-lg flex-shrink-0">
+          <span id="placeholderFoto" class="flex items-center justify-center w-full h-full text-gray-400 text-sm sm:text-base">Sem Foto</span>
         </div>
+        <input type="file" id="fotoCliente" accept="image/*" class="text-sm text-gray-500 w-full sm:w-auto">
+      </div>
 
-        <!-- UP / Estado -->
-        <div class="col-span-1">
-          <select id="cad-up" class="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-center transition">
+      <!-- Nome e Email -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="relative">
+          <input type="text" id="cad-nome" required placeholder=" "
+            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+          <label for="cad-nome"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Nome Completo</label>
+        </div>
+        <div class="relative">
+          <input type="email" id="cad-email" placeholder=" "
+            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+          <label for="cad-email"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Email</label>
+        </div>
+      </div>
+
+      <!-- Telefone e Código -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="relative">
+          <input type="text" id="cad-telefone" required placeholder=" "
+            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+          <label for="cad-telefone"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Telefone / WhatsApp</label>
+        </div>
+        <div class="relative">
+          <input type="text" id="cad-codigo" readonly placeholder=" "
+            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed">
+          <label for="cad-codigo"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm">Código Automático</label>
+        </div>
+      </div>
+
+      <!-- Cidade e UF -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="relative sm:col-span-2">
+          <input type="text" id="cad-cidade" placeholder=" "
+            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+          <label for="cad-cidade"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Cidade</label>
+        </div>
+        <div class="relative">
+          <select id="cad-up" class="w-full px-3 py-2 sm:px-3 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 text-center transition shadow-sm text-xs sm:text-sm">
             <option value="">UF</option>
             <option value="SP">SP</option>
             <option value="RJ">RJ</option>
@@ -1116,12 +1129,20 @@
         </div>
       </div>
 
+      <!-- Limite de Crédito -->
+      <div class="relative">
+        <input type="number" id="cad-limite" placeholder=" "
+          class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
+        <label for="cad-limite"
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Limite de Crédito</label>
+      </div>
+
       <!-- Botões -->
-      <div class="flex justify-end gap-3 pt-4">
-        <button type="button" id="cancelar-cadastro" 
-          class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl text-sm font-semibold transition shadow-md">Cancelar</button>
-        <button type="submit" 
-          class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow-md">Salvar Cliente</button>
+      <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+        <button type="button" id="cancelar-cadastro"
+          class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl text-sm font-semibold transition shadow-md w-full sm:w-auto">Cancelar</button>
+        <button type="submit"
+          class="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-600 text-white rounded-xl text-sm font-semibold transition shadow-lg w-full sm:w-auto">Salvar Cliente</button>
       </div>
 
     </form>
@@ -1129,35 +1150,44 @@
 </div>
 
 <style>
-/* ================= MODAL CADASTRO MODERNO ================= */
+/* ================= ESTILO MODAL ELEGANTE ================= */
 #modalCadastroCliente.hidden { display: none; }
-
 #modalCadastroCliente {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: fixed; inset:0; z-index:50;
+  display: flex; align-items:center; justify-content:center;
   background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(6px);
 }
-
 #modalCadastroCliente .animate__animated { animation-duration: 0.25s; }
 
-/* Labels flutuantes animadas */
+/* Labels flutuantes */
 input:focus + label,
 input:not(:placeholder-shown) + label {
   top: -6px;
   font-size: 0.75rem;
-  color: #2563eb;
+  color: #7c3aed; /* roxo elegante */
 }
 
-@media (max-width: 640px) {
-  #modalCadastroCliente > div { width: 95%; padding: 1.5rem; }
+/* Responsividade */
+.modal-container {
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .modal-container { padding: 1.5rem; }
+}
+
+@media (max-width: 400px) {
+  .modal-container { padding: 1rem; }
+  .flex-col.sm\:flex-row { flex-direction: column !important; }
+  .grid-cols-3 { grid-template-columns: 1fr !important; }
+  .w-28 { width: 4.5rem !important; height: 4.5rem !important; }
+  input, select, button { font-size: 0.8rem !important; padding: 0.5rem 0.75rem !important; }
+  h3 { font-size: 1.1rem !important; }
 }
 </style>
-
 
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>

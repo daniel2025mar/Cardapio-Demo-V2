@@ -2109,7 +2109,7 @@ async function salvarHorariosSemana() {
     }
   }
 
-  alert("Configurações salvas com sucesso!");
+  
 }
 
 // ===============================
@@ -2976,7 +2976,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fecharModalSenha();
 
       // 🔥 CAMINHO CORRETO
-      window.location.href = "painel-whatsapp/atendimentos.html";
+      window.location.href = "../painel-whatsapp/atendimentos.html";
 
     } catch (err) {
       console.error("Erro ao validar senha:", err);

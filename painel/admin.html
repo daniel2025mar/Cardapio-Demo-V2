@@ -1056,136 +1056,250 @@
   </div>
 </div>
 <!-- FIM MODAL EDITAR CLIENTE -->
+ 
+<!-- ================= MODAL CADASTRO CLIENTE ================= -->
+<div id="modalCadastroCliente"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
 
-<!-- ================= MODAL CADASTRO CLIENTE ELEGANTE ================= -->
-<div id="modalCadastroCliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-  <div class="modal-container bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-6 animate__animated animate__fadeIn">
+  <div class="modal-container bg-white rounded-3xl shadow-2xl">
 
-    <!-- Cabeçalho -->
-    <div class="flex items-center justify-between mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-500 to-blue-500 shadow-lg">
-      <h3 class="text-xl sm:text-2xl font-bold text-white drop-shadow-md">Cadastrar Cliente</h3>
-      <button id="fechar-modal-cadastro" class="text-white hover:text-gray-200 text-2xl sm:text-3xl leading-none">&times;</button>
-    </div>
+    <!-- ================= CABEÇALHO ================= -->
+    <div
+      class="modal-header p-4 rounded-t-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-black shadow-xl">
 
-    <!-- Formulário -->
-    <form id="form-cadastro-cliente" class="space-y-4">
-
-      <!-- Foto do Cliente -->
-      <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-        <div class="relative w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-indigo-300 overflow-hidden shadow-lg flex-shrink-0">
-          <span id="placeholderFoto" class="flex items-center justify-center w-full h-full text-gray-400 text-sm sm:text-base">Sem Foto</span>
-        </div>
-        <input type="file" id="fotoCliente" accept="image/*" class="text-sm text-gray-500 w-full sm:w-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl sm:text-2xl font-bold text-white">
+          Cadastrar Cliente
+        </h3>
+        <button id="fechar-modal-cadastro"
+          class="text-white hover:text-blue-300 text-2xl sm:text-3xl leading-none">
+          &times;
+        </button>
       </div>
 
-      <!-- Nome e Email -->
+      <p class="text-xs sm:text-sm text-slate-300 mt-1">
+        Preencha os dados abaixo para registrar um novo cliente no sistema.
+      </p>
+    </div>
+
+    <!-- ================= FORMULÁRIO ================= -->
+    <form id="form-cadastro-cliente" class="modal-body space-y-4">
+
+      <!-- FOTO DO CLIENTE -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+
+        <!-- label permite clicar sem JS -->
+        <label for="fotoCliente"
+          class="foto-box cursor-pointer">
+
+          <img
+            id="previewFoto"
+            src="../dist/imagem/fotopadrao.jpg"
+            alt="Foto padrão do cliente">
+        </label>
+
+        <input
+          type="file"
+          id="fotoCliente"
+          accept="image/*"
+          class="hidden">
+      </div>
+
+      <!-- NOME E EMAIL -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="relative">
           <input type="text" id="cad-nome" required placeholder=" "
-            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
-          <label for="cad-nome"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Nome Completo</label>
+            class="peer input-padrao">
+          <label class="label-flutuante">Nome Completo</label>
         </div>
+
         <div class="relative">
           <input type="email" id="cad-email" placeholder=" "
-            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
-          <label for="cad-email"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Email</label>
+            class="peer input-padrao">
+          <label class="label-flutuante">Email</label>
         </div>
       </div>
 
-      <!-- Telefone e Código -->
+      <!-- TELEFONE E CÓDIGO -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="relative">
           <input type="text" id="cad-telefone" required placeholder=" "
-            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
-          <label for="cad-telefone"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Telefone / WhatsApp</label>
+            class="peer input-padrao">
+          <label class="label-flutuante">Telefone / WhatsApp</label>
         </div>
+
         <div class="relative">
           <input type="text" id="cad-codigo" readonly placeholder=" "
-            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed">
-          <label for="cad-codigo"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm">Código Automático</label>
+            class="peer input-padrao bg-gray-100 cursor-not-allowed">
+          <label class="label-flutuante">Código Automático</label>
         </div>
       </div>
 
-      <!-- Cidade e UF -->
+      <!-- CIDADE E UF -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="relative sm:col-span-2">
           <input type="text" id="cad-cidade" placeholder=" "
-            class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
-          <label for="cad-cidade"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Cidade</label>
+            class="peer input-padrao">
+          <label class="label-flutuante">Cidade</label>
         </div>
-        <div class="relative">
-          <select id="cad-up" class="w-full px-3 py-2 sm:px-3 sm:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 text-center transition shadow-sm text-xs sm:text-sm">
-            <option value="">UF</option>
-            <option value="SP">SP</option>
-            <option value="RJ">RJ</option>
-            <option value="MG">MG</option>
-            <option value="RS">RS</option>
-          </select>
-        </div>
+
+        <select id="cad-up" class="input-padrao text-center">
+          <option value="">UF</option>
+          <option>SP</option>
+          <option>RJ</option>
+          <option>MG</option>
+          <option>RS</option>
+        </select>
       </div>
 
-      <!-- Limite de Crédito -->
+      <!-- LIMITE -->
       <div class="relative">
         <input type="number" id="cad-limite" placeholder=" "
-          class="peer w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition shadow-sm">
-        <label for="cad-limite"
-          class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs sm:text-sm peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base transition-all">Limite de Crédito</label>
-      </div>
-
-      <!-- Botões -->
-      <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-        <button type="button" id="cancelar-cadastro"
-          class="px-5 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl text-sm font-semibold transition shadow-md w-full sm:w-auto">Cancelar</button>
-        <button type="submit"
-          class="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-600 text-white rounded-xl text-sm font-semibold transition shadow-lg w-full sm:w-auto">Salvar Cliente</button>
+          class="peer input-padrao">
+        <label class="label-flutuante">Limite de Crédito</label>
       </div>
 
     </form>
+
+    <!-- ================= BOTÕES ================= -->
+    <div class="modal-footer flex flex-col sm:flex-row justify-end gap-3 p-4">
+      <button type="button" id="cancelar-cadastro" class="btn-cancelar">
+        Cancelar
+      </button>
+      <button type="submit" form="form-cadastro-cliente" class="btn-salvar">
+        Salvar Cliente
+      </button>
+    </div>
+
   </div>
 </div>
 
+<!-- ================= CSS ================= -->
 <style>
-/* ================= ESTILO MODAL ELEGANTE ================= */
-#modalCadastroCliente.hidden { display: none; }
-#modalCadastroCliente {
-  position: fixed; inset:0; z-index:50;
-  display: flex; align-items:center; justify-content:center;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(6px);
-}
-#modalCadastroCliente .animate__animated { animation-duration: 0.25s; }
-
-/* Labels flutuantes */
-input:focus + label,
-input:not(:placeholder-shown) + label {
-  top: -6px;
-  font-size: 0.75rem;
-  color: #7c3aed; /* roxo elegante */
-}
-
-/* Responsividade */
+/* ================= CONTAINER ================= */
 .modal-container {
   width: 100%;
   max-width: 800px;
-  padding: 2rem;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-@media (max-width: 768px) {
-  .modal-container { padding: 1.5rem; }
+/* ================= BODY ================= */
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 170px);
 }
 
-@media (max-width: 400px) {
-  .modal-container { padding: 1rem; }
-  .flex-col.sm\:flex-row { flex-direction: column !important; }
-  .grid-cols-3 { grid-template-columns: 1fr !important; }
-  .w-28 { width: 4.5rem !important; height: 4.5rem !important; }
-  input, select, button { font-size: 0.8rem !important; padding: 0.5rem 0.75rem !important; }
-  h3 { font-size: 1.1rem !important; }
+/* ================= FOTO ================= */
+.foto-box {
+  width: 5rem;
+  height: 5rem;
+  border: 2px dashed #94a3b8;
+  border-radius: 0.75rem;
+  background: #f1f5f9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+.foto-box:hover {
+  opacity: 0.85;
+}
+
+.foto-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .foto-box {
+    width: 7rem;
+    height: 7rem;
+  }
+}
+
+/* ================= INPUT ================= */
+.input-padrao {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.input-padrao:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.25);
+}
+
+/* ================= LABEL FLUTUANTE ================= */
+.label-flutuante {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: white;
+  padding: 0 4px;
+  transition: 0.2s;
+  pointer-events: none;
+}
+
+input:focus + .label-flutuante,
+input:not(:placeholder-shown) + .label-flutuante {
+  top: -6px;
+  color: #2563eb;
+}
+
+/* ================= BOTÕES ================= */
+.btn-cancelar {
+  background: #e5e7eb;
+  padding: 0.6rem;
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.btn-salvar {
+  background: linear-gradient(to right, #1e3a8a, #020617);
+  color: white;
+  padding: 0.6rem;
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 480px) {
+  #modalCadastroCliente {
+    align-items: flex-end;
+  }
+
+  .modal-container {
+    max-height: 95vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    animation: slideUp 0.25s ease-out;
+  }
+
+  .modal-body {
+    max-height: calc(95vh - 160px);
+    padding: 1rem;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 </style>
 

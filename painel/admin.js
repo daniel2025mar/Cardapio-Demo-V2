@@ -1024,9 +1024,9 @@ async function carregarClientes() {
 }
 
 
-// DOM carregado
+// cadastro de clientes
 document.addEventListener("DOMContentLoaded", () => {
-  carregarClientes(); // Função que popula a tabela de clientes
+  carregarClientes?.(); // evita erro se a função não existir
 
   const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
   const modalCadastro = document.getElementById("modalCadastroCliente");
@@ -1035,38 +1035,108 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputNome = document.getElementById("cad-nome");
   const formCadastro = document.getElementById("form-cadastro-cliente");
 
+  // FOTO
+  const areaFoto = document.getElementById("areaFotoCliente");
+  const inputFoto = document.getElementById("fotoCliente");
+  const previewFoto = document.getElementById("previewFoto");
+  const fotoPadrao = "../dist/imagem/fotopadrao.jpg";
+
   if (!btnCadastrar || !modalCadastro || !inputNome || !formCadastro) return;
 
-  // 🔓 Abrir modal
+  /* =========================
+     ABRIR MODAL COM ANIMAÇÃO
+  ========================== */
   btnCadastrar.addEventListener("click", () => {
     modalCadastro.classList.remove("hidden");
+    modalCadastro.classList.remove("modal-fechar");
+    modalCadastro.classList.add("modal-animar");
     inputNome.focus();
   });
 
-  // ❌ Fechar modal
-  const fecharModal = () => modalCadastro.classList.add("hidden");
+  /* =========================
+     FECHAR MODAL COM ANIMAÇÃO
+  ========================== */
+  const fecharModal = () => {
+    modalCadastro.classList.remove("modal-animar");
+    modalCadastro.classList.add("modal-fechar");
+
+    setTimeout(() => {
+      modalCadastro.classList.add("hidden");
+      modalCadastro.classList.remove("modal-fechar");
+      formCadastro.reset();
+      previewFoto.src = fotoPadrao;
+      inputFoto.value = "";
+    }, 250);
+  };
+
   btnCancelar?.addEventListener("click", fecharModal);
   btnFechar?.addEventListener("click", fecharModal);
+
   modalCadastro.addEventListener("click", (e) => {
     if (e.target === modalCadastro) fecharModal();
   });
 
-  // 📝 Permitir somente letras, acentos e espaços no nome
+  /* =========================
+     FOTO - ABRIR GALERIA
+  ========================== */
+  areaFoto?.addEventListener("click", () => {
+    inputFoto.click();
+  });
+
+  inputFoto?.addEventListener("change", () => {
+    const arquivo = inputFoto.files[0];
+    if (!arquivo) return;
+
+    if (!arquivo.type.startsWith("image/")) {
+      alert("Selecione apenas imagens.");
+      inputFoto.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewFoto.src = reader.result;
+    };
+    reader.readAsDataURL(arquivo);
+  });
+
+  /* =========================
+     VALIDAR NOME (APENAS LETRAS)
+  ========================== */
   inputNome.addEventListener("input", () => {
     inputNome.value = inputNome.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
   });
 
-  // 🔒 Função para validar se parece um nome real
+  /* =========================
+     FUNÇÃO: EXIGIR NOME COMPLETO
+  ========================== */
   function nomeValido(nome) {
-    if (nome.length < 3) return false; // mínimo de 3 caracteres
-    if (!/[aeiouáéíóúãõàèìòùâêîôû]/i.test(nome)) return false; // deve ter vogais
-    if (nome.trim().split(" ").length < 2) return false; // deve ter nome e sobrenome
+    nome = nome.trim();
+
+    // precisa ter nome + sobrenome
+    const partes = nome.split(/\s+/);
+    if (partes.length < 2) return false;
+
+    // cada parte deve ter pelo menos 2 letras
+    for (let parte of partes) {
+      if (parte.length < 2) return false;
+    }
+
+    // deve conter vogais (evita textos aleatórios)
+    if (!/[aeiouáéíóúãõàèìòùâêîôû]/i.test(nome)) return false;
+
+    // apenas letras e espaços
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(nome)) return false;
+
     return true;
   }
 
-  // 🔒 Validar nome antes de enviar
+  /* =========================
+     SUBMIT DO FORMULÁRIO
+  ========================== */
   formCadastro.addEventListener("submit", (e) => {
     e.preventDefault();
+
     const nome = inputNome.value.trim();
 
     if (!nome) {
@@ -1075,19 +1145,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!nomeValido(nome)) {
-      alert("Nome inválido! Digite um nome real de cliente.");
-      inputNome.value = ""; // apaga o campo
+      alert("Nome inválido! Digite o nome completo do cliente.");
+      inputNome.value = "";
       inputNome.focus();
       return;
     }
 
-    // ✅ Nome válido, prosseguir com cadastro
     alert("Cliente cadastrado com sucesso!");
-    modalCadastro.classList.add("hidden");
-    formCadastro.reset();
+    fecharModal();
   });
 });
-
 
 
 // Função de modal moderno

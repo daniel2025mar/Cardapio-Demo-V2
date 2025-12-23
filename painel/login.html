@@ -23,7 +23,7 @@
     .glass {
       background: rgba(2, 6, 23, 0.75);
       backdrop-filter: blur(18px);
-      border: 1px solid rgba(37, 99, 235, 0.45); /* azul */
+      border: 1px solid rgba(37, 99, 235, 0.45);
       box-shadow: 0 0 40px rgba(37, 99, 235, 0.35);
     }
 
@@ -47,7 +47,7 @@
     .field input:focus + label,
     .field input:not(:placeholder-shown) + label {
       transform: translateY(-22px) scale(0.85);
-      color: #2563eb; /* azul */
+      color: #2563eb;
     }
 
     .field label {
@@ -96,7 +96,7 @@
 
   <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
 
-    <!-- BRANDING DM DESIGN GRÁFICO -->
+    <!-- BRANDING -->
     <div class="hidden md:flex flex-col justify-center p-12 text-white bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500">
 
       <h1 class="text-5xl font-extrabold mb-8 leading-tight">
@@ -104,29 +104,39 @@
       </h1>
 
       <!-- CARROSSEL -->
-      <div id="carousel" class="relative min-h-[150px] max-w-md mb-8">
+      <div id="carousel" class="relative min-h-[170px] max-w-md mb-8">
 
         <div class="carousel-slide active">
           <p class="text-lg opacity-95">
-            Sistema desenvolvido pela <strong>DM DESIGN GRÁFICO</strong>, focado em desempenho, segurança e experiência do usuário.
+            Painel inteligente para <strong>gerenciamento de cardápios digitais</strong>
+            e recebimento de pedidos em tempo real.
           </p>
         </div>
 
         <div class="carousel-slide">
           <p class="text-lg opacity-95">
-            A <strong>DM DESIGN GRÁFICO</strong> cria soluções digitais modernas, unindo design profissional e tecnologia eficiente.
+            Receba pedidos diretamente pelo sistema, sem intermediários,
+            com <strong>mais agilidade e controle</strong>.
           </p>
         </div>
 
         <div class="carousel-slide">
           <p class="text-lg opacity-95">
-            Cada detalhe deste sistema foi pensado pela <strong>DM DESIGN GRÁFICO</strong> para otimizar processos e impulsionar negócios.
+            Ideal para <strong>restaurantes, lanchonetes e delivery</strong>,
+            transformando seu cardápio em vendas automáticas.
+          </p>
+        </div>
+
+        <div class="carousel-slide">
+          <p class="text-lg opacity-95">
+            Sistema desenvolvido pela <strong>DM DESIGN GRÁFICO</strong>,
+            unindo design profissional e tecnologia para negócios gastronômicos.
           </p>
         </div>
 
       </div>
 
-      <!-- LINK LIMPO -->
+      <!-- LINK -->
       <a
         href="https://www.dmdesigngrafico.com.br"
         target="_blank"
@@ -136,7 +146,7 @@
       </a>
 
       <div class="mt-6 text-sm opacity-80">
-        🎨 Design Profissional &nbsp;•&nbsp; 💻 Tecnologia Moderna &nbsp;•&nbsp; 🚀 Resultados
+        🍔 Cardápio Digital &nbsp;•&nbsp; 📱 Pedidos Online &nbsp;•&nbsp; 🚀 Mais Vendas
       </div>
     </div>
 
@@ -146,7 +156,7 @@
         Acessar Sistema
       </h2>
       <p class="text-center text-gray-400 mb-10 text-sm">
-        Faça login para continuar
+        Faça login para gerenciar seu cardápio
       </p>
 
       <form id="login-form" class="space-y-8">
@@ -190,7 +200,7 @@
       password.type = senhaVisivel ? "text" : "password";
     });
 
-    // Carrossel automático (3s)
+    // Carrossel automático
     const slides = document.querySelectorAll(".carousel-slide");
     let index = 0;
 

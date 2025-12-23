@@ -1,117 +1,114 @@
-const API_URL = 'http://localhost:8080/api';
 
-const numeroAtivo = '553498276982@s.whatsapp.net';
-let tipoLista = 'contacts'; // 'contacts' ou 'groups'
+//Interaçao com menu lateral
+// atendimento.js
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebarButtons = document.querySelectorAll("aside button");
 
-    // Seleção de filtro
-    const btnAtendimentos = document.getElementById('btn-atendimentos');
-    const btnFinalizados = document.getElementById('btn-finalizados');
+  sidebarButtons.forEach(button => {
+    button.addEventListener("mouseenter", () => {
+      const nome = button.getAttribute("title");
+      if (!nome) return;
 
-    btnAtendimentos.onclick = () => {
-        tipoLista = 'contacts';
-        btnAtendimentos.classList.add('active');
-        btnFinalizados.classList.remove('active');
-        listarLista();
-    };
+      // Cria tooltip
+      const tooltip = document.createElement("div");
+      tooltip.className = `
+        tooltip absolute left-16 bg-gray-900 text-white px-3 py-1 rounded shadow-lg
+        text-sm whitespace-nowrap opacity-0 transform transition-all duration-300
+      `;
+      tooltip.textContent = nome;
 
-    btnFinalizados.onclick = () => {
-        tipoLista = 'groups';
-        btnFinalizados.classList.add('active');
-        btnAtendimentos.classList.remove('active');
-        listarLista();
-    };
+      // Posiciona verticalmente
+      const rect = button.getBoundingClientRect();
+      tooltip.style.top = `${rect.top + window.scrollY + rect.height / 2 - 16}px`;
 
-    // Inicializa lista na abertura
-    listarLista();
+      // Adiciona ao body
+      document.body.appendChild(tooltip);
+
+      // Força o fade in
+      requestAnimationFrame(() => {
+        tooltip.classList.remove("opacity-0");
+        tooltip.classList.add("opacity-100");
+      });
+
+      // Guarda referência no botão
+      button._tooltip = tooltip;
+    });
+
+    button.addEventListener("mouseleave", () => {
+      if (button._tooltip) {
+        const tooltip = button._tooltip;
+
+        // Fade out suave
+        tooltip.classList.remove("opacity-100");
+        tooltip.classList.add("opacity-0");
+
+        // Remove depois da animação
+        setTimeout(() => {
+          tooltip.remove();
+        }, 300);
+
+        button._tooltip = null;
+      }
+    });
+  });
+});
+//fim da funçao menu lateral
+
+//funçao sair do crm
+document.addEventListener("DOMContentLoaded", () => {
+  const btnLogout = document.querySelector('button[title="Logout"]');
+  const modal = document.getElementById("modalLogout");
+  const modalContent = document.getElementById("modalContent");
+  const btnConfirm = document.getElementById("confirmLogout");
+  const btnCancel = document.getElementById("cancelLogout");
+
+  // Abrir modal com animação
+  btnLogout.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    setTimeout(() => {
+      modalContent.classList.remove("scale-90", "opacity-0");
+    }, 10);
+  });
+
+  // Confirmar logout
+  btnConfirm.addEventListener("click", () => {
+    window.location.href = "../painel/admin.html";
+  });
+
+  // Cancelar logout
+  btnCancel.addEventListener("click", () => {
+    modalContent.classList.add("scale-90", "opacity-0");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+    }, 200);
+  });
+
+  // Fechar modal clicando fora
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modalContent.classList.add("scale-90", "opacity-0");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 200);
+    }
+  });
 });
 
-async function listarLista() {
-    const endpoint = tipoLista === 'contacts' ? 'contacts' : 'chats'; // chats pega grupos também
+//fim da funçao sair crm
 
-    try {
-        const res = await fetch(`${API_URL}/instances/${numeroAtivo}/${endpoint}`, {
-            headers: { 'Authorization': 'Bearer 429683C4C977415CAAFCCE10F7D57E11' }
-        });
-        const data = await res.json();
+//sistema de aviso
+ document.addEventListener("DOMContentLoaded", function() {
+    var modal = document.getElementById("modalDesenvolvimento");
+    var btnFechar = document.getElementById("btnFecharDesenvolvimento");
 
-        const lista = document.getElementById('lista-clientes');
-        lista.innerHTML = '';
+    // Mostrar modal
+    modal.style.display = "flex";
 
-        data.forEach(item => {
-            const div = document.createElement('div');
-            div.classList.add('cliente');
+    // Fechar modal e redirecionar para admin.html
+    btnFechar.addEventListener("click", function() {
+    window.location.href = "../painel/admin.html";
+    });
+  });
 
-            const nome = item.name || item.number || item.subject || 'Sem nome';
-            const isOnline = item.isOnline ? 'Online' : '';
-
-            div.innerHTML = `
-                <img src="${item.profilePic || 'default.png'}">
-                <div class="info">
-                    <div class="nome">${nome}</div>
-                    <div class="status">${isOnline}</div>
-                </div>
-            `;
-
-            div.addEventListener('click', () => abrirChat(item.id || item.number));
-            lista.appendChild(div);
-        });
-
-    } catch (error) {
-        console.error('Erro ao listar', tipoLista, error);
-    }
-}
-
-// Função abrir chat
-async function abrirChat(numeroCliente) {
-    const chatList = document.getElementById('chat-list');
-    chatList.innerHTML = '';
-
-    try {
-        const res = await fetch(`${API_URL}/instances/${numeroAtivo}/messages?contact=${numeroCliente}`, {
-            headers: { 'Authorization': 'Bearer 429683C4C977415CAAFCCE10F7D57E11' }
-        });
-        const mensagens = await res.json();
-
-        mensagens.forEach(msg => {
-            const div = document.createElement('div');
-            div.classList.add('chat-msg');
-            if (msg.fromMe) div.classList.add('user');
-
-            div.innerHTML = `
-                ${msg.body}
-                <span class="hora">${new Date(msg.timestamp).toLocaleTimeString()}</span>
-            `;
-            chatList.appendChild(div);
-        });
-
-        chatList.scrollTop = chatList.scrollHeight;
-
-    } catch (error) {
-        console.error('Erro ao abrir chat:', error);
-    }
-
-    // Enviar mensagem
-    const btnEnviar = document.getElementById('btn-enviar');
-    btnEnviar.onclick = async () => {
-        const textarea = document.querySelector('#mensagem textarea');
-        const body = textarea.value;
-        if (!body) return;
-
-        try {
-            await fetch(`${API_URL}/instances/${numeroAtivo}/send-message`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 429683C4C977415CAAFCCE10F7D57E11'
-                },
-                body: JSON.stringify({ to: numeroCliente, message: body })
-            });
-            textarea.value = '';
-            abrirChat(numeroCliente); // atualizar chat
-        } catch (error) {
-            console.error('Erro ao enviar mensagem:', error);
-        }
-    };
-}
+  //fim sistema de aviso

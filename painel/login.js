@@ -189,3 +189,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
   }
 });
+
+
+ //🎄 TEMA AUTOMÁTICO (INALTERADO)
+(function aplicarTemaPorDataAuto() {
+
+      const inicio = new Date(2025, 11, 23, 22, 33);
+      const fim    = new Date(2025, 11, 28, 20, 0);
+
+      const avisoNatal = document.getElementById("aviso-natal");
+
+      function verificarTema() {
+        const agora = new Date();
+
+        if (agora >= inicio && agora < fim) {
+          document.body.classList.add("tema-natal");
+          avisoNatal?.classList.remove("hidden");
+        } else {
+          document.body.classList.remove("tema-natal");
+          avisoNatal?.classList.add("hidden");
+        }
+      }
+
+      verificarTema();
+      setInterval(verificarTema, 1000);
+
+    })();

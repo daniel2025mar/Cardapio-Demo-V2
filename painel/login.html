@@ -12,6 +12,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --cor-primaria: #2563eb;
+      --cor-secundaria: #1d4ed8;
+      --cor-glow: rgba(37, 99, 235, 0.45);
+    }
+
+    body.tema-natal {
+      --cor-primaria: #dc2626;
+      --cor-secundaria: #b91c1c;
+      --cor-glow: rgba(220, 38, 38, 0.45);
+    }
+
     body {
       font-family: 'Poppins', sans-serif;
     }
@@ -20,20 +32,29 @@
       background: radial-gradient(circle at top, #0f172a, #020617 70%);
     }
 
+    body.tema-natal .bg-gradient-to-br {
+      background-image: linear-gradient(
+        135deg,
+        var(--cor-secundaria),
+        var(--cor-primaria),
+        var(--cor-secundaria)
+      ) !important;
+    }
+
     .glass {
       background: rgba(2, 6, 23, 0.75);
       backdrop-filter: blur(18px);
-      border: 1px solid rgba(37, 99, 235, 0.45);
-      box-shadow: 0 0 40px rgba(37, 99, 235, 0.35);
+      border: 1px solid var(--cor-glow);
+      box-shadow: 0 0 40px var(--cor-glow);
     }
 
     .btn-gradient {
       background-size: 200% 200%;
       background-image: linear-gradient(
         135deg,
-        #1d4ed8,
-        #2563eb,
-        #1d4ed8
+        var(--cor-secundaria),
+        var(--cor-primaria),
+        var(--cor-secundaria)
       );
       animation: gradientMove 4s ease infinite;
     }
@@ -44,10 +65,17 @@
       100% { background-position: 0% 50%; }
     }
 
+    /* ================= FLOAT LABEL ================= */
     .field input:focus + label,
     .field input:not(:placeholder-shown) + label {
-      transform: translateY(-22px) scale(0.85);
-      color: #2563eb;
+      transform: translateY(-18px) scale(0.85);
+      color: var(--cor-primaria);
+    }
+
+    /* ✅ CORREÇÃO DO AUTOFILL (SEM JS) */
+    .field input:-webkit-autofill + label {
+      transform: translateY(-18px) scale(0.85);
+      color: var(--cor-primaria);
     }
 
     .field label {
@@ -55,7 +83,19 @@
       pointer-events: none;
     }
 
-    /* Carrossel */
+    input {
+      background-color: transparent !important;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #ffffff !important;
+      -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+      transition: background-color 9999s ease-in-out 0s;
+    }
+
+    /* ================= CARROSSEL ================= */
     .carousel-slide {
       opacity: 0;
       transform: translateY(10px);
@@ -68,128 +108,107 @@
       transform: translateY(0);
       position: relative;
     }
-
-    .alerta {
-      position: fixed;
-      top: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #020617;
-      color: #fff;
-      padding: .6rem 1.2rem;
-      border-radius: .6rem;
-      font-weight: 600;
-      z-index: 50;
-      animation: slideDown .4s ease;
-      max-width: 95%;
-      text-align: center;
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translate(-50%, -20px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
   </style>
 </head>
 
 <body class="min-h-screen bg-animated flex items-center justify-center px-4">
 
-  <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
+  <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
 
     <!-- BRANDING -->
-    <div class="hidden md:flex flex-col justify-center p-12 text-white bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500">
+    <div class="hidden md:flex flex-col justify-center p-10 text-white bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500">
 
-      <h1 class="text-5xl font-extrabold mb-8 leading-tight">
+      <h1 class="text-4xl font-extrabold mb-6 leading-tight">
         Painel<br>Administrativo
       </h1>
 
-      <!-- CARROSSEL -->
-      <div id="carousel" class="relative min-h-[170px] max-w-md mb-8">
-
+      <div id="aviso-natal"
+        class="mb-6 p-4 rounded-xl bg-white/20 border border-white/30 backdrop-blur-md hidden">
+        <h2 class="text-lg font-bold mb-1 flex items-center gap-2">
+          🎄 Especial de Natal
+        </h2>
+        <p class="text-sm opacity-95">
+          Boas Festas! Que venha um ótimo ano ✨
+        </p>
+      </div>
+      
+      <div id="carousel" class="relative min-h-[150px] max-w-md mb-6">
         <div class="carousel-slide active">
-          <p class="text-lg opacity-95">
-            Painel inteligente para <strong>gerenciamento de cardápios digitais</strong>
-            e recebimento de pedidos em tempo real.
+          <p class="text-base opacity-95">
+            Painel inteligente para <strong>gerenciamento de cardápios digitais</strong>.
           </p>
         </div>
-
         <div class="carousel-slide">
-          <p class="text-lg opacity-95">
-            Receba pedidos diretamente pelo sistema, sem intermediários,
-            com <strong>mais agilidade e controle</strong>.
+          <p class="text-base opacity-95">
+            Receba pedidos diretamente pelo sistema.
           </p>
         </div>
-
         <div class="carousel-slide">
-          <p class="text-lg opacity-95">
-            Ideal para <strong>restaurantes, lanchonetes e delivery</strong>,
-            transformando seu cardápio em vendas automáticas.
+          <p class="text-base opacity-95">
+            Ideal para <strong>restaurantes e delivery</strong>.
           </p>
         </div>
-
         <div class="carousel-slide">
-          <p class="text-lg opacity-95">
-            Sistema desenvolvido pela <strong>DM DESIGN GRÁFICO</strong>,
-            unindo design profissional e tecnologia para negócios gastronômicos.
+          <p class="text-base opacity-95">
+            Desenvolvido pela <strong>DM DESIGN GRÁFICO</strong>.
           </p>
         </div>
-
       </div>
 
-      <!-- LINK -->
-      <a
-        href="https://www.dmdesigngrafico.com.br"
-        target="_blank"
-        class="text-sm text-white/80 hover:text-white underline underline-offset-4 transition-all w-fit"
-      >
+      <a href="https://www.dmdesigngrafico.com.br" target="_blank"
+        class="text-sm text-white/80 hover:text-white underline underline-offset-4">
         www.dmdesigngrafico.com.br
       </a>
 
-      <div class="mt-6 text-sm opacity-80">
-        🍔 Cardápio Digital &nbsp;•&nbsp; 📱 Pedidos Online &nbsp;•&nbsp; 🚀 Mais Vendas
+      <div class="mt-4 text-xs opacity-80">
+        🍔 Cardápio Digital • 📱 Pedidos Online • 🚀 Mais Vendas
       </div>
     </div>
 
     <!-- LOGIN -->
-    <div class="glass p-8 sm:p-12 text-white flex flex-col justify-center">
-      <h2 class="text-3xl sm:text-4xl font-extrabold text-center mb-3">
+    <div class="glass p-8 sm:p-10 text-white flex flex-col justify-center">
+
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-center mb-2">
         Acessar Sistema
       </h2>
-      <p class="text-center text-gray-400 mb-10 text-sm">
+
+      <p class="text-center text-gray-400 mb-8 text-sm">
         Faça login para gerenciar seu cardápio
       </p>
 
-      <form id="login-form" class="space-y-8">
+      <form id="login-form" class="space-y-7">
 
         <div class="field relative">
           <input id="username" type="text" required placeholder=" "
-            class="peer w-full bg-transparent border-b border-slate-600 py-3 text-white focus:outline-none focus:border-blue-500" />
-          <label class="absolute left-0 top-3 text-gray-400">Usuário</label>
+            autocomplete="username"
+            class="peer w-full border-b border-slate-600 py-2 text-white focus:outline-none">
+          <label class="absolute left-0 top-2 text-gray-400 text-sm">Usuário</label>
         </div>
 
         <div class="field relative">
           <input id="password" type="password" required placeholder=" "
-            class="peer w-full bg-transparent border-b border-slate-600 py-3 text-white focus:outline-none focus:border-blue-500 pr-10" />
-          <label class="absolute left-0 top-3 text-gray-400">Senha</label>
+            autocomplete="current-password"
+            class="peer w-full border-b border-slate-600 py-2 text-white focus:outline-none pr-10">
+          <label class="absolute left-0 top-2 text-gray-400 text-sm">Senha</label>
           <span id="togglePassword"
-            class="absolute right-0 top-3 cursor-pointer opacity-70 hover:opacity-100 select-none">👁️</span>
+            class="absolute right-0 top-2 cursor-pointer opacity-70 hover:opacity-100">👁️</span>
         </div>
 
         <button type="submit"
-          class="btn-gradient w-full py-3 rounded-xl font-semibold tracking-wide shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+          class="btn-gradient w-full py-2.5 rounded-xl font-semibold tracking-wide shadow-lg">
           Entrar
         </button>
       </form>
 
       <p id="login-error" class="hidden text-red-400 text-sm mt-5 text-center font-medium"></p>
 
-      <p class="text-center text-xs text-gray-500 mt-10">
+      <p class="text-center text-xs text-gray-500 mt-8">
         © 2025 SUA EMPRESA
       </p>
     </div>
   </div>
 
-  <!-- JS -->
+  <!-- JS UI (INALTERADO) -->
   <script>
     const toggle = document.getElementById("togglePassword");
     const password = document.getElementById("password");
@@ -200,10 +219,8 @@
       password.type = senhaVisivel ? "text" : "password";
     });
 
-    // Carrossel automático
     const slides = document.querySelectorAll(".carousel-slide");
     let index = 0;
-
     setInterval(() => {
       slides[index].classList.remove("active");
       index = (index + 1) % slides.length;
@@ -211,6 +228,10 @@
     }, 6000);
   </script>
 
+  <!-- 🎄 TEMA AUTOMÁTICO (INALTERADO) -->
+
+  <!-- LOGIN -->
   <script type="module" src="login.js"></script>
+
 </body>
 </html>

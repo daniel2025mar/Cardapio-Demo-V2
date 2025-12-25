@@ -1025,36 +1025,53 @@ async function carregarClientes() {
 
 
 // cadastro de clientes
+
 document.addEventListener("DOMContentLoaded", () => {
-  carregarClientes?.(); // evita erro se a função não existir
+  carregarClientes?.();
 
   const btnCadastrar = document.getElementById("btn-cadastrar-cliente");
   const modalCadastro = document.getElementById("modalCadastroCliente");
   const btnCancelar = document.getElementById("cancelar-cadastro");
   const btnFechar = document.getElementById("fechar-modal-cadastro");
   const inputNome = document.getElementById("cad-nome");
+  const inputTelefone = document.getElementById("cad-telefone");
   const formCadastro = document.getElementById("form-cadastro-cliente");
 
-  // FOTO
-  const areaFoto = document.getElementById("areaFotoCliente");
   const inputFoto = document.getElementById("fotoCliente");
   const previewFoto = document.getElementById("previewFoto");
-  const fotoPadrao = "../dist/imagem/fotopadrao.jpg";
 
-  if (!btnCadastrar || !modalCadastro || !inputNome || !formCadastro) return;
+  const FOTO_PADRAO = "../dist/Imagem/fotopadrao.jpg";
+
+  if (
+    !btnCadastrar ||
+    !modalCadastro ||
+    !inputNome ||
+    !inputTelefone ||
+    !formCadastro ||
+    !inputFoto ||
+    !previewFoto
+  ) return;
 
   /* =========================
-     ABRIR MODAL COM ANIMAÇÃO
+     FOTO PADRÃO
+  ========================== */
+  previewFoto.src = FOTO_PADRAO;
+  previewFoto.onerror = () => {
+    previewFoto.onerror = null;
+    previewFoto.src = FOTO_PADRAO;
+  };
+
+  /* =========================
+     ABRIR MODAL
   ========================== */
   btnCadastrar.addEventListener("click", () => {
-    modalCadastro.classList.remove("hidden");
-    modalCadastro.classList.remove("modal-fechar");
+    modalCadastro.classList.remove("hidden", "modal-fechar");
     modalCadastro.classList.add("modal-animar");
     inputNome.focus();
   });
 
   /* =========================
-     FECHAR MODAL COM ANIMAÇÃO
+     FECHAR MODAL
   ========================== */
   const fecharModal = () => {
     modalCadastro.classList.remove("modal-animar");
@@ -1064,75 +1081,94 @@ document.addEventListener("DOMContentLoaded", () => {
       modalCadastro.classList.add("hidden");
       modalCadastro.classList.remove("modal-fechar");
       formCadastro.reset();
-      previewFoto.src = fotoPadrao;
+      previewFoto.src = FOTO_PADRAO;
       inputFoto.value = "";
     }, 250);
   };
 
-  btnCancelar?.addEventListener("click", fecharModal);
-  btnFechar?.addEventListener("click", fecharModal);
+  btnCancelar.addEventListener("click", fecharModal);
+  btnFechar.addEventListener("click", fecharModal);
 
   modalCadastro.addEventListener("click", (e) => {
     if (e.target === modalCadastro) fecharModal();
   });
 
   /* =========================
-     FOTO - ABRIR GALERIA
+     TROCAR FOTO
   ========================== */
-  areaFoto?.addEventListener("click", () => {
-    inputFoto.click();
-  });
-
-  inputFoto?.addEventListener("change", () => {
-    const arquivo = inputFoto.files[0];
+  inputFoto.addEventListener("change", () => {
+    const arquivo = inputFoto.files?.[0];
     if (!arquivo) return;
 
     if (!arquivo.type.startsWith("image/")) {
       alert("Selecione apenas imagens.");
       inputFoto.value = "";
+      previewFoto.src = FOTO_PADRAO;
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = () => {
-      previewFoto.src = reader.result;
-    };
+    reader.onload = () => (previewFoto.src = reader.result);
     reader.readAsDataURL(arquivo);
   });
 
   /* =========================
-     VALIDAR NOME (APENAS LETRAS)
+     VALIDAR NOME
   ========================== */
   inputNome.addEventListener("input", () => {
     inputNome.value = inputNome.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
   });
 
   /* =========================
-     FUNÇÃO: EXIGIR NOME COMPLETO
+     TELEFONE BR – MÁSCARA SEM TRAVAR BACKSPACE
+  ========================== */
+  inputTelefone.addEventListener("input", (e) => {
+    let numeros = e.target.value.replace(/\D/g, "");
+
+    // limita a 11 dígitos
+    if (numeros.length > 11) {
+      numeros = numeros.slice(0, 11);
+    }
+
+    let formatado = "";
+
+    if (numeros.length === 0) {
+      formatado = "";
+    } else if (numeros.length < 3) {
+      formatado = `(${numeros}`;
+    } else if (numeros.length < 7) {
+      formatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+    } else if (numeros.length <= 10) {
+      // telefone fixo
+      formatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
+    } else {
+      // celular
+      formatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+    }
+
+    e.target.value = formatado;
+  });
+
+  /* =========================
+     FUNÇÃO: NOME COMPLETO
   ========================== */
   function nomeValido(nome) {
     nome = nome.trim();
-
-    // precisa ter nome + sobrenome
     const partes = nome.split(/\s+/);
-    if (partes.length < 2) return false;
 
-    // cada parte deve ter pelo menos 2 letras
+    if (partes.length < 2) return false;
     for (let parte of partes) {
       if (parte.length < 2) return false;
     }
 
-    // deve conter vogais (evita textos aleatórios)
     if (!/[aeiouáéíóúãõàèìòùâêîôû]/i.test(nome)) return false;
-
-    // apenas letras e espaços
     if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(nome)) return false;
 
     return true;
   }
 
   /* =========================
-     SUBMIT DO FORMULÁRIO
+     SUBMIT
   ========================== */
   formCadastro.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -1145,9 +1181,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!nomeValido(nome)) {
-      alert("Nome inválido! Digite o nome completo do cliente.");
-      inputNome.value = "";
-      inputNome.focus();
+      document.getElementById("mensagemAlerta").textContent =
+        "Nome inválido! Digite o nome completo do cliente.";
+
+      const modalAlerta = document.getElementById("modalAlerta");
+      modalAlerta.classList.remove("hidden");
+
+      document.getElementById("btnFecharAlerta").onclick = () => {
+        modalAlerta.classList.add("hidden");
+        inputNome.value = "";
+        inputNome.focus();
+      };
       return;
     }
 
@@ -1155,7 +1199,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fecharModal();
   });
 });
-
 
 // Função de modal moderno
 function mostrarConfirmacao(novoStatus) {
@@ -3092,7 +3135,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const paginaAtual = window.location.pathname.split("/").pop();
   if (paginaAtual === "login.html") return;
 
-  const TEMPO_INATIVIDADE = 1 * 60 * 1000; // 1 minuto
+  const TEMPO_INATIVIDADE = 5 * 60 * 1000; // 5 minuto
   const TEMPO_REDIRECIONAR = 15000; // segundos de contagem regressiva no modal
 
   const modalAviso = document.getElementById("modalAvisoInatividade");

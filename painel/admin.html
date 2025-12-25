@@ -1090,10 +1090,12 @@
         <!-- label permite clicar sem JS -->
         <label for="fotoCliente" class="foto-box cursor-pointer">
           <img
-            id="previewFoto"
-            src="/imagem/fotopadrao.jpg"
-            alt="Foto padrão do cliente"
-            onerror="this.src='/imagem/fotopadrao.jpg'">
+  id="previewFoto"
+  src="../dist/Imagem/fotopadrao.jpg"
+  
+  class="w-32 h-32 rounded-full object-cover border"
+/>
+
         </label>
 
         <input
@@ -1300,7 +1302,7 @@ input:not(:placeholder-shown) + .label-flutuante {
   to { transform: translateY(0); }
 }
 </style>
-
+<!--fim do modal de cadastro de clientes-->
 
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>
@@ -1927,7 +1929,110 @@ input:not(:placeholder-shown) + .label-flutuante {
   }
 }
 </style>
+
 <!-- ================= FIM MODAL ================= -->
+<!-- ================= MODAL DE ALERTA MODERNO ================= -->
+<style>
+  .modal-alerta {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .modal-alerta.hidden {
+    display: none;
+  }
+
+  .modal-alerta-box {
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    width: 92%;
+    max-width: 380px;
+    padding: 26px 22px 22px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow:
+      0 25px 60px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    animation: modalEntrada 0.28s ease-out;
+  }
+
+  .modal-alerta-icone {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 28px;
+    box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+  }
+
+  .modal-alerta-box h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+
+  .modal-alerta-box p {
+    font-size: 14.5px;
+    color: #475569;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .modal-alerta-box button {
+    width: 100%;
+    border: none;
+    padding: 12px 0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .modal-alerta-box button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+  }
+
+  .modal-alerta-box button:active {
+    transform: scale(0.97);
+  }
+
+  @keyframes modalEntrada {
+    from {
+      transform: translateY(20px) scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+</style>
+
+<div id="modalAlerta" class="modal-alerta hidden">
+  <div class="modal-alerta-box">
+    <div class="modal-alerta-icone">!</div>
+    <h2>Atenção</h2>
+    <p id="mensagemAlerta">Mensagem de alerta</p>
+    <button id="btnFecharAlerta">Entendi</button>
+  </div>
+</div>
+<!-- ================= FIM MODAL DE ALERTA ================= -->
+
 
 
   <!-- FOOTER -->

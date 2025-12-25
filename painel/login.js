@@ -190,28 +190,95 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
- //🎄 TEMA AUTOMÁTICO (INALTERADO)
+// função de datas comemorativas
 (function aplicarTemaPorDataAuto() {
+  // Avisos no HTML
+  const avisoNatal = document.getElementById("aviso-natal");
+  const avisoAnoNovo = document.getElementById("aviso-ano-novo");
+  const avisoDiaDeReis = document.getElementById("aviso-dia-de-reis");
+  const avisoDiaDasMaes = document.getElementById("aviso-dia-das-maes");
+  const avisoDiaDosPais = document.getElementById("aviso-dia-dos-pais");
 
-      const inicio = new Date(2025, 11, 23, 22, 33);
-      const fim    = new Date(2025, 11, 28, 20, 0);
+  // Datas comemorativas
+  // Natal
+  const inicioNatal = new Date(2025, 11, 23, 22, 33);
+  const fimNatal    = new Date(2025, 11, 28, 20, 0);
 
-      const avisoNatal = document.getElementById("aviso-natal");
+  // Ano Novo
+  const inicioAnoNovo = new Date(2025, 11, 31, 0, 0); 
+  const fimAnoNovo    = new Date(2026, 0, 2, 23, 59);
 
-      function verificarTema() {
-        const agora = new Date();
+  // Dia de Reis
+  const inicioDiaDeReis = new Date(2026, 0, 6, 0, 0); 
+  const fimDiaDeReis    = new Date(2026, 0, 6, 23, 59);
 
-        if (agora >= inicio && agora < fim) {
-          document.body.classList.add("tema-natal");
-          avisoNatal?.classList.remove("hidden");
-        } else {
-          document.body.classList.remove("tema-natal");
-          avisoNatal?.classList.add("hidden");
-        }
+  // Dia das Mães
+  const inicioDiaDasMaes = new Date(2026, 4, 10, 0, 0); // 10 Maio 2026
+  const fimDiaDasMaes    = new Date(2026, 4, 10, 23, 59);
+
+  // Dia dos Pais
+  const inicioDiaDosPais = new Date(2026, 7, 9, 0, 0); // 9 Agosto 2026
+  const fimDiaDosPais    = new Date(2026, 7, 9, 23, 59);
+
+  // Elemento para contagem regressiva do Ano Novo
+  const contagemEl = document.getElementById("contagem-ano-novo");
+
+  function verificarTema() {
+    const agora = new Date();
+
+    // Remove todos os temas inicialmente
+    document.body.classList.remove("tema-natal", "tema-ano-novo", "tema-dia-de-reis", "tema-dia-das-maes", "tema-dia-dos-pais");
+    avisoNatal?.classList.add("hidden");
+    avisoAnoNovo?.classList.add("hidden");
+    avisoDiaDeReis?.classList.add("hidden");
+    avisoDiaDasMaes?.classList.add("hidden");
+    avisoDiaDosPais?.classList.add("hidden");
+
+    // Aplicar Natal
+    if (typeof inicioNatal !== "undefined" && agora >= inicioNatal && agora < fimNatal) {
+      document.body.classList.add("tema-natal");
+      avisoNatal?.classList.remove("hidden");
+    }
+
+    // Aplicar Ano Novo
+    if (agora >= inicioAnoNovo && agora <= fimAnoNovo) {
+      document.body.classList.add("tema-ano-novo");
+      avisoAnoNovo?.classList.remove("hidden");
+
+      // Atualizar contagem regressiva
+      const anoNovo = new Date(2026, 0, 1, 0, 0, 0);
+      const diff = anoNovo - agora;
+
+      if (diff <= 0) {
+        contagemEl.textContent = "Feliz Ano Novo! 🎉";
+      } else {
+        const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutos = Math.floor((diff / (1000 * 60)) % 60);
+        const segundos = Math.floor((diff / 1000) % 60);
+        contagemEl.textContent = `${dias}d ${horas}h ${minutos}m ${segundos}s`;
       }
+    }
 
-      verificarTema();
-      setInterval(verificarTema, 1000);
+    // Aplicar Dia de Reis
+    if (agora >= inicioDiaDeReis && agora <= fimDiaDeReis) {
+      document.body.classList.add("tema-dia-de-reis");
+      avisoDiaDeReis?.classList.remove("hidden");
+    }
 
-    })();
+    // Aplicar Dia das Mães
+    if (agora >= inicioDiaDasMaes && agora <= fimDiaDasMaes) {
+      document.body.classList.add("tema-dia-das-maes");
+      avisoDiaDasMaes?.classList.remove("hidden");
+    }
+
+    // Aplicar Dia dos Pais
+    if (agora >= inicioDiaDosPais && agora <= fimDiaDosPais) {
+      document.body.classList.add("tema-dia-dos-pais");
+      avisoDiaDosPais?.classList.remove("hidden");
+    }
+  }
+
+  verificarTema();
+  setInterval(verificarTema, 1000);
+})();

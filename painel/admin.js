@@ -3327,7 +3327,9 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       id: 2,
       data: "20/12/2025",
-      descricao: ["Adicionado botão de ver atualizações no painel"]
+      descricao: ["Adicionado botão de ver atualizações no painel",
+                  "Notificaçoes de Pedidos Recebidos"
+      ]
     },
     {
       id: 3,
@@ -3338,6 +3340,11 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 4,
       data: "15/12/2025",
       descricao: ["Nova funcionalidade de seleção de cidade implementada"]
+    },
+    {
+      id: 5,
+      data: "25/12/2025",
+      descricao: ["Funçao mudaças no Layout para datas Comemorativas 'Tela de login'"]
     }
   ];
 

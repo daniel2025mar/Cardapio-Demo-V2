@@ -3321,7 +3321,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Função de permissões restritas adicionadas",
         "Função adicionada de Cadastro de Funcionarios",
         "Função adicionada de Cadastro de produtos",
-        "Função de deslogar do painel de inatividade"
+        "Função de deslogar do painel de inatividade",
       ]
     },
     {
@@ -3344,7 +3344,9 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       id: 5,
       data: "25/12/2025",
-      descricao: ["Funçao mudaças no Layout para datas Comemorativas 'Tela de login'"]
+      descricao: ["Funçao mudaças no Layout para datas Comemorativas 'Tela de login'",
+                  
+      ]
     }
   ];
 
@@ -3408,4 +3410,340 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Inicialmente, verifica se há atualizações não vistas
   verificarAtualizacoes();
+});
+
+// card clientes
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Função para atualizar o total de clientes
+  async function atualizarTotalClientes() {
+    try {
+      const { count, error } = await supabase
+        .from('clientes')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error("Erro ao buscar clientes:", error.message);
+        return;
+      }
+
+      document.getElementById("total-clientes").textContent = count;
+    } catch (err) {
+      console.error("Erro inesperado ao atualizar clientes:", err);
+    }
+  }
+
+  // Atualiza assim que a página carrega
+  atualizarTotalClientes();
+
+  // Atualização automática a cada 5 segundos
+  setInterval(atualizarTotalClientes, 5000);
+});
+
+// card pedidos
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Função para atualizar pedidos pendentes (status = 'Recebido')
+  async function atualizarPedidosPendentes() {
+    try {
+      const { count, error } = await supabase
+        .from('pedidos')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Recebido'); // filtra somente os pedidos recebidos
+
+      if (error) {
+        console.error("Erro ao buscar pedidos pendentes:", error.message);
+        return;
+      }
+
+      document.getElementById("pedidos-pendentes").textContent = count;
+    } catch (err) {
+      console.error("Erro inesperado ao atualizar pedidos pendentes:", err);
+    }
+  }
+
+  // Atualiza assim que a página carrega
+  atualizarPedidosPendentes();
+
+  // Atualização automática a cada 5 segundos
+  setInterval(atualizarPedidosPendentes, 5000);
+});
+
+
+// pedidos-concluidos
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Função para atualizar pedidos concluídos (status = 'Finalizado')
+  async function atualizarPedidosConcluidos() {
+    try {
+      const { count, error } = await supabase
+        .from('pedidos')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Finalizado'); // filtra somente os pedidos finalizados
+
+      if (error) {
+        console.error("Erro ao buscar pedidos concluídos:", error.message);
+        return;
+      }
+
+      document.getElementById("pedidos-concluidos").textContent = count;
+    } catch (err) {
+      console.error("Erro inesperado:", err);
+    }
+  }
+
+  // Chamar a função ao carregar a página
+  atualizarPedidosConcluidos();
+
+  // Atualizar automaticamente a cada 30 segundos
+  setInterval(atualizarPedidosConcluidos, 30000);
+});
+
+// card total pedido 
+document.addEventListener("DOMContentLoaded", async () => {
+  const totalPedidosEl = document.getElementById("total-pedidos");
+  let totalPedidos = 0; // contador real do dashboard
+
+  // 1️⃣ Inicializa com todos os pedidos existentes
+  async function inicializarTotalPedidos() {
+    try {
+      const { count, error } = await supabase
+        .from('pedidos')
+        .select('id', { count: 'exact', head: true }); // pega apenas os IDs
+
+      if (error) {
+        console.error("Erro ao buscar total de pedidos:", error.message);
+        return;
+      }
+
+      totalPedidos = count || 0;
+      totalPedidosEl.textContent = totalPedidos;
+    } catch (err) {
+      console.error("Erro inesperado ao inicializar total de pedidos:", err);
+    }
+  }
+
+  await inicializarTotalPedidos();
+
+  // 2️⃣ Atualização periódica de fallback (não diminui o contador)
+  setInterval(async () => {
+    try {
+      const { count, error } = await supabase
+        .from('pedidos')
+        .select('id', { count: 'exact', head: true });
+
+      if (!error && count > totalPedidos) {
+        // só incrementa se houver mais pedidos na tabela
+        totalPedidos = count;
+        totalPedidosEl.textContent = totalPedidos;
+      }
+      // se count < totalPedidos, não faz nada
+    } catch (err) {
+      console.error("Erro ao atualizar total de pedidos:", err);
+    }
+  }, 5000);
+
+  // 3️⃣ Atualização instantânea via Supabase Realtime para novos pedidos
+  supabase
+    .from('pedidos')
+    .on('INSERT', payload => {
+      totalPedidos++;
+      totalPedidosEl.textContent = totalPedidos;
+    })
+    .subscribe();
+});
+
+// dashboard.js
+document.addEventListener("DOMContentLoaded", () => {
+
+  const totalPedidosEl = document.getElementById("total-pedidos");
+  const totalClientesEl = document.getElementById("total-clientes");
+  const selectPeriodo = document.getElementById("periodoPedidos");
+  const selectAnoContainer = document.getElementById("selectAnoContainer");
+  const selectAno = document.getElementById("anoPedidos");
+
+  const canvas = document.getElementById('graficoPedidos');
+  if (!canvas) return console.error("Canvas do gráfico não encontrado!");
+  const ctx = canvas.getContext('2d');
+
+  const grafico = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Valor Total Vendido (R$)',
+        data: [],
+        backgroundColor: '#4e22c5ff',
+        borderColor: '#16a34a',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true },
+        tooltip: {
+          callbacks: {
+            label: (context) => `R$ ${context.parsed.y.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { font: { size: 12 } }, barPercentage: 0.5, categoryPercentage: 0.7 },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Preencher anos de 1400 a 3000
+  function preencherAnos() {
+    const anoAtual = new Date().getFullYear();
+    for (let ano = 1400; ano <= 3000; ano++) {
+      const option = document.createElement("option");
+      option.value = ano;
+      option.textContent = ano;
+      if (ano === anoAtual) option.selected = true;
+      selectAno.appendChild(option);
+    }
+  }
+  preencherAnos();
+
+  // Buscar pedidos finalizados para o gráfico
+  async function buscarPedidos(periodo, anoSelecionado = null) {
+    const hoje = new Date();
+    let labels = [];
+    let dados = [];
+
+    if (periodo === 'ano') {
+      const ano = anoSelecionado || hoje.getFullYear();
+      labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      dados = Array(12).fill(0);
+
+      const inicioAno = new Date(ano,0,1).toISOString();
+      const fimAno = new Date(ano+1,0,1).toISOString();
+
+      const { data: pedidos, error } = await supabase
+        .from('pedidos')
+        .select('horario_recebido_status,total')
+        .eq('status','Finalizado')
+        .gte('horario_recebido_status', inicioAno)
+        .lt('horario_recebido_status', fimAno);
+
+      if (!error) {
+        pedidos.forEach(pedido => {
+          const mes = new Date(pedido.horario_recebido_status).getMonth();
+          dados[mes] += parseFloat(pedido.total || 0);
+        });
+      }
+
+    } else if (periodo === 'mes') {
+      const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+      labels = Array.from({length:diasNoMes}, (_,i)=> (i+1).toString());
+      dados = Array(diasNoMes).fill(0);
+
+      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
+      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1).toISOString();
+
+      const { data: pedidos, error } = await supabase
+        .from('pedidos')
+        .select('horario_recebido_status,total')
+        .eq('status','Finalizado')
+        .gte('horario_recebido_status', inicioMes)
+        .lt('horario_recebido_status', fimMes);
+
+      if (!error) {
+        pedidos.forEach(pedido => {
+          const dia = new Date(pedido.horario_recebido_status).getDate();
+          dados[dia-1] += parseFloat(pedido.total || 0);
+        });
+      }
+
+    } else if (periodo === 'semana') {
+      const diaSemanaHoje = hoje.getDay();
+      const domingo = new Date(hoje);
+      domingo.setDate(hoje.getDate() - diaSemanaHoje);
+      labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      dados = Array(7).fill(0);
+
+      const inicioSemana = new Date(domingo.getFullYear(),domingo.getMonth(),domingo.getDate()).toISOString();
+      const fimSemana = new Date(domingo.getFullYear(),domingo.getMonth(),domingo.getDate()+7).toISOString();
+
+      const { data: pedidos, error } = await supabase
+        .from('pedidos')
+        .select('horario_recebido_status,total')
+        .eq('status','Finalizado')
+        .gte('horario_recebido_status', inicioSemana)
+        .lt('horario_recebido_status', fimSemana);
+
+      if (!error) {
+        pedidos.forEach(pedido => {
+          const dia = new Date(pedido.horario_recebido_status).getDay();
+          dados[dia] += parseFloat(pedido.total || 0);
+        });
+      }
+
+    } else if (periodo === 'dia') {
+      labels = Array.from({length:24},(_,i)=>i+'h');
+      dados = Array(24).fill(0);
+
+      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
+      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1).toISOString();
+
+      const { data: pedidos, error } = await supabase
+        .from('pedidos')
+        .select('horario_recebido_status,total')
+        .eq('status','Finalizado')
+        .gte('horario_recebido_status', inicioDia)
+        .lt('horario_recebido_status', fimDia);
+
+      if (!error) {
+        pedidos.forEach(pedido => {
+          const hora = new Date(pedido.horario_recebido_status).getHours();
+          dados[hora] += parseFloat(pedido.total || 0);
+        });
+      }
+    }
+
+    return { labels, dados };
+  }
+
+  // Atualizar dashboard
+  async function atualizarDashboard() {
+    try {
+      const periodo = selectPeriodo?.value || 'ano';
+      const anoSelecionado = periodo==='ano'?parseInt(selectAno?.value):new Date().getFullYear();
+
+      if(periodo==='ano') selectAnoContainer.classList.remove('hidden');
+      else selectAnoContainer.classList.add('hidden');
+
+      // 🔹 Total de pedidos (todos os status, nunca diminui)
+      const { count: totalPedidos } = await supabase
+        .from('pedidos')
+        .select('id', { count:'exact', head:true }); // pega todos os pedidos
+      totalPedidosEl.textContent = totalPedidos || 0;
+
+      // Buscar e atualizar gráfico com valor total vendido (somente Finalizados)
+      const { labels, dados } = await buscarPedidos(periodo, anoSelecionado);
+      grafico.data.labels = labels;
+      grafico.data.datasets[0].data = dados;
+      grafico.update();
+
+      // Total de clientes
+      const { count: totalClientes } = await supabase
+        .from('clientes')
+        .select('*',{count:'exact',head:true});
+      totalClientesEl.textContent = totalClientes || 0;
+
+    } catch(err){
+      console.error("Erro ao atualizar dashboard:",err);
+    }
+  }
+
+  selectPeriodo?.addEventListener('change', atualizarDashboard);
+  selectAno?.addEventListener('change', atualizarDashboard);
+
+  atualizarDashboard();
+  setInterval(atualizarDashboard, 10000);
+
 });

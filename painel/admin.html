@@ -406,7 +406,81 @@
 
           <section id="dashboard" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
-  <p class="text-gray-700">Resumo geral do sistema.</p>
+  <p class="text-gray-700 mb-6">Resumo geral do sistema.</p>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+    <!-- Total de Pedidos -->
+    <div class="bg-white shadow-lg rounded-xl p-6 flex flex-col items-start">
+  <h3 class="text-lg font-semibold text-gray-600 mb-2">Total de Pedidos</h3>
+  <p id="total-pedidos" class="text-3xl font-bold text-blue-600">0</p>
+  <p class="text-sm text-gray-400 mt-1">Total de pedidos no sistema</p>
+</div>
+
+
+    <!-- Pedidos Pendentes -->
+    <div class="bg-white shadow-lg rounded-xl p-6 flex flex-col items-start">
+      <h3 class="text-lg font-semibold text-gray-600 mb-2">Pedidos Pendentes</h3>
+      <p id="pedidos-pendentes" class="text-3xl font-bold text-yellow-500">0</p>
+      <p class="text-sm text-gray-400 mt-1">Aguardando processamento</p>
+    </div>
+
+    <!-- Pedidos Concluídos -->
+    <div class="bg-white shadow-lg rounded-xl p-6 flex flex-col items-start">
+      <h3 class="text-lg font-semibold text-gray-600 mb-2">Pedidos Concluídos</h3>
+      <p id="pedidos-concluidos" class="text-3xl font-bold text-green-500">0</p>
+      <p class="text-sm text-gray-400 mt-1">Pedidos finalizados com sucesso</p>
+    </div>
+
+    <!-- Total de Clientes -->
+    <div class="bg-white shadow-lg rounded-xl p-6 flex flex-col items-start">
+      <h3 class="text-lg font-semibold text-gray-600 mb-2">Clientes</h3>
+      <p id="total-clientes" class="text-3xl font-bold text-purple-600">0</p>
+      <p class="text-sm text-gray-400 mt-1">Clientes cadastrados no sistema</p>
+    </div>
+
+  </div>
+
+ <!-- Gráfico de Barras Compacto -->
+<div class="mt-6 bg-white shadow-lg rounded-xl p-4 max-w-md">
+  <h3 class="text-lg font-semibold text-gray-600 mb-3">Gráfico de Vendas</h3>
+
+  <!-- Select para escolher o período -->
+  <div class="mb-4 flex items-center gap-2">
+    <label for="periodoPedidos" class="text-gray-700 text-sm font-medium">Período:</label>
+    <select id="periodoPedidos" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+      <option value="dia">Dia</option>
+      <option value="semana">Semana</option>
+      <option value="mes">Mês</option>
+      <option value="ano" selected>Ano</option>
+    </select>
+
+    <!-- Select para escolher o ano, inicialmente escondido -->
+    <div id="selectAnoContainer" class="hidden flex items-center gap-2">
+      <label for="anoPedidos" class="text-gray-700 text-sm font-medium">Ano:</label>
+      <select id="anoPedidos" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+        <!-- JS vai preencher com os anos disponíveis -->
+      </select>
+    </div>
+  </div>
+
+  <div class="w-full flex justify-start">
+    <canvas id="graficoPedidos" class="w-64 h-40 sm:w-72 sm:h-48"></canvas>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  #graficoPedidos {
+    max-width: 100%;
+    max-height: 12rem;
+  }
+</style>
+
+</section>
+
 
   <!-- BOTÃO FLUTUANTE WHATSAPP (SOMENTE DASHBOARD) -->
 <a

@@ -2033,6 +2033,96 @@ input:not(:placeholder-shown) + .label-flutuante {
 </div>
 <!-- ================= FIM MODAL DE ALERTA ================= -->
 
+<!-- ================= MODAL SUCESSO CADASTRO ================= -->
+<style>
+  .modal-sucesso-cadastro {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .modal-sucesso-box {
+    background: #ffffff;
+    width: 90%;
+    max-width: 360px;
+    padding: 26px 24px;
+    border-radius: 16px;
+    text-align: center;
+    animation: sucessoZoom 0.25s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .modal-sucesso-box .icone {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: #dcfce7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #16a34a;
+    font-size: 32px;
+    font-weight: bold;
+  }
+
+  .modal-sucesso-box h2 {
+    font-size: 20px;
+    color: #166534;
+    margin-bottom: 10px;
+  }
+
+  .modal-sucesso-box p {
+    font-size: 15px;
+    color: #374151;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+
+  .modal-sucesso-box button {
+    background: #16a34a;
+    color: #ffffff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .modal-sucesso-box button:hover {
+    background: #15803d;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @keyframes sucessoZoom {
+    from {
+      transform: scale(0.85);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+</style>
+
+<div id="modalSucessoCadastro" class="modal-sucesso-cadastro hidden">
+  <div class="modal-sucesso-box">
+    <div class="icone">✓</div>
+    <h2>Sucesso!</h2>
+    <p>Cliente cadastrado com sucesso.</p>
+    <button id="btnFecharSucesso">OK</button>
+  </div>
+</div>
+<!-- ================= FIM MODAL SUCESSO ================= -->
 
 
   <!-- FOOTER -->

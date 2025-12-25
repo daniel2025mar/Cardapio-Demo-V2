@@ -1025,7 +1025,6 @@ async function carregarClientes() {
 
 
 // cadastro de clientes
-
 document.addEventListener("DOMContentLoaded", () => {
   carregarClientes?.();
 
@@ -1094,25 +1093,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* =========================
-     TROCAR FOTO
-  ========================== */
-  inputFoto.addEventListener("change", () => {
-    const arquivo = inputFoto.files?.[0];
-    if (!arquivo) return;
-
-    if (!arquivo.type.startsWith("image/")) {
-      alert("Selecione apenas imagens.");
-      inputFoto.value = "";
-      previewFoto.src = FOTO_PADRAO;
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => (previewFoto.src = reader.result);
-    reader.readAsDataURL(arquivo);
-  });
-
-  /* =========================
      VALIDAR NOME
   ========================== */
   inputNome.addEventListener("input", () => {
@@ -1120,33 +1100,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* =========================
-     TELEFONE BR – MÁSCARA SEM TRAVAR BACKSPACE
+     TELEFONE BR
   ========================== */
   inputTelefone.addEventListener("input", (e) => {
-    let numeros = e.target.value.replace(/\D/g, "");
+    let numeros = e.target.value.replace(/\D/g, "").slice(0, 11);
 
-    // limita a 11 dígitos
-    if (numeros.length > 11) {
-      numeros = numeros.slice(0, 11);
-    }
-
-    let formatado = "";
-
-    if (numeros.length === 0) {
-      formatado = "";
-    } else if (numeros.length < 3) {
-      formatado = `(${numeros}`;
-    } else if (numeros.length < 7) {
-      formatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+    if (numeros.length <= 2) {
+      e.target.value = numeros ? `(${numeros}` : "";
+    } else if (numeros.length <= 6) {
+      e.target.value = `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
     } else if (numeros.length <= 10) {
-      // telefone fixo
-      formatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
+      e.target.value = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6)}`;
     } else {
-      // celular
-      formatado = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+      e.target.value = `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
     }
-
-    e.target.value = formatado;
   });
 
   /* =========================
@@ -1168,12 +1135,29 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =========================
+     MODAL SUCESSO
+  ========================== */
+  function mostrarModalSucesso() {
+    const modal = document.getElementById("modalSucessoCadastro");
+    const btn = document.getElementById("btnFecharSucesso");
+
+    modal.classList.remove("hidden");
+
+    btn.onclick = () => {
+      modal.classList.add("hidden");
+      fecharModal();
+      carregarClientes?.();
+    };
+  }
+
+  /* =========================
      SUBMIT
   ========================== */
-  formCadastro.addEventListener("submit", (e) => {
+  formCadastro.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const nome = inputNome.value.trim();
+    const telefone = inputTelefone.value.trim();
 
     if (!nome) {
       alert("Digite o nome do cliente.");
@@ -1195,10 +1179,60 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    alert("Cliente cadastrado com sucesso!");
-    fecharModal();
+    /* =====================================================
+       🔍 VERIFICAR SE CLIENTE JÁ EXISTE (SUPABASE)
+    ===================================================== */
+    const { data: clienteExistente, error: erroConsulta } = await supabase
+      .from("clientes")
+      .select("id")
+      .ilike("nome", nome)
+      .maybeSingle();
+
+    if (erroConsulta) {
+      console.error("Erro ao verificar cliente:", erroConsulta);
+      alert("Erro ao verificar cliente.");
+      return;
+    }
+
+    if (clienteExistente) {
+      document.getElementById("mensagemAlerta").textContent =
+        "Este cliente já está cadastrado.";
+
+      document.getElementById("modalAlerta").classList.remove("hidden");
+
+      document.getElementById("btnFecharAlerta").onclick = () => {
+        document.getElementById("modalAlerta").classList.add("hidden");
+        inputNome.focus();
+      };
+      return;
+    }
+
+    /* =====================================================
+       🚀 AQUI COMEÇA A FUNÇÃO QUE INSERE NA TABELA CLIENTES
+    ===================================================== */
+    const { error: erroInsert } = await supabase
+      .from("clientes")
+      .insert([
+        {
+          nome: nome,
+          telefone: telefone
+        }
+      ]);
+
+    if (erroInsert) {
+      console.error("Erro ao cadastrar cliente:", erroInsert);
+      alert("Erro ao cadastrar cliente.");
+      return;
+    }
+    /* =====================================================
+       ✅ FIM DA INSERÇÃO
+    ===================================================== */
+
+    mostrarModalSucesso();
   });
 });
+
+// fim do cadastro do ciente
 
 // Função de modal moderno
 function mostrarConfirmacao(novoStatus) {

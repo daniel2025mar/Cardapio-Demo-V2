@@ -186,6 +186,34 @@
 </header>
 
 
+<!-- Botão para abrir o painel de atualizações -->
+<div id="btn-ver-atualizacoes" 
+     class="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-black text-white font-bold text-center py-2 cursor-pointer">
+  Notas de Versão do Sistema
+</div>
+
+<!-- Modal de Atualizações -->
+<div id="modal-atualizacoes" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+  <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative">
+    
+    <!-- Header azul do modal -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-black p-5 flex items-center justify-between">
+      <h3 class="text-2xl font-bold text-white">Atualizações do Painel</h3>
+      <button id="fechar-atualizacoes" class="text-white hover:text-gray-300 text-3xl leading-none">&times;</button>
+    </div>
+
+    <!-- Conteúdo do modal -->
+    <div class="p-6 max-h-[70vh] overflow-auto">
+      <ul id="lista-atualizacoes" class="space-y-4">
+        <!-- JS vai adicionar as atualizações aqui -->
+      </ul>
+    </div>
+
+    
+    </div>
+  </div>
+</div>
+
 
 
   <div class="flex flex-1 overflow-hidden">
@@ -911,17 +939,48 @@
       </section>
 
     <section id="clientes" class="content-section mb-8">
-  <div class="flex items-center justify-between mb-6">
-    <div>
+  <div class="flex items-start justify-between mb-6 gap-4">
+    <div class="flex-1">
       <h2 class="text-3xl font-bold mb-1">Clientes</h2>
 
-      <!-- ⬇️ Parágrafo adicionado -->
-      <p class="text-gray-600 mb-4">
+      <p class="text-gray-600 mb-3">
         Administre seus clientes de forma simples, com funções de edição e bloqueio.
       </p>
+
+      <!-- 🔍 PESQUISA DE CLIENTES -->
+      <div class="relative max-w-sm mx-auto">
+  <!-- Ícone de pesquisa -->
+  <svg
+    class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+  </svg>
+
+  <!-- Input sem hover azul -->
+  <input
+    type="text"
+    id="pesquisaClientes"
+    placeholder="Pesquisar cliente..."
+    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300
+           focus:outline-none focus:ring-0 focus:border-gray-400 text-sm
+           placeholder-gray-400 transition"
+  />
+</div>
+
     </div>
 
-    <button id="btn-cadastrar-cliente" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors">
+    <button
+      id="btn-cadastrar-cliente"
+      class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700
+             text-white rounded-lg text-sm font-semibold transition-colors h-fit"
+    >
       Cadastrar Cliente
     </button>
   </div>
@@ -945,19 +1004,25 @@
     </table>
   </div>
 </section>
+
 <!-- ============================= -->
 <!--   MODAL / CARD EDITAR CLIENTE -->
 <!-- ============================= -->
 <div id="modal-editar-cliente" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
   <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6">
     
-    <!-- Cabeçalho -->
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-bold text-gray-800">Editar Cliente</h3>
-      <button id="fechar-modal-editar" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">
-        &times;
-      </button>
+    <div class="modal-header p-4 rounded-t-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-black shadow-xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl sm:text-2xl font-bold text-white">Editar Cliente</h3>
+        <button id="fechar-modal-editar"
+          class="text-white hover:text-gray-300 text-2xl sm:text-3xl leading-none">&times;</button>
+      </div>
+      <p class="text-xs sm:text-sm text-slate-300 mt-1">
+        Preencha os dados abaixo para atualizar as informações do cliente.
+      </p>
     </div>
+
+
 
     <!-- Formulário -->
     <form id="form-editar-cliente" class="space-y-4">
@@ -980,66 +1045,40 @@
 
       <!-- CIDADE + ESTADO (lado a lado) -->
       <div class="grid grid-cols-3 gap-4">
-      <!-- Cidade (2/3 da largura) -->
-<div class="col-span-2 relative">
-  <label class="block text-sm font-semibold text-gray-700 mb-1">Cidade</label>
-  <input id="edit-cidade" type="text" readonly
-    placeholder="Selecione a cidade"
-    class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
+        <!-- Cidade (2/3 da largura) -->
+        <div class="col-span-2 relative">
+          <label class="block text-sm font-semibold text-gray-700 mb-1">Cidade</label>
+          <input id="edit-cidade" type="text" readonly placeholder="Selecione a cidade"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer">
 
-  <!-- Modal de seleção de cidades -->
-  <div id="modal-cidades" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-    <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg sm:max-w-md max-h-[80vh] overflow-auto p-4 animate__animated animate__fadeIn">
-      
-      <!-- Cabeçalho do modal -->
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-gray-800">Selecione a Cidade</h3>
-        <button id="fechar-modal-cidades" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      </div>
+          <!-- Modal de seleção de cidades -->
+          <div id="modal-cidades" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+            <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg sm:max-w-md max-h-[80vh] overflow-auto p-4 animate__animated animate__fadeIn">
+              
+              <!-- Cabeçalho do modal -->
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Selecione a Cidade</h3>
+                <button id="fechar-modal-cidades" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+              </div>
 
-      <!-- Campo de busca -->
-      <input id="busca-cidade" type="text" placeholder="Buscar cidade..."
-        class="w-full px-3 py-2 border rounded-lg mb-4 focus:ring-indigo-500 focus:border-indigo-500">
+              <!-- Campo de busca -->
+              <input id="busca-cidade" type="text" placeholder="Buscar cidade..."
+                class="w-full px-3 py-2 border rounded-lg mb-4 focus:ring-indigo-500 focus:border-indigo-500">
 
-      <!-- Lista de cidades -->
-      <ul id="lista-cidades" class="space-y-2">
-        <!-- Cada cidade será adicionada dinamicamente via JS -->
-        <!-- Exemplo:
-        <li class="p-3 bg-gray-50 rounded-lg shadow hover:bg-indigo-50 cursor-pointer">São Paulo</li>
-        -->
-      </ul>
-    </div>
-  </div>
-</div>
+              <!-- Lista de cidades -->
+              <ul id="lista-cidades" class="space-y-2"></ul>
+            </div>
+          </div>
+        </div>
 
-<!-- Estilos responsivos -->
-<style>
-  @media (max-width: 640px) {
-    #modal-cidades > div {
-      width: 95%; /* ocupa quase toda a tela no celular */
-      padding: 1rem;
-    }
-    #lista-cidades li {
-      font-size: 0.9rem;
-      padding: 0.75rem 1rem;
-    }
-  }
-</style>
-
-
-
-        <!-- Estado (1/3 da largura, pequeno, 2 letras) -->
+        <!-- Estado (1/3 da largura) -->
         <div class="col-span-1">
           <label class="block text-sm font-semibold text-gray-700">Estado (UP)</label>
-          <select id="edit-up"
-            class="w-full px-2 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-center">
+          <select id="edit-up" class="w-full px-2 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-center">
             <option value="">UF</option>
           </select>
         </div>
-
       </div>
-      <!-- FIM CIDADE + ESTADO -->
-
 
       <!-- Botões -->
       <div class="flex justify-end gap-3 pt-4">
@@ -1047,8 +1086,8 @@
           class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-semibold">
           Cancelar
         </button>
-        <button type="submit"
-          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold">
+        <button type="submit" id="btn-salvar-edicao"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold opacity-50 pointer-events-none" disabled>
           Salvar Alterações
         </button>
       </div>
@@ -1056,6 +1095,7 @@
   </div>
 </div>
 <!-- FIM MODAL EDITAR CLIENTE -->
+
  <!-- ================= MODAL CADASTRO CLIENTE ================= -->
 <div id="modalCadastroCliente"
   class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -2035,6 +2075,7 @@ input:not(:placeholder-shown) + .label-flutuante {
 
 <!-- ================= MODAL SUCESSO CADASTRO ================= -->
 <style>
+  /* ISOLAMENTO TOTAL DO MODAL */
   .modal-sucesso-cadastro {
     position: fixed;
     inset: 0;
@@ -2042,7 +2083,12 @@ input:not(:placeholder-shown) + .label-flutuante {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 99999; /* acima do painel */
+    pointer-events: auto;
+  }
+
+  .modal-sucesso-cadastro.is-hidden {
+    display: none;
   }
 
   .modal-sucesso-box {
@@ -2098,10 +2144,6 @@ input:not(:placeholder-shown) + .label-flutuante {
     background: #15803d;
   }
 
-  .hidden {
-    display: none;
-  }
-
   @keyframes sucessoZoom {
     from {
       transform: scale(0.85);
@@ -2114,7 +2156,7 @@ input:not(:placeholder-shown) + .label-flutuante {
   }
 </style>
 
-<div id="modalSucessoCadastro" class="modal-sucesso-cadastro hidden">
+<div id="modalSucessoCadastro" class="modal-sucesso-cadastro is-hidden">
   <div class="modal-sucesso-box">
     <div class="icone">✓</div>
     <h2>Sucesso!</h2>
@@ -2124,6 +2166,185 @@ input:not(:placeholder-shown) + .label-flutuante {
 </div>
 <!-- ================= FIM MODAL SUCESSO ================= -->
 
+<!-- ================= MODAL CONFIRMAR EXCLUSÃO PREMIUM ================= -->
+<style>
+  .modal-excluir {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+      circle at top,
+      rgba(15, 23, 42, 0.85),
+      rgba(2, 6, 23, 0.95)
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 16px;
+  }
+
+  .modal-excluir.is-hidden {
+    display: none;
+  }
+
+  .modal-excluir-box {
+    width: 100%;
+    max-width: 440px;
+    background: linear-gradient(180deg, #ffffff, #f9fafb);
+    border-radius: 22px;
+    padding: 32px 28px 30px;
+    text-align: center;
+    box-shadow:
+      0 40px 80px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    animation: modalFloatIn 0.35s cubic-bezier(.16,1,.3,1);
+  }
+
+  .modal-excluir-box::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+  }
+
+  .modal-excluir-box .icone {
+    width: 82px;
+    height: 82px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at top, #fecaca, #dc2626);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 36px;
+    font-weight: 800;
+    box-shadow:
+      0 0 0 8px rgba(220, 38, 38, 0.12),
+      0 12px 30px rgba(220, 38, 38, 0.55);
+  }
+
+  .modal-excluir-box h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+
+  .modal-excluir-box p {
+    font-size: 15.5px;
+    color: #4b5563;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .modal-excluir-actions {
+    display: flex;
+    gap: 14px;
+  }
+
+  /* BOTÕES PREMIUM */
+  .btn-cancelar-modal {
+    flex: 1;
+    background: #f3f4f6;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    padding: 13px 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 14.5px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .btn-cancelar-modal:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+  }
+
+  .btn-excluir-modal {
+    flex: 1;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #ffffff;
+    border: none;
+    padding: 13px 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow:
+      0 10px 25px rgba(239, 68, 68, 0.55);
+    transition: all 0.2s ease;
+  }
+
+  .btn-excluir-modal:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 18px 40px rgba(239, 68, 68, 0.75);
+  }
+
+  .btn-excluir-modal:active {
+    transform: translateY(0);
+  }
+
+  /* MOBILE */
+  @media (max-width: 480px) {
+    .modal-excluir-box {
+      padding: 28px 22px 26px;
+    }
+
+    .modal-excluir-actions {
+      flex-direction: column-reverse;
+    }
+
+    .btn-cancelar-modal,
+    .btn-excluir-modal {
+      width: 100%;
+      font-size: 15px;
+    }
+  }
+
+  @keyframes modalFloatIn {
+    from {
+      transform: translateY(20px) scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+</style>
+
+<div id="modalExcluirCliente" class="modal-excluir is-hidden">
+  <div class="modal-excluir-box">
+    <div class="icone">!</div>
+
+    <h2>Excluir cliente</h2>
+
+    <p id="mensagemExcluir">
+      Essa ação é permanente e não poderá ser desfeita.
+      <br />
+      Deseja continuar?
+    </p>
+
+    <div class="modal-excluir-actions">
+      <button id="btnCancelarExcluir" class="btn-cancelar-modal">
+        Cancelar
+      </button>
+
+      <button id="btnConfirmarExcluir" class="btn-excluir-modal">
+        Excluir agora
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ================= FIM MODAL EXCLUIR ================= -->
 
   <!-- FOOTER -->
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">

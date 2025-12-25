@@ -832,6 +832,91 @@ function mostrarItensPedido(itens) {
   });
 }
 
+let clienteIdParaExcluir = null;
+
+async function excluirCliente(id) {
+  if (!id) {
+    console.error("ID inválido para exclusão");
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from("clientes")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    mostrarToast("Cliente excluído com sucesso!", "bg-green-600");
+    carregarClientes();
+
+  } catch (err) {
+    console.error("Erro ao excluir cliente:", err);
+    mostrarToast("Erro ao excluir cliente.", "bg-red-600");
+  }
+}
+
+function abrirModalExcluirCliente(id, nome) {
+  clienteIdParaExcluir = id; // 🔥 GUARDA O ID CORRETAMENTE
+
+  const modal = document.getElementById("modalExcluirCliente");
+  const mensagem = document.getElementById("mensagemExcluir");
+
+  mensagem.textContent = `Deseja realmente excluir ${nome || "este cliente"}?`;
+
+  modal.classList.remove("is-hidden");
+}
+
+document.addEventListener("click", async (e) => {
+
+  // CANCELAR
+  const btnCancelar = e.target.closest("#btnCancelarExcluir");
+  if (btnCancelar) {
+    document
+      .getElementById("modalExcluirCliente")
+      .classList.add("is-hidden");
+
+    clienteIdParaExcluir = null;
+    return;
+  }
+
+  // 🔥 CONFIRMAR EXCLUSÃO (AGORA FUNCIONA)
+  const btnConfirmar = e.target.closest("#btnConfirmarExcluir");
+  if (btnConfirmar) {
+
+    if (!clienteIdParaExcluir) {
+      console.error("ID do cliente não definido");
+      return;
+    }
+
+    await excluirCliente(clienteIdParaExcluir);
+
+    document
+      .getElementById("modalExcluirCliente")
+      .classList.add("is-hidden");
+
+    clienteIdParaExcluir = null;
+  }
+});
+
+// =============================
+//   CACHE DE CLIENTES
+// =============================
+let clientesCache = [];
+
+// 🔹 Mapa de siglas para UP
+const mapaUP = {
+  1: "MG", 2: "AC", 3: "AL", 4: "AP", 5: "AM", 6: "BA", 7: "CE",
+  8: "DF", 9: "ES", 10: "GO", 11: "MA", 12: "MT", 13: "MS", 14: "PA",
+  15: "PB", 16: "PR", 17: "PE", 18: "PI", 19: "RJ", 20: "RN", 21: "RS",
+  22: "RO", 23: "RR", 24: "SC", 25: "SP", 26: "SE", 27: "TO",
+  "1": "MG", "2": "AC", "3": "AL", "4": "AP", "5": "AM", "6": "BA", "7": "CE",
+  "8": "DF", "9": "ES", "10": "GO", "11": "MA", "12": "MT", "13": "MS", "14": "PA",
+  "15": "PB", "16": "PR", "17": "PE", "18": "PI", "19": "RJ", "20": "RN", "21": "RS",
+  "22": "RO", "23": "RR", "24": "SC", "25": "SP", "26": "SE", "27": "TO"
+};
+
 // =============================
 //   CARREGAR CLIENTES DO SUPABASE
 // =============================
@@ -849,180 +934,137 @@ async function carregarClientes() {
 
     if (error) throw error;
 
-    lista.innerHTML = "";
+    clientesCache = clientes || [];
+    renderizarClientes(clientesCache);
 
-    // 🔥 Mapa completo de todos os estados
-    const mapaUP = {
-      1: "MG",
-      2: "AC",
-      3: "AL",
-      4: "AP",
-      5: "AM",
-      6: "BA",
-      7: "CE",
-      8: "DF",
-      9: "ES",
-      10: "GO",
-      11: "MA",
-      12: "MT",
-      13: "MS",
-      14: "PA",
-      15: "PB",
-      16: "PR",
-      17: "PE",
-      18: "PI",
-      19: "RJ",
-      20: "RN",
-      21: "RS",
-      22: "RO",
-      23: "RR",
-      24: "SC",
-      25: "SP",
-      26: "SE",
-      27: "TO",
-
-      // 🔥 Caso o Supabase envie como STRING
-      "1": "MG",
-      "2": "AC",
-      "3": "AL",
-      "4": "AP",
-      "5": "AM",
-      "6": "BA",
-      "7": "CE",
-      "8": "DF",
-      "9": "ES",
-      "10": "GO",
-      "11": "MA",
-      "12": "MT",
-      "13": "MS",
-      "14": "PA",
-      "15": "PB",
-      "16": "PR",
-      "17": "PE",
-      "18": "PI",
-      "19": "RJ",
-      "20": "RN",
-      "21": "RS",
-      "22": "RO",
-      "23": "RR",
-      "24": "SC",
-      "25": "SP",
-      "26": "SE",
-      "27": "TO",
-    };
-
-    // Checa se o usuário tem apenas acesso_clientes
-    const permissoesCliente = window.permissoesDetalhadas["acesso_clientes"];
-    const isAcessoClienteExclusivo =
-      permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
-
-    clientes.forEach((cliente, index) => {
-      // 🔥 Corrige exibição do campo UP
-      const upFormatado = mapaUP[cliente.up] || "—";
-
-      const tr = document.createElement("tr");
-      tr.className = "hover:bg-gray-50";
-      if (cliente.bloqueado) tr.classList.add("bg-red-50");
-
-      tr.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
-
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-          ${cliente.nome || "—"}
-          ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
-        </td>
-
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
-
-        <!-- 🔥 Agora exibe corretamente a sigla do estado -->
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${upFormatado}</td>
-
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
-          <button class="btn-editar px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold">Editar</button>
-          <button class="btn-excluir px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold">Excluir</button>
-          <button class="btn-bloquear px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold">
-            ${cliente.bloqueado ? "Desbloquear" : "Bloquear"}
-          </button>
-        </td>
-      `;
-
-      const btnEditar = tr.querySelector(".btn-editar");
-      const btnExcluir = tr.querySelector(".btn-excluir");
-      const btnBloquear = tr.querySelector(".btn-bloquear");
-
-      // Botão Editar sempre funciona se permitido
-      btnEditar.addEventListener("click", () => {
-        if (!isAcessoClienteExclusivo || permissoesCliente.editar) {
-          editarCliente(cliente.id);
-        } else {
-          mostrarToast("Você não tem permissão para editar.", "bg-red-600");
-        }
-      });
-
-      // Excluir somente para quem não é acesso_exclusivo
-      btnExcluir.addEventListener("click", (e) => {
-  if (isAcessoClienteExclusivo) {
-    e.preventDefault();
-
-    // Atualiza a mensagem do modal, se necessário
-    const modalMensagem = document.getElementById("modalMensagemPermissao");
-    modalMensagem.textContent = "Você não tem permissão para excluir.";
-
-    // Exibe o modal
-    const modalPermissao = document.getElementById("modalPermissao");
-    modalPermissao.classList.remove("hidden");
-
-    // Fecha o modal ao clicar no botão OK
-    const btnFechar = document.getElementById("btnFecharModalPermissao");
-    btnFechar.onclick = () => {
-      modalPermissao.classList.add("hidden");
-    };
-
-  } else {
-    if (confirm(`Deseja realmente excluir ${cliente.nome || "—"}?`)) {
-      excluirCliente(cliente.id);
-    }
-  }
-});
-
-
-      btnBloquear.addEventListener("click", (e) => {
-  if (isAcessoClienteExclusivo) {
-    e.preventDefault();
-
-    // Atualiza a mensagem do modal, se necessário
-    const modalMensagem = document.getElementById("modalMensagemPermissao");
-    modalMensagem.textContent = "Ação não permitida. Seu perfil de usuário não possui autorização para realizar esta operação.";
-
-    // Exibe o modal
-    const modalPermissao = document.getElementById("modalPermissao");
-    modalPermissao.classList.remove("hidden");
-
-    // Fecha o modal ao clicar no botão OK
-    const btnFechar = document.getElementById("btnFecharModalPermissao");
-    btnFechar.onclick = () => {
-      modalPermissao.classList.add("hidden");
-    };
-
-  } else {
-    bloquearCliente(cliente.id, cliente.bloqueado);
-  }
-});
-
-
-      lista.appendChild(tr);
-    });
-
-    if (!clientes || clientes.length === 0) {
-      lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
-    }
   } catch (err) {
     console.error("Erro ao carregar clientes:", err);
     lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
   }
 }
 
+// =============================
+//   FILTRAR CLIENTES
+// =============================
+function filtrarClientesSupabase(texto) {
+  const termo = texto.toLowerCase().trim();
+
+  if (!termo) {
+    renderizarClientes(clientesCache);
+    return;
+  }
+
+  const filtrados = clientesCache.filter(cliente =>
+    (cliente.nome || "").toLowerCase().includes(termo) ||
+    (cliente.telefone || "").toLowerCase().includes(termo) ||
+    (cliente.cidade || "").toLowerCase().includes(termo) ||
+    String(cliente.up || "").includes(termo)
+  );
+
+  renderizarClientes(filtrados);
+}
+
+// =============================
+//   RENDERIZAR CLIENTES
+// =============================
+function renderizarClientes(clientes) {
+  const lista = document.getElementById("lista-clientes");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  if (!clientes || clientes.length === 0) {
+    lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
+    return;
+  }
+
+  const permissoesCliente = window.permissoesDetalhadas?.["acesso_clientes"];
+  const isAcessoClienteExclusivo = permissoesCliente && Object.keys(window.permissoesDetalhadas).length === 1;
+
+  clientes.forEach((cliente, index) => {
+    const tr = document.createElement("tr");
+    tr.className = "hover:bg-gray-50";
+    if (cliente.bloqueado) tr.classList.add("bg-red-50");
+
+    const upFormatado = mapaUP[cliente.up] || "—";
+
+    tr.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${index + 1}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        ${cliente.nome || "—"}
+        ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${upFormatado}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
+        <button class="btn-editar px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-white rounded text-xs font-semibold">Editar</button>
+        <button class="btn-excluir px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold">Excluir</button>
+        <button class="btn-bloquear px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-xs font-semibold">
+          ${cliente.bloqueado ? "Desbloquear" : "Bloquear"}
+        </button>
+      </td>
+    `;
+
+    const btnEditar = tr.querySelector(".btn-editar");
+    const btnExcluir = tr.querySelector(".btn-excluir");
+    const btnBloquear = tr.querySelector(".btn-bloquear");
+
+    btnEditar.addEventListener("click", () => {
+      if (!isAcessoClienteExclusivo || permissoesCliente.editar) {
+        editarCliente(cliente.id);
+      } else {
+        mostrarToast("Você não tem permissão para editar.", "bg-red-600");
+      }
+    });
+
+    btnExcluir.addEventListener("click", (e) => {
+      if (isAcessoClienteExclusivo) {
+        e.preventDefault();
+        const modalMensagem = document.getElementById("modalMensagemPermissao");
+        modalMensagem.textContent = "Você não tem permissão para excluir.";
+        const modalPermissao = document.getElementById("modalPermissao");
+        modalPermissao.classList.remove("hidden");
+        document.getElementById("btnFecharModalPermissao").onclick = () => {
+          modalPermissao.classList.add("hidden");
+        };
+      } else {
+        abrirModalExcluirCliente(cliente.id, cliente.nome);
+      }
+    });
+
+    btnBloquear.addEventListener("click", (e) => {
+      if (isAcessoClienteExclusivo) {
+        e.preventDefault();
+        const modalMensagem = document.getElementById("modalMensagemPermissao");
+        modalMensagem.textContent = "Ação não permitida. Seu perfil de usuário não possui autorização para realizar esta operação.";
+        const modalPermissao = document.getElementById("modalPermissao");
+        modalPermissao.classList.remove("hidden");
+        document.getElementById("btnFecharModalPermissao").onclick = () => {
+          modalPermissao.classList.add("hidden");
+        };
+      } else {
+        bloquearCliente(cliente.id, cliente.bloqueado);
+      }
+    });
+
+    lista.appendChild(tr);
+  });
+}
+
+// =============================
+//   EVENTOS
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+  carregarClientes();
+
+  const pesquisaInput = document.getElementById("pesquisaClientes");
+  if (pesquisaInput) {
+    pesquisaInput.addEventListener("input", (e) => {
+      filtrarClientesSupabase(e.target.value);
+    });
+  }
+});
 
 // cadastro de clientes
 document.addEventListener("DOMContentLoaded", () => {
@@ -1299,80 +1341,103 @@ async function bloquearCliente(idCliente, statusAtual) {
   );
 }
 
-// =============================
-//     ABRIR MODAL EDITAR
-// =============================
-async function editarCliente(id) {
-  console.log("Abrindo edição para cliente:", id);
-
-  // Buscar cliente
-  const { data: cliente, error } = await supabase
-    .from("clientes")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !cliente) {
-    console.error("Erro ao carregar cliente:", error);
-    alert("Erro ao carregar dados do cliente.");
-    return;
-  }
-
-  // Preenche os campos básicos
-  document.getElementById("edit-id").value = cliente.id;
-  document.getElementById("edit-nome").value = cliente.nome || "";
-  document.getElementById("edit-telefone").value = cliente.telefone || "";
 
   // =============================
-  //     🔥 CARREGAR ESTADOS
+  //     ABRIR MODAL EDITAR
   // =============================
-  const estados = await carregarEstadosEditar();
+  async function editarCliente(id) {
+    console.log("Abrindo edição para cliente:", id);
 
-  let estadoId = null;
+    const { data: cliente, error } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-  // Caso UP seja número (ID)
-  if (cliente.up && /^\d+$/.test(String(cliente.up))) {
-    estadoId = Number(cliente.up);
-  }
-  // Caso UP seja sigla
-  else if (cliente.up && isNaN(cliente.up)) {
-    estadoId = await buscarEstadoIdPorSigla(cliente.up);
-  }
-
-  // Seleciona estado
-  if (estadoId) {
-    document.getElementById("edit-up").value = estadoId;
-
-    // Carrega as cidades do estado no modal
-    await carregarCidadesPorEstadoEditar(estadoId);
-
-    // Seleciona cidade se existir
-    if (cliente.cidade) {
-      document.getElementById("edit-cidade").value = cliente.cidade;
+    if (error || !cliente) {
+      console.error("Erro ao carregar cliente:", error);
+      alert("Erro ao carregar dados do cliente.");
+      return;
     }
 
-  } else {
-    document.getElementById("edit-up").value = "";
-    document.getElementById("edit-cidade").value = "";
-    listaCidades.innerHTML = '';
+    const inputId = document.getElementById("edit-id");
+    const inputNome = document.getElementById("edit-nome");
+    const inputTelefone = document.getElementById("edit-telefone");
+    const selectUP = document.getElementById("edit-up");
+    const selectCidade = document.getElementById("edit-cidade");
+    const btnSalvar = document.getElementById("btn-salvar-edicao");
+
+    inputId.value = cliente.id;
+    inputNome.value = cliente.nome || "";
+    inputTelefone.value = cliente.telefone || "";
+
+    // Carregar estados (sua função existente)
+    await carregarEstadosEditar();
+
+    let estadoId = null;
+    if (cliente.up && /^\d+$/.test(String(cliente.up))) {
+      estadoId = Number(cliente.up);
+    } else if (cliente.up && isNaN(cliente.up)) {
+      estadoId = await buscarEstadoIdPorSigla(cliente.up);
+    }
+
+    if (estadoId) {
+      selectUP.value = estadoId;
+      await carregarCidadesPorEstadoEditar(estadoId);
+      if (cliente.cidade) selectCidade.value = cliente.cidade;
+    } else {
+      selectUP.value = "";
+      selectCidade.value = "";
+      document.getElementById("lista-cidades").innerHTML = '';
+    }
+
+    // =============================
+    //     BLOQUEAR BOTÃO SALVAR ATÉ ALTERAÇÃO
+    // =============================
+    const valoresOriginais = {
+      nome: inputNome.value,
+      telefone: inputTelefone.value,
+      up: selectUP.value,
+      cidade: selectCidade.value
+    };
+
+    function verificarAlteracoes() {
+      const alterado =
+        inputNome.value !== valoresOriginais.nome ||
+        inputTelefone.value !== valoresOriginais.telefone ||
+        selectUP.value !== valoresOriginais.up ||
+        selectCidade.value !== valoresOriginais.cidade;
+
+      btnSalvar.disabled = !alterado;
+      if (alterado) {
+        btnSalvar.classList.remove("opacity-50", "pointer-events-none");
+      } else {
+        btnSalvar.classList.add("opacity-50", "pointer-events-none");
+      }
+    }
+
+    [inputNome, inputTelefone, selectUP, selectCidade].forEach(el => {
+      el.addEventListener("input", verificarAlteracoes);
+      el.addEventListener("change", verificarAlteracoes);
+    });
+
+    // Abrir modal
+    const modal = document.getElementById("modal-editar-cliente");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
   }
 
-  // Abrir modal
-  document.getElementById("modal-editar-cliente").classList.remove("hidden");
-  document.getElementById("modal-editar-cliente").classList.add("flex");
-}
+  // =============================
+  //     FECHAR MODAL EDITAR
+  // =============================
+  function fecharModalEditar() {
+    const modal = document.getElementById("modal-editar-cliente");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
 
-// =============================
-//     FECHAR MODAL EDITAR
-// =============================
-function fecharModalEditar() {
-  const modal = document.getElementById("modal-editar-cliente");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-}
-
-document.getElementById("fechar-modal-editar").addEventListener("click", fecharModalEditar);
-document.getElementById("cancelar-edicao").addEventListener("click", fecharModalEditar);
+  document.getElementById("fechar-modal-editar").addEventListener("click", fecharModalEditar);
+  document.getElementById("cancelar-edicao").addEventListener("click", fecharModalEditar);
 
 // =============================
 //     SALVAR ALTERAÇÕES
@@ -3238,4 +3303,102 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicia o timer
   iniciarTimer();
 
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAbrir = document.getElementById("btn-ver-atualizacoes");
+  const modal = document.getElementById("modal-atualizacoes");
+  const btnFechar = document.getElementById("fechar-atualizacoes");
+  const lista = document.getElementById("lista-atualizacoes");
+
+  // Exemplo de atualizações
+  let atualizacoes = [
+    {
+      id: 1,
+      data: "04/10/2025",
+      descricao: [
+        "Função adicionada de Cadastro de Clientes",
+        "Função de permissões restritas adicionadas",
+        "Função adicionada de Cadastro de Funcionarios",
+        "Função adicionada de Cadastro de produtos",
+        "Função de deslogar do painel de inatividade"
+      ]
+    },
+    {
+      id: 2,
+      data: "20/12/2025",
+      descricao: ["Adicionado botão de ver atualizações no painel"]
+    },
+    {
+      id: 3,
+      data: "18/12/2025",
+      descricao: ["Corrigido problema de layout em telas pequenas"]
+    },
+    {
+      id: 4,
+      data: "15/12/2025",
+      descricao: ["Nova funcionalidade de seleção de cidade implementada"]
+    }
+  ];
+
+  // Recupera do localStorage quais atualizações já foram vistas
+  let atualizacoesVistas = JSON.parse(localStorage.getItem("atualizacoesVistas")) || [];
+
+  // Função para verificar se existem atualizações não vistas
+  function verificarAtualizacoes() {
+    const naoVistas = atualizacoes.filter(atual => !atualizacoesVistas.includes(atual.id));
+    if (naoVistas.length > 0) {
+      btnAbrir.classList.remove("hidden"); // mostra o botão
+    } else {
+      btnAbrir.classList.add("hidden"); // esconde o botão
+    }
+  }
+
+  // Renderizar atualizações agrupadas por data
+  function renderizarAtualizacoes() {
+    lista.innerHTML = "";
+
+    atualizacoes.forEach(item => {
+      const liData = document.createElement("li");
+      liData.className = "bg-gray-50 rounded-lg p-4 shadow-sm";
+
+      const dataTitulo = document.createElement("p");
+      dataTitulo.className = "font-bold text-gray-700 mb-2";
+      dataTitulo.textContent = item.data;
+      liData.appendChild(dataTitulo);
+
+      const ulDescricoes = document.createElement("ul");
+      ulDescricoes.className = "list-disc list-inside space-y-1 text-gray-600";
+
+      item.descricao.forEach(desc => {
+        const liDesc = document.createElement("li");
+        liDesc.textContent = desc;
+        ulDescricoes.appendChild(liDesc);
+      });
+
+      liData.appendChild(ulDescricoes);
+      lista.appendChild(liData);
+    });
+  }
+
+  // Abrir modal
+  btnAbrir.addEventListener("click", () => {
+    renderizarAtualizacoes();
+    modal.classList.remove("hidden");
+
+    // Marcar todas as atualizações como vistas
+    atualizacoesVistas = atualizacoes.map(atual => atual.id);
+    localStorage.setItem("atualizacoesVistas", JSON.stringify(atualizacoesVistas));
+
+    // Esconder o botão
+    btnAbrir.classList.add("hidden");
+  });
+
+  // Fechar modal
+  btnFechar.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  // Inicialmente, verifica se há atualizações não vistas
+  verificarAtualizacoes();
 });

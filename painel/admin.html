@@ -1056,8 +1056,7 @@
   </div>
 </div>
 <!-- FIM MODAL EDITAR CLIENTE -->
- 
-<!-- ================= MODAL CADASTRO CLIENTE ================= -->
+ <!-- ================= MODAL CADASTRO CLIENTE ================= -->
 <div id="modalCadastroCliente"
   class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
 
@@ -1089,13 +1088,12 @@
       <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
 
         <!-- label permite clicar sem JS -->
-        <label for="fotoCliente"
-          class="foto-box cursor-pointer">
-
+        <label for="fotoCliente" class="foto-box cursor-pointer">
           <img
             id="previewFoto"
-            src="../imagem/fotopadrao.jpg"
-            alt="Foto padrão do cliente">
+            src="/imagem/fotopadrao.jpg"
+            alt="Foto padrão do cliente"
+            onerror="this.src='/imagem/fotopadrao.jpg'">
         </label>
 
         <input
@@ -1302,6 +1300,7 @@ input:not(:placeholder-shown) + .label-flutuante {
   to { transform: translateY(0); }
 }
 </style>
+
 
 <section id="funcionarios" class="content-section mb-8">
   <h2 class="text-3xl font-bold mb-4">Funcionários</h2>

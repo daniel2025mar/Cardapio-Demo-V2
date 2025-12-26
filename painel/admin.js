@@ -3553,7 +3553,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     .subscribe();
 });
 
-// dashboard.js
+
+// grafico de vendas
 document.addEventListener("DOMContentLoaded", () => {
 
   const totalPedidosEl = document.getElementById("total-pedidos");
@@ -3573,8 +3574,8 @@ document.addEventListener("DOMContentLoaded", () => {
       datasets: [{
         label: 'Valor Total Vendido (R$)',
         data: [],
-        backgroundColor: '#4e22c5ff',
-        borderColor: '#16a34a',
+        backgroundColor: '#4400ffff',
+        borderColor: '#a36116ff',
         borderWidth: 1
       }]
     },
@@ -3746,4 +3747,80 @@ document.addEventListener("DOMContentLoaded", () => {
   atualizarDashboard();
   setInterval(atualizarDashboard, 10000);
 
+});
+
+// grafico de mais vendidos
+document.addEventListener('DOMContentLoaded', () => {
+
+  let graficoMaisVendidos = null; // variável global para o gráfico
+
+  async function carregarProdutosMaisVendidos() {
+    const { data: produtos, error } = await supabase
+      .from('produtos')
+      .select('descricao, estoque')
+      .order('estoque', { ascending: false })
+      .limit(10); // pega mais para garantir que teremos 5 únicos
+
+    if (error) {
+      console.error('Erro ao carregar produtos:', error);
+      return [];
+    }
+
+    // Filtra para que cada descrição apareça apenas uma vez
+    const produtosUnicos = [];
+    const nomesVistos = new Set();
+    for (const p of produtos) {
+      if (!nomesVistos.has(p.descricao)) {
+        nomesVistos.add(p.descricao);
+        produtosUnicos.push(p);
+      }
+      if (produtosUnicos.length >= 5) break; // só os 5 primeiros únicos
+    }
+
+    return produtosUnicos;
+  }
+
+  async function renderizarGraficoMaisVendidos() {
+    const produtos = await carregarProdutosMaisVendidos();
+
+    const ctx = document.getElementById('graficoMaisVendidos').getContext('2d');
+    const labels = produtos.map(p => p.descricao);
+    const data = produtos.map(p => p.estoque);
+
+    // Se já existir, destrói o gráfico anterior
+    if (graficoMaisVendidos) graficoMaisVendidos.destroy();
+
+    // Cria novo gráfico
+    graficoMaisVendidos = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Estoque',
+          data: data,
+          backgroundColor: 'rgba(59, 130, 246, 0.7)',
+          borderColor: 'rgba(59, 130, 246, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+
+    // Nomes dos produtos abaixo do gráfico
+    const nomesDiv = document.getElementById('nomesProdutosMaisVendidos');
+    nomesDiv.innerHTML = '';
+    produtos.forEach(p => {
+      const pEl = document.createElement('p');
+      pEl.textContent = p.descricao;
+      nomesDiv.appendChild(pEl);
+    });
+  }
+
+  // Atualiza a cada 5 segundos
+  renderizarGraficoMaisVendidos();
+  setInterval(renderizarGraficoMaisVendidos, 5000);
 });

@@ -408,15 +408,15 @@
   <h2 class="text-3xl font-bold mb-4">Dashboard</h2>
   <p class="text-gray-700 mb-6">Resumo geral do sistema.</p>
 
+  <!-- Cards de resumo -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
     <!-- Total de Pedidos -->
     <div class="bg-white shadow-lg rounded-xl p-6 flex flex-col items-start">
-  <h3 class="text-lg font-semibold text-gray-600 mb-2">Total de Pedidos</h3>
-  <p id="total-pedidos" class="text-3xl font-bold text-blue-600">0</p>
-  <p class="text-sm text-gray-400 mt-1">Total de pedidos no sistema</p>
-</div>
-
+      <h3 class="text-lg font-semibold text-gray-600 mb-2">Total de Pedidos</h3>
+      <p id="total-pedidos" class="text-3xl font-bold text-blue-600">0</p>
+      <p class="text-sm text-gray-400 mt-1">Total de pedidos no sistema</p>
+    </div>
 
     <!-- Pedidos Pendentes -->
     <div class="bg-white shadow-lg rounded-xl p-6 flex flex-col items-start">
@@ -441,45 +441,52 @@
 
   </div>
 
- <!-- Gráfico de Barras Compacto -->
-<div class="mt-6 bg-white shadow-lg rounded-xl p-4 max-w-md">
-  <h3 class="text-lg font-semibold text-gray-600 mb-3">Gráfico de Vendas</h3>
+  <!-- Gráficos -->
+  <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-  <!-- Select para escolher o período -->
-  <div class="mb-4 flex items-center gap-2">
-    <label for="periodoPedidos" class="text-gray-700 text-sm font-medium">Período:</label>
-    <select id="periodoPedidos" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-      <option value="dia">Dia</option>
-      <option value="semana">Semana</option>
-      <option value="mes">Mês</option>
-      <option value="ano" selected>Ano</option>
-    </select>
-
-    <!-- Select para escolher o ano, inicialmente escondido -->
-    <div id="selectAnoContainer" class="hidden flex items-center gap-2">
-      <label for="anoPedidos" class="text-gray-700 text-sm font-medium">Ano:</label>
-      <select id="anoPedidos" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-        <!-- JS vai preencher com os anos disponíveis -->
-      </select>
+    <!-- Gráfico de Vendas -->
+    <div class="bg-white shadow-lg rounded-xl p-4 max-w-md">
+      <h3 class="text-lg font-semibold text-gray-600 mb-3">Gráfico de Vendas</h3>
+      <div class="mb-4 flex items-center gap-2">
+        <label for="periodoPedidos" class="text-gray-700 text-sm font-medium">Período:</label>
+        <select id="periodoPedidos" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+          <option value="dia">Dia</option>
+          <option value="semana">Semana</option>
+          <option value="mes">Mês</option>
+          <option value="ano" selected>Ano</option>
+        </select>
+        <div id="selectAnoContainer" class="hidden flex items-center gap-2">
+          <label for="anoPedidos" class="text-gray-700 text-sm font-medium">Ano:</label>
+          <select id="anoPedidos" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <!-- JS vai preencher -->
+          </select>
+        </div>
+      </div>
+      <div class="w-full flex justify-start">
+        <canvas id="graficoPedidos" class="w-64 h-40 sm:w-72 sm:h-48"></canvas>
+      </div>
     </div>
+
+    <!-- Gráfico de Produtos Mais Vendidos -->
+    <div class="bg-white shadow-lg rounded-xl p-4 max-w-md">
+      <h3 class="text-lg font-semibold text-gray-600 mb-3">Produtos Mais Vendidos</h3>
+      <canvas id="graficoMaisVendidos" class="w-full h-64"></canvas>
+      
+    </div>
+
   </div>
 
-  <div class="w-full flex justify-start">
-    <canvas id="graficoPedidos" class="w-64 h-40 sm:w-72 sm:h-48"></canvas>
-  </div>
-</div>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-  #graficoPedidos {
-    max-width: 100%;
-    max-height: 12rem;
-  }
-</style>
-
+  <style>
+    #graficoPedidos, #graficoMaisVendidos {
+      max-width: 100%;
+      max-height: 16rem;
+    }
+  </style>
 </section>
+
 
 
   <!-- BOTÃO FLUTUANTE WHATSAPP (SOMENTE DASHBOARD) -->

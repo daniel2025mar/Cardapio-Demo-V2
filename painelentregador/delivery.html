@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos para Entrega</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Heroicons -->
+  <script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen relative">
+
+  <!-- Toolbar fixa no topo -->
+  <header class="fixed top-0 left-0 w-full bg-gray-800 text-white shadow z-50">
+    <div class="max-w-full px-4 py-3 flex items-center justify-between gap-2">
+      <!-- Nome do entregador -->
+      <span class="text-sm font-semibold truncate">Entregador: <span id="nome-entregador">Nome do Entregador</span></span>
+
+      <div class="flex items-center gap-2">
+        <!-- Ícone de notificações -->
+        <button id="btn-notificacao" class="bg-gray-700 hover:bg-gray-600 p-2 rounded">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+        </button>
+
+        <!-- Ícone de deslogar -->
+        <button id="btn-deslogar" class="bg-blue-600 hover:bg-blue-500 p-2 rounded">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 11-4 0v-1m0-8V7a2 2 0 114 0v1"/>
+  </svg>
+</button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo principal -->
+  <main class="max-w-full mx-auto mt-20 mb-16 px-4" id="pedidos-container">
+    <!-- Cards de pedidos serão adicionados pelo JS externo -->
+  </main>
+
+  <!-- Rodapé fixo -->
+  <footer class="fixed bottom-0 left-0 w-full bg-gray-800 text-white text-center py-3 shadow text-sm">
+    Desenvolvido por DM DESIGN GRÁFICO
+  </footer>
+
+  <!-- Link para JS externo -->
+  <script src="pedidos.js"></script>
+</body>
+</html>

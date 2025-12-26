@@ -90,6 +90,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return mostrarErro("Acesso ao sistema bloqueado. Contate o suporte.");
     }
 
+    // ================================
+    // BLOQUEIO POR CARGO (ENTREGADOR)
+    // ================================
+    if (usuario.cargo === "Entregador") {
+      return mostrarErro(
+        "Acesso negado. Usuário não podem acessar este painel."
+      );
+    }
+
     tentativas = 0;
     localStorage.removeItem("loginBloqueado");
 

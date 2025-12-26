@@ -208,6 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  
   // ================================
   // VERIFICAR SE USUÁRIO ESTÁ BLOQUEADO
   // ================================
@@ -1852,7 +1853,51 @@ async function listarFuncionarios() {
 // Chamada inicial ao carregar o painel
 listarFuncionarios();
 
+// ==============================
+// CARREGAR CARGOS DO SUPABASE NO SELECT
+// ==============================
 
+async function carregarCargos() {
+  const selectCargo = document.getElementById("cargoFuncionario");
+
+  if (!selectCargo) {
+    console.warn("⚠️ Select cargoFuncionario não encontrado");
+    return;
+  }
+
+  try {
+    const { data: cargos, error } = await supabase
+      .from("cargos")
+      .select("nome")
+      .order("nome", { ascending: true });
+
+    if (error) {
+      console.error("❌ Erro ao carregar cargos:", error);
+      selectCargo.innerHTML = `<option value="">Erro ao carregar cargos</option>`;
+      return;
+    }
+
+    // limpa e recria opções
+    selectCargo.innerHTML = `<option value="">Selecione um cargo</option>`;
+
+    cargos.forEach(cargo => {
+      const option = document.createElement("option");
+      option.value = cargo.nome;      // ✅ TEXTO
+      option.textContent = cargo.nome;
+      selectCargo.appendChild(option);
+    });
+
+    console.log("✅ Cargos carregados com sucesso");
+
+  } catch (err) {
+    console.error("❌ Erro inesperado:", err);
+    selectCargo.innerHTML = `<option value="">Erro inesperado</option>`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarCargos();
+});
 
 // ==============================
 // CADASTRAR / ATUALIZAR FUNCIONÁRIO (formulário principal)
@@ -1868,8 +1913,14 @@ formFuncionario.addEventListener("submit", async (e) => {
   const usuario = document.getElementById("usuarioFuncionario").value.trim();
   const senha = document.getElementById("senhaFuncionario").value.trim();
   const email = document.getElementById("emailFuncionario").value.trim();
+  const cargo = document.getElementById("cargoFuncionario").value; // 🔥 AQUI
 
-  console.log("➡️ Dados capturados do formulário:", { nome, usuario, senha, email });
+  console.log("➡️ Dados capturados:", { nome, usuario, senha, email, cargo });
+
+  if (!cargo) {
+    alert("Selecione um cargo");
+    return;
+  }
 
   try {
     let funcionarioId;
@@ -1895,14 +1946,13 @@ formFuncionario.addEventListener("submit", async (e) => {
       }
     });
 
-    console.log("📌 Permissões selecionadas (ARRAY):", permissoes);
+    console.log("📌 Permissões:", permissoes);
 
     if (formFuncionario.dataset.editingId) {
       // =============================
-      // ATUALIZAR FUNCIONÁRIO EXISTENTE
+      // ✏️ ATUALIZAR FUNCIONÁRIO
       // =============================
       const idUsuario = formFuncionario.dataset.editingId;
-      console.log("✏️ Atualizando usuário ID:", idUsuario);
 
       const { data: usuarioAtualizado, error: errorUsuario } = await supabase
         .from("usuarios")
@@ -1910,7 +1960,8 @@ formFuncionario.addEventListener("submit", async (e) => {
           username: usuario,
           password: senha,
           email: email,
-          permissoes: permissoes // ← array de strings
+          cargo: cargo,          // 🔥 SALVA O CARGO SELECIONADO
+          permissoes: permissoes
         })
         .eq("id", idUsuario)
         .select();
@@ -1929,7 +1980,7 @@ formFuncionario.addEventListener("submit", async (e) => {
 
     } else {
       // =============================
-      // CADASTRAR NOVO FUNCIONÁRIO
+      // ➕ CADASTRAR NOVO FUNCIONÁRIO
       // =============================
       const { data: funcionarioData, error: errorFuncionario } = await supabase
         .from("funcionarios")
@@ -1942,13 +1993,13 @@ formFuncionario.addEventListener("submit", async (e) => {
       const { data: usuarioData, error: errorUsuario } = await supabase
         .from("usuarios")
         .insert([{
-          id: crypto.randomUUID(),       // gera UUID
+          id: crypto.randomUUID(),
           username: usuario,
           password: senha,
           email: email || null,
-          cargo: "Funcionário",
+          cargo: cargo,              // 🔥 AQUI TAMBÉM
           funcionario_id: funcionarioId,
-          permissoes: permissoes        // ← array de strings
+          permissoes: permissoes
         }])
         .select();
 
@@ -1956,18 +2007,23 @@ formFuncionario.addEventListener("submit", async (e) => {
       usuarioId = usuarioData[0].id;
     }
 
-    alert(formFuncionario.dataset.editingId ? "Funcionário atualizado com sucesso!" : "Funcionário cadastrado com sucesso!");
+    alert(
+      formFuncionario.dataset.editingId
+        ? "Funcionário atualizado com sucesso!"
+        : "Funcionário cadastrado com sucesso!"
+    );
+
     formFuncionario.reset();
     delete formFuncionario.dataset.editingId;
 
-    // Atualiza o painel imediatamente
     listarFuncionarios();
 
   } catch (err) {
-    console.error("❌ ERRO FATAL AO SALVAR FUNCIONÁRIO:", err);
-    alert("Erro ao salvar funcionário. Veja o console para detalhes.");
+    console.error("❌ ERRO AO SALVAR FUNCIONÁRIO:", err);
+    alert("Erro ao salvar funcionário. Veja o console.");
   }
 });
+
 
 // ==============================
 // FUNÇÃO PARA CARREGAR FUNCIONÁRIO COM USUÁRIO

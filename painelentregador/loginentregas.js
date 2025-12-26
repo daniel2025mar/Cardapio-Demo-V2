@@ -1,41 +1,110 @@
-// Toggle mostrar/ocultar senha
+// =============================
+// CONFIGURAÇÃO DO SUPABASE
+// =============================
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================
+// ELEMENTOS
+// =============================
+const form = document.getElementById("login-form");
+const errorEl = document.getElementById("login-error");
 const toggle = document.getElementById("togglePassword");
-const password = document.getElementById("password");
+const passwordInput = document.getElementById("password");
+
+// =============================
+// MOSTRAR / OCULTAR SENHA
+// =============================
 let senhaVisivel = false;
 
 toggle.addEventListener("click", () => {
   senhaVisivel = !senhaVisivel;
-  password.type = senhaVisivel ? "text" : "password";
+  passwordInput.type = senhaVisivel ? "text" : "password";
 });
 
+// =============================
+// LOGIN
+// =============================
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  errorEl.classList.add("hidden");
+  errorEl.textContent = "";
+
+  const username = document.getElementById("username").value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!username || !password) {
+    mostrarErro("Informe usuário e senha.");
+    return;
+  }
+
+  try {
+    const { data: usuario, error } = await supabase
+      .from("usuarios")
+      .select("*")
+      .eq("username", username)
+      .eq("password", password)
+      .single();
+
+    // ❌ NÃO ENCONTROU USUÁRIO
+    if (error || !usuario) {
+      mostrarErro("Usuário ou senha incorretos.");
+      return;
+    }
+
+    // ✅ LOGIN CORRETO → ABRE DELIVERY
+    localStorage.setItem("entregadorLogado", JSON.stringify(usuario));
+    window.location.href = "delivery.html";
+
+  } catch (err) {
+    console.error(err);
+    mostrarErro("Erro ao tentar fazer login.");
+  }
+});
+
+// =============================
+// FUNÇÃO DE ERRO
+// =============================
+function mostrarErro(mensagem) {
+  errorEl.textContent = mensagem;
+  errorEl.classList.remove("hidden");
+}
+
+// =============================
+// TEMA NATAL AUTOMÁTICO
+// =============================
 document.addEventListener("DOMContentLoaded", () => {
-  // ======== Tema Natal Automático ========
-  const inicioNatal = new Date(2025, 11, 23, 0, 0, 0); // dezembro = 11
+  const inicioNatal = new Date(2025, 11, 23, 0, 0, 0);
   const fimNatal = new Date(2025, 11, 26, 23, 59, 59);
   const agora = new Date();
 
   if (agora >= inicioNatal && agora <= fimNatal) {
-    document.body.classList.add('tema-natal');
+    document.body.classList.add("tema-natal");
 
-    // Atualizar gradiente dos cards e botões
-    const brandingCards = document.querySelectorAll('.bg-gradient-to-br');
-    brandingCards.forEach(card => {
-      card.style.backgroundImage = 'linear-gradient(135deg, #b91c1c, #dc2626, #b91c1c)';
+    document.querySelectorAll(".bg-gradient-to-br").forEach(card => {
+      card.style.backgroundImage =
+        "linear-gradient(135deg, #b91c1c, #dc2626, #b91c1c)";
     });
 
-    const btnsGradient = document.querySelectorAll('.btn-gradient');
-    btnsGradient.forEach(btn => {
-      btn.style.backgroundImage = 'linear-gradient(135deg, #b91c1c, #dc2626, #b91c1c)';
+    document.querySelectorAll(".btn-gradient").forEach(btn => {
+      btn.style.backgroundImage =
+        "linear-gradient(135deg, #b91c1c, #dc2626, #b91c1c)";
     });
 
-    // Mostrar modal de Natal no card mobile
-    const modalNatal = document.getElementById('modal-natal');
-    if (modalNatal) modalNatal.classList.remove('hidden');
+    const modalNatal = document.getElementById("modal-natal");
+    const btnFechar = document.getElementById("fechar-natal");
 
-    const btnFechar = document.getElementById('fechar-natal');
+    if (modalNatal) modalNatal.classList.remove("hidden");
+
     if (btnFechar) {
-      btnFechar.addEventListener('click', () => {
-        modalNatal.classList.add('hidden');
+      btnFechar.addEventListener("click", () => {
+        modalNatal.classList.add("hidden");
       });
     }
   }

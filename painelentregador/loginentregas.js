@@ -97,7 +97,7 @@ function mostrarErro(mensagem) {
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
   const inicioNatal = new Date(2025, 11, 23, 0, 0, 0);
-  const fimNatal = new Date(2025, 11, 26, 23, 59, 59);
+  const fimNatal = new Date(2025, 11, 26, 23, 5, 0);
   const agora = new Date();
 
   if (agora >= inicioNatal && agora <= fimNatal) {

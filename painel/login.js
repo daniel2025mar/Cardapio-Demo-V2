@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Datas comemorativas
   // Natal
   const inicioNatal = new Date(2025, 11, 23, 22, 33);
-  const fimNatal    = new Date(2025, 11, 28, 20, 0);
+  const fimNatal    = new Date(2025, 11, 26, 23, 5);
 
   // Ano Novo
   const inicioAnoNovo = new Date(2025, 11, 31, 0, 0); 

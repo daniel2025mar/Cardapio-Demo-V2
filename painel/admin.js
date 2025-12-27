@@ -834,6 +834,26 @@ function mostrarItensPedido(itens) {
   });
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const btnEntrega = document.getElementById("btn-em-entrega");
+  const contadorEntrega = document.getElementById("total-entrega");
+  const pedidoNumero = document.getElementById("pedido-numero");
+
+  if (!btnEntrega || !contadorEntrega || !pedidoNumero) return;
+
+  btnEntrega.addEventListener("click", () => {
+    // 🔒 CONDIÇÃO: pedido não carregado
+    if (pedidoNumero.textContent === "0000") {
+      alert("Nenhum pedido carregado para enviar à entrega.");
+      return;
+    }
+
+    // ✅ Pedido válido → atualiza contador
+    const valorAtual = parseInt(contadorEntrega.textContent) || 0;
+    contadorEntrega.textContent = valorAtual + 1;
+  });
+});
+
 let clienteIdParaExcluir = null;
 
 async function excluirCliente(id) {
@@ -2497,6 +2517,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   const btnNotificacoes = document.getElementById('btn-notificacoes');

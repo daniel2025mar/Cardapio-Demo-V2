@@ -16,6 +16,7 @@ const form = document.getElementById("login-form");
 const errorEl = document.getElementById("login-error");
 const toggle = document.getElementById("togglePassword");
 const passwordInput = document.getElementById("password");
+const usernameInput = document.getElementById("username");
 
 // =============================
 // MOSTRAR / OCULTAR SENHA
@@ -36,7 +37,7 @@ form.addEventListener("submit", async (e) => {
   errorEl.classList.add("hidden");
   errorEl.textContent = "";
 
-  const username = document.getElementById("username").value.trim();
+  const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
 
   if (!username || !password) {
@@ -58,6 +59,12 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
+    // ❌ USUÁRIO INATIVO
+    if (usuario.ativo === false) {
+      mostrarErro("Acesso bloqueado. Contate o administrador.");
+      return;
+    }
+
     // ✅ LOGIN CORRETO → ABRE DELIVERY
     localStorage.setItem("entregadorLogado", JSON.stringify(usuario));
     window.location.href = "delivery.html";
@@ -69,11 +76,20 @@ form.addEventListener("submit", async (e) => {
 });
 
 // =============================
-// FUNÇÃO DE ERRO
+// FUNÇÃO DE ERRO COM TEMPO
 // =============================
 function mostrarErro(mensagem) {
   errorEl.textContent = mensagem;
   errorEl.classList.remove("hidden");
+  errorEl.style.color = "white";
+
+  // Após 3 segundos, esconde a mensagem e limpa campos
+  setTimeout(() => {
+    errorEl.classList.add("hidden");
+    errorEl.textContent = "";
+    usernameInput.value = "";
+    passwordInput.value = "";
+  }, 3000);
 }
 
 // =============================

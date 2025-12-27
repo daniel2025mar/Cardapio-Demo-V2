@@ -239,6 +239,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (contador) contador.textContent = pedidosFinalizados?.length || 0;
   }
 
+  
   // ================================
   // CARREGA FILA DE PEDIDOS (APENAS STATUS "RECEBIDO")
   // ================================

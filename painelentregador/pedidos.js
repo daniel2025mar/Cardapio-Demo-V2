@@ -18,7 +18,6 @@ async function entregarPedidoDOM(id, file) {
 
   if (!statusEl || !btnEl || !cardEl || statusEl.textContent === "Entregue") return;
 
-  // Bloquear botão para evitar múltiplos cliques
   btnEl.disabled = true;
   btnEl.textContent = "Finalizando...";
 
@@ -36,7 +35,6 @@ async function entregarPedidoDOM(id, file) {
       fotoUrl = supabase.storage.from("fotos-entregas").getPublicUrl(fileName).data.publicUrl;
     }
 
-    // Atualiza status no banco
     const { error: updateError } = await supabase
       .from("entregas")
       .update({
@@ -48,7 +46,6 @@ async function entregarPedidoDOM(id, file) {
 
     if (updateError) throw updateError;
 
-    // Remove o card do DOM
     cardEl.remove();
 
   } catch (err) {
@@ -79,7 +76,6 @@ function criarCardEntrega(entrega) {
     ? "bg-yellow-400 text-gray-800" 
     : "bg-green-500 text-white";
 
-  // Montar lista de itens
   let itensHtml = "<p class='text-gray-400 italic'>Não informado</p>";
   if (entrega.itens && entrega.itens.length > 0) {
     itensHtml = "<ul class='list-disc list-inside space-y-1'>";
@@ -136,17 +132,88 @@ async function carregarEntregas() {
 }
 
 // =============================
+// VERIFICAR SE USUÁRIO ESTÁ ATIVO
+// =============================
+async function verificarAtivo(entregadorId) {
+  const { data, error } = await supabase
+    .from("usuarios")
+    .select("ativo")
+    .eq("id", entregadorId)
+    .single();
+
+  if (error) {
+    console.error("Erro ao verificar status do usuário:", error);
+    return false;
+  }
+
+  return data?.ativo === true;
+}
+
+// =============================
+// MODAL DE BLOQUEIO
+// =============================
+function mostrarModalBloqueio() {
+  const modal = document.getElementById("modal-bloqueio");
+  const modalContent = document.getElementById("modal-content");
+  const btnFechar = document.getElementById("btn-fechar-bloqueio");
+
+  if (!modal || !modalContent || !btnFechar) return;
+
+  modal.classList.remove("hidden");
+  modalContent.classList.remove("scale-95", "opacity-0");
+  modalContent.classList.add("scale-100", "opacity-100");
+
+  btnFechar.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    localStorage.removeItem("entregadorLogado");
+    window.location.href = "loginentregador.html";
+  });
+
+  document.body.style.pointerEvents = "none";
+  modal.style.pointerEvents = "auto";
+}
+
+// =============================
+// MONITORAR ATIVO EM TEMPO REAL
+// =============================
+function monitorarAtivoRealtime(entregadorId) {
+  supabase
+    .channel('realtime-usuarios')
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `id=eq.${entregadorId}` },
+      (payload) => {
+        if (payload.new.ativo === false) {
+          mostrarModalBloqueio();
+        }
+      }
+    )
+    .subscribe();
+}
+
+// =============================
 // MOSTRAR NOME DO ENTREGADOR LOGADO
 // =============================
-function mostrarNomeEntregador() {
+async function mostrarNomeEntregador() {
   const nomeEntregadorEl = document.getElementById("nome-entregador");
   const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
 
-  if (entregador && nomeEntregadorEl) {
-    nomeEntregadorEl.textContent = entregador.nome || entregador.username;
-  } else {
+  if (!entregador || !nomeEntregadorEl) {
     window.location.href = "loginentregador.html";
+    return;
   }
+
+  const ativo = await verificarAtivo(entregador.id);
+
+  if (!ativo) {
+    mostrarModalBloqueio();
+    return;
+  }
+
+  nomeEntregadorEl.textContent = entregador.nome || entregador.username;
+
+  // Inicia monitoramento em tempo real
+  monitorarAtivoRealtime(entregador.id);
 }
 
 // =============================
@@ -156,7 +223,6 @@ document.addEventListener("DOMContentLoaded", () => {
   mostrarNomeEntregador();
   carregarEntregas();
 
-  // Logout
   const btnDeslogar = document.getElementById("btn-deslogar");
   if (btnDeslogar) {
     btnDeslogar.addEventListener("click", () => {

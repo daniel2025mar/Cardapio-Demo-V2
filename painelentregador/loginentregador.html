@@ -2,28 +2,30 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Login - GestioMax Delivery</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
+    html, body {
+      overflow: hidden; /* Bloqueia scroll */
+      touch-action: none; /* Bloqueia gestos de arrastar em dispositivos móveis */
+      font-family: 'Poppins', sans-serif;
+      height: 100%;
+    }
+
     :root {
-      --cor-primaria: #2563eb; /* azul padrão */
+      --cor-primaria: #2563eb;
       --cor-secundaria: #1d4ed8;
       --cor-glow: rgba(37, 99, 235, 0.45);
     }
 
-    /* Tema Natal */
     body.tema-natal {
-      --cor-primaria: #dc2626; /* vermelho */
+      --cor-primaria: #dc2626;
       --cor-secundaria: #b91c1c;
       --cor-glow: rgba(220, 38, 38, 0.45);
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
     }
 
     .bg-animated {
@@ -39,12 +41,7 @@
 
     .btn-gradient {
       background-size: 200% 200%;
-      background-image: linear-gradient(
-        135deg,
-        var(--cor-secundaria),
-        var(--cor-primaria),
-        var(--cor-secundaria)
-      );
+      background-image: linear-gradient(135deg, var(--cor-secundaria), var(--cor-primaria), var(--cor-secundaria));
       animation: gradientMove 4s ease infinite;
     }
 
@@ -54,7 +51,6 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* FLOAT LABEL */
     .field input:focus + label,
     .field input:not(:placeholder-shown) + label {
       transform: translateY(-18px) scale(0.85);
@@ -78,23 +74,22 @@
   <div class="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
 
     <!-- BRANDING -->
-    <!-- Para celular: mostrar acima do login -->
     <div class="md:hidden flex flex-col justify-center p-6 text-white text-center bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 mb-6 rounded-xl">
       <h1 class="text-3xl font-extrabold mb-3 leading-tight">Entregador<br>GestioMax</h1>
       <p class="text-base opacity-95">Receba pedidos em tempo real e gerencie suas entregas facilmente.</p>
 
-        <!-- Modal de Natal dentro do card -->
-  <div id="modal-natal" class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl hidden z-50">
-    <div class="bg-red-600 rounded-xl shadow-xl p-6 max-w-xs w-full text-center text-white relative">
-      <h2 class="text-xl font-bold mb-2">🎄 Feliz Natal!</h2>
-      <p class="text-sm opacity-90 mb-4">Que você tenha boas festas e muito sucesso nas entregas!</p>
-      <button id="fechar-natal" class="mt-2 px-4 py-2 bg-white text-red-600 font-semibold rounded hover:bg-gray-100">Fechar</button>
-    </div>
-  </div>
+      <!-- Modal de Natal -->
+      <div id="modal-natal" class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl hidden z-50">
+        <div class="bg-red-600 rounded-xl shadow-xl p-6 max-w-xs w-full text-center text-white relative">
+          <h2 class="text-xl font-bold mb-2">🎄 Feliz Natal!</h2>
+          <p class="text-sm opacity-90 mb-4">Que você tenha boas festas e muito sucesso nas entregas!</p>
+          <button id="fechar-natal" class="mt-2 px-4 py-2 bg-white text-red-600 font-semibold rounded hover:bg-gray-100">Fechar</button>
+        </div>
+      </div>
 
     </div>
 
-    <!-- Para desktop: manter ao lado do login -->
+    <!-- Branding desktop -->
     <div class="hidden md:flex flex-col justify-center p-10 text-white bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500">
       <h1 class="text-4xl font-extrabold mb-6 leading-tight">
         Entregador<br>GestioMax
@@ -126,10 +121,11 @@
 
       <p class="text-center text-xs text-gray-500 mt-8">© 2025 Sua Empresa</p>
     </div>
+
   </div>
 
   <!-- JS externo -->
- <script type="module" src="loginentregas.js"></script>
+  <script type="module" src="loginentregas.js"></script>
 
 </body>
 </html>

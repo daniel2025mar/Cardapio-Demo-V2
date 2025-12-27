@@ -72,7 +72,7 @@ function criarCardEntrega(entrega) {
     justify-between
   `;
 
-  const statusColor = entrega.status === "Aguardando" 
+  const statusColor = entrega.status?.trim().toLowerCase() === "aguardando" 
     ? "bg-yellow-400 text-gray-800" 
     : "bg-green-500 text-white";
 
@@ -93,7 +93,7 @@ function criarCardEntrega(entrega) {
     ${itensHtml}
     <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mt-4">
       <span id="status-${entrega.id}" class="px-4 py-2 rounded-full ${statusColor} font-semibold text-center shadow-md">${entrega.status}</span>
-      ${entrega.status === "Aguardando" ? `<button id="btn-${entrega.id}" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full shadow-md w-full sm:w-auto">Finalizar Pedido</button>` : ""}
+      ${entrega.status?.trim().toLowerCase() === "aguardando" ? `<button id="btn-${entrega.id}" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full shadow-md w-full sm:w-auto">Finalizar Pedido</button>` : ""}
       <span id="check-${entrega.id}" class="text-green-600 text-3xl font-bold" style="display:${entrega.status === "Entregue" ? 'inline-flex' : 'none'};">✔️</span>
     </div>
   `;
@@ -111,24 +111,30 @@ async function carregarEntregas() {
   const container = document.getElementById("pedidos-container");
   container.innerHTML = "";
 
-  const { data: entregas, error } = await supabase
-    .from("entregas")
-    .select("*")
-    .eq("status", "Aguardando")
-    .order("id", { ascending: true });
+  try {
+    const { data: entregas, error } = await supabase
+      .from("entregas")
+      .select("*")
+      // usamos ilike para ignorar maiúsculas/minúsculas e espaços
+      .ilike("status", "%aguardando%")
+      .order("id", { ascending: true });
 
-  if (error) {
-    console.error("Erro ao buscar entregas:", error);
+    console.log("Erro:", error);
+    console.log("Entregas retornadas:", entregas);
+
+    if (error) throw error;
+
+    if (!entregas || entregas.length === 0) {
+      container.innerHTML = `<p class="text-gray-600 text-center mt-10">Nenhuma entrega aguardando no momento.</p>`;
+      return;
+    }
+
+    entregas.forEach(entrega => container.appendChild(criarCardEntrega(entrega)));
+
+  } catch (err) {
+    console.error("Erro ao carregar entregas:", err);
     container.innerHTML = `<p class="text-gray-600 text-center mt-10">Erro ao carregar entregas.</p>`;
-    return;
   }
-
-  if (!entregas || entregas.length === 0) {
-    container.innerHTML = `<p class="text-gray-600 text-center mt-10">Nenhuma entrega aguardando no momento.</p>`;
-    return;
-  }
-
-  entregas.forEach(entrega => container.appendChild(criarCardEntrega(entrega)));
 }
 
 // =============================

@@ -834,25 +834,113 @@ function mostrarItensPedido(itens) {
   });
 }
 
+// =============================
+// LIMPA DETALHES DO PEDIDO
+// =============================
+function limparDetalhesPedido() {
+  document.getElementById("pedido-numero").textContent = "0000";
+  document.getElementById("pedido-hora").textContent = "--:--";
+  document.getElementById("pedido-status").textContent = "—";
+  document.getElementById("total-pedido").textContent = "R$ 0,00";
+
+  document.getElementById("cliente-nome").textContent = "—";
+  document.getElementById("cliente-telefone").textContent = "—";
+  document.getElementById("cliente-endereco").textContent = "—";
+  document.getElementById("cliente-referencia").textContent = "—";
+  document.getElementById("tipo-pagamento").textContent = "—";
+
+  document.getElementById("subtotal-pedido").textContent = "R$ 0,00";
+  document.getElementById("pedido-observacoes").textContent = "Nenhuma observação.";
+
+  document.getElementById("lista-itens").innerHTML = "";
+  document.getElementById("pedido-timeline").innerHTML = "";
+}
+
+// =============================
+// CONTADOR DE ENTREGAS (BANCO)
+// =============================
+async function carregarTotalEntrega() {
+  const contador = document.getElementById("total-entrega");
+  if (!contador) return;
+
+  try {
+    const { count, error } = await supabase
+      .from("entregas")
+      .select("*", { count: "exact", head: true })
+      .ilike("status", "%aguardando%"); // garante que status "Aguardando" seja contado mesmo com espaços ou maiúsculas/minúsculas
+
+    if (error) throw error;
+
+    contador.textContent = count ?? 0;
+
+  } catch (err) {
+    console.error("❌ Erro ao contar entregas:", err);
+    contador.textContent = "0";
+  }
+}
+
+// =============================
+// BOTÃO "EM ENTREGA"
+// =============================
 document.addEventListener("DOMContentLoaded", () => {
   const btnEntrega = document.getElementById("btn-em-entrega");
-  const contadorEntrega = document.getElementById("total-entrega");
-  const pedidoNumero = document.getElementById("pedido-numero");
+  const pedidoNumeroEl = document.getElementById("pedido-numero");
+  const nomeClienteEl = document.getElementById("cliente-nome");
+  const enderecoEl = document.getElementById("cliente-endereco");
 
-  if (!btnEntrega || !contadorEntrega || !pedidoNumero) return;
+  if (!btnEntrega || !pedidoNumeroEl) return;
 
-  btnEntrega.addEventListener("click", () => {
-    // 🔒 CONDIÇÃO: pedido não carregado
-    if (pedidoNumero.textContent === "0000") {
+  // carrega contador ao abrir painel
+  carregarTotalEntrega();
+
+  btnEntrega.addEventListener("click", async () => {
+    // 🔒 Sem pedido carregado
+    if (pedidoNumeroEl.textContent === "0000") {
       alert("Nenhum pedido carregado para enviar à entrega.");
       return;
     }
 
-    // ✅ Pedido válido → atualiza contador
-    const valorAtual = parseInt(contadorEntrega.textContent) || 0;
-    contadorEntrega.textContent = valorAtual + 1;
+    const numeroPedido = parseInt(pedidoNumeroEl.textContent, 10);
+    const nomeCliente = nomeClienteEl?.textContent.trim() || null;
+    const endereco = enderecoEl?.textContent.trim() || null;
+
+    const payload = {
+      numero_pedido: numeroPedido,
+      data_pedido: new Date().toISOString().split("T")[0], // salva a data atual no formato YYYY-MM-DD
+      horario_entrega: null,
+      itens: [], // pode preencher com os itens do pedido se quiser
+      foto_entrega: null,
+      entregador_nome: null,
+      nome_cliente: nomeCliente,
+      status: "Aguardando",
+      endereco: endereco
+    };
+
+    console.log("📦 Enviando para entregas:", payload);
+
+    try {
+      const { data, error } = await supabase
+        .from("entregas")
+        .insert([payload])
+        .select();
+
+      if (error) throw error;
+
+      console.log("✅ Pedido enviado para entregas:", data);
+
+      // 🔄 Atualiza contador direto do banco
+      await carregarTotalEntrega();
+
+      // 🧹 Limpa painel
+      limparDetalhesPedido();
+
+    } catch (err) {
+      console.error("❌ ERRO SUPABASE:", err);
+      alert("Erro ao enviar pedido para entrega.\nVeja o console (F12).");
+    }
   });
 });
+
 
 let clienteIdParaExcluir = null;
 

@@ -8,6 +8,113 @@ const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+//dados da emppresa 
+document.addEventListener("DOMContentLoaded", async () => {
+  const spanEmpresa = document.getElementById("nomeEmpresa");
+  const modal = document.getElementById("modalEmpresa");
+  const fechar = document.getElementById("fecharModal");
+  const form = document.getElementById("formEmpresa");
+
+  // Inputs do modal
+  const inputNome = document.getElementById("inputNome");
+  const inputEndereco = document.getElementById("inputEndereco");
+  const inputTelefone = document.getElementById("inputTelefone");
+  const inputWhatsApp = document.getElementById("inputWhatsApp");
+  const inputCNPJ = document.getElementById("inputCNPJ");
+  const inputCriadoEm = document.getElementById("inputCriadoEm");
+
+  // Função para mostrar mensagem tipo toast
+  function mostrarMensagem(texto, tipo = "success") {
+    const toast = document.createElement("div");
+    toast.textContent = texto;
+    toast.className = `
+      fixed bottom-5 right-5 px-4 py-2 rounded shadow-lg text-white font-semibold
+      ${tipo === "success" ? "bg-green-600" : "bg-red-600"}
+      animate-fadeIn
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add("animate-fadeOut");
+      toast.addEventListener("animationend", () => toast.remove());
+    }, 3000);
+  }
+
+  // Buscar dados da empresa
+  async function carregarEmpresa() {
+    const { data, error } = await supabase
+      .from("empresa")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Erro ao buscar empresa:", error);
+      spanEmpresa.textContent = "Erro ao carregar";
+      return null;
+    }
+    return data;
+  }
+
+  const empresa = await carregarEmpresa();
+  if (!empresa) return;
+
+  // Mostrar nome da empresa no span
+  spanEmpresa.textContent = empresa.nome;
+
+  // Abrir modal ao clicar no nome da empresa e preencher campos
+  spanEmpresa.addEventListener("click", () => {
+    inputNome.value = empresa.nome || "";
+    inputEndereco.value = empresa.endereco || "";
+    inputTelefone.value = empresa.telefone || "";
+    inputWhatsApp.value = empresa.whatsapp || "";
+    inputCNPJ.value = empresa.cnpj || "";
+    inputCriadoEm.value = new Date(empresa.criado_em).toLocaleString() || "";
+
+    modal.classList.remove("hidden");
+  });
+
+  // Fechar modal
+  fechar.addEventListener("click", () => modal.classList.add("hidden"));
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  });
+
+  // Salvar alterações
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const { data, error } = await supabase
+      .from("empresa")
+      .update({
+        nome: inputNome.value,
+        endereco: inputEndereco.value,
+        telefone: inputTelefone.value,
+        whatsapp: inputWhatsApp.value,
+        cnpj: inputCNPJ.value
+      })
+      .eq("id", empresa.id)
+      .single();
+
+    if (error) {
+      mostrarMensagem("Erro ao salvar alterações!", "error");
+      console.error(error);
+      return;
+    }
+
+    // Atualiza o span com o novo nome
+    spanEmpresa.textContent = data.nome;
+
+    // Fecha o modal
+    modal.classList.add("hidden");
+
+    // Mostra mensagem de sucesso
+    mostrarMensagem("Alterações salvas com sucesso!");
+  });
+});
+
+
 let timerBloqueio = null;
 let canalBloqueio = null;
 let timerTemporario = null;

@@ -133,57 +133,124 @@
   <div id="overlay"></div>
 
   <!-- TOPO -->
-  <header class="bg-gray-800 text-white h-16 flex items-center px-4 shadow justify-between relative">
-    <button id="btn-menu" class="p-2 rounded block md:hidden" title="Menu">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </button>
-    <h1 class="text-xl font-bold truncate hidden md:block">Painel Administrativo</h1>
-    <div class="flex items-center gap-4 ml-auto">
-      <span id="usuario-logado" class="hidden md:block">Usuário</span>
-      <!-- Ícone de Notificações -->
+  <header class="bg-gray-800 text-white h-20 flex flex-col justify-center px-4 shadow relative">
+    
+    <div class="flex items-center justify-between w-full">
+        <button id="btn-menu" class="p-2 rounded block md:hidden" title="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <div class="flex flex-col">
+            <h1 class="text-xl font-bold truncate hidden md:block">Painel Administrativo</h1>
+            <span id="nomeEmpresa" class="text-sm text-white mt-1 cursor-pointer">Nome Empresa</span>
 
-      <div id="usuario-logado-mobile"
-     class="md:hidden bg-gray-800 text-white text-center text-sm py-2 px-3 shadow">
-   </div>
-    <div class="relative">
-   <button id="btn-notificacoes" class="p-2 rounded hover:bg-gray-700 transition-colors" title="Notificações">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-    </svg>
-  </button>
-  <!-- Contador invisível por padrão -->
-  <span id="contador-notificacoes" class="absolute top-0 right-0 -mt-1 -mr-1 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            <!-- Modal Editável -->
+<!-- Modal Editável -->
+<div id="modalEmpresa" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="modal-conteudo bg-gray-900 text-white rounded-xl shadow-2xl w-full max-w-lg p-6 relative">
+    <!-- Fechar -->
+    <button id="fecharModal" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
 
-  
-  <!-- Balão de Notificações -->
-  <div id="balao-notificacoes" class="absolute right-0 mt-2 w-64 bg-gray-800 text-white border border-gray-700 rounded shadow-lg hidden z-50">
-    <!-- Cabeçalho com título azul e botão limpar -->
-    <div class="flex justify-between items-center px-4 py-2 border-b border-gray-700">
-      <span class="font-semibold text-blue-400">Notificações</span>
-      <button id="btnLimpar" class="text-sm text-gray-300 hover:text-white">Limpar</button>
-    </div>
-    <!-- Lista de notificações -->
-    <ul id="lista-notificacoes" class="divide-y divide-gray-700 max-h-64 overflow-y-auto">
-      <!-- Itens de notificação serão inseridos via JS -->
-    </ul>
+    <h2 class="text-2xl font-bold mb-6 text-center border-b border-gray-700 pb-3">Informações da Empresa</h2>
+
+    <form id="formEmpresa" class="grid grid-cols-1 gap-4">
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1">Nome:</label>
+        <input type="text" id="inputNome" class="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1">Endereço:</label>
+        <input type="text" id="inputEndereco" class="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div class="flex flex-col md:flex-row md:gap-4">
+        <div class="flex-1 flex flex-col">
+          <label class="font-semibold mb-1">Telefone:</label>
+          <input type="text" id="inputTelefone" class="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="flex-1 flex flex-col">
+          <label class="font-semibold mb-1">WhatsApp:</label>
+          <input type="text" id="inputWhatsApp" class="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:gap-4">
+        <div class="flex-1 flex flex-col">
+          <label class="font-semibold mb-1">CNPJ:</label>
+          <input type="text" id="inputCNPJ" class="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="flex-1 flex flex-col">
+          <label class="font-semibold mb-1">Criado em:</label>
+          <input type="text" id="inputCriadoEm" class="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-700" readonly />
+        </div>
+      </div>
+
+      <button type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors duration-200">
+        Salvar Alterações
+      </button>
+    </form>
   </div>
 </div>
-<!--fim do notificaçai-->
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hidden"></div>
+
+<style>
+  /* Modal animação */
+  @keyframes modalShow { from {opacity:0; transform:scale(0.9);} to {opacity:1; transform:scale(1);} }
+  @keyframes modalHide { from {opacity:1; transform:scale(1);} to {opacity:0; transform:scale(0.9);} }
+
+  .modal-animar-aberto { animation: modalShow 0.3s forwards; }
+  .modal-animar-fechado { animation: modalHide 0.2s forwards; }
+
+  /* Toast */
+  @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+  @keyframes fadeOut { from {opacity:1; transform:translateY(0);} to {opacity:0; transform:translateY(10px);} }
+  .animate-fadeIn { animation: fadeIn 0.3s forwards; }
+  .animate-fadeOut { animation: fadeOut 0.3s forwards; }
+
+  #nomeEmpresa { cursor:pointer; }
+</style>
 
 
-      <button id="btn-logout" class="p-2 rounded hover:bg-blue-600 transition-colors" title="Sair" aria-label="Sair">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
-        </svg>
-      </button>
+        </div>
+        <div class="flex items-center gap-4 ml-auto">
+          <span id="usuario-logado" class="hidden md:block">Usuário</span>
+
+          <div id="usuario-logado-mobile"
+         class="md:hidden bg-gray-800 text-white text-center text-sm py-2 px-3 shadow">
+          </div>
+          <div class="relative">
+             <button id="btn-notificacoes" class="p-2 rounded hover:bg-gray-700 transition-colors" title="Notificações">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+            </button>
+            <span id="contador-notificacoes" class="absolute top-0 right-0 -mt-1 -mr-1 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            <div id="balao-notificacoes" class="absolute right-0 mt-2 w-64 bg-gray-800 text-white border border-gray-700 rounded shadow-lg hidden z-50">
+              <div class="flex justify-between items-center px-4 py-2 border-b border-gray-700">
+                <span class="font-semibold text-blue-400">Notificações</span>
+                <button id="btnLimpar" class="text-sm text-gray-300 hover:text-white">Limpar</button>
+              </div>
+              <ul id="lista-notificacoes" class="divide-y divide-gray-700 max-h-64 overflow-y-auto">
+              </ul>
+            </div>
+          </div>
+          <button id="btn-logout" class="p-2 rounded hover:bg-blue-600 transition-colors" title="Sair" aria-label="Sair">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+            </svg>
+          </button>
+        </div>
     </div>
 </header>
+
 
 
 <!-- Botão para abrir o painel de atualizações -->
@@ -2479,6 +2546,15 @@ input:not(:placeholder-shown) + .label-flutuante {
     <div class="mt-4 text-right">
       <button id="modal-erro-fechar" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Fechar</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal de aviso de permissão -->
+<div id="modalAviso" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-gray-900 text-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative">
+    <button id="fecharAviso" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+    <h2 class="text-xl font-bold mb-4 text-center">Atenção</h2>
+    <p class="text-center">Você não tem permissão para editar as informações da empresa.</p>
   </div>
 </div>
 

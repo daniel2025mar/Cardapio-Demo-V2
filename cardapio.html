@@ -16,9 +16,10 @@
 <section class="bg-black shadow-md p-4 flex flex-col justify-center items-center w-full h-auto relative">
 
   <!-- Imagem de fundo -->
-  <img src="https://link-da-sua-foto-de-fundo.com/fundo.jpg" 
-       alt="Fundo" 
-       class="absolute inset-0 w-full h-full object-cover opacity-30">
+  <img id="fundoTopoCardapio" src="https://link-da-sua-foto-de-fundo.com/fundo.jpg" 
+     alt="Fundo" 
+     class="absolute inset-0 w-full h-full object-cover opacity-30">
+
 
   <!-- Botões no topo direito -->
   <div class="absolute top-4 right-4 flex gap-3 z-20">
@@ -32,14 +33,19 @@
   </div>
 
   <!-- Logo da empresa -->
-  <img src="https://link-da-sua-logo.com/logo.png" 
+ <div class="flex flex-col items-center justify-center mb-8">
+  <!-- Logo da Empresa -->
+  <img id="logoCardapio" 
+       src="https://link-da-sua-logo.com/logo.png" 
        alt="Logo da Empresa" 
-       class="h-32 sm:h-40 object-contain relative z-10 mb-6">
+       class="h-48 sm:h-56 w-auto object-contain mb-1">
 
   <!-- Nome da Empresa -->
-  <h1 id="nomeEmpresa" class="text-4xl mt-2 font-bold text-white mb-6 text-center">
+  <h1 id="nomeEmpresa" class="text-4xl sm:text-5xl font-bold text-white text-center">
     Carregando nome...
   </h1>
+</div>
+
 
   <!-- Endereço da Empresa -->
   <div class="relative z-10 bg-white rounded-lg p-3 shadow-md flex flex-col items-center w-full max-w-[240px] sm:max-w-sm mb-6">

@@ -270,3 +270,66 @@ async function carregarEmpresa() {
 
 // Chamar a função
 carregarEmpresa();
+
+
+// cardapio.js
+export async function atualizarFundoCardapio() {
+  try {
+    // 1️⃣ Buscar a empresa no Supabase
+    const { data: empresa, error } = await supabase
+      .from("empresa")
+      .select("fundo_cardapio")
+      .eq("id", 1) // pegando a primeira empresa
+      .single();
+
+    if (error) {
+      console.error("Erro ao buscar fundo do cardápio:", error);
+      return;
+    }
+
+    if (!empresa || !empresa.fundo_cardapio) {
+      console.log("Nenhuma imagem de fundo cadastrada");
+      return;
+    }
+
+    // 2️⃣ Seleciona o <img> do fundo
+    const fundoTopo = document.getElementById("fundoTopoCardapio");
+    if (!fundoTopo) {
+      console.error("Elemento do fundo não encontrado");
+      return;
+    }
+
+    // 3️⃣ Atualiza o src da imagem
+    fundoTopo.src = empresa.fundo_cardapio;
+
+  } catch (err) {
+    console.error("Erro ao atualizar fundo do cardápio:", err);
+  }
+}
+
+// 4️⃣ Chamar ao carregar o DOM
+document.addEventListener("DOMContentLoaded", () => {
+  atualizarFundoCardapio();
+});
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const logoCardapio = document.getElementById("logoCardapio");
+
+  // Buscar a empresa
+  const { data: empresa, error } = await supabase
+    .from("empresa")
+    .select("logotipo")
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar logotipo:", error);
+    return;
+  }
+
+  // Atualiza a imagem do cardápio se existir
+  if (empresa && empresa.logotipo) {
+    logoCardapio.src = empresa.logotipo;
+  }
+});

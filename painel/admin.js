@@ -9,14 +9,13 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-//dados da emppresa 
+
 document.addEventListener("DOMContentLoaded", async () => {
   const spanEmpresa = document.getElementById("nomeEmpresa");
   const modal = document.getElementById("modalEmpresa");
   const fechar = document.getElementById("fecharModal");
   const form = document.getElementById("formEmpresa");
 
-  // Inputs do modal
   const inputNome = document.getElementById("inputNome");
   const inputEndereco = document.getElementById("inputEndereco");
   const inputTelefone = document.getElementById("inputTelefone");
@@ -24,24 +23,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   const inputCNPJ = document.getElementById("inputCNPJ");
   const inputCriadoEm = document.getElementById("inputCriadoEm");
 
-  // Função para mostrar mensagem tipo toast
-  function mostrarMensagem(texto, tipo = "success") {
-    const toast = document.createElement("div");
-    toast.textContent = texto;
-    toast.className = `
-      fixed bottom-5 right-5 px-4 py-2 rounded shadow-lg text-white font-semibold
-      ${tipo === "success" ? "bg-green-600" : "bg-red-600"}
-      animate-fadeIn
-    `;
-    document.body.appendChild(toast);
+  const inputFundo = document.getElementById("inputFundo");
+  const previewFundo = document.getElementById("previewFundo");
 
-    setTimeout(() => {
-      toast.classList.add("animate-fadeOut");
-      toast.addEventListener("animationend", () => toast.remove());
-    }, 3000);
+  const inputLogo = document.getElementById("inputLogo");
+  const previewLogo = document.getElementById("previewLogo");
+
+  let novoFundo = null;
+  let novoLogo = null;
+
+  modal.classList.add("hidden");
+
+  // Modal de aviso moderno
+  const modalAviso = document.getElementById("modalAviso2");
+  const modalAvisoTexto = modalAviso.querySelector("#modalAvisoTexto");
+  const btnFecharAviso = modalAviso.querySelector("#btnFecharAviso");
+
+  function mostrarModalAviso(mensagem) {
+    modalAvisoTexto.textContent = mensagem;
+    modalAviso.classList.remove("hidden");
   }
 
-  // Buscar dados da empresa
+  btnFecharAviso.addEventListener("click", () => modalAviso.classList.add("hidden"));
+  modalAviso.addEventListener("click", (e) => {
+    if (e.target === modalAviso) modalAviso.classList.add("hidden");
+  });
+
+  // Carregar dados da empresa
   async function carregarEmpresa() {
     const { data, error } = await supabase
       .from("empresa")
@@ -57,20 +65,77 @@ document.addEventListener("DOMContentLoaded", async () => {
     return data;
   }
 
+  // Recuperar usuário logado
+  function recuperarUsuarioLogado() {
+    const usuarioJSON = localStorage.getItem("usuarioLogado");
+    if (!usuarioJSON) {
+      mostrarModalAviso("Nenhum usuário logado!");
+      return null;
+    }
+
+    let usuario = null;
+    try {
+      usuario = JSON.parse(usuarioJSON);
+
+      if (!Array.isArray(usuario.permissoes)) {
+        try {
+          usuario.permissoes = JSON.parse(usuario.permissoes || "[]");
+        } catch {
+          usuario.permissoes = [];
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao ler usuário logado:", err);
+      mostrarModalAviso("Erro ao identificar usuário!");
+      return null;
+    }
+
+    return usuario;
+  }
+
   const empresa = await carregarEmpresa();
   if (!empresa) return;
 
-  // Mostrar nome da empresa no span
   spanEmpresa.textContent = empresa.nome;
 
-  // Abrir modal ao clicar no nome da empresa e preencher campos
+  const usuario = recuperarUsuarioLogado();
+  if (!usuario) return;
+
+  const podeEditar = usuario.permissoes.includes("Acesso Total");
+
+  // Clique no nome da empresa
   spanEmpresa.addEventListener("click", () => {
+    if (!podeEditar) {
+      mostrarModalAviso("Você não tem permissão para editar informações da empresa!");
+      return;
+    }
+
     inputNome.value = empresa.nome || "";
     inputEndereco.value = empresa.endereco || "";
     inputTelefone.value = empresa.telefone || "";
     inputWhatsApp.value = empresa.whatsapp || "";
     inputCNPJ.value = empresa.cnpj || "";
     inputCriadoEm.value = new Date(empresa.criado_em).toLocaleString() || "";
+
+    // Fundo
+    if (empresa.fundo_cardapio) {
+      previewFundo.src = empresa.fundo_cardapio;
+      previewFundo.classList.remove("hidden");
+      novoFundo = null;
+    } else {
+      previewFundo.src = "";
+      previewFundo.classList.add("hidden");
+    }
+
+    // Logotipo
+    if (empresa.logotipo) {
+      previewLogo.src = empresa.logotipo;
+      previewLogo.classList.remove("hidden");
+      novoLogo = null;
+    } else {
+      previewLogo.src = "";
+      previewLogo.classList.add("hidden");
+    }
 
     modal.classList.remove("hidden");
   });
@@ -81,39 +146,71 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.target === modal) modal.classList.add("hidden");
   });
 
+  // Preview do fundo
+  previewFundo.addEventListener("click", () => inputFundo.click());
+  inputFundo.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      previewFundo.src = event.target.result;
+      previewFundo.classList.remove("hidden");
+      novoFundo = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Preview do logotipo
+  previewLogo.addEventListener("click", () => inputLogo.click());
+  inputLogo.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      previewLogo.src = event.target.result;
+      previewLogo.classList.remove("hidden");
+      novoLogo = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
   // Salvar alterações
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    if (!podeEditar) {
+      mostrarModalAviso("Você não tem permissão para salvar alterações!");
+      return;
+    }
+
+    const updateData = {
+      nome: inputNome.value,
+      endereco: inputEndereco.value,
+      telefone: inputTelefone.value,
+      whatsapp: inputWhatsApp.value,
+      cnpj: inputCNPJ.value,
+    };
+
+    if (novoFundo) updateData.fundo_cardapio = novoFundo;
+    if (novoLogo) updateData.logotipo = novoLogo;
+
     const { data, error } = await supabase
       .from("empresa")
-      .update({
-        nome: inputNome.value,
-        endereco: inputEndereco.value,
-        telefone: inputTelefone.value,
-        whatsapp: inputWhatsApp.value,
-        cnpj: inputCNPJ.value
-      })
+      .update(updateData)
       .eq("id", empresa.id)
       .single();
 
     if (error) {
-      mostrarMensagem("Erro ao salvar alterações!", "error");
+      mostrarModalAviso("Erro ao salvar alterações!");
       console.error(error);
       return;
     }
 
-    // Atualiza o span com o novo nome
     spanEmpresa.textContent = data.nome;
-
-    // Fecha o modal
     modal.classList.add("hidden");
-
-    // Mostra mensagem de sucesso
-    mostrarMensagem("Alterações salvas com sucesso!");
+    mostrarModalAviso("Alterações salvas com sucesso!");
   });
 });
-
 
 let timerBloqueio = null;
 let canalBloqueio = null;

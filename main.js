@@ -55,6 +55,70 @@ if(parenButton){
 }
 })
 
+async function carregarProdutos() {
+  try {
+    // Busca todos os produtos ativos
+    const { data: produtos, error } = await supabase
+      .from('produtos')
+      .select('*')
+      .eq('situacao', 'ativo');
+
+    if (error) {
+      console.error("Erro ao buscar produtos:", error);
+      return;
+    }
+
+    // Agrupa produtos por categoria
+    const categorias = {};
+    produtos.forEach(produto => {
+      const cat = produto.categoria || "Outros";
+      if (!categorias[cat]) categorias[cat] = [];
+      categorias[cat].push(produto);
+    });
+
+    // Para cada categoria, renderiza os cards
+    Object.keys(categorias).forEach(cat => {
+      const container = document.getElementById(cat); // id do main grid para cada categoria
+      if (!container) return;
+
+      categorias[cat].forEach(produto => {
+        const card = document.createElement('div');
+        card.className = "produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200";
+        card.dataset.categoria = cat;
+
+        card.innerHTML = `
+          <img src="${produto.imagem_url || './public/Imagem/default.png'}" alt="${produto.descricao}"
+               class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
+          <div class="flex flex-col justify-between w-full">
+            <div>
+              <p class="font-bold text-lg mb-1">${produto.descricao}</p>
+              <p class="text-sm text-gray-600">${produto.descricao_nfe || ''}</p>
+            </div>
+            <div class="flex items-center justify-between mt-3">
+              <p class="font-bold text-lg text-red-600">R$ ${produto.valor_sugerido.toFixed(2)}</p>
+              <div class="flex gap-2">
+                <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="${produto.descricao}">
+                  <i class="fas fa-list"></i>
+                </button>
+                <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="${produto.descricao}" data-price="${produto.valor_sugerido.toFixed(2)}">
+                  <i class="fas fa-shopping-cart text-white text-lg"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    });
+
+  } catch (err) {
+    console.error("Erro inesperado:", err);
+  }
+}
+
+// Chama a função ao carregar a página
+window.addEventListener('DOMContentLoaded', carregarProdutos);
+
 
 //funçao para adicionar no carrinho
 function addToCart(name, price){

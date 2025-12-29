@@ -838,26 +838,56 @@ function mostrarItensPedido(itens) {
 // LIMPA DETALHES DO PEDIDO
 // =============================
 function limparDetalhesPedido() {
-  document.getElementById("pedido-numero").textContent = "0000";
-  document.getElementById("pedido-hora").textContent = "--:--";
-  document.getElementById("pedido-status").textContent = "—";
-  document.getElementById("total-pedido").textContent = "R$ 0,00";
+  try {
+    document.getElementById("pedido-numero").textContent = "0000";
+    document.getElementById("pedido-numero").dataset.pedidoId = "";
+    document.getElementById("pedido-hora").textContent = "--:--";
+    document.getElementById("pedido-status").textContent = "—";
+    document.getElementById("total-pedido").textContent = "R$ 0,00";
 
-  document.getElementById("cliente-nome").textContent = "—";
-  document.getElementById("cliente-telefone").textContent = "—";
-  document.getElementById("cliente-endereco").textContent = "—";
-  document.getElementById("cliente-referencia").textContent = "—";
-  document.getElementById("tipo-pagamento").textContent = "—";
+    document.getElementById("cliente-nome").textContent = "—";
+    document.getElementById("cliente-telefone").textContent = "—";
+    document.getElementById("cliente-endereco").textContent = "—";
+    document.getElementById("cliente-referencia").textContent = "—";
+    document.getElementById("tipo-pagamento").textContent = "—";
 
-  document.getElementById("subtotal-pedido").textContent = "R$ 0,00";
-  document.getElementById("pedido-observacoes").textContent = "Nenhuma observação.";
+    document.getElementById("subtotal-pedido").textContent = "R$ 0,00";
+    document.getElementById("pedido-observacoes").textContent = "Nenhuma observação.";
 
-  document.getElementById("lista-itens").innerHTML = "";
-  document.getElementById("pedido-timeline").innerHTML = "";
+    document.getElementById("lista-itens").innerHTML = "";
+    document.getElementById("pedido-timeline").innerHTML = "";
+
+    console.log("✅ Detalhes do pedido limpos com sucesso.");
+  } catch (err) {
+    console.error("❌ Erro ao limpar detalhes do pedido:", err);
+  }
 }
 
 // =============================
-// CONTADOR DE ENTREGAS (BANCO)
+// MODAL DE ERRO
+// =============================
+function mostrarModalErro(mensagem) {
+  try {
+    const modal = document.getElementById("modal-erro");
+    const mensagemEl = document.getElementById("modal-erro-mensagem");
+    if (!modal || !mensagemEl) return;
+
+    mensagemEl.textContent = mensagem;
+    modal.classList.remove("hidden");
+
+    const btnFechar = document.getElementById("modal-erro-fechar");
+    if (btnFechar) {
+      btnFechar.onclick = () => modal.classList.add("hidden");
+    }
+
+    console.warn("⚠️", mensagem);
+  } catch (err) {
+    console.error("❌ Erro ao mostrar modal de erro:", err);
+  }
+}
+
+// =============================
+// CONTADOR DE ENTREGAS
 // =============================
 async function carregarTotalEntrega() {
   const contador = document.getElementById("total-entrega");
@@ -867,79 +897,177 @@ async function carregarTotalEntrega() {
     const { count, error } = await supabase
       .from("entregas")
       .select("*", { count: "exact", head: true })
-      .ilike("status", "%aguardando%"); // garante que status "Aguardando" seja contado mesmo com espaços ou maiúsculas/minúsculas
+      .ilike("status", "%aguardando%");
 
     if (error) throw error;
 
     contador.textContent = count ?? 0;
-
   } catch (err) {
-    console.error("❌ Erro ao contar entregas:", err);
+    mostrarModalErro("Erro ao carregar total de entregas: " + err.message);
     contador.textContent = "0";
   }
 }
 
+let pedidoSelecionado = null;
+
 // =============================
-// BOTÃO "EM ENTREGA"
+// LISTA DE PEDIDOS (NÃO BLOQUEIA POR CLIENTE)
+// =============================
+async function atualizarPedidos() {
+  try {
+    const { data: pedidos, error } = await supabase
+      .from("pedidos")
+      .select("*")
+      .order("criado_em", { ascending: true });
+
+    if (error) throw error;
+
+    const { data: entregas } = await supabase
+      .from("entregas")
+      .select("numero_pedido");
+
+    const pedidosEnviados = new Set(
+      (entregas || []).map(e => String(e.numero_pedido))
+    );
+
+    const container = document.getElementById("lista-pedidos");
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    pedidos.forEach(pedido => {
+      const card = document.createElement("div");
+      card.className = "order-list-item border p-4 mb-2";
+      card.style.borderLeft = "6px solid";
+
+      const jaEnviado = pedidosEnviados.has(String(pedido.numero_pedido));
+
+      card.style.borderLeftColor = jaEnviado ? "green" : "#facc15";
+
+      card.innerHTML = `
+        <p><strong>Pedido:</strong> ${pedido.numero_pedido}</p>
+        <p><strong>Cliente:</strong> ${pedido.cliente}</p>
+        <p><strong>Status:</strong> ${pedido.status}</p>
+        ${jaEnviado ? `<p class="text-green-600 font-bold mt-2">Enviado para entrega ✅</p>` : ""}
+      `;
+
+      if (!jaEnviado) {
+        card.style.cursor = "pointer";
+
+        card.onclick = () => {
+          // 🔐 ESTADO REAL DO PEDIDO (fonte da verdade)
+          pedidoSelecionado = {
+            id: pedido.id,
+            numero_pedido: pedido.numero_pedido
+          };
+
+          // 🔹 Atualiza apenas a interface
+          const pedidoNumeroEl = document.getElementById("pedido-numero");
+          pedidoNumeroEl.textContent = pedido.numero_pedido;
+          pedidoNumeroEl.dataset.pedidoId = pedido.id;
+
+          document.getElementById("cliente-nome").textContent =
+            pedido.cliente || "—";
+          document.getElementById("cliente-endereco").textContent =
+            pedido.endereco || "—";
+          document.getElementById("pedido-status").textContent =
+            pedido.status || "—";
+        };
+      } else {
+        card.style.cursor = "not-allowed";
+      }
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    mostrarModalErro("Erro ao atualizar pedidos: " + err.message);
+  }
+}
+
+// =============================
+// BOTÃO "EM ENTREGA" (REGRA CORRETA)
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
   const btnEntrega = document.getElementById("btn-em-entrega");
   const pedidoNumeroEl = document.getElementById("pedido-numero");
-  const nomeClienteEl = document.getElementById("cliente-nome");
-  const enderecoEl = document.getElementById("cliente-endereco");
 
   if (!btnEntrega || !pedidoNumeroEl) return;
 
-  // carrega contador ao abrir painel
+  atualizarPedidos();
   carregarTotalEntrega();
 
   btnEntrega.addEventListener("click", async () => {
-    // 🔒 Sem pedido carregado
-    if (pedidoNumeroEl.textContent === "0000") {
-      alert("Nenhum pedido carregado para enviar à entrega.");
-      return;
-    }
-
-    const numeroPedido = parseInt(pedidoNumeroEl.textContent, 10);
-    const nomeCliente = nomeClienteEl?.textContent.trim() || null;
-    const endereco = enderecoEl?.textContent.trim() || null;
-
-    const payload = {
-      numero_pedido: numeroPedido,
-      data_pedido: new Date().toISOString().split("T")[0], // salva a data atual no formato YYYY-MM-DD
-      horario_entrega: null,
-      itens: [], // pode preencher com os itens do pedido se quiser
-      foto_entrega: null,
-      entregador_nome: null,
-      nome_cliente: nomeCliente,
-      status: "Aguardando",
-      endereco: endereco
-    };
-
-    console.log("📦 Enviando para entregas:", payload);
-
     try {
-      const { data, error } = await supabase
+      const idPedido = Number(pedidoNumeroEl.dataset.pedidoId);
+      const numeroPedido = pedidoNumeroEl.textContent.trim();
+
+    
+
+console.error("Debug pedido selecionado:", {
+    idPedido: idPedido,
+    numeroPedido: numeroPedido,
+    dataset: pedidoNumeroEl.dataset
+});
+
+if (!idPedido || numeroPedido === "0000") {
+    mostrarModalErro("Nenhum pedido selecionado.");
+    return;
+}
+
+
+      const { data: pedido, error } = await supabase
+        .from("pedidos")
+        .select("*")
+        .eq("id", idPedido)
+        .single();
+
+      if (error || !pedido) {
+        mostrarModalErro("Pedido não encontrado.");
+        return;
+      }
+
+      const itens = Array.isArray(pedido.itens)
+        ? pedido.itens
+        : JSON.parse(pedido.itens || "[]");
+
+      const payload = {
+        numero_pedido: pedido.numero_pedido,
+        status: "Aguardando",
+        itens,
+        nome_cliente: pedido.cliente,
+        endereco: pedido.endereco,
+        entregador_nome: null,
+        horario_entrega: null,
+        foto_entrega: null
+      };
+
+      const { error: insertError } = await supabase
         .from("entregas")
-        .insert([payload])
-        .select();
+        .insert([payload]);
 
-      if (error) throw error;
+      if (insertError) {
+        if (insertError.code === "23505") {
+          mostrarModalErro(
+            "Este pedido já consta como enviado para entrega e não pode ser processado novamente."
+          );
+        } else {
+          mostrarModalErro("Erro ao enviar pedido para entrega: " + insertError.message);
+        }
+        limparDetalhesPedido();
+        return;
+      }
 
-      console.log("✅ Pedido enviado para entregas:", data);
+      console.log("✅ Pedido enviado para entrega:", numeroPedido);
 
-      // 🔄 Atualiza contador direto do banco
-      await carregarTotalEntrega();
-
-      // 🧹 Limpa painel
       limparDetalhesPedido();
-
+      await atualizarPedidos();
+      carregarTotalEntrega();
     } catch (err) {
-      console.error("❌ ERRO SUPABASE:", err);
-      alert("Erro ao enviar pedido para entrega.\nVeja o console (F12).");
+      mostrarModalErro("Erro inesperado: " + err.message);
     }
   });
 });
+
 
 
 let clienteIdParaExcluir = null;
@@ -2372,71 +2500,40 @@ function ativarMenuConfiguracoes() {
 // CARREGAR HORÁRIOS DO SUPABASE
 // ===============================
 async function carregarHorariosSemana() {
-  try {
-    const { data, error } = await supabase
-      .from("horarios_semana")
-      .select("*");
+  const diasMap = {
+    "segunda": "seg",
+    "terca": "ter",
+    "quarta": "qua",
+    "quinta": "qui",
+    "sexta": "sex",
+    "sabado": "sab",
+    "domingo": "dom"
+  };
 
-    if (error) {
-      console.error("Erro ao buscar horários:", error);
-      return;
+  const { data, error } = await supabase.from("horarios_semana").select("*");
+  if (error) { console.error("Erro ao buscar horários:", error); return; }
+
+  data.forEach(item => {
+    const id = diasMap[item.dia_semana.toLowerCase()];
+    if (!id) return;
+
+    const checkbox = document.getElementById(id);
+    const inicio = document.getElementById(`${id}_inicio`);
+    const fim = document.getElementById(`${id}_fim`);
+    const filete = document.querySelector(`#${id}_card .filete`);
+
+    checkbox.checked = !!item.hora_inicio && !!item.hora_fim;
+    inicio.value = item.hora_inicio ? item.hora_inicio.slice(0,5) : "";
+    fim.value = item.hora_fim ? item.hora_fim.slice(0,5) : "";
+
+    if (checkbox.checked) {
+      filete.classList.remove("bg-red-500");
+      filete.classList.add("bg-blue-500");
+    } else {
+      filete.classList.remove("bg-blue-500");
+      filete.classList.add("bg-red-500");
     }
-
-    const diasMap = {
-      "segunda": "seg",
-      "terca": "ter",
-      "terça": "ter",
-      "quarta": "qua",
-      "quinta": "qui",
-      "sexta": "sex",
-      "sabado": "sab",
-      "sábado": "sab",
-      "domingo": "dom"
-    };
-
-    // Resetar todos os dias
-    Object.values(diasMap).forEach(id => {
-      const checkbox = document.getElementById(id);
-      const filete = document.querySelector(`#${id}_card .filete`);
-      if (checkbox) checkbox.checked = false;
-      if (filete) {
-        filete.classList.remove("bg-blue-500");
-        filete.classList.add("bg-red-500");
-      }
-      document.getElementById(`${id}_inicio`).value = "";
-      document.getElementById(`${id}_fim`).value = "";
-    });
-
-    // Preencher com dados do banco
-    data.forEach(item => {
-      const dia = item.dia_semana?.toLowerCase();
-      const id = diasMap[dia];
-      if (!id) return;
-
-      const checkbox = document.getElementById(id);
-      const filete = document.querySelector(`#${id}_card .filete`);
-      const inicio = document.getElementById(`${id}_inicio`);
-      const fim = document.getElementById(`${id}_fim`);
-
-      if (checkbox) checkbox.checked = !!item.hora_inicio || !!item.hora_fim;
-
-      if (filete) {
-        if (checkbox.checked) {
-          filete.classList.remove("bg-red-500");
-          filete.classList.add("bg-blue-500");
-        } else {
-          filete.classList.remove("bg-blue-500");
-          filete.classList.add("bg-red-500");
-        }
-      }
-
-      if (inicio) inicio.value = item.hora_inicio ? item.hora_inicio.slice(0,5) : "";
-      if (fim) fim.value = item.hora_fim ? item.hora_fim.slice(0,5) : "";
-    });
-
-  } catch (e) {
-    console.error("Falha ao carregar horários:", e);
-  }
+  });
 }
 
 // =======================================
@@ -2516,6 +2613,29 @@ async function salvarHorariosSemana() {
 
   
 }
+
+
+// =======================================
+// EXECUTAR AO CARREGAR A PÁGINA
+// =======================================
+document.addEventListener("DOMContentLoaded", () => {
+  carregarHorariosSemana();
+  configurarFiletes();
+
+  const botaoSalvar = document.getElementById("btnSalvarHorarios");
+  if (!botaoSalvar) return;
+
+  botaoSalvar.addEventListener("click", async () => {
+    try {
+      await salvarHorariosSemana();
+      alert("Horários salvos com sucesso!");
+    } catch (e) {
+      console.error("Erro ao salvar horários:", e);
+      alert("Erro ao salvar horários. Veja o console.");
+    }
+  });
+});
+
 
 // ===============================
 // INICIAR SISTEMA
@@ -2982,13 +3102,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+//cadastro de produtos
 document.addEventListener('DOMContentLoaded', async () => {
   const btnSalvar = document.getElementById('btnSalvarProduto');
   const inputCodigo = document.getElementById('codigoPreview');
 
-  // ================================
-  // Função para criar modais
-  // ================================
+  // Função para mostrar modais
   function criarModal(modalId, textoId, btnId) {
     const modal = document.getElementById(modalId);
     const texto = document.getElementById(textoId);
@@ -3013,9 +3133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const mostrarModalErro = criarModal('modalErro', 'modalMensagemErro', 'btnFecharModalErro');
   const mostrarModalValorSugerido = criarModal('modalValorSugerido', 'modalMensagemValorSugerido', 'btnFecharValorSugerido');
 
-  // ================================
-  // Função para atualizar código
-  // ================================
+  // Atualiza o código do produto automaticamente
   async function atualizarCodigo() {
     try {
       const { data, error } = await supabase
@@ -3039,65 +3157,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // ================================
-  // Formatação de moeda e cálculos
-  // ================================
-  const formatarMoeda = (valor) => {
-    const numero = Number(valor) / 100;
-    return numero.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
-
-  const inputDataCadastro = document.querySelector('input[type="date"]');
-  const inputValorSugerido = document.getElementById('valorSugerido');
-  const inputValorCusto = document.getElementById('valorCusto');
-  const inputMargem = document.getElementById('margemLucro');
-
-  const atualizarData = () => {
-    if (!inputDataCadastro) return;
-    const hoje = new Date();
-    const dia = String(hoje.getDate()).padStart(2, "0");
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-    const ano = hoje.getFullYear();
-    inputDataCadastro.value = `${ano}-${mes}-${dia}`;
-  };
-
-  const calcularMargem = () => {
-    const custo = Number(inputValorCusto.value.replace(/\D/g, '')) / 100;
-    const venda = Number(inputValorSugerido.value.replace(/\D/g, '')) / 100;
-    let margem = 0;
-    if (venda > 0) margem = ((venda - custo) / venda) * 100;
-    inputMargem.value = `${margem.toFixed(2)}%`;
-    inputMargem.style.color = margem < 0 ? 'red' : 'black';
-  };
-
-  const formatarInputMoeda = (input) => {
-    input.value = 'R$ 0,00';
-    input.addEventListener('input', (e) => {
-      let valor = e.target.value.replace(/\D/g, '');
-      e.target.value = valor ? formatarMoeda(valor) : 'R$ 0,00';
-      calcularMargem();
-    });
-    input.addEventListener('blur', (e) => {
-      if (!e.target.value || e.target.value === 'R$ ,00') {
-        e.target.value = 'R$ 0,00';
-        calcularMargem();
-      }
-    });
-  };
-
-  if (inputValorSugerido && inputValorCusto && inputMargem) {
-    formatarInputMoeda(inputValorSugerido);
-    formatarInputMoeda(inputValorCusto);
-    inputMargem.value = '0%';
-    inputMargem.style.color = 'black';
-  }
-
-  atualizarData();
-  await atualizarCodigo();
-
-  // ================================
-  // Clique no botão Salvar Produto
-  // ================================
   if (btnSalvar) {
     btnSalvar.addEventListener('click', async () => {
       const descricao = document.getElementById('descricao')?.value.trim();
@@ -3106,11 +3165,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return parseFloat(valor.replace(/\./g, '').replace('R$', '').replace(',', '.').trim());
       };
 
-      const valorCusto = converterMoedaParaFloat(inputValorCusto?.value);
-      const valorSugerido = converterMoedaParaFloat(inputValorSugerido?.value);
-      const margem = parseFloat(inputMargem?.value.replace('%', '')) || 0;
+      const valorCusto = converterMoedaParaFloat(document.getElementById('valorCusto')?.value);
+      const valorSugerido = converterMoedaParaFloat(document.getElementById('valorSugerido')?.value);
+      const margem = parseFloat(document.getElementById('margemLucro')?.value.replace('%', '')) || 0;
+      const estoque = parseInt(document.getElementById('estoque')?.value) || 0;
 
-      // Validações
       if (!descricao) {
         mostrarModalErro('Por favor, informe o nome do produto antes de salvar.');
         return;
@@ -3122,44 +3181,43 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       // Verificar duplicidade
-      const { data: produtosExistentes, error: erroBusca } = await supabase
+      const { data: produtosExistentes } = await supabase
         .from('produtos')
         .select('id')
         .eq('descricao', descricao);
 
-      if (erroBusca) {
-        console.error('Erro ao verificar produto existente:', erroBusca);
-        mostrarModalErro('Erro ao verificar se o produto já existe.');
-        return;
-      }
-
       if (produtosExistentes.length > 0) {
-        mostrarModalAviso('Já existe um produto cadastrado com essa descrição. Não é possível cadastrar novamente.');
+        mostrarModalAviso('Já existe um produto cadastrado com essa descrição.');
         return;
       }
 
-      // Inserir produto
+      // Preparar objeto do produto
       const produto = {
-        codigo: parseInt(inputCodigo.value),
-        data_cadastro: new Date().toISOString().split('T')[0],
-        data_atualizacao: new Date().toISOString().split('T')[0],
-        situacao: document.querySelector('select')?.value || 'Ativo',
-        codigo_alternativo: document.getElementById('codigoAlternativo')?.value || '',
-        descricao: descricao,
-        descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
-        categoria: document.getElementById('categoriaProduto')?.value || '',
-        unidade_medida: document.getElementById('unidadeMedida')?.value || '',
-        origem: document.getElementById('origem')?.value || '0',
-        ncm: document.getElementById('ncm')?.value || '',
-        cest: document.getElementById('cest')?.value || '',
-        valor_custo: valorCusto,
-        margem_lucro: margem,
-        valor_sugerido: valorSugerido,
-        grupo_icms: document.getElementById('grupoIcms')?.value || '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+  codigo: parseInt(inputCodigo.value),
+  data_cadastro: new Date().toISOString().split('T')[0],
+  data_atualizacao: new Date().toISOString().split('T')[0],
+  valor_custo: valorCusto,
+  margem_lucro: margem,
+  valor_sugerido: valorSugerido,
+  estoque: estoque,
+  origem: document.getElementById('origem')?.value || '0',
+  ncm: document.getElementById('ncm')?.value || '',
+  cest: document.getElementById('cest')?.value || '',
+  classificacao_fiscal: document.getElementById('classificacaoFiscal')?.value || '',
+  situacao_tributaria: document.getElementById('situacaoTributaria')?.value || '',
+  grupo_icms: document.getElementById('grupoIcms')?.value || '',
+  codigo_barras: document.getElementById('codigoBarras')?.value || '',
+  imagem_url: document.getElementById('imagemUrl')?.value || '',
+  situacao: document.getElementById('situacao')?.value || 'ativo',
+  categoria: document.getElementById('categoriaProduto')?.value || '',
+  codigo_alternativo: document.getElementById('codigoAlternativo')?.value || '',
+  descricao: descricao,
+  descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
+  unidade_medida: document.getElementById('unidadeMedida')?.value || ''
+};
 
+
+      // Inserir no Supabase
       const { data, error } = await supabase
         .from('produtos')
         .insert([produto])
@@ -3170,18 +3228,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error(error);
       } else {
         mostrarModalAviso('Produto salvo com sucesso!');
-        atualizarData();
-        inputValorSugerido.value = 'R$ 0,00';
-        inputValorCusto.value = 'R$ 0,00';
-        inputMargem.value = '0%';
-        inputMargem.style.color = 'black';
-        ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','grupoIcms','codigoAlternativo']
-          .forEach(id => document.getElementById(id).value = '');
         await atualizarCodigo();
+
+        // Limpar campos
+        ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','classificacaoFiscal','situacaoTributaria','grupoIcms','codigoBarras','imagemUrl','codigoAlternativo'].forEach(id => {
+          const campo = document.getElementById(id);
+          if (campo) campo.value = '';
+        });
+        document.getElementById('valorSugerido').value = 'R$ 0,00';
+        document.getElementById('valorCusto').value = 'R$ 0,00';
+        document.getElementById('margemLucro').value = '0%';
+        document.getElementById('margemLucro').style.color = 'black';
+        document.getElementById('estoque').value = '0';
       }
     });
   }
+
+  await atualizarCodigo();
 });
+
 
 let produtoIdExcluir = null
 

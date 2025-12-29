@@ -4,19 +4,91 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
 const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // =============================
-// ENTREGAR PEDIDO NO DOM E ATUALIZAR SUPABASE
+// MODAL DE ERRO
 // =============================
-async function entregarPedidoDOM(id, file) {
+function mostrarModalErro(mensagem) {
+  console.error("❌ ERRO:", mensagem);
+
+  const modal = document.getElementById("modal-erro");
+  const msg = document.getElementById("modal-erro-msg");
+  const btn = document.getElementById("btn-fechar-erro");
+
+  if (!modal || !msg || !btn) {
+    alert(mensagem);
+    return;
+  }
+
+  msg.textContent = mensagem;
+  modal.classList.remove("hidden");
+
+  btn.onclick = () => modal.classList.add("hidden");
+}
+
+// =============================
+// SALVAR USERNAME DO ENTREGADOR
+// =============================
+async function salvarEntregadorNaEntrega(entregaId) {
+  const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
+
+  if (!entregador || !entregador.id) {
+    throw new Error("Entregador não identificado. Faça login novamente.");
+  }
+
+  const { data: usuario, error } = await supabase
+    .from("usuarios")
+    .select("username")
+    .eq("id", entregador.id)
+    .single();
+
+  if (error || !usuario?.username) {
+    console.error(error);
+    throw new Error("Erro ao buscar dados do entregador.");
+  }
+
+  const { error: updateError } = await supabase
+    .from("entregas")
+    .update({ entregador_nome: usuario.username })
+    .eq("id", entregaId);
+
+  if (updateError) {
+    console.error(updateError);
+    throw new Error("Erro ao salvar entregador na entrega.");
+  }
+}
+
+// =============================
+// FINALIZAR PEDIDO (TABELA PEDIDOS)
+// =============================
+async function finalizarPedido(numeroPedido) {
+  const { error } = await supabase
+    .from("pedidos")
+    .update({
+      status: "Finalizado",
+      horario_entrega_status: new Date().toISOString()
+    })
+    .eq("numero_pedido", numeroPedido);
+
+  if (error) {
+    console.error("❌ ERRO AO ATUALIZAR PEDIDOS:", error);
+    throw new Error("Erro ao salvar na tabela pedidos.");
+  }
+}
+
+// =============================
+// ENTREGAR PEDIDO
+// =============================
+async function entregarPedidoDOM(id, file, numeroPedido) {
   const statusEl = document.getElementById(`status-${id}`);
   const btnEl = document.getElementById(`btn-${id}`);
-  const cardEl = btnEl ? btnEl.closest("div") : null;
+  const cardEl = btnEl?.closest("div");
 
-  if (!statusEl || !btnEl || !cardEl || statusEl.textContent === "Entregue") return;
+  if (!statusEl || !btnEl || !cardEl) return;
 
   btnEl.disabled = true;
   btnEl.textContent = "Finalizando...";
@@ -26,214 +98,159 @@ async function entregarPedidoDOM(id, file) {
   try {
     if (file) {
       const fileName = `entrega_${id}_${Date.now()}.jpg`;
-      const { error: uploadError } = await supabase.storage
+      const { error } = await supabase.storage
         .from("fotos-entregas")
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (error) throw error;
 
-      fotoUrl = supabase.storage.from("fotos-entregas").getPublicUrl(fileName).data.publicUrl;
+      fotoUrl = supabase.storage
+        .from("fotos-entregas")
+        .getPublicUrl(fileName).data.publicUrl;
     }
 
-    const { error: updateError } = await supabase
+    await salvarEntregadorNaEntrega(id);
+
+    const { error: entregaError } = await supabase
       .from("entregas")
       .update({
         status: "Entregue",
         horario_entrega: new Date().toLocaleTimeString(),
-        foto_entrega: fotoUrl || null
+        foto_entrega: fotoUrl
       })
       .eq("id", id);
 
-    if (updateError) throw updateError;
+    if (entregaError) throw entregaError;
+
+    // 🔴 SE FALHAR AQUI → MODAL
+    await finalizarPedido(numeroPedido);
 
     cardEl.remove();
 
   } catch (err) {
-    console.error("Erro ao finalizar pedido:", err);
-    alert("Não foi possível finalizar o pedido. Tente novamente.");
     btnEl.disabled = false;
     btnEl.textContent = "Finalizar Pedido";
+    mostrarModalErro(err.message || "Erro inesperado ao finalizar.");
   }
 }
 
 // =============================
-// CRIAR CARD DE ENTREGA
+// CRIAR CARD (COM ITENS)
 // =============================
 function criarCardEntrega(entrega) {
   const card = document.createElement("div");
   card.className = `
-    bg-white
-    rounded-3xl
-    shadow-lg
-    p-4 sm:p-6
-    mb-6
-    flex
-    flex-col
-    justify-between
+    bg-white rounded-3xl shadow-lg p-4 sm:p-6 mb-6
+    flex flex-col justify-between
   `;
 
-  const statusColor = entrega.status?.trim().toLowerCase() === "aguardando" 
-    ? "bg-yellow-400 text-gray-800" 
-    : "bg-green-500 text-white";
-
   let itensHtml = "<p class='text-gray-400 italic'>Não informado</p>";
+
   if (entrega.itens && entrega.itens.length > 0) {
     itensHtml = "<ul class='list-disc list-inside space-y-1'>";
     entrega.itens.forEach(item => {
-      itensHtml += `<li class='text-gray-700'><span class='font-semibold'>${item.name}</span> — Qtd: ${item.quantity} — R$ ${item.price.toFixed(2)}</li>`;
+      itensHtml += `
+        <li class="text-gray-700">
+          <span class="font-semibold">${item.name}</span>
+          — Qtd: ${item.quantity}
+          — R$ ${item.price.toFixed(2)}
+        </li>`;
     });
     itensHtml += "</ul>";
   }
 
   card.innerHTML = `
-    <h2 class="text-2xl font-bold text-gray-900 mb-2">Pedido ${entrega.numero_pedido}</h2>
-    <p class="text-gray-600"><span class="font-semibold">Cliente:</span> ${entrega.nome_cliente}</p>
-    <p class="text-gray-600"><span class="font-semibold">Endereço:</span> ${entrega.endereco}</p>
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">
+      Pedido ${entrega.numero_pedido}
+    </h2>
+
+    <p class="text-gray-600"><b>Cliente:</b> ${entrega.nome_cliente}</p>
+    <p class="text-gray-600"><b>Endereço:</b> ${entrega.endereco}</p>
+
     <p class="text-gray-700 font-semibold mt-3">Itens:</p>
     ${itensHtml}
-    <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mt-4">
-      <span id="status-${entrega.id}" class="px-4 py-2 rounded-full ${statusColor} font-semibold text-center shadow-md">${entrega.status}</span>
-      ${entrega.status?.trim().toLowerCase() === "aguardando" ? `<button id="btn-${entrega.id}" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full shadow-md w-full sm:w-auto">Finalizar Pedido</button>` : ""}
-      <span id="check-${entrega.id}" class="text-green-600 text-3xl font-bold" style="display:${entrega.status === "Entregue" ? 'inline-flex' : 'none'};">✔️</span>
+
+    <div class="flex flex-col gap-3 mt-4">
+      <span id="status-${entrega.id}"
+        class="px-4 py-2 rounded-full bg-yellow-400 text-gray-800 font-semibold text-center">
+        ${entrega.status}
+      </span>
+
+      <button id="btn-${entrega.id}"
+        class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full shadow-md">
+        Finalizar Pedido
+      </button>
     </div>
   `;
 
-  const btnEl = card.querySelector(`#btn-${entrega.id}`);
-  if (btnEl) btnEl.addEventListener("click", () => entregarPedidoDOM(entrega.id));
+  card.querySelector(`#btn-${entrega.id}`).onclick = () =>
+    entregarPedidoDOM(entrega.id, null, entrega.numero_pedido);
 
   return card;
 }
 
 // =============================
-// CARREGAR ENTREGAS Aguardando
+// CARREGAR ENTREGAS
 // =============================
 async function carregarEntregas() {
   const container = document.getElementById("pedidos-container");
   container.innerHTML = "";
 
-  try {
-    const { data: entregas, error } = await supabase
-      .from("entregas")
-      .select("*")
-      // usamos ilike para ignorar maiúsculas/minúsculas e espaços
-      .ilike("status", "%aguardando%")
-      .order("id", { ascending: true });
-
-    console.log("Erro:", error);
-    console.log("Entregas retornadas:", entregas);
-
-    if (error) throw error;
-
-    if (!entregas || entregas.length === 0) {
-      container.innerHTML = `<p class="text-gray-600 text-center mt-10">Nenhuma entrega aguardando no momento.</p>`;
-      return;
-    }
-
-    entregas.forEach(entrega => container.appendChild(criarCardEntrega(entrega)));
-
-  } catch (err) {
-    console.error("Erro ao carregar entregas:", err);
-    container.innerHTML = `<p class="text-gray-600 text-center mt-10">Erro ao carregar entregas.</p>`;
-  }
-}
-
-// =============================
-// VERIFICAR SE USUÁRIO ESTÁ ATIVO
-// =============================
-async function verificarAtivo(entregadorId) {
   const { data, error } = await supabase
-    .from("usuarios")
-    .select("ativo")
-    .eq("id", entregadorId)
-    .single();
+    .from("entregas")
+    .select("*")
+    .ilike("status", "%aguardando%")
+    .order("id");
 
   if (error) {
-    console.error("Erro ao verificar status do usuário:", error);
-    return false;
+    mostrarModalErro("Erro ao carregar entregas.");
+    return;
   }
 
-  return data?.ativo === true;
+  if (!data || data.length === 0) {
+    container.innerHTML =
+      "<p class='text-center text-gray-500 mt-10'>Nenhuma entrega aguardando.</p>";
+    return;
+  }
+
+  data.forEach(entrega =>
+    container.appendChild(criarCardEntrega(entrega))
+  );
 }
 
 // =============================
-// MODAL DE BLOQUEIO
+// INIT
 // =============================
-function mostrarModalBloqueio() {
-  const modal = document.getElementById("modal-bloqueio");
-  const modalContent = document.getElementById("modal-content");
-  const btnFechar = document.getElementById("btn-fechar-bloqueio");
+document.addEventListener("DOMContentLoaded", carregarEntregas);
 
-  if (!modal || !modalContent || !btnFechar) return;
-
-  modal.classList.remove("hidden");
-  modalContent.classList.remove("scale-95", "opacity-0");
-  modalContent.classList.add("scale-100", "opacity-100");
-
-  btnFechar.addEventListener("click", () => {
-    modal.classList.add("hidden");
-    localStorage.removeItem("entregadorLogado");
-    window.location.href = "loginentregador.html";
-  });
-
-  document.body.style.pointerEvents = "none";
-  modal.style.pointerEvents = "auto";
-}
 
 // =============================
-// MONITORAR ATIVO EM TEMPO REAL
-// =============================
-function monitorarAtivoRealtime(entregadorId) {
-  supabase
-    .channel('realtime-usuarios')
-    .on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'usuarios', filter: `id=eq.${entregadorId}` },
-      (payload) => {
-        if (payload.new.ativo === false) {
-          mostrarModalBloqueio();
-        }
-      }
-    )
-    .subscribe();
-}
-
-// =============================
-// MOSTRAR NOME DO ENTREGADOR LOGADO
+// MOSTRAR NOME DO ENTREGADOR
 // =============================
 async function mostrarNomeEntregador() {
-  const nomeEntregadorEl = document.getElementById("nome-entregador");
+  const el = document.getElementById("nome-entregador");
   const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
 
-  if (!entregador || !nomeEntregadorEl) {
+  if (!entregador || !el) {
     window.location.href = "loginentregador.html";
     return;
   }
 
-  const ativo = await verificarAtivo(entregador.id);
-
-  if (!ativo) {
-    mostrarModalBloqueio();
-    return;
-  }
-
-  nomeEntregadorEl.textContent = entregador.nome || entregador.username;
-
-  // Inicia monitoramento em tempo real
-  monitorarAtivoRealtime(entregador.id);
+  el.textContent = entregador.nome || entregador.username;
 }
 
 // =============================
 // EXECUÇÃO INICIAL
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
-  mostrarNomeEntregador();
-  carregarEntregas();
+  mostrarNomeEntregador();   // ✅ CORREÇÃO PRINCIPAL
+  
 
   const btnDeslogar = document.getElementById("btn-deslogar");
   if (btnDeslogar) {
-    btnDeslogar.addEventListener("click", () => {
+    btnDeslogar.onclick = () => {
       localStorage.removeItem("entregadorLogado");
       window.location.href = "loginentregador.html";
-    });
+    };
   }
 });

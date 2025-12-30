@@ -10,7 +10,9 @@ const SUPABASE_KEY =
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
+
 document.addEventListener("DOMContentLoaded", async () => {
+
   const spanEmpresa = document.getElementById("nomeEmpresa");
   const modal = document.getElementById("modalEmpresa");
   const fechar = document.getElementById("fecharModal");
@@ -32,24 +34,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   let novoFundo = null;
   let novoLogo = null;
 
+  // garante estado inicial
   modal.classList.add("hidden");
 
-  // Modal de aviso moderno
+  /* ================= MODAL AVISO ================= */
   const modalAviso = document.getElementById("modalAviso2");
-  const modalAvisoTexto = modalAviso.querySelector("#modalAvisoTexto");
-  const btnFecharAviso = modalAviso.querySelector("#btnFecharAviso");
+  const modalAvisoTexto = document.getElementById("modalAvisoTexto");
+  const btnFecharAviso = document.getElementById("btnFecharAviso");
 
   function mostrarModalAviso(mensagem) {
     modalAvisoTexto.textContent = mensagem;
     modalAviso.classList.remove("hidden");
   }
 
-  btnFecharAviso.addEventListener("click", () => modalAviso.classList.add("hidden"));
-  modalAviso.addEventListener("click", (e) => {
-    if (e.target === modalAviso) modalAviso.classList.add("hidden");
+  btnFecharAviso.addEventListener("click", () => {
+    modalAviso.classList.add("hidden");
   });
 
-  // Carregar dados da empresa
+  modalAviso.addEventListener("click", (e) => {
+    if (e.target === modalAviso) {
+      modalAviso.classList.add("hidden");
+    }
+  });
+
+  /* ================= EMPRESA ================= */
   async function carregarEmpresa() {
     const { data, error } = await supabase
       .from("empresa")
@@ -58,39 +66,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       .single();
 
     if (error) {
-      console.error("Erro ao buscar empresa:", error);
+      console.error(error);
       spanEmpresa.textContent = "Erro ao carregar";
       return null;
     }
     return data;
   }
 
-  // Recuperar usuário logado
   function recuperarUsuarioLogado() {
     const usuarioJSON = localStorage.getItem("usuarioLogado");
-    if (!usuarioJSON) {
-      mostrarModalAviso("Nenhum usuário logado!");
-      return null;
-    }
+    if (!usuarioJSON) return null;
 
-    let usuario = null;
     try {
-      usuario = JSON.parse(usuarioJSON);
-
+      const usuario = JSON.parse(usuarioJSON);
       if (!Array.isArray(usuario.permissoes)) {
-        try {
-          usuario.permissoes = JSON.parse(usuario.permissoes || "[]");
-        } catch {
-          usuario.permissoes = [];
-        }
+        usuario.permissoes = JSON.parse(usuario.permissoes || "[]");
       }
-    } catch (err) {
-      console.error("Erro ao ler usuário logado:", err);
-      mostrarModalAviso("Erro ao identificar usuário!");
+      return usuario;
+    } catch {
       return null;
     }
-
-    return usuario;
   }
 
   const empresa = await carregarEmpresa();
@@ -103,8 +98,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const podeEditar = usuario.permissoes.includes("Acesso Total");
 
-  // Clique no nome da empresa
+  /* ================= ABRIR MODAL ================= */
   spanEmpresa.addEventListener("click", () => {
+
     if (!podeEditar) {
       mostrarModalAviso("Você não tem permissão para editar informações da empresa!");
       return;
@@ -115,7 +111,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     inputTelefone.value = empresa.telefone || "";
     inputWhatsApp.value = empresa.whatsapp || "";
     inputCNPJ.value = empresa.cnpj || "";
-    inputCriadoEm.value = new Date(empresa.criado_em).toLocaleString() || "";
+    inputCriadoEm.value = empresa.criado_em
+      ? new Date(empresa.criado_em).toLocaleString()
+      : "";
 
     // Fundo
     if (empresa.fundo_cardapio) {
@@ -127,7 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       previewFundo.classList.add("hidden");
     }
 
-    // Logotipo
+    // Logo
     if (empresa.logotipo) {
       previewLogo.src = empresa.logotipo;
       previewLogo.classList.remove("hidden");
@@ -140,17 +138,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     modal.classList.remove("hidden");
   });
 
-  // Fechar modal
-  fechar.addEventListener("click", () => modal.classList.add("hidden"));
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.classList.add("hidden");
+  /* ================= FECHAR MODAL ================= */
+  fechar.addEventListener("click", () => {
+    modal.classList.add("hidden");
   });
 
-  // Preview do fundo
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+    }
+  });
+
+  /* ================= PREVIEW FUNDO ================= */
   previewFundo.addEventListener("click", () => inputFundo.click());
   inputFundo.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (event) => {
       previewFundo.src = event.target.result;
@@ -160,11 +164,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     reader.readAsDataURL(file);
   });
 
-  // Preview do logotipo
+  /* ================= PREVIEW LOGO ================= */
   previewLogo.addEventListener("click", () => inputLogo.click());
   inputLogo.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = (event) => {
       previewLogo.src = event.target.result;
@@ -174,43 +179,55 @@ document.addEventListener("DOMContentLoaded", async () => {
     reader.readAsDataURL(file);
   });
 
-  // Salvar alterações
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  /* ================= SALVAR ================= */
+  const btnSalvarEmpresa = document.getElementById("btnSalvarEmpresa");
 
-    if (!podeEditar) {
-      mostrarModalAviso("Você não tem permissão para salvar alterações!");
-      return;
-    }
+btnSalvarEmpresa.addEventListener("click", async (e) => {
+  e.preventDefault();
+  e.stopPropagation(); // 🔥 AGORA SIM
 
-    const updateData = {
-      nome: inputNome.value,
-      endereco: inputEndereco.value,
-      telefone: inputTelefone.value,
-      whatsapp: inputWhatsApp.value,
-      cnpj: inputCNPJ.value,
-    };
+  if (!podeEditar) {
+    mostrarModalAviso("Você não tem permissão para salvar alterações!");
+    return;
+  }
 
-    if (novoFundo) updateData.fundo_cardapio = novoFundo;
-    if (novoLogo) updateData.logotipo = novoLogo;
+  const updateData = {
+    nome: inputNome.value,
+    endereco: inputEndereco.value,
+    telefone: inputTelefone.value,
+    whatsapp: inputWhatsApp.value,
+    cnpj: inputCNPJ.value,
+  };
 
-    const { data, error } = await supabase
-      .from("empresa")
-      .update(updateData)
-      .eq("id", empresa.id)
-      .single();
+  if (novoFundo) updateData.fundo_cardapio = novoFundo;
+  if (novoLogo) updateData.logotipo = novoLogo;
 
-    if (error) {
-      mostrarModalAviso("Erro ao salvar alterações!");
-      console.error(error);
-      return;
-    }
+  const { data, error } = await supabase
+    .from("empresa")
+    .update(updateData)
+    .eq("id", empresa.id)
+    .single();
 
-    spanEmpresa.textContent = data.nome;
-    modal.classList.add("hidden");
-    mostrarModalAviso("Alterações salvas com sucesso!");
-  });
+  if (error) {
+    console.error(error);
+    mostrarModalAviso("Erro ao salvar alterações!");
+    return;
+  }
+
+  // ✅ ATUALIZA O NOME
+  spanEmpresa.textContent = data.nome;
+
+  // ✅ FECHA O MODAL
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+
+  // ✅ MOSTRA A MENSAGEM
+  mostrarModalAviso("Alterações salvas com sucesso!");
 });
+
+});
+
+
 
 let timerBloqueio = null;
 let canalBloqueio = null;
@@ -4260,3 +4277,173 @@ document.addEventListener('DOMContentLoaded', () => {
   renderizarGraficoMaisVendidos();
   setInterval(renderizarGraficoMaisVendidos, 5000);
 });
+
+const LINK_CARDAPIO = "https://cardapio-demo-v2.vercel.app/";
+
+const btnCompartilhar = document.getElementById("btnCompartilhar");
+const menuCompartilhar = document.getElementById("menuCompartilhar");
+
+btnCompartilhar.addEventListener("click", () => {
+  menuCompartilhar.classList.toggle("hidden");
+});
+
+// Copiar link
+document.getElementById("btnCopiarLink").addEventListener("click", () => {
+  navigator.clipboard.writeText(LINK_CARDAPIO);
+  alert("Link do cardápio copiado!");
+});
+
+// Abrir cardápio
+document.getElementById("btnAbrirCardapio").addEventListener("click", () => {
+  window.open(LINK_CARDAPIO, "_blank");
+});
+
+// Compartilhamento
+document.querySelectorAll(".btnShare").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const type = btn.dataset.type;
+
+    if (type === "copiar") {
+      navigator.clipboard.writeText(LINK_CARDAPIO);
+      alert("Link copiado!");
+      return;
+    }
+
+    let url = "";
+
+    if (type === "whatsapp") {
+      url = `https://wa.me/?text=${encodeURIComponent("Confira nosso cardápio online: " + LINK_CARDAPIO)}`;
+    }
+
+    if (type === "facebook") {
+      url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(LINK_CARDAPIO)}`;
+    }
+
+    if (type === "instagram") {
+      alert("O Instagram não permite compartilhamento direto por link.\nCopie o link e cole na bio ou stories.");
+      navigator.clipboard.writeText(LINK_CARDAPIO);
+      return;
+    }
+
+    window.open(url, "_blank");
+    menuCompartilhar.classList.add("hidden");
+  });
+});
+
+// Fecha o menu ao clicar fora
+document.addEventListener("click", (e) => {
+  if (!btnCompartilhar.contains(e.target) && !menuCompartilhar.contains(e.target)) {
+    menuCompartilhar.classList.add("hidden");
+  }
+});
+
+
+let avisoMostrado = false;
+let modalHorarioAberto = false;
+
+// converte dia JS para texto do banco
+function getDiaSemanaTexto() {
+  const dias = [
+    "domingo",
+    "segunda",
+    "terca",
+    "quarta",
+    "quinta",
+    "sexta",
+    "sabado"
+  ];
+  return dias[new Date().getDay()];
+}
+
+// converte "HH:MM:SS" para Date de hoje
+function horaParaDate(hora) {
+  const [h, m, s] = hora.split(":");
+  const d = new Date();
+  d.setHours(h, m, s, 0);
+  return d;
+}
+
+// 🔔 Modal aviso (3 minutos)
+function mostrarModalAvisoEncerramento() {
+  if (avisoMostrado) return;
+
+  avisoMostrado = true;
+
+  const modal = document.getElementById("modalAvisoEncerramento");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  document.getElementById("btnConfirmarAvisoEncerramento").onclick = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  };
+}
+
+// ⛔ Modal fora do horário (exibição)
+function mostrarModalHorario() {
+  if (modalHorarioAberto) return;
+  modalHorarioAberto = true;
+
+  const modal = document.getElementById("modalHorario");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+// ===============================
+// FUNÇÃO PRINCIPAL
+// ===============================
+async function verificarHorarioSistema() {
+  const diaSemana = getDiaSemanaTexto();
+
+  const { data, error } = await supabase
+    .from("horarios_semana")
+    .select("hora_inicio, hora_fim")
+    .eq("dia_semana", diaSemana)
+    .single();
+
+  if (error || !data || !data.hora_inicio || !data.hora_fim) return;
+
+  const agora = new Date();
+  const horaInicio = horaParaDate(data.hora_inicio);
+  const horaFim = horaParaDate(data.hora_fim);
+
+  // ⛔ Antes do horário → bloqueia, sem deslogar
+  if (agora < horaInicio) {
+    mostrarModalHorario();
+    return;
+  }
+
+  // ⛔ Exatamente na hora_fim ou após → mostra modal e desloga
+  if (agora >= horaFim) {
+    mostrarModalHorario();
+
+    // aguarda 1s para o modal renderizar
+    setTimeout(async () => {
+      await supabase.auth.signOut();
+      window.location.href = "login.html";
+    }, 1000);
+
+    return;
+  }
+
+  // ✅ Dentro do horário → libera
+  modalHorarioAberto = false;
+
+  const diferencaMs = horaFim - agora;
+  const diferencaMin = Math.ceil(diferencaMs / 60000);
+
+  // 🔔 Aviso 3 minutos antes (uma vez)
+  if (diferencaMin <= 3 && diferencaMin > 0 && !avisoMostrado) {
+    mostrarModalAvisoEncerramento();
+  }
+}
+
+// ===============================
+// EXECUÇÃO
+// ===============================
+// verifica a cada 1 segundo para atualizar o painel imediatamente
+setInterval(verificarHorarioSistema, 1000);
+
+// roda imediatamente ao carregar a página
+verificarHorarioSistema();
+

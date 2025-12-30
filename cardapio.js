@@ -238,33 +238,43 @@ function carregarCategorias() {
 // Chama a função para popular as categorias
 carregarCategorias();
 
-// Informações da empresa
+// Informações da 
 async function carregarEmpresa() {
   try {
     const { data, error } = await supabase
       .from('empresa')
-      .select('nome, cnpj, endereco')  // Pega nome, CNPJ e endereço
-      .eq('id', 1)                      // Pegando o único registro
-      .single();                         // Retorna apenas um registro
+      .select('nome, cnpj, endereco')
+      .eq('id', 1)
+      .single();
 
     if (error) {
       console.error('Erro ao buscar empresa:', error);
       document.getElementById('nomeEmpresa').textContent = "Erro ao carregar nome";
       document.getElementById('empresaCNPJ').textContent = "Erro ao carregar CNPJ";
       document.getElementById('enderecoEmpresa').textContent = "Erro ao carregar endereço";
+
+      // ❌ Título de erro
+      document.title = "Erro ao carregar empresa";
       return;
     }
 
-    // Atualiza o HTML com os dados da tabela
+    /* ================= HTML ================= */
     document.getElementById('nomeEmpresa').textContent = data.nome;
-    document.getElementById('empresaCNPJ').textContent = `${data.nome} — CNPJ: ${data.cnpj}`;
+    document.getElementById('empresaCNPJ').textContent =
+      `${data.nome} — CNPJ: ${data.cnpj}`;
     document.getElementById('enderecoEmpresa').textContent = data.endereco;
+
+    /* ================= TITLE ================= */
+    document.title = `Cardápio • ${data.nome}`;
 
   } catch (err) {
     console.error('Erro inesperado:', err);
+
     document.getElementById('nomeEmpresa').textContent = "Erro inesperado";
     document.getElementById('empresaCNPJ').textContent = "Erro inesperado";
     document.getElementById('enderecoEmpresa').textContent = "Erro inesperado";
+
+    document.title = "Erro inesperado";
   }
 }
 

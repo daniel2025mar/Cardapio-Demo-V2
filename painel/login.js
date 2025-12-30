@@ -291,3 +291,26 @@ document.addEventListener("DOMContentLoaded", () => {
   verificarTema();
   setInterval(verificarTema, 1000);
 })();
+
+
+async function mostrarNomeEmpresa() {
+  const { data, error } = await supabase
+    .from('empresa')
+    .select('nome')
+    .limit(1)  // pega só um registro, o primeiro
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar empresa:", error);
+    return;
+  }
+
+  const pEmpresa = document.querySelector("#nome-empresa");
+  if (pEmpresa && data) {
+    const anoAtual = new Date().getFullYear(); // pega o ano atual do calendário
+    pEmpresa.textContent = `© ${anoAtual} ${data.nome}`;
+  }
+}
+
+// Executa a função
+mostrarNomeEmpresa();

@@ -28,9 +28,16 @@ export async function buscarProdutos() {
 // =============================
 // CARREGAR PRODUTOS NO CARDÁPIO
 // =============================
+
 export async function carregarProdutosNoCardapio() {
   const produtos = await buscarProdutos();
   const container = document.getElementById("produtosContainer");
+
+  // Configura o container como grid com espaçamento
+  container.style.display = "grid";
+  container.style.gridTemplateColumns = "repeat(auto-fill, minmax(250px, 1fr))"; 
+  container.style.gap = "1rem"; // espaço entre os cards
+  container.style.padding = "1rem"; // espaço das bordas
   container.innerHTML = "";
 
   if (!produtos || produtos.length === 0) {
@@ -42,17 +49,30 @@ export async function carregarProdutosNoCardapio() {
     const card = document.createElement("div");
     card.className = "bg-white rounded-lg shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition";
 
+    const indisponivel = produto.estoque === 0;
+    const imgClasses = indisponivel
+      ? "w-full h-40 object-cover rounded mb-2 filter grayscale"
+      : "w-full h-40 object-cover rounded mb-2";
+    const btnClasses = indisponivel
+      ? "px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed mt-auto"
+      : "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition mt-auto";
+
     card.innerHTML = `
-      <img src="${produto.imagem_url}" alt="${produto.descricao}" class="w-full h-40 object-cover rounded mb-2">
+      <img src="${produto.imagem_url}" alt="${produto.descricao}" class="${imgClasses}">
       <h3 class="font-bold text-lg">${produto.descricao}</h3>
       <p class="text-gray-600 text-sm mb-2">Código: ${produto.codigo}</p>
-      <span class="font-bold text-red-600 mb-2">R$ ${produto.valor_sugerido.toFixed(2)}</span>
-      <button class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition mt-auto">
-        Adicionar
-      </button>
+      <span class="font-bold ${indisponivel ? "text-gray-500" : "text-red-600"} mb-2">R$ ${produto.valor_sugerido.toFixed(2)}</span>
+      <button class="${btnClasses}" ${indisponivel ? "disabled" : ""}>Adicionar</button>
     `;
 
-    card.addEventListener("click", () => abrirModal(produto));
+    card.addEventListener("click", () => {
+      if (indisponivel) {
+        mostrarModalIndisponivel();
+      } else {
+        abrirModal(produto);
+      }
+    });
+
     container.appendChild(card);
   });
 }
@@ -65,17 +85,114 @@ export function abrirModal(produto) {
   const conteudo = document.getElementById("modalConteudo");
 
   conteudo.innerHTML = `
-    <img src="${produto.imagem_url}" alt="${produto.descricao}" class="w-full h-48 object-cover rounded mb-4">
-    <h2 class="text-xl font-bold mb-2">${produto.descricao}</h2>
-    <p class="text-gray-700 mb-2">Código: ${produto.codigo}</p>
-    <p class="text-red-600 font-bold mb-4">R$ ${produto.valor_sugerido.toFixed(2)}</p>
-    <p class="text-gray-600 mb-2">Estoque: ${produto.estoque}</p>
-    <button class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Adicionar ao Pedido</button>
+    <img src="${produto.imagem_url}" alt="${produto.descricao_nfe}" class="w-full h-48 object-cover rounded mb-4">
+    <h2 class="text-sm font-medium mb-2">${produto.descricao_nfe}</h2>
+    <p class="text-gray-700 text-sm mb-2">Código: ${produto.codigo}</p>
+    <p class="text-red-600 font-bold text-sm mb-4">R$ ${produto.valor_sugerido.toFixed(2)}</p>
+    <p class="text-gray-600 text-sm mb-4">Estoque: ${produto.estoque}</p>
+
+    <div class="flex gap-2 mb-4">
+      <button id="btnAdicionarPedido" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+        Adicionar ao Pedido
+      </button>
+
+      <button id="btnEscolherOpcoes" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 flex items-center gap-1 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        Escolher Opções
+      </button>
+    </div>
   `;
 
+  // Abrir modal
   modal.classList.remove("hidden");
   document.getElementById("fecharModal").onclick = () => modal.classList.add("hidden");
+
+  // Botão de adicionar ao pedido
+  document.getElementById("btnAdicionarPedido").onclick = () => {
+    if (produto.estoque === 0) {
+      alert("Produto indisponível no momento!");
+    } else {
+      alert(`Produto "${produto.descricao_nfe}" adicionado ao pedido!`);
+      // Aqui você pode adicionar lógica para enviar ao carrinho
+    }
+  };
+
+  // Botão de escolher opções
+  const btnOpcoes = document.getElementById("btnEscolherOpcoes");
+  if (btnOpcoes) {
+    btnOpcoes.addEventListener("click", () => {
+      abrirModalOpcoes(produto);
+    });
+  }
 }
+
+// Modal de seleção de opções
+function abrirModalOpcoes(produto) {
+  const modal = document.getElementById("modalProduto");
+  const conteudo = document.getElementById("modalConteudo");
+
+  const opcoes = produto.opcoes || [
+    "Hamburguer de Frango empanado",
+    "Queijo Prato",
+    "Bacon",
+    "Cebola Roxa",
+    "Tomate",
+    "Alface",
+    "Maionese"
+  ];
+
+  const valorBase = produto.valor_sugerido;
+
+  conteudo.innerHTML = `
+    <h2 class="text-lg font-bold mb-4 text-center">${produto.descricao}</h2>
+
+    <div class="mb-4">
+      ${opcoes.map((op, index) => `
+        <div class="flex items-center mb-1">
+          <input type="checkbox" id="opcao${index}" class="mr-2" checked>
+          <label for="opcao${index}" class="text-sm">${op}</label>
+        </div>
+      `).join('')}
+    </div>
+
+    <p class="text-center font-bold mb-2">Total: R$ <span id="totalProduto">${valorBase.toFixed(2)}</span></p>
+    <p class="text-center text-xs text-gray-500 mb-4">
+      A escolha dos ingredientes será aplicada em todas as unidades deste mesmo produto adicionadas ao carrinho.
+    </p>
+
+    <div class="flex justify-end gap-2">
+      <button id="fecharOpcoes" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Fechar</button>
+      <button id="salvarOpcoes" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Salvar</button>
+    </div>
+  `;
+
+  const checkboxes = conteudo.querySelectorAll('input[type="checkbox"]');
+  const totalEl = document.getElementById('totalProduto');
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      // Se quiser somar valores extras, coloque a lógica aqui
+      totalEl.textContent = valorBase.toFixed(2);
+    });
+  });
+
+  document.getElementById("fecharOpcoes").onclick = () => abrirModal(produto);
+
+  document.getElementById("salvarOpcoes").onclick = () => {
+    const selecionados = [];
+    checkboxes.forEach((cb, index) => {
+      if (cb.checked) selecionados.push(opcoes[index]);
+    });
+
+    console.log("Opções selecionadas:", selecionados);
+    abrirModal(produto); // Volta para modal principal
+  };
+}
+
+
+
 
 // =============================
 // EXECUTA AO CARREGAR A PÁGINA

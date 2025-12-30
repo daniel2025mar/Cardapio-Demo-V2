@@ -3323,11 +3323,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
-//cadastro de produtos
 document.addEventListener('DOMContentLoaded', async () => {
   const btnSalvar = document.getElementById('btnSalvarProduto');
   const inputCodigo = document.getElementById('codigoPreview');
+  const inputQuantidadeMovimentacao = document.getElementById('quantidadeMovimentacao');
+  const btnAtualizarEstoque = document.getElementById('btnAtualizarEstoque');
+  const inputImagemProduto = document.getElementById('imagemProduto');
+  const previewImagemProduto = document.getElementById('previewImagemProduto');
+  let imagemUrl = ''; // Guardará a URL da imagem selecionada
 
   // Função para mostrar modais
   function criarModal(modalId, textoId, btnId) {
@@ -3378,9 +3381,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // Preview da imagem
+  if (inputImagemProduto && previewImagemProduto) {
+    inputImagemProduto.addEventListener('change', () => {
+      const file = inputImagemProduto.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImagemProduto.src = e.target.result; // Mostra preview
+        imagemUrl = e.target.result; // Guarda a imagem em Base64 para salvar
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Também permite clicar no preview para abrir a galeria
+    previewImagemProduto.addEventListener('click', () => {
+      inputImagemProduto.click();
+    });
+  }
+
+  // Função para cadastrar produto
   if (btnSalvar) {
     btnSalvar.addEventListener('click', async () => {
       const descricao = document.getElementById('descricao')?.value.trim();
+      const quantidade = parseInt(inputQuantidadeMovimentacao?.value);
+
       const converterMoedaParaFloat = (valor) => {
         if (!valor) return 0;
         return parseFloat(valor.replace(/\./g, '').replace('R$', '').replace(',', '.').trim());
@@ -3389,8 +3415,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const valorCusto = converterMoedaParaFloat(document.getElementById('valorCusto')?.value);
       const valorSugerido = converterMoedaParaFloat(document.getElementById('valorSugerido')?.value);
       const margem = parseFloat(document.getElementById('margemLucro')?.value.replace('%', '')) || 0;
-      const estoque = parseInt(document.getElementById('estoque')?.value) || 0;
 
+      // Validações
       if (!descricao) {
         mostrarModalErro('Por favor, informe o nome do produto antes de salvar.');
         return;
@@ -3398,6 +3424,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (valorSugerido === 0) {
         mostrarModalValorSugerido('O Valor de venda não pode ser R$ 0,00. Por favor, informe um valor válido.');
+        return;
+      }
+
+      if (!quantidade || quantidade <= 0) {
+        mostrarModalErro('Por favor, informe a quantidade em estoque antes de salvar.');
         return;
       }
 
@@ -3414,29 +3445,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Preparar objeto do produto
       const produto = {
-  codigo: parseInt(inputCodigo.value),
-  data_cadastro: new Date().toISOString().split('T')[0],
-  data_atualizacao: new Date().toISOString().split('T')[0],
-  valor_custo: valorCusto,
-  margem_lucro: margem,
-  valor_sugerido: valorSugerido,
-  estoque: estoque,
-  origem: document.getElementById('origem')?.value || '0',
-  ncm: document.getElementById('ncm')?.value || '',
-  cest: document.getElementById('cest')?.value || '',
-  classificacao_fiscal: document.getElementById('classificacaoFiscal')?.value || '',
-  situacao_tributaria: document.getElementById('situacaoTributaria')?.value || '',
-  grupo_icms: document.getElementById('grupoIcms')?.value || '',
-  codigo_barras: document.getElementById('codigoBarras')?.value || '',
-  imagem_url: document.getElementById('imagemUrl')?.value || '',
-  situacao: document.getElementById('situacao')?.value || 'ativo',
-  categoria: document.getElementById('categoriaProduto')?.value || '',
-  codigo_alternativo: document.getElementById('codigoAlternativo')?.value || '',
-  descricao: descricao,
-  descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
-  unidade_medida: document.getElementById('unidadeMedida')?.value || ''
-};
-
+        codigo: parseInt(inputCodigo.value),
+        data_cadastro: new Date().toISOString().split('T')[0],
+        data_atualizacao: new Date().toISOString().split('T')[0],
+        valor_custo: valorCusto,
+        margem_lucro: margem,
+        valor_sugerido: valorSugerido,
+        estoque: quantidade,
+        origem: document.getElementById('origem')?.value || '0',
+        ncm: document.getElementById('ncm')?.value || '',
+        cest: document.getElementById('cest')?.value || '',
+        classificacao_fiscal: document.getElementById('classificacaoFiscal')?.value || '',
+        situacao_tributaria: document.getElementById('situacaoTributaria')?.value || '',
+        grupo_icms: document.getElementById('grupoIcms')?.value || '',
+        codigo_barras: document.getElementById('codigoBarras')?.value || '',
+        imagem_url: imagemUrl || '', // Salva a imagem selecionada
+        situacao: document.getElementById('situacao')?.value || 'ativo',
+        categoria: document.getElementById('categoriaProduto')?.value || '',
+        codigo_alternativo: document.getElementById('codigoAlternativo')?.value || '',
+        descricao: descricao,
+        descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
+        unidade_medida: document.getElementById('unidadeMedida')?.value || ''
+      };
 
       // Inserir no Supabase
       const { data, error } = await supabase
@@ -3452,7 +3482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await atualizarCodigo();
 
         // Limpar campos
-        ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','classificacaoFiscal','situacaoTributaria','grupoIcms','codigoBarras','imagemUrl','codigoAlternativo'].forEach(id => {
+        ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','classificacaoFiscal','situacaoTributaria','grupoIcms','codigoBarras','codigoAlternativo'].forEach(id => {
           const campo = document.getElementById(id);
           if (campo) campo.value = '';
         });
@@ -3460,13 +3490,71 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('valorCusto').value = 'R$ 0,00';
         document.getElementById('margemLucro').value = '0%';
         document.getElementById('margemLucro').style.color = 'black';
-        document.getElementById('estoque').value = '0';
+        inputQuantidadeMovimentacao.value = '';
+        document.getElementById('estoqueAtual').value = '0';
+        previewImagemProduto.src = 'https://via.placeholder.com/200';
+        imagemUrl = '';
       }
+    });
+  }
+
+  // Função para atualizar estoque existente
+  if (btnAtualizarEstoque) {
+    btnAtualizarEstoque.addEventListener('click', async () => {
+      const quantidade = parseInt(inputQuantidadeMovimentacao?.value);
+      const tipo = document.getElementById('tipoMovimentacao')?.value;
+      const descricao = document.getElementById('descricao')?.value.trim();
+
+      if (!descricao) {
+        mostrarModalErro('Informe o nome do produto para atualizar o estoque.');
+        return;
+      }
+
+      if (!quantidade || quantidade <= 0) {
+        mostrarModalErro('Informe a quantidade para atualizar o estoque.');
+        return;
+      }
+
+      // Buscar produto
+      const { data: produtoExistente } = await supabase
+        .from('produtos')
+        .select('id, estoque')
+        .eq('descricao', descricao)
+        .single();
+
+      if (!produtoExistente) {
+        mostrarModalErro('Produto não encontrado.');
+        return;
+      }
+
+      let novoEstoque = produtoExistente.estoque;
+      if (tipo === 'entrada') {
+        novoEstoque += quantidade;
+      } else {
+        novoEstoque -= quantidade;
+        if (novoEstoque < 0) novoEstoque = 0;
+      }
+
+      // Atualizar estoque
+      const { error } = await supabase
+        .from('produtos')
+        .update({ estoque: novoEstoque })
+        .eq('id', produtoExistente.id);
+
+      if (error) {
+        mostrarModalErro('Erro ao atualizar estoque: ' + error.message);
+        return;
+      }
+
+      mostrarModalAviso(`Estoque atualizado com sucesso! Novo estoque: ${novoEstoque}`);
+      document.getElementById('estoqueAtual').value = novoEstoque;
+      inputQuantidadeMovimentacao.value = '';
     });
   }
 
   await atualizarCodigo();
 });
+
 
 
 let produtoIdExcluir = null

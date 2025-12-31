@@ -494,33 +494,7 @@
   </style>
 
   <!-- BOTÃO PRINCIPAL -->
-  <label data-menu="categorias"
-    class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
-    
-    <!-- Ícone de Grade/Blocos -->
-    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zM14 4h6v6h-6V4zM4 14h6v6H4v-6zM14 14h6v6h-6v-6z" />
-    </svg>
-    <span>Categorias</span>
-
-    <!-- Seta -->
-    <svg class="ml-auto h-4 w-4 seta-categorias" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
-  </label>
-
-  <!-- SUBMENU -->
-  <div id="submenu-categorias" class="flex flex-col mt-1 ml-10 space-y-1 submenu">
-    <label data-menu="cadastro-categorias"
-      class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis">
-      Cadastro de Categorias
-    </label>
-
-    <label data-menu="lista-categorias"
-      class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis">
-      Lista de Categorias
-    </label>
-  </div>
+ 
 </div>
 
 
@@ -935,14 +909,20 @@
       </div>
 
       <!-- CATEGORIA -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="label">Categoria</label>
-          <select id="categoriaProduto" class="input">
-            <option value="">Carregando categorias...</option>
-          </select>
-        </div>
-      </div>
+      <!-- CATEGORIA COM BOTÃO AO LADO -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="flex items-end gap-2">
+    <div class="flex-1">
+      <label class="label">Categoria</label>
+      <select id="categoriaProduto" class="input w-full">
+        <option value="">Carregando categorias...</option>
+      </select>
+    </div>
+    <button id="btnCadastroCategoria" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+      +
+    </button>
+  </div>
+</div>
 
       <!-- UNIDADE / NCM -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1052,6 +1032,34 @@
   </div>
 
 </section>
+
+<!-- MODAL DE CADASTRO DE CATEGORIA -->
+<!-- Modal Cadastro Categoria -->
+<div id="modalCadastroCategoria" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+    <!-- Botão Fechar -->
+    <button id="btnFecharModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold">&times;</button>
+
+    <h2 class="text-2xl font-bold mb-4">Cadastrar Categoria</h2>
+
+    <form id="formCadastroCategoria" class="space-y-4">
+      <div>
+        <label class="block text-gray-700 font-semibold mb-1" for="nomeCategoria">Nome da Categoria</label>
+        <input type="text" id="nomeCategoria" class="input w-full px-3 py-2 border rounded" placeholder="Digite o nome da categoria" required>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-semibold mb-1" for="descricaoCategoria">Descrição</label>
+        <textarea id="descricaoCategoria" class="input w-full px-3 py-2 border rounded" placeholder="Digite a descrição da categoria" rows="3"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" id="btnCancelarModal" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg">Cancelar</button>
+        <button type="button" id="btnSalvarCategoria" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 
 <!-- =========================

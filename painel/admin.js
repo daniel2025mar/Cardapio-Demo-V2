@@ -4569,4 +4569,71 @@ async function verificarHorarioSistema() {
 setInterval(verificarHorarioSistema, 1000);
 verificarHorarioSistema();
 
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("modalCadastroCategoria");
+  const nomeInput = document.getElementById("nomeCategoria");
+  const descricaoInput = document.getElementById("descricaoCategoria");
 
+  // Abrir modal ao clicar no botão +
+  document.getElementById("btnCadastroCategoria")?.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    nomeInput.value = "";
+    descricaoInput.value = "";
+  });
+
+  // Fechar modal
+  document.getElementById("btnFecharModal").addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  document.getElementById("btnCancelarModal").addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  // Salvar categoria
+  document.getElementById("btnSalvarCategoria").addEventListener("click", async () => {
+    const nome = nomeInput.value.trim();
+    const descricao = descricaoInput.value.trim();
+
+    if (!nome) {
+      alert("O nome da categoria é obrigatório!");
+      return;
+    }
+
+    try {
+      // Verifica duplicidade no Supabase
+      const { data: categorias, error } = await supabase
+        .from("categorias")
+        .select("*")
+        .eq("nome", nome)
+        .eq("descricao", descricao);
+
+      if (error) throw error;
+
+      if (categorias.length > 0) {
+        alert("Essa categoria já existe no banco!");
+        return;
+      }
+
+      // Inserir no Supabase
+      const { data: novaCategoria, error: insertError } = await supabase
+        .from("categorias")
+        .insert([{ nome, descricao, created_at: new Date().toISOString() }]);
+
+      if (insertError) throw insertError;
+
+      alert("Categoria cadastrada com sucesso!");
+
+      // Fecha modal e reseta form
+      modal.classList.add("hidden");
+      document.getElementById("formCadastroCategoria").reset();
+
+      // Opcional: atualizar lista de categorias na página
+      // fetchCategorias(); // você pode criar essa função para atualizar a lista em tempo real
+
+    } catch (err) {
+      console.error(err);
+      alert("Ocorreu um erro ao salvar a categoria: " + err.message);
+    }
+  });
+});

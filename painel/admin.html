@@ -1033,35 +1033,6 @@
 
 </section>
 
-<!-- MODAL DE CADASTRO DE CATEGORIA -->
-<!-- Modal Cadastro Categoria -->
-<div id="modalCadastroCategoria" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
-    <!-- Botão Fechar -->
-    <button id="btnFecharModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold">&times;</button>
-
-    <h2 class="text-2xl font-bold mb-4">Cadastrar Categoria</h2>
-
-    <form id="formCadastroCategoria" class="space-y-4">
-      <div>
-        <label class="block text-gray-700 font-semibold mb-1" for="nomeCategoria">Nome da Categoria</label>
-        <input type="text" id="nomeCategoria" class="input w-full px-3 py-2 border rounded" placeholder="Digite o nome da categoria" required>
-      </div>
-
-      <div>
-        <label class="block text-gray-700 font-semibold mb-1" for="descricaoCategoria">Descrição</label>
-        <textarea id="descricaoCategoria" class="input w-full px-3 py-2 border rounded" placeholder="Digite a descrição da categoria" rows="3"></textarea>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-2">
-        <button type="button" id="btnCancelarModal" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg">Cancelar</button>
-        <button type="button" id="btnSalvarCategoria" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
 <!-- =========================
      LISTA DE PRODUTOS
 ========================= -->
@@ -1161,6 +1132,214 @@
     </table>
   </div>
 </section>
+
+<!-- ================= MODAIS – ESTILO TOTALMENTE ISOLADO ================= -->
+<style>
+/* ESCOPA TUDO */
+.modal-scope {
+  all: initial;
+}
+
+/* OVERLAY */
+.modal-scope .modal-overlay {
+  all: unset;
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 10000;
+}
+
+/* MODAL BASE */
+.modal-scope .modal-box {
+  background: #ffffff;
+  color: #111827;
+  border-radius: 14px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.35);
+  position: relative;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: modalFade 0.2s ease;
+}
+
+/* MODAL SENHA MENOR */
+.modal-scope #modalSenhaAdmin .modal-box {
+  max-width: 340px;
+  z-index: 11000;
+}
+
+/* ANIMAÇÃO */
+@keyframes modalFade {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* TÍTULOS */
+.modal-scope h2,
+.modal-scope h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* FECHAR */
+.modal-scope .btn-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* LABEL */
+.modal-scope label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* CAMPOS */
+.modal-scope input,
+.modal-scope textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+/* BOTÕES */
+.modal-scope button {
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.modal-scope .btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+}
+
+.modal-scope .btn-secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+/* FOOTER */
+.modal-scope .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* LISTA */
+.modal-scope #listaCategoriasModal {
+  display: none;
+  margin-top: 0.75rem;
+  max-height: 160px;
+  overflow-y: auto;
+  border-top: 1px solid #e5e7eb;
+}
+
+.modal-scope table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modal-scope th,
+.modal-scope td {
+  font-size: 0.75rem;
+  padding: 0.35rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ERRO */
+.modal-scope .msg-erro {
+  color: #dc2626;
+  font-size: 0.75rem;
+  text-align: center;
+  margin-top: 0.5rem;
+  display: none;
+}
+</style>
+
+<!-- ================= MODAIS ================= -->
+<div class="modal-scope">
+
+  <!-- MODAL CADASTRO -->
+  <div id="modalCadastroCategoria" class="modal-overlay">
+    <div class="modal-box">
+      <button class="btn-close" id="btnFecharModal">&times;</button>
+
+      <h2>Cadastrar Categoria</h2>
+
+      <label>Nome</label>
+      <input id="nomeCategoria">
+
+      <label>Descrição</label>
+      <textarea id="descricaoCategoria" rows="3"></textarea>
+
+      <button id="btnGerenciarCategorias" class="btn-secondary">
+        Gerenciar Categorias
+      </button>
+
+      <div id="listaCategoriasModal">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="categoriasModalTabela"></tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnCancelarModal" class="btn-secondary">Cancelar</button>
+        <button id="btnSalvarCategoria" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SENHA -->
+  <div id="modalSenhaAdmin" class="modal-overlay">
+    <div class="modal-box">
+      <h3>Senha do Administrador</h3>
+
+      <input id="inputSenhaAdmin" type="password" placeholder="Digite a senha">
+
+      <p id="mensagemErroSenha" class="hidden text-red-600 mt-2 text-sm">
+  Senha do administrador incorreta.
+</p>
+      <div class="modal-footer">
+        <button id="btnCancelarSenhaAdmin" class="btn-secondary">Cancelar</button>
+        <button id="btnConfirmarSenhaAdmin" class="btn-primary">Confirmar</button>
+      </div>
+
+      
+
+    </div>
+  </div>
+
+</div>
 
       <!-- PEDIDOS -->
       <section id="pedidos" class="content-section mb-10">
@@ -2820,6 +2999,101 @@ input:not(:placeholder-shown) + .label-flutuante {
       Entendi
     </button>
 
+  </div>
+</div>
+
+<!-- MODAL DE ERRO -->
+<style>
+  /* ============================= */
+  /* MODAL ERRO - SEM CONFLITOS    */
+  /* ============================= */
+
+  #modalErroCategoria {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 🔥 sempre acima de tudo */
+    z-index: 999999;
+
+    opacity: 1;
+    pointer-events: all;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Oculto */
+  #modalErroCategoria.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Conteúdo */
+  #modalErroCategoria .modal-content {
+    background-color: #111;
+    color: #fff;
+
+    width: 380px;
+    max-width: 90%;
+    padding: 24px;
+
+    border-radius: 16px;
+    text-align: center;
+
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+
+    transform: scale(0.9);
+    transition: transform 0.25s ease;
+  }
+
+  /* Animação ao abrir */
+  #modalErroCategoria:not(.hidden) .modal-content {
+    transform: scale(1);
+  }
+
+  /* Título */
+  #modalErroCategoria h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  /* Texto */
+  #modalErroCategoria p {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* Botão */
+  #modalErroCategoria button {
+    margin-top: 20px;
+    padding: 10px 26px;
+
+    background-color: #e53e3e;
+    color: #fff;
+
+    border: none;
+    border-radius: 6px;
+
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+  }
+
+  #modalErroCategoria button:hover {
+    background-color: #c53030;
+  }
+</style>
+
+<div id="modalErroCategoria" class="hidden">
+  <div class="modal-content">
+    <h3>Erro</h3>
+    <p id="mensagemErroCategoria">Mensagem de erro</p>
+    <button id="btnFecharErro">OK</button>
   </div>
 </div>
 

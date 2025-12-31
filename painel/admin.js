@@ -4570,70 +4570,248 @@ setInterval(verificarHorarioSistema, 1000);
 verificarHorarioSistema();
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ==========================
+  // USUÁRIO LOGADO (DO LOGIN)
+  // ==========================
+  const currentUser = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  if (!currentUser) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  // ==========================
+  // ELEMENTOS
+  // ==========================
   const modal = document.getElementById("modalCadastroCategoria");
   const nomeInput = document.getElementById("nomeCategoria");
   const descricaoInput = document.getElementById("descricaoCategoria");
 
-  // Abrir modal ao clicar no botão +
+  const modalErro = document.getElementById("modalErroCategoria");
+  const btnFecharErro = document.getElementById("btnFecharErro");
+  const mensagemErro = document.getElementById("mensagemErroCategoria");
+
+  const btnGerenciar = document.getElementById("btnGerenciarCategorias");
+  const listaCategoriasModal = document.getElementById("listaCategoriasModal");
+  const categoriasModalTabela = document.getElementById("categoriasModalTabela");
+
+  let editarId = null;
+
+  // ==========================
+  // MODAL SENHA ADMIN
+  // ==========================
+  const modalSenhaAdmin = document.getElementById("modalSenhaAdmin");
+  modalSenhaAdmin.style.zIndex = 10001;
+
+  const inputSenhaAdmin = document.getElementById("inputSenhaAdmin");
+  const btnCancelarSenhaAdmin = document.getElementById("btnCancelarSenhaAdmin");
+  const btnConfirmarSenhaAdmin = document.getElementById("btnConfirmarSenhaAdmin");
+  const mensagemErroSenha = document.getElementById("mensagemErroSenha");
+
+  let categoriaParaEditar = null;
+
+  // ==========================
+  // NOVA CATEGORIA
+  // ==========================
   document.getElementById("btnCadastroCategoria")?.addEventListener("click", () => {
-    modal.classList.remove("hidden");
+    modal.style.display = "flex";
     nomeInput.value = "";
     descricaoInput.value = "";
+    listaCategoriasModal.style.display = "none";
+    editarId = null;
   });
 
-  // Fechar modal
-  document.getElementById("btnFecharModal").addEventListener("click", () => {
-    modal.classList.add("hidden");
+  document.getElementById("btnFecharModal").onclick = () => modal.style.display = "none";
+  document.getElementById("btnCancelarModal").onclick = () => modal.style.display = "none";
+  btnFecharErro.onclick = () => modalErro.classList.add("hidden");
+
+  // ==========================
+  // GERENCIAR CATEGORIAS
+  // ==========================
+  btnGerenciar.addEventListener("click", () => {
+    listaCategoriasModal.style.display =
+      listaCategoriasModal.style.display === "block" ? "none" : "block";
+
+    if (listaCategoriasModal.style.display === "block") {
+      carregarCategoriasModal();
+    }
   });
 
-  document.getElementById("btnCancelarModal").addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
+  // ==========================
+  // CARREGAR CATEGORIAS
+  // ==========================
+  async function carregarCategoriasModal() {
+    const { data: categorias, error } = await supabase
+      .from("categorias")
+      .select("*")
+      .order("created_at", { ascending: true });
 
-  // Salvar categoria
-  document.getElementById("btnSalvarCategoria").addEventListener("click", async () => {
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    categoriasModalTabela.innerHTML = "";
+
+    categorias.forEach(cat => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${cat.nome}</td>
+        <td>${cat.descricao}</td>
+        <td>
+          <button class="btnEditar" data-id="${cat.id}">Editar</button>
+          <button class="btnBloquear" data-id="${cat.id}">Bloquear</button>
+        </td>
+      `;
+      categoriasModalTabela.appendChild(tr);
+    });
+
+    // ==========================
+    // EDITAR
+    // ==========================
+    document.querySelectorAll(".btnEditar").forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.id;
+
+        if (currentUser.cargo === "Administrador") {
+          abrirModalCategoria(id);
+        } else {
+          categoriaParaEditar = id;
+
+          // 🔥 RESET CORRETO DO MODAL DE SENHA
+          inputSenhaAdmin.value = "";
+          mensagemErroSenha.classList.add("hidden");
+          mensagemErroSenha.textContent = "Senha do administrador incorreta.";
+
+          modalSenhaAdmin.style.display = "flex";
+        }
+      };
+    });
+
+    // ==========================
+    // BLOQUEAR
+    // ==========================
+    document.querySelectorAll(".btnBloquear").forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm("Deseja bloquear esta categoria?")) return;
+
+        await supabase
+          .from("categorias")
+          .update({ ativo: false })
+          .eq("id", btn.dataset.id);
+
+        carregarCategoriasModal();
+      };
+    });
+  }
+
+  // ==========================
+  // CONFIRMAR SENHA ADMIN
+  // ==========================
+  btnCancelarSenhaAdmin.onclick = () => {
+    modalSenhaAdmin.style.display = "none";
+    inputSenhaAdmin.value = "";
+    mensagemErroSenha.classList.add("hidden");
+    categoriaParaEditar = null;
+  };
+
+  btnConfirmarSenhaAdmin.onclick = async () => {
+    const senha = inputSenhaAdmin.value.trim();
+
+    if (!senha) {
+      mensagemErroSenha.textContent = "Informe a senha do administrador.";
+      mensagemErroSenha.classList.remove("hidden");
+      return;
+    }
+
+    const { data: admin, error } = await supabase
+      .from("usuarios")
+      .select("id")
+      .eq("cargo", "Administrador")
+      .eq("password", senha)
+      .eq("ativo", true);
+
+    // ❌ SENHA INCORRETA → MOSTRA MENSAGEM
+    if (error || !admin || admin.length === 0) {
+      mensagemErroSenha.textContent = "Senha do administrador incorreta.";
+      mensagemErroSenha.classList.remove("hidden");
+      modalSenhaAdmin.style.display = "flex";
+      return;
+    }
+
+    // ✅ SENHA CORRETA
+    mensagemErroSenha.classList.add("hidden");
+    modalSenhaAdmin.style.display = "none";
+    inputSenhaAdmin.value = "";
+
+    abrirModalCategoria(categoriaParaEditar);
+    categoriaParaEditar = null;
+  };
+
+  // ==========================
+  // ABRIR MODAL PARA EDIÇÃO
+  // ==========================
+  async function abrirModalCategoria(id) {
+    const { data: categoria, error } = await supabase
+      .from("categorias")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      alert("Erro ao carregar categoria");
+      return;
+    }
+
+    nomeInput.value = categoria.nome;
+    descricaoInput.value = categoria.descricao;
+    editarId = id;
+    modal.style.display = "flex";
+  }
+
+  // ==========================
+  // SALVAR CATEGORIA
+  // ==========================
+  document.getElementById("btnSalvarCategoria").onclick = async () => {
     const nome = nomeInput.value.trim();
     const descricao = descricaoInput.value.trim();
 
     if (!nome) {
-      alert("O nome da categoria é obrigatório!");
+      mensagemErro.textContent = "O campo ‘Nome da Categoria’ deve ser preenchido.";
+      modalErro.classList.remove("hidden");
       return;
     }
 
-    try {
-      // Verifica duplicidade no Supabase
-      const { data: categorias, error } = await supabase
-        .from("categorias")
-        .select("*")
-        .eq("nome", nome)
-        .eq("descricao", descricao);
+    const { data: duplicado } = await supabase
+      .from("categorias")
+      .select("*")
+      .or(`nome.ilike.${nome},descricao.ilike.${descricao}`);
 
-      if (error) throw error;
-
-      if (categorias.length > 0) {
-        alert("Essa categoria já existe no banco!");
-        return;
-      }
-
-      // Inserir no Supabase
-      const { data: novaCategoria, error: insertError } = await supabase
-        .from("categorias")
-        .insert([{ nome, descricao, created_at: new Date().toISOString() }]);
-
-      if (insertError) throw insertError;
-
-      alert("Categoria cadastrada com sucesso!");
-
-      // Fecha modal e reseta form
-      modal.classList.add("hidden");
-      document.getElementById("formCadastroCategoria").reset();
-
-      // Opcional: atualizar lista de categorias na página
-      // fetchCategorias(); // você pode criar essa função para atualizar a lista em tempo real
-
-    } catch (err) {
-      console.error(err);
-      alert("Ocorreu um erro ao salvar a categoria: " + err.message);
+    if (duplicado?.some(c => c.id !== editarId)) {
+      mensagemErro.textContent = "Esta categoria já está cadastrada no sistema.";
+      modalErro.classList.remove("hidden");
+      return;
     }
-  });
+
+    if (editarId) {
+      await supabase
+        .from("categorias")
+        .update({ nome, descricao })
+        .eq("id", editarId);
+
+      alert("Categoria atualizada!");
+    } else {
+      await supabase
+        .from("categorias")
+        .insert([{ nome, descricao, ativo: true }]);
+
+      alert("Categoria cadastrada!");
+    }
+
+    modal.style.display = "none";
+    editarId = null;
+    carregarCategoriasModal();
+  };
+
 });

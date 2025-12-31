@@ -551,29 +551,31 @@
   <p class="text-gray-700 mb-6">Resumo geral do sistema.</p>
 
   <!-- CARD CARDÁPIO ONLINE -->
-<div class="mb-8 relative">
+<div class="mb-8 relative px-2 md:px-0">
   <div
     class="bg-gradient-to-r from-blue-600 to-indigo-600
-           rounded-2xl p-6
+           rounded-2xl p-3 md:p-6
            shadow-lg text-white
            flex flex-col md:flex-row
            items-start md:items-center
-           justify-between gap-4"
+           justify-between gap-3"
   >
+    <!-- Título e descrição -->
     <div>
-      <h3 class="text-xl font-bold mb-1">🍽️ Cardápio Online</h3>
-      <p class="text-blue-100 text-sm">
+      <h3 class="text-lg md:text-xl font-bold mb-1">🍽️ Cardápio Online</h3>
+      <p class="text-blue-100 text-xs md:text-sm">
         Compartilhe rapidamente o cardápio com seus clientes
       </p>
     </div>
 
-    <div class="flex gap-3 w-full md:w-auto relative">
+    <!-- Botões lado a lado -->
+    <div class="flex flex-row gap-1 md:gap-3 w-full md:w-auto relative">
       <button
         id="btnCopiarLink"
         class="flex-1 md:flex-none
                bg-white text-blue-700
-               px-5 py-3 rounded-xl
-               font-semibold
+               px-2 py-2 md:px-5 md:py-3 rounded-xl
+               text-sm md:text-base font-semibold
                hover:bg-blue-50 transition"
       >
         📋 Copiar
@@ -583,43 +585,42 @@
         id="btnAbrirCardapio"
         class="flex-1 md:flex-none
                bg-black/20 hover:bg-black/30
-               px-5 py-3 rounded-xl
-               font-semibold
+               px-2 py-2 md:px-5 md:py-3 rounded-xl
+               text-sm md:text-base font-semibold
                transition"
       >
         🌐 Abrir
       </button>
 
-      <!-- BOTÃO COMPARTILHAR -->
       <button
         id="btnCompartilhar"
         class="flex-1 md:flex-none
                bg-green-500 hover:bg-green-600
-               px-5 py-3 rounded-xl
-               font-semibold
+               px-2 py-2 md:px-5 md:py-3 rounded-xl
+               text-sm md:text-base font-semibold
                transition"
       >
         🔗 Compartilhar
       </button>
 
-      <!-- MENU DE COMPARTILHAMENTO -->
+      <!-- Menu de compartilhamento -->
       <div
         id="menuCompartilhar"
-        class="hidden absolute right-0 top-16
-               w-56 bg-gray-900
+        class="hidden absolute right-0 top-14 md:top-16
+               w-48 md:w-56 bg-gray-900
                rounded-xl shadow-2xl
                overflow-hidden z-50"
       >
-        <button class="btnShare w-full px-4 py-3 hover:bg-gray-800" data-type="whatsapp">
+        <button class="btnShare w-full px-4 py-2 hover:bg-gray-800" data-type="whatsapp">
           📱 WhatsApp
         </button>
-        <button class="btnShare w-full px-4 py-3 hover:bg-gray-800" data-type="instagram">
+        <button class="btnShare w-full px-4 py-2 hover:bg-gray-800" data-type="instagram">
           📸 Instagram
         </button>
-        <button class="btnShare w-full px-4 py-3 hover:bg-gray-800" data-type="facebook">
+        <button class="btnShare w-full px-4 py-2 hover:bg-gray-800" data-type="facebook">
           📘 Facebook
         </button>
-        <button class="btnShare w-full px-4 py-3 hover:bg-gray-800" data-type="copiar">
+        <button class="btnShare w-full px-4 py-2 hover:bg-gray-800" data-type="copiar">
           📋 Copiar link
         </button>
       </div>

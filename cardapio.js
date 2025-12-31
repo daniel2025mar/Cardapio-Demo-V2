@@ -28,52 +28,133 @@ export async function buscarProdutos() {
 // =============================
 // CARREGAR PRODUTOS NO CARDÁPIO
 // =============================
-
 export async function carregarProdutosNoCardapio() {
-  const produtos = await buscarProdutos();
   const container = document.getElementById("produtosContainer");
 
-  // Configura o container como grid com espaçamento
+  // Grid padrão (mantém layout)
   container.style.display = "grid";
-  container.style.gridTemplateColumns = "repeat(auto-fill, minmax(250px, 1fr))"; 
-  container.style.gap = "1rem"; // espaço entre os cards
-  container.style.padding = "1rem"; // espaço das bordas
+  container.style.gridTemplateColumns = "repeat(auto-fill, minmax(250px, 1fr))";
+  container.style.gap = "1rem";
+  container.style.padding = "1rem";
   container.innerHTML = "";
 
+  /* =========================
+     BUSCA PRODUTOS
+  ========================= */
+  const produtos = await buscarProdutos();
+
   if (!produtos || produtos.length === 0) {
-    container.innerHTML = "<p class='text-center col-span-full'>Nenhum produto encontrado.</p>";
+    container.innerHTML =
+      "<p class='text-center col-span-full'>Nenhum produto encontrado.</p>";
     return;
   }
 
-  produtos.forEach(produto => {
-    const card = document.createElement("div");
-    card.className = "bg-white rounded-lg shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition";
+  /* =========================
+     BUSCA CATEGORIAS
+  ========================= */
+  const { data: categorias, error } = await supabase
+    .from("categorias")
+    .select("nome, descricao")
+    .order("nome");
 
-    const indisponivel = produto.estoque === 0;
-    const imgClasses = indisponivel
-      ? "w-full h-40 object-cover rounded mb-2 filter grayscale"
-      : "w-full h-40 object-cover rounded mb-2";
-    const btnClasses = indisponivel
-      ? "px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed mt-auto"
-      : "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition mt-auto";
+  if (error) {
+    console.error("Erro ao buscar categorias:", error);
+    return;
+  }
 
-    card.innerHTML = `
-      <img src="${produto.imagem_url}" alt="${produto.descricao}" class="${imgClasses}">
-      <h3 class="font-bold text-lg">${produto.descricao}</h3>
-      <p class="text-gray-600 text-sm mb-2">Código: ${produto.codigo}</p>
-      <span class="font-bold ${indisponivel ? "text-gray-500" : "text-red-600"} mb-2">R$ ${produto.valor_sugerido.toFixed(2)}</span>
-      <button class="${btnClasses}" ${indisponivel ? "disabled" : ""}>Adicionar</button>
+  /* =========================
+     LOOP DAS CATEGORIAS
+  ========================= */
+  categorias.forEach(categoria => {
+    const nomeCategoria = categoria.nome?.trim().toLowerCase();
+
+    const produtosCategoria = produtos.filter(p =>
+      p.categoria &&
+      p.categoria.trim().toLowerCase() === nomeCategoria
+    );
+
+    if (produtosCategoria.length === 0) return;
+
+    /* ===== TÍTULO DA CATEGORIA ===== */
+    const blocoCategoria = document.createElement("div");
+    blocoCategoria.className = "col-span-full mb-4";
+
+    blocoCategoria.innerHTML = `
+      <h2 class="text-2xl font-bold mb-1">${categoria.nome}</h2>
+      <p class="text-gray-600 italic">${categoria.descricao || ""}</p>
     `;
 
-    card.addEventListener("click", () => {
-      if (indisponivel) {
-        mostrarModalIndisponivel();
-      } else {
-        abrirModal(produto);
-      }
-    });
+    container.appendChild(blocoCategoria);
 
-    container.appendChild(card);
+    /* =========================
+       PRODUTOS DA CATEGORIA
+    ========================= */
+    produtosCategoria.forEach(produto => {
+      const indisponivel = produto.estoque === 0;
+
+      const card = document.createElement("div");
+      card.className =
+        "group bg-white rounded-lg shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition";
+
+      const imgClasses = indisponivel
+        ? "w-full h-40 object-cover rounded mb-2 grayscale"
+        : "w-full h-40 object-cover rounded mb-2";
+
+      const btnClasses = indisponivel
+        ? "px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed mt-auto"
+        : "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition mt-auto";
+
+      const seloIndisponivel = indisponivel
+        ? `
+          <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded">
+            <span class="
+              text-white font-bold text-lg tracking-wide
+              transition-colors duration-200
+              group-hover:text-red-500
+            ">
+              INDISPONÍVEL
+            </span>
+          </div>
+        `
+        : "";
+
+      card.innerHTML = `
+        <div class="relative">
+          <img 
+            src="${produto.imagem_url}" 
+            alt="${produto.descricao}" 
+            class="${imgClasses}"
+          />
+          ${seloIndisponivel}
+        </div>
+
+        <h3 class="font-bold text-lg">${produto.descricao}</h3>
+
+        <p class="text-gray-600 text-sm mb-2">
+          Código: ${produto.codigo}
+        </p>
+
+        <span class="font-bold ${
+          indisponivel ? "text-gray-500" : "text-red-600"
+        } mb-2">
+          R$ ${produto.valor_sugerido.toFixed(2)}
+        </span>
+
+        <button class="${btnClasses}" ${indisponivel ? "disabled" : ""}>
+          ${indisponivel ? "Indisponível" : "Adicionar"}
+        </button>
+      `;
+
+      card.addEventListener("click", () => {
+        if (indisponivel) {
+          mostrarModalIndisponivel();
+        } else {
+          abrirModal(produto);
+        }
+      });
+
+      container.appendChild(card);
+    });
   });
 }
 

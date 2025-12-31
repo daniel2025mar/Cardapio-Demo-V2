@@ -3323,6 +3323,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
 document.addEventListener('DOMContentLoaded', async () => {
   const btnSalvar = document.getElementById('btnSalvarProduto');
   const inputCodigo = document.getElementById('codigoPreview');
@@ -3330,9 +3331,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnAtualizarEstoque = document.getElementById('btnAtualizarEstoque');
   const inputImagemProduto = document.getElementById('imagemProduto');
   const previewImagemProduto = document.getElementById('previewImagemProduto');
-  let imagemUrl = ''; // Guardará a URL da imagem selecionada
+  const selectCategoria = document.getElementById('categoriaProduto');
 
-  // Função para mostrar modais
+  let imagemUrl = '';
+
+  /* =========================
+     CARREGAR CATEGORIAS
+  ========================= */
+  async function carregarCategorias() {
+    if (!selectCategoria) return;
+
+    selectCategoria.innerHTML =
+      '<option value="">Selecione uma categoria</option>';
+
+    const { data, error } = await supabase
+      .from('categorias')
+      .select('nome')
+      .order('nome', { ascending: true });
+
+    if (error) {
+      console.error('Erro ao carregar categorias:', error);
+      selectCategoria.innerHTML =
+        '<option value="">Erro ao carregar categorias</option>';
+      return;
+    }
+
+    data.forEach(categoria => {
+      const option = document.createElement('option');
+      option.value = categoria.nome;
+      option.textContent = categoria.nome;
+      selectCategoria.appendChild(option);
+    });
+  }
+
+  /* =========================
+     MODAIS
+  ========================= */
   function criarModal(modalId, textoId, btnId) {
     const modal = document.getElementById(modalId);
     const texto = document.getElementById(textoId);
@@ -3355,9 +3389,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const mostrarModalAviso = criarModal('modalAviso', 'modalMensagem', 'btnFecharModal');
   const mostrarModalErro = criarModal('modalErro', 'modalMensagemErro', 'btnFecharModalErro');
-  const mostrarModalValorSugerido = criarModal('modalValorSugerido', 'modalMensagemValorSugerido', 'btnFecharValorSugerido');
+  const mostrarModalValorSugerido = criarModal(
+    'modalValorSugerido',
+    'modalMensagemValorSugerido',
+    'btnFecharValorSugerido'
+  );
 
-  // Atualiza o código do produto automaticamente
+  /* =========================
+     CÓDIGO AUTOMÁTICO
+  ========================= */
   async function atualizarCodigo() {
     try {
       const { data, error } = await supabase
@@ -3367,195 +3407,162 @@ document.addEventListener('DOMContentLoaded', async () => {
         .limit(1);
 
       if (error) {
-        console.error('Erro ao buscar último código:', error);
         inputCodigo.value = '0001';
         return;
       }
 
       const ultimoCodigo = data.length ? parseInt(data[0].codigo) : 0;
-      const proximoCodigo = ultimoCodigo + 1;
-      inputCodigo.value = proximoCodigo.toString().padStart(4, '0');
-    } catch (err) {
-      console.error('Erro ao atualizar código:', err);
+      inputCodigo.value = (ultimoCodigo + 1).toString().padStart(4, '0');
+    } catch {
       inputCodigo.value = '0001';
     }
   }
 
-  // Preview da imagem
+  /* =========================
+     PREVIEW IMAGEM
+  ========================= */
   if (inputImagemProduto && previewImagemProduto) {
     inputImagemProduto.addEventListener('change', () => {
       const file = inputImagemProduto.files[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImagemProduto.src = e.target.result; // Mostra preview
-        imagemUrl = e.target.result; // Guarda a imagem em Base64 para salvar
+      reader.onload = e => {
+        previewImagemProduto.src = e.target.result;
+        imagemUrl = e.target.result;
       };
       reader.readAsDataURL(file);
     });
 
-    // Também permite clicar no preview para abrir a galeria
     previewImagemProduto.addEventListener('click', () => {
       inputImagemProduto.click();
     });
   }
 
-  // Função para cadastrar produto
+  /* =========================
+     SALVAR PRODUTO
+  ========================= */
   if (btnSalvar) {
     btnSalvar.addEventListener('click', async () => {
       const descricao = document.getElementById('descricao')?.value.trim();
       const quantidade = parseInt(inputQuantidadeMovimentacao?.value);
 
-      const converterMoedaParaFloat = (valor) => {
+      const converterMoedaParaFloat = valor => {
         if (!valor) return 0;
-        return parseFloat(valor.replace(/\./g, '').replace('R$', '').replace(',', '.').trim());
+        return parseFloat(
+          valor.replace(/\./g, '').replace('R$', '').replace(',', '.').trim()
+        );
       };
 
-      const valorCusto = converterMoedaParaFloat(document.getElementById('valorCusto')?.value);
-      const valorSugerido = converterMoedaParaFloat(document.getElementById('valorSugerido')?.value);
-      const margem = parseFloat(document.getElementById('margemLucro')?.value.replace('%', '')) || 0;
+      const valorCusto = converterMoedaParaFloat(
+        document.getElementById('valorCusto')?.value
+      );
+      const valorSugerido = converterMoedaParaFloat(
+        document.getElementById('valorSugerido')?.value
+      );
 
-      // Validações
       if (!descricao) {
-        mostrarModalErro('Por favor, informe o nome do produto antes de salvar.');
+        mostrarModalErro('Informe o nome do produto.');
         return;
       }
 
       if (valorSugerido === 0) {
-        mostrarModalValorSugerido('O Valor de venda não pode ser R$ 0,00. Por favor, informe um valor válido.');
+        mostrarModalValorSugerido('Valor de venda inválido.');
         return;
       }
 
       if (!quantidade || quantidade <= 0) {
-        mostrarModalErro('Por favor, informe a quantidade em estoque antes de salvar.');
+        mostrarModalErro('Informe a quantidade em estoque.');
         return;
       }
 
-      // Verificar duplicidade
-      const { data: produtosExistentes } = await supabase
+      const { data: existentes } = await supabase
         .from('produtos')
         .select('id')
         .eq('descricao', descricao);
 
-      if (produtosExistentes.length > 0) {
-        mostrarModalAviso('Já existe um produto cadastrado com essa descrição.');
+      if (existentes.length > 0) {
+        mostrarModalAviso('Produto já cadastrado.');
         return;
       }
 
-      // Preparar objeto do produto
       const produto = {
         codigo: parseInt(inputCodigo.value),
         data_cadastro: new Date().toISOString().split('T')[0],
         data_atualizacao: new Date().toISOString().split('T')[0],
+        descricao,
+        descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
+        categoria: selectCategoria.value,
+        unidade_medida: document.getElementById('unidadeMedida')?.value || '',
         valor_custo: valorCusto,
-        margem_lucro: margem,
         valor_sugerido: valorSugerido,
         estoque: quantidade,
         origem: document.getElementById('origem')?.value || '0',
         ncm: document.getElementById('ncm')?.value || '',
         cest: document.getElementById('cest')?.value || '',
-        classificacao_fiscal: document.getElementById('classificacaoFiscal')?.value || '',
-        situacao_tributaria: document.getElementById('situacaoTributaria')?.value || '',
         grupo_icms: document.getElementById('grupoIcms')?.value || '',
-        codigo_barras: document.getElementById('codigoBarras')?.value || '',
-        imagem_url: imagemUrl || '', // Salva a imagem selecionada
-        situacao: document.getElementById('situacao')?.value || 'ativo',
-        categoria: document.getElementById('categoriaProduto')?.value || '',
-        codigo_alternativo: document.getElementById('codigoAlternativo')?.value || '',
-        descricao: descricao,
-        descricao_nfe: document.getElementById('descricaoNfe')?.value || '',
-        unidade_medida: document.getElementById('unidadeMedida')?.value || ''
+        codigo_alternativo:
+          document.getElementById('codigoAlternativo')?.value || '',
+        imagem_url: imagemUrl,
+        situacao: 'ativo'
       };
 
-      // Inserir no Supabase
-      const { data, error } = await supabase
-        .from('produtos')
-        .insert([produto])
-        .select();
+      const { error } = await supabase.from('produtos').insert([produto]);
 
       if (error) {
         mostrarModalErro('Erro ao salvar produto: ' + error.message);
-        console.error(error);
       } else {
         mostrarModalAviso('Produto salvo com sucesso!');
         await atualizarCodigo();
-
-        // Limpar campos
-        ['descricao','descricaoNfe','categoriaProduto','unidadeMedida','origem','ncm','cest','classificacaoFiscal','situacaoTributaria','grupoIcms','codigoBarras','codigoAlternativo'].forEach(id => {
-          const campo = document.getElementById(id);
-          if (campo) campo.value = '';
-        });
-        document.getElementById('valorSugerido').value = 'R$ 0,00';
-        document.getElementById('valorCusto').value = 'R$ 0,00';
-        document.getElementById('margemLucro').value = '0%';
-        document.getElementById('margemLucro').style.color = 'black';
-        inputQuantidadeMovimentacao.value = '';
-        document.getElementById('estoqueAtual').value = '0';
+        selectCategoria.value = '';
         previewImagemProduto.src = 'https://via.placeholder.com/200';
         imagemUrl = '';
       }
     });
   }
 
-  // Função para atualizar estoque existente
+  /* =========================
+     ATUALIZAR ESTOQUE
+  ========================= */
   if (btnAtualizarEstoque) {
     btnAtualizarEstoque.addEventListener('click', async () => {
       const quantidade = parseInt(inputQuantidadeMovimentacao?.value);
       const tipo = document.getElementById('tipoMovimentacao')?.value;
       const descricao = document.getElementById('descricao')?.value.trim();
 
-      if (!descricao) {
-        mostrarModalErro('Informe o nome do produto para atualizar o estoque.');
+      if (!descricao || !quantidade) {
+        mostrarModalErro('Informe produto e quantidade.');
         return;
       }
 
-      if (!quantidade || quantidade <= 0) {
-        mostrarModalErro('Informe a quantidade para atualizar o estoque.');
-        return;
-      }
-
-      // Buscar produto
-      const { data: produtoExistente } = await supabase
+      const { data: produto } = await supabase
         .from('produtos')
         .select('id, estoque')
         .eq('descricao', descricao)
         .single();
 
-      if (!produtoExistente) {
-        mostrarModalErro('Produto não encontrado.');
-        return;
-      }
+      let novoEstoque =
+        tipo === 'entrada'
+          ? produto.estoque + quantidade
+          : Math.max(0, produto.estoque - quantidade);
 
-      let novoEstoque = produtoExistente.estoque;
-      if (tipo === 'entrada') {
-        novoEstoque += quantidade;
-      } else {
-        novoEstoque -= quantidade;
-        if (novoEstoque < 0) novoEstoque = 0;
-      }
-
-      // Atualizar estoque
-      const { error } = await supabase
+      await supabase
         .from('produtos')
         .update({ estoque: novoEstoque })
-        .eq('id', produtoExistente.id);
+        .eq('id', produto.id);
 
-      if (error) {
-        mostrarModalErro('Erro ao atualizar estoque: ' + error.message);
-        return;
-      }
-
-      mostrarModalAviso(`Estoque atualizado com sucesso! Novo estoque: ${novoEstoque}`);
+      mostrarModalAviso(`Estoque atualizado: ${novoEstoque}`);
       document.getElementById('estoqueAtual').value = novoEstoque;
       inputQuantidadeMovimentacao.value = '';
     });
   }
 
+  /* =========================
+     INIT
+  ========================= */
+  await carregarCategorias();
   await atualizarCodigo();
 });
-
-
 
 let produtoIdExcluir = null
 
@@ -4425,11 +4432,12 @@ document.addEventListener("click", (e) => {
   }
 });
 
-
 let avisoMostrado = false;
 let modalHorarioAberto = false;
 
-// converte dia JS para texto do banco
+/* ===============================
+   DIA DA SEMANA (igual banco)
+=============================== */
 function getDiaSemanaTexto() {
   const dias = [
     "domingo",
@@ -4443,15 +4451,21 @@ function getDiaSemanaTexto() {
   return dias[new Date().getDay()];
 }
 
-// converte "HH:MM:SS" para Date de hoje
-function horaParaDate(hora) {
+/* ===============================
+   CONVERTE HORA PARA DATE
+   (com ajuste de dia)
+=============================== */
+function horaParaDate(hora, ajusteDia = 0) {
   const [h, m, s] = hora.split(":");
   const d = new Date();
-  d.setHours(h, m, s, 0);
+  d.setDate(d.getDate() + ajusteDia);
+  d.setHours(Number(h), Number(m), Number(s || 0), 0);
   return d;
 }
 
-// 🔔 Modal aviso (3 minutos)
+/* ===============================
+   MODAL AVISO (3 MIN)
+=============================== */
 function mostrarModalAvisoEncerramento() {
   if (avisoMostrado) return;
 
@@ -4467,9 +4481,12 @@ function mostrarModalAvisoEncerramento() {
   };
 }
 
-// ⛔ Modal fora do horário (exibição)
+/* ===============================
+   MODAL BLOQUEIO HORÁRIO
+=============================== */
 function mostrarModalHorario() {
   if (modalHorarioAberto) return;
+
   modalHorarioAberto = true;
 
   const modal = document.getElementById("modalHorario");
@@ -4477,9 +4494,9 @@ function mostrarModalHorario() {
   modal.classList.add("flex");
 }
 
-// ===============================
-// FUNÇÃO PRINCIPAL
-// ===============================
+/* ===============================
+   FUNÇÃO PRINCIPAL
+=============================== */
 async function verificarHorarioSistema() {
   const diaSemana = getDiaSemanaTexto();
 
@@ -4489,23 +4506,41 @@ async function verificarHorarioSistema() {
     .eq("dia_semana", diaSemana)
     .single();
 
-  if (error || !data || !data.hora_inicio || !data.hora_fim) return;
+  // ❌ Sem configuração válida → BLOQUEIA
+  if (error || !data || !data.hora_inicio || !data.hora_fim) {
+    mostrarModalHorario();
+    return;
+  }
 
   const agora = new Date();
-  const horaInicio = horaParaDate(data.hora_inicio);
-  const horaFim = horaParaDate(data.hora_fim);
 
-  // ⛔ Antes do horário → bloqueia, sem deslogar
+  let horaInicio = horaParaDate(data.hora_inicio);
+  let horaFim = horaParaDate(data.hora_fim);
+
+  /* ===============================
+     CASO VIRE A MADRUGADA
+     Ex: 20:00 → 06:00
+  =============================== */
+  if (horaFim <= horaInicio) {
+    // Se agora é depois da meia-noite
+    if (agora < horaFim) {
+      horaInicio.setDate(horaInicio.getDate() - 1);
+    } else {
+      horaFim.setDate(horaFim.getDate() + 1);
+    }
+  }
+
+  /* ===============================
+     FORA DO HORÁRIO
+  =============================== */
   if (agora < horaInicio) {
     mostrarModalHorario();
     return;
   }
 
-  // ⛔ Exatamente na hora_fim ou após → mostra modal e desloga
   if (agora >= horaFim) {
     mostrarModalHorario();
 
-    // aguarda 1s para o modal renderizar
     setTimeout(async () => {
       await supabase.auth.signOut();
       window.location.href = "login.html";
@@ -4514,24 +4549,24 @@ async function verificarHorarioSistema() {
     return;
   }
 
-  // ✅ Dentro do horário → libera
+  /* ===============================
+     DENTRO DO HORÁRIO
+  =============================== */
   modalHorarioAberto = false;
 
   const diferencaMs = horaFim - agora;
   const diferencaMin = Math.ceil(diferencaMs / 60000);
 
-  // 🔔 Aviso 3 minutos antes (uma vez)
+  // 🔔 Aviso 3 minutos antes
   if (diferencaMin <= 3 && diferencaMin > 0 && !avisoMostrado) {
     mostrarModalAvisoEncerramento();
   }
 }
 
-// ===============================
-// EXECUÇÃO
-// ===============================
-// verifica a cada 1 segundo para atualizar o painel imediatamente
+/* ===============================
+   EXECUÇÃO
+=============================== */
 setInterval(verificarHorarioSistema, 1000);
-
-// roda imediatamente ao carregar a página
 verificarHorarioSistema();
+
 

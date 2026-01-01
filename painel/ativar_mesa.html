@@ -16,12 +16,10 @@
     }
 
     h1 {
-      color: #111827;
       font-size: 28px;
     }
 
     p {
-      color: #374151;
       font-size: 16px;
       margin-top: 10px;
     }
@@ -44,7 +42,7 @@
 
   <script>
     // =========================
-    // CONFIGURAÇÃO SUPABASE
+    // SUPABASE
     // =========================
     const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
     const SUPABASE_KEY =
@@ -59,39 +57,33 @@
     const submsg = document.getElementById("submsg");
 
     // =========================
-    // PEGA O NÚMERO DA MESA
+    // URL DO QR CODE
     // =========================
-    const params = new URLSearchParams(window.location.search);
-    const numeroMesa = params.get("mesa");
+    const urlQRCode = window.location.href;
 
-    if (!numeroMesa) {
-      msg.innerText = "Mesa não informada ❌";
-      submsg.innerText = "QR Code inválido.";
-    } else {
-      verificarMesa(numeroMesa);
-    }
+    verificarMesa();
 
     // =========================
-    // VERIFICA E ATIVA A MESA
+    // VERIFICA PELO QRCODE
     // =========================
-    async function verificarMesa(numero) {
+    async function verificarMesa() {
       try {
         const { data: mesa, error } = await supabase
           .from("mesas")
-          .select("id, cliente_presente")
-          .eq("numero", numero)
+          .select("id, numero, cliente_presente")
+          .eq("qrcode", urlQRCode)
           .single();
 
         if (error || !mesa) {
           msg.innerText = "Mesa não encontrada ❌";
-          submsg.innerText = "Chame um atendente.";
+          submsg.innerText = "QR Code inválido.";
           msg.className = "erro";
           return;
         }
 
-        // 🟢 MESA JÁ ATIVA
-        if (mesa.cliente_presente) {
-          msg.innerText = `Mesa ${numero} já está ativa ✅`;
+        // 🟢 JÁ ESTÁ ATIVA
+        if (mesa.cliente_presente === true) {
+          msg.innerText = `Mesa ${mesa.numero} já está ativa ✅`;
           submsg.innerText = "Aguarde o atendimento 🍽️";
           msg.className = "ativo";
           return;
@@ -101,22 +93,20 @@
         const { error: erroUpdate } = await supabase
           .from("mesas")
           .update({
-            ativo: true,
-            cliente_presente: true
+            cliente_presente: true,
+            ativo: true
           })
           .eq("id", mesa.id);
 
-        if (erroUpdate) {
-          throw erroUpdate;
-        }
+        if (erroUpdate) throw erroUpdate;
 
-        msg.innerText = `Mesa ${numero} ativada com sucesso ✅`;
+        msg.innerText = `Mesa ${mesa.numero} ativada com sucesso ✅`;
         submsg.innerText = "Aguarde o atendimento 🍽️";
         msg.className = "ativo";
 
       } catch (err) {
         console.error(err);
-        msg.innerText = "Erro ao processar mesa ❌";
+        msg.innerText = "Erro ao ativar mesa ❌";
         submsg.innerText = "Chame um atendente.";
         msg.className = "erro";
       }

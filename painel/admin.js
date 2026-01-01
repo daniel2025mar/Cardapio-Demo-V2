@@ -5116,7 +5116,6 @@ supabase
 // =========================
 document.addEventListener("DOMContentLoaded", renderizarMesas);
 
-
 // =========================
 // Campos do formulário
 // =========================
@@ -5134,8 +5133,9 @@ const btnSalvarQR = document.getElementById("btnSalvarQR");
 const btnImprimirQR = document.getElementById("btnImprimirQR");
 const btnGerarQR = document.getElementById("btnGerarQR");
 
-let qrCodeInstance = null; // referência para o QR Code gerado
-let qrGerado = false;      // indica se o QR Code já foi gerado
+let qrCodeInstance = null;
+let qrGerado = false;
+let qrLinkGerado = "";
 
 // =========================
 // Gera próximo número da mesa
@@ -5143,13 +5143,15 @@ let qrGerado = false;      // indica se o QR Code já foi gerado
 async function gerarNumeroMesa() {
   try {
     const { data, error } = await supabase
-      .from('mesas')
-      .select('id')
-      .order('id', { ascending: false })
+      .from("mesas")
+      .select("id")
+      .order("id", { ascending: false })
       .limit(1);
 
     if (error) throw error;
-    numeroMesaInput.value = data.length === 0 ? "1" : (data[0].id + 1).toString();
+
+    numeroMesaInput.value =
+      data.length === 0 ? "1" : (data[0].id + 1).toString();
   } catch (err) {
     console.error("Erro ao gerar número da mesa:", err);
     numeroMesaInput.value = "1";
@@ -5157,34 +5159,36 @@ async function gerarNumeroMesa() {
 }
 
 // =========================
-// Limpar formulário
+// Limpar formulário (não limpa QR)
 // =========================
 function limparFormulario() {
-  capacidadeInput.value = '';
-  descricaoInput.value = '';
-  localizacaoInput.value = '';
-  observacoesInput.value = '';
+  capacidadeInput.value = "";
+  descricaoInput.value = "";
+  localizacaoInput.value = "";
+  observacoesInput.value = "";
   ativoInput.checked = true;
   qrGerado = false;
-  // NÃO limpamos o QR Code para manter visível após salvar
 }
 
 // =========================
-// Gerar QR Code (antes de salvar a mesa)
+// Gerar QR Code (COM LINK)
 // =========================
 btnGerarQR.addEventListener("click", () => {
   const capacidade = parseInt(capacidadeInput.value);
+  const numeroMesa = numeroMesaInput.value;
 
   if (!capacidade || capacidade < 1) {
     alert("Informe uma capacidade válida antes de gerar o QR Code.");
     return;
   }
 
-  const textoQR = `Mesa ${numeroMesaInput.value}`;
+  // 🔗 LINK FINAL DO QR CODE
+  qrLinkGerado = `https://daniel2025mar.github.io/Cardapio-Demo-V2/painel/ativar_mesa.html?mesa=${numeroMesa}`;
+
   qrcodeContainer.innerHTML = "";
 
   qrCodeInstance = new QRCode(qrcodeContainer, {
-    text: textoQR,
+    text: qrLinkGerado,
     width: 192,
     height: 192,
     colorDark: "#1f2937",
@@ -5193,8 +5197,9 @@ btnGerarQR.addEventListener("click", () => {
   });
 
   qrcodeWrapper.classList.remove("hidden");
-  qrGerado = true; // QR Code gerado
-  alert("QR Code gerado! Agora clique em 'Salvar Mesa' para inserir na tabela.");
+  qrGerado = true;
+
+  alert("QR Code gerado! Agora clique em 'Salvar Mesa' para cadastrar.");
 });
 
 // =========================
@@ -5212,30 +5217,27 @@ form.addEventListener("submit", async (e) => {
   const capacidade = parseInt(capacidadeInput.value);
 
   try {
-    const { data, error } = await supabase
-      .from('mesas')
-      .insert([{
+    const { error } = await supabase.from("mesas").insert([
+      {
         numero: novoNumero,
         capacidade: capacidade,
         descricao: descricaoInput.value,
         localizacao: localizacaoInput.value,
         observacoes: observacoesInput.value,
         ativo: ativoInput.checked,
-        qrcode: `Mesa ${novoNumero}`
-      }])
-      .select();
+        cliente_presente: false,
+        qrcode: qrLinkGerado
+      }
+    ]);
 
     if (error) throw error;
 
-    alert(`Mesa ${novoNumero} cadastrada com sucesso! QR Code continua visível para salvar ou imprimir.`);
+    alert(
+      `Mesa ${novoNumero} cadastrada com sucesso!\nO QR Code permanece visível para salvar ou imprimir.`
+    );
+
     gerarNumeroMesa();
-    // Limpa apenas os campos do formulário, mantém QR Code visível
-    capacidadeInput.value = '';
-    descricaoInput.value = '';
-    localizacaoInput.value = '';
-    observacoesInput.value = '';
-    ativoInput.checked = true;
-    qrGerado = false; // Para gerar novo QR Code na próxima mesa
+    limparFormulario();
   } catch (err) {
     console.error("Erro ao salvar mesa:", err);
     alert("Erro ao salvar mesa. Verifique o console.");
@@ -5273,11 +5275,13 @@ btnImprimirQR.addEventListener("click", () => {
 });
 
 // =========================
-// Limpar formulário
+// Botão Limpar
 // =========================
-document.getElementById("btnLimparMesas").addEventListener("click", limparFormulario);
+document
+  .getElementById("btnLimparMesas")
+  .addEventListener("click", limparFormulario);
 
 // =========================
-// Preenche número ao carregar
+// Inicial
 // =========================
 document.addEventListener("DOMContentLoaded", gerarNumeroMesa);

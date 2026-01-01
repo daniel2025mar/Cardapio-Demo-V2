@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GestioMax</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
+  <!-- BIBLIOTECA QR CODE -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     .content-section { display: none; }
@@ -887,7 +888,7 @@
      CADASTRO DE MESAS
 ========================= -->
 <section id="cadastro-mesas" class="content-section mb-8 p-6" style="display:none;">
-  <!-- Título e descrição alinhados à esquerda -->
+  <!-- Título e descrição -->
   <div class="mb-8 text-left">
     <h2 class="text-3xl font-extrabold text-gray-900">Cadastro de Mesas</h2>
     <p class="text-gray-600 mt-2">Cadastre novas mesas no sistema de forma rápida e fácil.</p>
@@ -896,18 +897,15 @@
   <div class="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-lg p-10">
     <form id="formCadastroMesas" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      <!-- Número da Mesa -->
-      <div class="flex flex-col">
-        <label for="numeroMesa" class="text-sm font-medium text-gray-700 mb-1">Número da Mesa</label>
-        <input type="text" id="numeroMesa" placeholder="Digite o número da mesa" required
-          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200" />
-      </div>
+      <!-- Número e Capacidade -->
+      <div class="flex flex-col w-24">
+        <label for="numeroMesa" class="text-sm font-medium text-gray-700 mb-1">Número</label>
+        <input type="text" id="numeroMesa" placeholder="00" required readonly
+          class="w-full border border-gray-300 px-2 py-1 text-center bg-gray-100 cursor-not-allowed outline-none text-sm rounded-lg" />
 
-      <!-- Capacidade -->
-      <div class="flex flex-col">
-        <label for="capacidadeMesa" class="text-sm font-medium text-gray-700 mb-1">Capacidade</label>
-        <input type="number" id="capacidadeMesa" placeholder="Número de pessoas" min="1" required
-          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200" />
+        <label for="capacidadeMesa" class="text-sm font-medium text-gray-700 mt-2 mb-1">Capacidade</label>
+        <input type="number" id="capacidadeMesa" placeholder="0" min="1" required
+          class="w-full border border-gray-300 px-2 py-1 text-center outline-none text-sm rounded-lg" />
       </div>
 
       <!-- Descrição -->
@@ -937,17 +935,45 @@
           class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200 resize-none h-28"></textarea>
       </div>
 
-      <!-- Botões -->
+      <!-- Botões Salvar/Limpar/Gerar QR -->
       <div class="flex gap-4 md:col-span-2 justify-end pt-4">
         <button type="submit"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition duration-200">Salvar Mesa</button>
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition duration-200 transform hover:scale-105">Salvar Mesa</button>
         <button type="button" id="btnLimparMesas"
-          class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-3 rounded-xl transition duration-200">Limpar</button>
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-3 rounded-xl shadow-sm transition duration-200 transform hover:scale-105">Limpar</button>
+        <button type="button" id="btnGerarQR"
+          class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition duration-200 transform hover:scale-105">Gerar QR Code</button>
+      </div>
+
+      <!-- =========================
+           QR CODE DENTRO DO FORMULÁRIO (MODERNO)
+      ========================== -->
+      <div id="qrcodeWrapper" class="md:col-span-2 flex flex-col items-center bg-gradient-to-b from-white to-gray-50 p-6 rounded-3xl shadow-xl mt-6 border border-gray-200">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">QR Code da Mesa</h3>
+
+        <!-- Quadrado do QR Code moderno -->
+        <div id="qrcodeContainer" class="w-48 h-48 mb-6 flex justify-center items-center rounded-2xl bg-white shadow-md border-2 border-indigo-200 p-4"></div>
+
+        <!-- Botões Salvar e Imprimir -->
+        <div class="flex gap-6">
+          <button id="btnSalvarQR" 
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg transition duration-200 transform hover:scale-105">
+            Salvar QR Code
+          </button>
+          <button id="btnImprimirQR" 
+            class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-2xl shadow-lg transition duration-200 transform hover:scale-105">
+            Imprimir QR Code
+          </button>
+        </div>
       </div>
 
     </form>
   </div>
 </section>
+
+<!-- BIBLIOTECA QR CODE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 
 <!-- =========================
      LISTA DE MESAS

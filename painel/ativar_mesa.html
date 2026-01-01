@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Ativar Mesa</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1 id="msg">Ativando mesa...</h1>
+
+  <script>
+    const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Pega o número da mesa da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const mesa = urlParams.get('mesa');
+
+    if (!mesa) {
+      document.getElementById('msg').innerText = "Mesa não informada!";
+    } else {
+      // Atualiza a mesa no Supabase para "cliente presente"
+      supabase
+        .from('mesas')
+        .update({ cliente_presente: true })
+        .eq('numero', mesa)
+        .then(({ error }) => {
+          if (error) {
+            document.getElementById('msg').innerText = "Erro ao ativar mesa!";
+            console.error(error);
+          } else {
+            document.getElementById('msg').innerText = `Mesa ${mesa} ativada!`;
+          }
+        });
+    }
+  </script>
+</body>
+</html>

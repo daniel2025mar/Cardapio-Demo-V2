@@ -363,3 +363,4 @@ async function verificarAniversario() {
 
 // Executa a função
 verificarAniversario();
+

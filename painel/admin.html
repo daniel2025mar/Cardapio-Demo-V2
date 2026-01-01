@@ -451,10 +451,88 @@
   <span>Pedidos</span>
 </label>
 
+
+
         <label data-menu="clientes" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
   <i class="fi fi-rr-users text-xl"></i>
   <span>Clientes</span>
 </label>
+<!-- MESAS -->
+<div class="w-full">
+
+  <!-- CSS para abrir/fechar submenu suavemente -->
+  <style>
+    /* Submenu fechado inicialmente */
+    #submenu-mesas {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      min-width: 180px;
+    }
+
+    /* Submenu aberto */
+    #submenu-mesas.aberto {
+      max-height: 500px;
+      opacity: 1;
+    }
+
+    /* Seta rotativa */
+    .seta-mesas {
+      transition: transform 0.3s ease;
+    }
+    .seta-mesas.rotated {
+      transform: rotate(180deg);
+    }
+  </style>
+
+  <!-- BOTÃO PRINCIPAL -->
+  <label
+    data-menu="mesas"
+    class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg"
+>
+  <!-- ÍCONE DE MESA -->
+  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M4 6h16v2H4V6zM4 20v-8h16v8M4 12v4M20 12v4" />
+  </svg>
+
+  <span>Mesas</span>
+
+  <!-- SETA -->
+  <svg
+    class="ml-auto h-4 w-4 seta-mesas"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M19 9l-7 7-7-7" />
+  </svg>
+</label>
+
+
+   <!-- SUBMENU MESAS -->
+<div id="submenu-mesas" class="flex flex-col mt-1 ml-10 space-y-1 submenu">
+  
+<label data-submenu="cadastro-mesas" class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis" >
+  
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+  <span>Cadastro de Mesas</span>
+</label>
+
+
+  <label
+    data-menu="lista-mesas"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
+  >
+    Lista de Mesas
+  </label>
+
+</div>
+</div>
 
         <label data-menu="funcionarios" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">
   <!-- Ícone de grupo de pessoas -->
@@ -805,30 +883,87 @@
 
 </section>
 
-<style>
-  /* ===== ESTILO PADRÃO ERP ===== */
-  .label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #4b5563;
-    margin-bottom: 0.25rem;
-  }
+<!-- =========================
+     CADASTRO DE MESAS
+========================= -->
+<section id="cadastro-mesas" class="content-section mb-8 p-6" style="display:none;">
+  <!-- Título e descrição alinhados à esquerda -->
+  <div class="mb-8 text-left">
+    <h2 class="text-3xl font-extrabold text-gray-900">Cadastro de Mesas</h2>
+    <p class="text-gray-600 mt-2">Cadastre novas mesas no sistema de forma rápida e fácil.</p>
+  </div>
 
-  .input {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    outline: none;
-    background: #fff;
-  }
+  <div class="max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-lg p-10">
+    <form id="formCadastroMesas" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-  .input:focus {
-    border-color: #000;
-    box-shadow: 0 0 0 1px #000;
-  }
-</style>
+      <!-- Número da Mesa -->
+      <div class="flex flex-col">
+        <label for="numeroMesa" class="text-sm font-medium text-gray-700 mb-1">Número da Mesa</label>
+        <input type="text" id="numeroMesa" placeholder="Digite o número da mesa" required
+          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200" />
+      </div>
+
+      <!-- Capacidade -->
+      <div class="flex flex-col">
+        <label for="capacidadeMesa" class="text-sm font-medium text-gray-700 mb-1">Capacidade</label>
+        <input type="number" id="capacidadeMesa" placeholder="Número de pessoas" min="1" required
+          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200" />
+      </div>
+
+      <!-- Descrição -->
+      <div class="flex flex-col md:col-span-2">
+        <label for="descricaoMesa" class="text-sm font-medium text-gray-700 mb-1">Descrição</label>
+        <input type="text" id="descricaoMesa" placeholder="Digite a descrição da mesa"
+          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200" />
+      </div>
+
+      <!-- Localização -->
+      <div class="flex flex-col">
+        <label for="localizacaoMesa" class="text-sm font-medium text-gray-700 mb-1">Localização / Sala</label>
+        <input type="text" id="localizacaoMesa" placeholder="Ex: Sala A, canto esquerdo"
+          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200" />
+      </div>
+
+      <!-- Ativo -->
+      <div class="flex items-center mt-6 md:mt-0">
+        <input type="checkbox" id="ativoMesa" class="form-checkbox h-5 w-5 text-indigo-600 mr-2" checked>
+        <label for="ativoMesa" class="text-gray-700 font-medium">Mesa Ativa</label>
+      </div>
+
+      <!-- Observações -->
+      <div class="flex flex-col md:col-span-2">
+        <label for="observacoesMesa" class="text-sm font-medium text-gray-700 mb-1">Observações</label>
+        <textarea id="observacoesMesa" placeholder="Alguma observação sobre a mesa"
+          class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition duration-200 resize-none h-28"></textarea>
+      </div>
+
+      <!-- Botões -->
+      <div class="flex gap-4 md:col-span-2 justify-end pt-4">
+        <button type="submit"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition duration-200">Salvar Mesa</button>
+        <button type="button" id="btnLimparMesas"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-6 py-3 rounded-xl transition duration-200">Limpar</button>
+      </div>
+
+    </form>
+  </div>
+</section>
+
+<!-- =========================
+     LISTA DE MESAS
+========================= -->
+<section id="lista-mesas" class="content-section mb-8 p-6" style="display:none;">
+  <div class="mb-6 text-left">
+    <h2 class="text-3xl font-bold text-black">Mesas Cadastradas</h2>
+    <p class="text-gray-700">Aqui estão todas as mesas cadastradas no sistema.</p>
+  </div>
+
+  <div id="painelMesas" class="grid grid-cols-7 gap-6 p-4 max-w-6xl mx-auto">
+  <!-- As mesas serão inseridas dinamicamente via JS -->
+</div>
+
+</section>
+
 
 <section id="produtos" class="content-section mb-8">
 

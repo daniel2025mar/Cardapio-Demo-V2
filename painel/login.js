@@ -182,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, tempoRestante);
   }
 
+
   // =============================
   //     MENSAGEM DE BOAS-VINDAS
   // =============================
@@ -320,3 +321,45 @@ async function mostrarNomeEmpresa() {
 
 // Executa a função
 mostrarNomeEmpresa();
+
+
+// ==================== FUNÇÃO PARA VERIFICAR ANIVERSÁRIO ====================
+async function verificarAniversario() {
+  try {
+    // Busca todas as empresas e suas datas de criado_em
+    const { data: empresas, error } = await supabase
+      .from('empresa')
+      .select('id, nome, criado_em');
+
+    if (error) {
+      console.error('Erro ao buscar empresas:', error);
+      return;
+    }
+
+    const hoje = new Date();
+    const diaHoje = hoje.getDate();
+    const mesHoje = hoje.getMonth() + 1; // JS: Janeiro = 0
+
+    empresas.forEach(empresa => {
+      const data = new Date(empresa.criado_em);
+      const dia = data.getDate();
+      const mes = data.getMonth() + 1;
+
+      if (dia === diaHoje && mes === mesHoje) {
+        // É aniversário! Muda o tema
+        document.body.classList.add("tema-aniversario");
+
+        const aviso = document.getElementById("aviso-aniversario");
+        if (aviso) {
+          aviso.querySelector("h2").textContent = `🎉 Feliz Aniversário, ${empresa.nome}!`;
+          aviso.classList.remove("hidden");
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Erro inesperado:', err);
+  }
+}
+
+// Executa a função
+verificarAniversario();

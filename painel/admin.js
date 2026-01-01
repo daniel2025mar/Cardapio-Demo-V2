@@ -4884,26 +4884,7 @@ async function verificarEstoqueZerado() {
   }
 }
 
-// =============================
-// FUNÇÃO DE BOAS-VINDAS NO LOGIN
-// =============================
-function mostrarBoasVindas(nomeUsuario) {
-  const mensagem = document.createElement("div");
-  mensagem.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
-  mensagem.className =
-    "fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow z-50";
-  document.body.appendChild(mensagem);
 
-  setTimeout(() => {
-    mensagem.remove();
-
-    // Marca que deve mostrar o modal de estoque zerado
-    localStorage.setItem("mostrarEstoqueZerado", "true");
-
-    // Redireciona para admin.html
-    window.location.href = "admin.html";
-  }, 3000);
-}
 
 // =============================
 // EXIBIR MODAL DE ESTOQUE ZERADO NO ADMIN
@@ -4913,4 +4894,213 @@ document.addEventListener("DOMContentLoaded", async () => {
     await verificarEstoqueZerado();
     localStorage.removeItem("mostrarEstoqueZerado");
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  // ================= MENU MESAS =================
+  const menuMesas = document.querySelector('[data-menu="mesas"]');
+  const submenuMesas = document.getElementById("submenu-mesas");
+  const setaMesas = document.querySelector(".seta-mesas");
+
+  // Todas as seções do sistema
+  const todasSeções = document.querySelectorAll(".content-section");
+
+  // Submenus individuais
+  const submenuCadastroMesas = document.querySelector('[data-menu="cadastro-mesas"]');
+  const submenuListaMesas = document.querySelector('[data-menu="lista-mesas"]');
+
+  // ================= FUNÇÃO PARA FECHAR SUBMENUS =================
+  function fecharTodosSubmenus() {
+    // Fecha container do submenu Mesas
+    if(submenuMesas) {
+      submenuMesas.style.maxHeight = "0px";
+      submenuMesas.style.opacity = "0";
+      if(setaMesas) setaMesas.classList.remove("rotated");
+    }
+
+    // Remove visual de ativo nos submenus
+    if(submenuCadastroMesas) submenuCadastroMesas.classList.remove("active");
+    if(submenuListaMesas) submenuListaMesas.classList.remove("active");
+  }
+
+  // Abre/fecha submenu Mesas
+  menuMesas.addEventListener("click", () => {
+    if(submenuMesas.style.maxHeight === "0px" || submenuMesas.style.maxHeight === "") {
+      fecharTodosSubmenus(); // Fecha qualquer submenu aberto antes
+      submenuMesas.style.maxHeight = "500px";
+      submenuMesas.style.opacity = "1";
+      if(setaMesas) setaMesas.classList.add("rotated");
+    } else {
+      fecharTodosSubmenus();
+    }
+  });
+
+  // ================= FUNÇÃO UNIVERSAL PARA ABRIR TELAS =================
+  function abrirTela(telaId) {
+    // Fecha submenus quando abrir qualquer tela
+    fecharTodosSubmenus();
+
+    // Esconde todas as seções
+    todasSeções.forEach(section => {
+      section.style.display = "none";
+    });
+
+    // Mostra apenas a seção selecionada
+    const tela = document.getElementById(telaId);
+    if(tela) tela.style.display = "block";
+  }
+
+  // ================= CLIQUE NOS SUBMENUS =================
+  if(submenuCadastroMesas) {
+    submenuCadastroMesas.addEventListener("click", () => {
+      abrirTela("cadastro-mesas");
+    });
+  }
+
+  if(submenuListaMesas) {
+    submenuListaMesas.addEventListener("click", () => {
+      abrirTela("lista-mesas");
+    });
+  }
+
+  // ================= CLIQUE EM OUTROS MENUS =================
+  const outrosMenus = document.querySelectorAll('[data-menu]:not([data-menu="mesas"])');
+  outrosMenus.forEach(menu => {
+    menu.addEventListener("click", () => {
+      fecharTodosSubmenus(); // Fecha todos os submenus ao clicar em outro menu
+    });
+  });
+});
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  // 1️⃣ Todas as seções de conteúdo
+  const sections = document.querySelectorAll(".content-section");
+
+  // 2️⃣ Todos os submenus
+  const submenus = document.querySelectorAll("[data-submenu]");
+
+  // 3️⃣ Função para abrir uma tela específica
+function abrirTela(telaId, submenuAtivo) {
+  // Esconde todas as seções
+  sections.forEach(section => section.style.display = "none");
+
+  // Remove a classe 'active' de todos os submenus
+  submenus.forEach(sm => sm.classList.remove("active"));
+
+  // Mostra apenas a seção selecionada
+  const tela = document.getElementById(telaId);
+  if (tela) tela.style.display = "block";
+
+  // Marca o submenu clicado como ativo, exceto os "mesas" sem efeito visual
+  if (submenuAtivo && !["cadastro-mesas", "lista-mesas"].includes(submenuAtivo.getAttribute("data-submenu"))) {
+    submenuAtivo.classList.add("active");
+  }
+}
+
+// 4️⃣ Submenu Cadastro de Mesas
+const submenuCadastroMesas = document.querySelector('[data-submenu="cadastro-mesas"]');
+if(submenuCadastroMesas) {
+  submenuCadastroMesas.addEventListener("click", () => {
+    abrirTela("cadastro-mesas", submenuCadastroMesas);
+  });
+}
+
+// 5️⃣ Submenu Lista Mesas
+const submenuListaMesas = document.querySelector('[data-submenu="lista-mesas"]');
+if(submenuListaMesas) {
+  submenuListaMesas.addEventListener("click", () => {
+    abrirTela("lista-mesas", submenuListaMesas);
+  });
+}
+
+// 6️⃣ Submenu Produtos
+const submenuProdutos = document.querySelector('[data-submenu="produtos"]');
+if(submenuProdutos) {
+  submenuProdutos.addEventListener("click", () => {
+    abrirTela("produtos", submenuProdutos);
+  });
+}
+
+// Se quiser abrir uma tela padrão ao carregar
+// abrirTela("dashboard", null);
+
+
+  // Se quiser abrir uma tela padrão ao carregar
+  // abrirTela("dashboard", null);
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const painelMesas = document.getElementById("painelMesas");
+
+  // Grid responsivo
+  painelMesas.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4";
+
+
+  // Busca mesas
+  const { data: mesas, error } = await supabase
+    .from("mesas")
+    .select("*")
+    .order("numero", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar mesas:", error);
+    return;
+  }
+
+  mesas.forEach((mesa) => {
+    const mesaDiv = document.createElement("div");
+    mesaDiv.className = `
+      relative w-36 h-36 flex flex-col items-center justify-center
+      cursor-pointer transition-all transform
+      hover:scale-105 hover:shadow-2xl p-2 rounded-lg bg-white shadow-md
+    `;
+
+    // Valor consumido (caso não exista, mostra 0)
+    const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
+
+    // HTML da mesa com número, valor e cadeiras
+    mesaDiv.innerHTML = `
+      <!-- Mesa retangular azul -->
+      <div class="mesa w-24 h-16 bg-blue-500 rounded-md flex flex-col items-center justify-center shadow-md z-10 mb-2 relative">
+        <span class="text-white font-bold text-sm">Mesa ${mesa.numero}</span>
+        <span class="valor text-xs text-gray-200 mt-1">R$ ${valorConsumido}</span>
+      </div>
+
+      <!-- Cadeiras -->
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 left-1/3 shadow z-10"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 right-1/3 shadow z-10"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 left-1/3 shadow z-10"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 right-1/3 shadow z-10"></div>
+
+      <!-- Status -->
+      <div class="status absolute top-1 right-1 w-4 h-4 rounded-full border border-white shadow-lg z-10 ${
+        mesa.ativo ? "bg-green-500" : "bg-red-500"
+      }"></div>
+    `;
+
+    // Alterna status ao clicar
+    mesaDiv.addEventListener("click", async () => {
+      const novoStatus = !mesa.ativo;
+
+      const { error } = await supabase
+        .from("mesas")
+        .update({ ativo: novoStatus })
+        .eq("id", mesa.id);
+
+      if (error) {
+        console.error("Erro ao atualizar mesa:", error);
+        return;
+      }
+
+      mesa.ativo = novoStatus;
+
+      const status = mesaDiv.querySelector(".status");
+      status.classList.toggle("bg-green-500", mesa.ativo);
+      status.classList.toggle("bg-red-500", !mesa.ativo);
+    });
+
+    painelMesas.appendChild(mesaDiv);
+  });
 });

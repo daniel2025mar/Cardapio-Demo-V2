@@ -44,9 +44,30 @@
     }
 
     body.tema-dia-dos-pais {
-      --cor-primaria: #3b82f6; /* azul */
-      --cor-secundaria: #1e40af; /* azul escuro */
+      --cor-primaria: #3b82f6;
+      --cor-secundaria: #1e40af;
       --cor-glow: rgba(59, 130, 246, 0.45);
+    }
+
+    /* NOVO TEMA: ANIVERSÁRIO */
+    body.tema-aniversario {
+      --cor-primaria: #f97316; /* laranja */
+      --cor-secundaria: #f59e0b; /* amarelo */
+      --cor-glow: rgba(249, 115, 22, 0.45);
+    }
+
+    body.tema-natal .bg-gradient-to-br,
+    body.tema-ano-novo .bg-gradient-to-br,
+    body.tema-dia-de-reis .bg-gradient-to-br,
+    body.tema-dia-das-maes .bg-gradient-to-br,
+    body.tema-dia-dos-pais .bg-gradient-to-br,
+    body.tema-aniversario .bg-gradient-to-br {
+      background-image: linear-gradient(
+        135deg,
+        var(--cor-secundaria),
+        var(--cor-primaria),
+        var(--cor-secundaria)
+      ) !important;
     }
 
     body {
@@ -55,19 +76,6 @@
 
     .bg-animated {
       background: radial-gradient(circle at top, #0f172a, #020617 70%);
-    }
-
-    body.tema-natal .bg-gradient-to-br,
-    body.tema-ano-novo .bg-gradient-to-br,
-    body.tema-dia-de-reis .bg-gradient-to-br,
-    body.tema-dia-das-maes .bg-gradient-to-br,
-    body.tema-dia-dos-pais .bg-gradient-to-br {
-      background-image: linear-gradient(
-        135deg,
-        var(--cor-secundaria),
-        var(--cor-primaria),
-        var(--cor-secundaria)
-      ) !important;
     }
 
     .glass {
@@ -177,6 +185,12 @@
         <p class="text-sm opacity-95">Que seu dia seja cheio de alegria e momentos especiais ✨</p>
       </div>
 
+      <!-- NOVO AVISO: ANIVERSÁRIO -->
+      <div id="aviso-aniversario" class="mb-6 p-4 rounded-xl bg-yellow-200 border border-orange-400 backdrop-blur-md hidden text-black">
+        <h2 class="text-lg font-bold mb-1 flex items-center gap-2">🎉 Feliz Aniversário!</h2>
+        <p class="text-sm opacity-95">Que seu dia seja cheio de alegria, surpresas e momentos inesquecíveis ✨</p>
+      </div>
+
       <div id="carousel" class="relative min-h-[150px] max-w-md mb-6">
         <div class="carousel-slide active">
           <p class="text-base opacity-95">Painel inteligente para <strong>gerenciamento de cardápios digitais</strong>.</p>
@@ -226,7 +240,7 @@
     </div>
   </div>
 
-  <!-- JS UI (INALTERADO) -->
+  <!-- JS UI -->
   <script>
     const toggle = document.getElementById("togglePassword");
     const password = document.getElementById("password");
@@ -244,7 +258,16 @@
       index = (index + 1) % slides.length;
       slides[index].classList.add("active");
     }, 6000);
+
+    // EXIBIR TEMA ANIVERSÁRIO SE FOR O DIA
+    const aniversario = new Date("2026-01-01"); // Coloque a data do aniversário
+    const hoje = new Date();
+
+    if (hoje.getDate() === aniversario.getDate() && hoje.getMonth() === aniversario.getMonth()) {
+      document.body.classList.add("tema-aniversario");
+      document.getElementById("aviso-aniversario").classList.remove("hidden");
+    }
   </script>
-<script type="module" src="login.js"></script>
+  <script type="module" src="login.js"></script>
 </body>
 </html>

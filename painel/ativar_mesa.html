@@ -17,11 +17,11 @@
 
     h1 {
       font-size: 28px;
+      margin-bottom: 10px;
     }
 
     p {
       font-size: 16px;
-      margin-top: 10px;
     }
 
     .ativo {
@@ -42,7 +42,7 @@
 
   <script>
     // =========================
-    // SUPABASE
+    // CONFIGURAÇÃO SUPABASE
     // =========================
     const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
     const SUPABASE_KEY =
@@ -57,31 +57,39 @@
     const submsg = document.getElementById("submsg");
 
     // =========================
-    // URL DO QR CODE
+    // PEGA O NÚMERO DA MESA DO QR
     // =========================
-    const urlQRCode = window.location.href;
+    const params = new URLSearchParams(window.location.search);
+    const numeroMesa = params.get("mesa");
 
-    verificarMesa();
+    if (!numeroMesa) {
+      msg.innerText = "Mesa não informada ❌";
+      submsg.innerText = "QR Code inválido.";
+      msg.className = "erro";
+    } else {
+      ativarMesa(numeroMesa);
+    }
 
     // =========================
-    // VERIFICA PELO QRCODE
+    // VERIFICA E ATIVA A MESA
     // =========================
-    async function verificarMesa() {
+    async function ativarMesa(numero) {
       try {
+        // 1️⃣ BUSCAR MESA PELO NÚMERO
         const { data: mesa, error } = await supabase
           .from("mesas")
           .select("id, numero, cliente_presente")
-          .eq("qrcode", urlQRCode)
+          .eq("numero", numero)
           .single();
 
         if (error || !mesa) {
           msg.innerText = "Mesa não encontrada ❌";
-          submsg.innerText = "QR Code inválido.";
+          submsg.innerText = "Chame um atendente.";
           msg.className = "erro";
           return;
         }
 
-        // 🟢 JÁ ESTÁ ATIVA
+        // 2️⃣ SE JÁ ESTIVER ATIVA
         if (mesa.cliente_presente === true) {
           msg.innerText = `Mesa ${mesa.numero} já está ativa ✅`;
           submsg.innerText = "Aguarde o atendimento 🍽️";
@@ -89,7 +97,7 @@
           return;
         }
 
-        // 🔄 ATIVA A MESA
+        // 3️⃣ ATIVAR MESA
         const { error: erroUpdate } = await supabase
           .from("mesas")
           .update({

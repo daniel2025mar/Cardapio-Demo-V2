@@ -1319,25 +1319,53 @@
     </div>
   </div>
 
-  <!-- MODAL SENHA -->
-  <div id="modalSenhaAdmin" class="modal-overlay">
-    <div class="modal-box">
-      <h3>Senha do Administrador</h3>
+  <!-- Font Awesome -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+/>
 
-      <input id="inputSenhaAdmin" type="password" placeholder="Digite a senha">
+<!-- MODAL SENHA -->
+<div id="modalSenhaAdmin" class="modal-overlay">
+  <div class="modal-box">
 
-      <p id="mensagemErroSenha" class="hidden text-red-600 mt-2 text-sm">
-  Senha do administrador incorreta.
-</p>
-      <div class="modal-footer">
-        <button id="btnCancelarSenhaAdmin" class="btn-secondary">Cancelar</button>
-        <button id="btnConfirmarSenhaAdmin" class="btn-primary">Confirmar</button>
-      </div>
+    <h3 class="flex items-center gap-2 text-lg font-semibold">
+      <i class="fa-solid fa-lock text-blue-600"></i>
+      Senha do Administrador
+    </h3>
 
-      
+    <input
+      id="inputSenhaAdmin"
+      type="password"
+      placeholder="Digite a senha"
+      class="mt-4 w-full"
+    />
 
+    <p
+      id="mensagemErroSenha"
+      class="hidden text-red-600 mt-2 text-sm"
+    >
+      Senha do administrador incorreta.
+    </p>
+
+    <div class="modal-footer mt-4">
+      <button
+        id="btnCancelarSenhaAdmin"
+        class="btn-secondary"
+      >
+        Cancelar
+      </button>
+      <button
+        id="btnConfirmarSenhaAdmin"
+        class="btn-primary"
+      >
+        Confirmar
+      </button>
     </div>
+
   </div>
+</div>
+
 
 </div>
 
@@ -2968,6 +2996,108 @@ input:not(:placeholder-shown) + .label-flutuante {
   </div>
 </div>
 
+ <!-- MODAL ESTOQUE ZERADO -->
+<div id="modalEstoqueZerado" class="estoque-modal-overlay hidden">
+  <div class="estoque-modal-box">
+
+    <h3 class="estoque-modal-title flex items-center gap-2 text-lg font-semibold text-red-600">
+      <i class="fa-solid fa-box-open"></i>
+      Alerta de Estoque
+    </h3>
+
+    <p class="estoque-modal-text mt-4 text-gray-700">
+      Existem
+      <strong id="totalProdutosZerados" class="estoque-modal-count text-red-600">0</strong>
+      produtos com estoque zerado.
+    </p>
+
+    <!-- Lista dos produtos zerados -->
+    <div class="estoque-lista-wrapper mt-3">
+      <ul id="listaProdutosZerados" class="estoque-lista text-sm text-gray-600"></ul>
+    </div>
+
+    <div class="estoque-modal-footer mt-5">
+      <button
+        id="btnFecharModalEstoque"
+        class="estoque-btn-primary"
+      >
+        OK
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+/* Overlay centralizado */
+.estoque-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 20000; /* maior que painel, mas isolado */
+}
+
+/* Caixa do modal */
+.estoque-modal-box {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+
+  min-width: 300px;
+  max-width: 420px;
+
+  max-height: 80vh;
+  overflow-y: auto;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Esconde modal */
+.estoque-modal-overlay.hidden {
+  display: none !important;
+}
+
+/* Botão OK */
+.estoque-btn-primary {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.estoque-btn-primary:hover {
+  background-color: #2563eb;
+}
+
+/* Footer */
+.estoque-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Wrapper da lista com scroll se necessário */
+.estoque-lista-wrapper {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+</style>
+
 <!-- Modal Aviso de Encerramento -->
 <div id="modalAvisoEncerramento"
   class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -3096,6 +3226,8 @@ input:not(:placeholder-shown) + .label-flutuante {
     <button id="btnFecharErro">OK</button>
   </div>
 </div>
+
+
 
 
   <!-- FOOTER -->

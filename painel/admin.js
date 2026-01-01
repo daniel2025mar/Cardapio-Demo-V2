@@ -4569,10 +4569,11 @@ async function verificarHorarioSistema() {
 setInterval(verificarHorarioSistema, 1000);
 verificarHorarioSistema();
 
+// cadastro de categorias
 document.addEventListener("DOMContentLoaded", () => {
 
   // ==========================
-  // USUÁRIO LOGADO (DO LOGIN)
+  // USUÁRIO LOGADO
   // ==========================
   const currentUser = JSON.parse(localStorage.getItem("usuarioLogado"));
 
@@ -4610,6 +4611,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const mensagemErroSenha = document.getElementById("mensagemErroSenha");
 
   let categoriaParaEditar = null;
+
+  // ==========================
+  // FUNÇÃO DE ERRO TEMPORÁRIO
+  // ==========================
+  function mostrarErroSenhaPorTempo(texto, tempo = 3000) {
+    mensagemErroSenha.textContent = texto;
+    mensagemErroSenha.classList.remove("hidden");
+
+    inputSenhaAdmin.value = "";
+    inputSenhaAdmin.focus();
+
+    setTimeout(() => {
+      mensagemErroSenha.classList.add("hidden");
+    }, tempo);
+  }
+
+  // ==========================
+  // LIMPAR ERRO AO DIGITAR
+  // ==========================
+  inputSenhaAdmin.addEventListener("input", () => {
+    mensagemErroSenha.classList.add("hidden");
+  });
 
   // ==========================
   // NOVA CATEGORIA
@@ -4667,9 +4690,7 @@ document.addEventListener("DOMContentLoaded", () => {
       categoriasModalTabela.appendChild(tr);
     });
 
-    // ==========================
     // EDITAR
-    // ==========================
     document.querySelectorAll(".btnEditar").forEach(btn => {
       btn.onclick = () => {
         const id = btn.dataset.id;
@@ -4678,20 +4699,15 @@ document.addEventListener("DOMContentLoaded", () => {
           abrirModalCategoria(id);
         } else {
           categoriaParaEditar = id;
-
-          // 🔥 RESET CORRETO DO MODAL DE SENHA
           inputSenhaAdmin.value = "";
           mensagemErroSenha.classList.add("hidden");
-          mensagemErroSenha.textContent = "Senha do administrador incorreta.";
-
           modalSenhaAdmin.style.display = "flex";
+          inputSenhaAdmin.focus();
         }
       };
     });
 
-    // ==========================
     // BLOQUEAR
-    // ==========================
     document.querySelectorAll(".btnBloquear").forEach(btn => {
       btn.onclick = async () => {
         if (!confirm("Deseja bloquear esta categoria?")) return;
@@ -4707,7 +4723,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ==========================
-  // CONFIRMAR SENHA ADMIN
+  // CANCELAR SENHA ADMIN
   // ==========================
   btnCancelarSenhaAdmin.onclick = () => {
     modalSenhaAdmin.style.display = "none";
@@ -4716,12 +4732,15 @@ document.addEventListener("DOMContentLoaded", () => {
     categoriaParaEditar = null;
   };
 
+  // ==========================
+  // CONFIRMAR SENHA ADMIN
+  // ==========================
   btnConfirmarSenhaAdmin.onclick = async () => {
     const senha = inputSenhaAdmin.value.trim();
 
-    if (!senha) {
-      mensagemErroSenha.textContent = "Informe a senha do administrador.";
-      mensagemErroSenha.classList.remove("hidden");
+    // CAMPO VAZIO
+    if (senha === "") {
+      mostrarErroSenhaPorTempo("O campo senha não pode ficar vazio.");
       return;
     }
 
@@ -4732,15 +4751,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .eq("password", senha)
       .eq("ativo", true);
 
-    // ❌ SENHA INCORRETA → MOSTRA MENSAGEM
+    // SENHA INCORRETA
     if (error || !admin || admin.length === 0) {
-      mensagemErroSenha.textContent = "Senha do administrador incorreta.";
-      mensagemErroSenha.classList.remove("hidden");
-      modalSenhaAdmin.style.display = "flex";
+      mostrarErroSenhaPorTempo("Senha do administrador incorreta.");
       return;
     }
 
-    // ✅ SENHA CORRETA
+    // SENHA CORRETA
     mensagemErroSenha.classList.add("hidden");
     modalSenhaAdmin.style.display = "none";
     inputSenhaAdmin.value = "";
@@ -4777,8 +4794,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const nome = nomeInput.value.trim();
     const descricao = descricaoInput.value.trim();
 
-    if (!nome) {
-      mensagemErro.textContent = "O campo ‘Nome da Categoria’ deve ser preenchido.";
+    if (nome === "") {
+      mensagemErro.textContent = "O campo ‘Nome da Categoria’ não pode ficar vazio.";
       modalErro.classList.remove("hidden");
       return;
     }
@@ -4799,13 +4816,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .from("categorias")
         .update({ nome, descricao })
         .eq("id", editarId);
-
       alert("Categoria atualizada!");
     } else {
       await supabase
         .from("categorias")
         .insert([{ nome, descricao, ativo: true }]);
-
       alert("Categoria cadastrada!");
     }
 
@@ -4814,4 +4829,88 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarCategoriasModal();
   };
 
+});
+
+// =============================
+// FUNÇÃO PARA VERIFICAR ESTOQUE ZERADO
+// =============================
+async function verificarEstoqueZerado() {
+  const modal = document.getElementById("modalEstoqueZerado");
+  const totalSpan = document.getElementById("totalProdutosZerados");
+  const listaProdutos = document.getElementById("listaProdutosZerados");
+  const btnFechar = document.getElementById("btnFecharModalEstoque");
+
+  if (!modal || !totalSpan || !listaProdutos || !btnFechar) return;
+
+  try {
+    // Busca produtos com estoque = 0
+    const { data: produtos, error } = await supabase
+      .from("produtos")
+      .select("id, descricao, estoque")
+      .eq("estoque", 0);
+
+    if (error) {
+      console.error("Erro ao buscar produtos com estoque zerado:", error);
+      return;
+    }
+
+    // Se não houver produtos, não mostra o modal
+    if (!produtos || produtos.length === 0) return;
+
+    // Atualiza o total
+    totalSpan.textContent = produtos.length;
+
+    // Limpa a lista
+    listaProdutos.innerHTML = "";
+
+    // Adiciona cada produto na lista
+    produtos.forEach(prod => {
+      const li = document.createElement("li");
+      li.textContent = prod.descricao;
+      li.style.marginBottom = "4px";
+      listaProdutos.appendChild(li);
+    });
+
+    // Mostra o modal
+    modal.classList.remove("hidden");
+
+    // Fecha o modal
+    btnFechar.onclick = () => {
+      modal.classList.add("hidden");
+    };
+
+  } catch (err) {
+    console.error("Erro inesperado ao verificar estoque zerado:", err);
+  }
+}
+
+// =============================
+// FUNÇÃO DE BOAS-VINDAS NO LOGIN
+// =============================
+function mostrarBoasVindas(nomeUsuario) {
+  const mensagem = document.createElement("div");
+  mensagem.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
+  mensagem.className =
+    "fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow z-50";
+  document.body.appendChild(mensagem);
+
+  setTimeout(() => {
+    mensagem.remove();
+
+    // Marca que deve mostrar o modal de estoque zerado
+    localStorage.setItem("mostrarEstoqueZerado", "true");
+
+    // Redireciona para admin.html
+    window.location.href = "admin.html";
+  }, 3000);
+}
+
+// =============================
+// EXIBIR MODAL DE ESTOQUE ZERADO NO ADMIN
+// =============================
+document.addEventListener("DOMContentLoaded", async () => {
+  if (localStorage.getItem("mostrarEstoqueZerado") === "true") {
+    await verificarEstoqueZerado();
+    localStorage.removeItem("mostrarEstoqueZerado");
+  }
 });

@@ -186,17 +186,23 @@ document.addEventListener("DOMContentLoaded", () => {
   //     MENSAGEM DE BOAS-VINDAS
   // =============================
   function mostrarBoasVindas(nomeUsuario) {
-    const mensagem = document.createElement("div");
-    mensagem.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
-    mensagem.className =
-      "fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow z-50";
-    document.body.appendChild(mensagem);
+  const mensagem = document.createElement("div");
+  mensagem.textContent = `Bem-vindo(a), ${nomeUsuario}!`;
+  mensagem.className =
+    "fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded shadow z-50";
+  document.body.appendChild(mensagem);
 
-    setTimeout(() => {
-      mensagem.remove();
-      window.location.href = "admin.html";
-    }, 3000);
-  }
+  setTimeout(() => {
+    mensagem.remove();
+
+    // Marca no localStorage para mostrar o modal no admin.html
+    localStorage.setItem("mostrarEstoqueZerado", "true");
+
+    // Redireciona para o painel
+    window.location.href = "admin.html";
+  }, 3000);
+}
+
 });
 
 // função de datas comemorativas

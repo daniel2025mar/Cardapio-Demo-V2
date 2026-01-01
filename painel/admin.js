@@ -5031,16 +5031,17 @@ if(submenuProdutos) {
   // abrirTela("dashboard", null);
 });
 //cadastro de mesas
+const painelMesas = document.getElementById("painelMesas");
 
-//onde mostra as mesas cadastradas
-document.addEventListener("DOMContentLoaded", async () => {
-  const painelMesas = document.getElementById("painelMesas");
+// =========================
+// Renderizar mesas
+// =========================
+async function renderizarMesas() {
+  painelMesas.innerHTML = "";
 
-  // Grid responsivo
-  painelMesas.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4";
+  painelMesas.className =
+    "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4";
 
-
-  // Busca mesas
   const { data: mesas, error } = await supabase
     .from("mesas")
     .select("*")
@@ -5059,53 +5060,62 @@ document.addEventListener("DOMContentLoaded", async () => {
       hover:scale-105 hover:shadow-2xl p-2 rounded-lg bg-white shadow-md
     `;
 
-    // Valor consumido (caso não exista, mostra 0)
     const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
 
-    // HTML da mesa com número, valor e cadeiras
+    // STATUS REAL: cliente_presente
+    const statusClasse = mesa.cliente_presente
+      ? "bg-green-500"
+      : "bg-red-500";
+
     mesaDiv.innerHTML = `
-      <!-- Mesa retangular azul -->
-      <div class="mesa w-24 h-16 bg-blue-500 rounded-md flex flex-col items-center justify-center shadow-md z-10 mb-2 relative">
+      <div class="mesa w-24 h-16 bg-blue-500 rounded-md flex flex-col items-center justify-center shadow-md z-10 mb-2">
         <span class="text-white font-bold text-sm">Mesa ${mesa.numero}</span>
         <span class="valor text-xs text-gray-200 mt-1">R$ ${valorConsumido}</span>
       </div>
 
-      <!-- Cadeiras -->
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 left-1/3 shadow z-10"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 right-1/3 shadow z-10"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 left-1/3 shadow z-10"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 right-1/3 shadow z-10"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 left-1/3"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 right-1/3"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 left-1/3"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 right-1/3"></div>
 
-      <!-- Status -->
-      <div class="status absolute top-1 right-1 w-4 h-4 rounded-full border border-white shadow-lg z-10 ${
-        mesa.ativo ? "bg-green-500" : "bg-red-500"
-      }"></div>
+      <div class="status absolute top-1 right-1 w-4 h-4 rounded-full border border-white shadow-lg ${statusClasse}"></div>
     `;
 
-    // Alterna status ao clicar
+    // Clique manual (opcional)
     mesaDiv.addEventListener("click", async () => {
-      const novoStatus = !mesa.ativo;
+      const novoStatus = !mesa.cliente_presente;
 
       const { error } = await supabase
         .from("mesas")
-        .update({ ativo: novoStatus })
+        .update({ cliente_presente: novoStatus })
         .eq("id", mesa.id);
 
-      if (error) {
-        console.error("Erro ao atualizar mesa:", error);
-        return;
-      }
-
-      mesa.ativo = novoStatus;
-
-      const status = mesaDiv.querySelector(".status");
-      status.classList.toggle("bg-green-500", mesa.ativo);
-      status.classList.toggle("bg-red-500", !mesa.ativo);
+      if (error) console.error(error);
     });
 
     painelMesas.appendChild(mesaDiv);
   });
-});
+}
+
+// =========================
+// REALTIME (Supabase)
+// =========================
+supabase
+  .channel("mesas-realtime")
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "mesas" },
+    () => {
+      renderizarMesas();
+    }
+  )
+  .subscribe();
+
+// =========================
+// Inicial
+// =========================
+document.addEventListener("DOMContentLoaded", renderizarMesas);
+
 
 // =========================
 // Campos do formulário

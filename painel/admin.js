@@ -5030,15 +5030,102 @@ if(submenuProdutos) {
   // Se quiser abrir uma tela padrão ao carregar
   // abrirTela("dashboard", null);
 });
-//cadastro de mesas
+
+
+// =========================
+// PAINEL
+// =========================
 const painelMesas = document.getElementById("painelMesas");
 
-// =========================
-// Renderizar mesas
-// =========================
-async function renderizarMesas() {
-  painelMesas.innerHTML = "";
+// Cache local (estado atual das mesas)
+const mesasCache = new Map();
 
+// =========================
+// RENDERIZAR / ATUALIZAR UMA MESA
+// =========================
+function renderizarMesa(mesa) {
+  let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
+
+  const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
+  const ocupada = mesa.cliente_presente === true;
+
+  // Se não existir, cria
+  if (!mesaDiv) {
+    mesaDiv = document.createElement("div");
+    mesaDiv.id = `mesa-${mesa.id}`;
+    mesaDiv.className = `
+      relative w-36 h-36 flex flex-col items-center justify-center
+      cursor-pointer transition-all transform
+      hover:scale-105 hover:shadow-2xl p-2 rounded-lg shadow-md
+    `;
+
+    mesaDiv.innerHTML = `
+      <div class="mesa w-24 h-16 bg-blue-500 rounded-md flex flex-col items-center justify-center shadow-md z-10 mb-2">
+        <span class="titulo text-white font-bold text-sm"></span>
+        <span class="valor text-xs text-gray-200 mt-1"></span>
+      </div>
+
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 left-1/3"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 right-1/3"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 left-1/3"></div>
+      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 right-1/3"></div>
+
+      <div class="status absolute top-1 right-1 w-4 h-4 rounded-full border border-white shadow-lg"></div>
+    `;
+
+    // Clique (UI otimista)
+    mesaDiv.addEventListener("click", async () => {
+      const novoStatus = !mesasCache.get(mesa.id).cliente_presente;
+
+      // 🔥 Atualiza UI imediatamente
+      atualizarStatusVisual(mesaDiv, novoStatus);
+
+      // Atualiza cache
+      mesasCache.set(mesa.id, {
+        ...mesasCache.get(mesa.id),
+        cliente_presente: novoStatus,
+      });
+
+      // Atualiza banco
+      const { error } = await supabase
+        .from("mesas")
+        .update({ cliente_presente: novoStatus })
+        .eq("id", mesa.id);
+
+      // Se falhar, reverte
+      if (error) {
+        console.error("Erro ao atualizar mesa:", error);
+        atualizarStatusVisual(mesaDiv, !novoStatus);
+      }
+    });
+
+    painelMesas.appendChild(mesaDiv);
+  }
+
+  // Atualiza conteúdo
+  mesaDiv.querySelector(".titulo").textContent = `Mesa ${mesa.numero}`;
+  mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
+
+  atualizarStatusVisual(mesaDiv, ocupada);
+}
+
+// =========================
+// STATUS VISUAL (rápido)
+// =========================
+function atualizarStatusVisual(mesaDiv, ocupada) {
+  const statusEl = mesaDiv.querySelector(".status");
+
+  statusEl.classList.remove("bg-green-500", "bg-red-500");
+  statusEl.classList.add(ocupada ? "bg-green-500" : "bg-red-500");
+
+  mesaDiv.classList.toggle("bg-green-50", ocupada);
+  mesaDiv.classList.toggle("bg-white", !ocupada);
+}
+
+// =========================
+// CARGA INICIAL
+// =========================
+async function carregarMesas() {
   painelMesas.className =
     "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4";
 
@@ -5053,63 +5140,31 @@ async function renderizarMesas() {
   }
 
   mesas.forEach((mesa) => {
-    const mesaDiv = document.createElement("div");
-    mesaDiv.className = `
-      relative w-36 h-36 flex flex-col items-center justify-center
-      cursor-pointer transition-all transform
-      hover:scale-105 hover:shadow-2xl p-2 rounded-lg bg-white shadow-md
-    `;
-
-    const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
-
-    // STATUS REAL: cliente_presente
-    const statusClasse = mesa.cliente_presente
-      ? "bg-green-500"
-      : "bg-red-500";
-
-    mesaDiv.innerHTML = `
-      <div class="mesa w-24 h-16 bg-blue-500 rounded-md flex flex-col items-center justify-center shadow-md z-10 mb-2">
-        <span class="text-white font-bold text-sm">Mesa ${mesa.numero}</span>
-        <span class="valor text-xs text-gray-200 mt-1">R$ ${valorConsumido}</span>
-      </div>
-
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 left-1/3"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 right-1/3"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 left-1/3"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 right-1/3"></div>
-
-      <div class="status absolute top-1 right-1 w-4 h-4 rounded-full border border-white shadow-lg ${statusClasse}"></div>
-    `;
-
-    // Clique manual (opcional)
-    mesaDiv.addEventListener("click", async () => {
-      const novoStatus = !mesa.cliente_presente;
-
-      const { error } = await supabase
-        .from("mesas")
-        .update({ cliente_presente: novoStatus })
-        .eq("id", mesa.id);
-
-      if (error) console.error(error);
-    });
-
-    painelMesas.appendChild(mesaDiv);
+    mesasCache.set(mesa.id, mesa);
+    renderizarMesa(mesa);
   });
 }
 
 // =========================
-// REALTIME (Supabase)
+// REALTIME (atualiza só o que mudou)
 // =========================
 supabase
   .channel("mesas-realtime")
   .on(
     "postgres_changes",
-    { event: "*", schema: "public", table: "mesas" },
-    () => {
-      renderizarMesas();
+    { event: "UPDATE", schema: "public", table: "mesas" },
+    (payload) => {
+      const mesa = payload.new;
+      mesasCache.set(mesa.id, mesa);
+      renderizarMesa(mesa);
     }
   )
   .subscribe();
+
+// =========================
+// INICIAR
+// =========================
+carregarMesas();
 
 // =========================
 // Inicial

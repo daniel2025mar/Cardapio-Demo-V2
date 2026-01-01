@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Ativar Mesa</title>
 
   <!-- Supabase JS v2 -->
@@ -25,64 +25,101 @@
       font-size: 16px;
       margin-top: 10px;
     }
+
+    .ativo {
+      color: #16a34a;
+      font-weight: bold;
+    }
+
+    .erro {
+      color: #dc2626;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-  <h1 id="msg">Ativando mesa...</h1>
+  <h1 id="msg">Verificando mesa...</h1>
   <p id="submsg">Aguarde um instante</p>
 
   <script>
     // =========================
     // CONFIGURAÇÃO SUPABASE
     // =========================
-  const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
-
+    const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
+    const SUPABASE_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
     const supabase = window.supabase.createClient(
       SUPABASE_URL,
       SUPABASE_KEY
     );
 
+    const msg = document.getElementById("msg");
+    const submsg = document.getElementById("submsg");
+
     // =========================
-    // PEGA O NÚMERO DA MESA DA URL
+    // PEGA O NÚMERO DA MESA
     // =========================
     const params = new URLSearchParams(window.location.search);
     const numeroMesa = params.get("mesa");
-
-    const msg = document.getElementById("msg");
-    const submsg = document.getElementById("submsg");
 
     if (!numeroMesa) {
       msg.innerText = "Mesa não informada ❌";
       submsg.innerText = "QR Code inválido.";
     } else {
-      ativarMesa(numeroMesa);
+      verificarMesa(numeroMesa);
     }
 
     // =========================
-    // ATIVA A MESA NO SUPABASE
+    // VERIFICA E ATIVA A MESA
     // =========================
-    async function ativarMesa(mesa) {
-      const { error } = await supabase
-        .from("mesas")
-        .update({
-          ativo: true,
-          cliente_presente: true
-        })
-        .eq("numero", mesa);
+    async function verificarMesa(numero) {
+      try {
+        const { data: mesa, error } = await supabase
+          .from("mesas")
+          .select("id, cliente_presente")
+          .eq("numero", numero)
+          .single();
 
-      if (error) {
-        console.error("Erro Supabase:", error);
-        msg.innerText = "Erro ao ativar mesa ❌";
+        if (error || !mesa) {
+          msg.innerText = "Mesa não encontrada ❌";
+          submsg.innerText = "Chame um atendente.";
+          msg.className = "erro";
+          return;
+        }
+
+        // 🟢 MESA JÁ ATIVA
+        if (mesa.cliente_presente) {
+          msg.innerText = `Mesa ${numero} já está ativa ✅`;
+          submsg.innerText = "Aguarde o atendimento 🍽️";
+          msg.className = "ativo";
+          return;
+        }
+
+        // 🔄 ATIVA A MESA
+        const { error: erroUpdate } = await supabase
+          .from("mesas")
+          .update({
+            ativo: true,
+            cliente_presente: true
+          })
+          .eq("id", mesa.id);
+
+        if (erroUpdate) {
+          throw erroUpdate;
+        }
+
+        msg.innerText = `Mesa ${numero} ativada com sucesso ✅`;
+        submsg.innerText = "Aguarde o atendimento 🍽️";
+        msg.className = "ativo";
+
+      } catch (err) {
+        console.error(err);
+        msg.innerText = "Erro ao processar mesa ❌";
         submsg.innerText = "Chame um atendente.";
-        return;
+        msg.className = "erro";
       }
-
-      msg.innerText = `Mesa ${mesa} ativada ✅`;
-      submsg.innerText = "Aguarde o atendimento 🍽️";
     }
   </script>
 

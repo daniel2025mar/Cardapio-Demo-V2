@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Ativar Mesa</title>
 
-  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -17,11 +16,11 @@
 
     h1 {
       font-size: 28px;
+      margin-bottom: 10px;
     }
 
     p {
       font-size: 16px;
-      margin-top: 10px;
     }
 
     .ativo {
@@ -57,10 +56,10 @@
     const submsg = document.getElementById("submsg");
 
     // =========================
-    // PEGA NUMERO DA MESA
+    // PEGA O NÚMERO DA MESA DA URL
     // =========================
     const params = new URLSearchParams(window.location.search);
-    const numeroMesa = params.get("mesa");
+    const numeroMesa = params.get("mesa"); // STRING
 
     if (!numeroMesa) {
       msg.innerText = "Mesa não informada ❌";
@@ -71,16 +70,15 @@
     }
 
     // =========================
-    // VERIFICA E ATIVA
+    // ATIVA A MESA PELO NÚMERO (TEXT)
     // =========================
     async function ativarMesa(numero) {
       try {
-        // 🔍 BUSCA PELA MESA
         const { data: mesa, error } = await supabase
           .from("mesas")
           .select("id, numero, cliente_presente")
-          .eq("numero", numero)
-          .single();
+          .eq("numero", numero) // 👈 TEXT = TEXT
+          .maybeSingle();
 
         if (error || !mesa) {
           msg.innerText = "Mesa não encontrada ❌";
@@ -89,7 +87,6 @@
           return;
         }
 
-        // 🟢 JÁ ATIVA
         if (mesa.cliente_presente === true) {
           msg.innerText = `Mesa ${mesa.numero} já está ativa ✅`;
           submsg.innerText = "Aguarde o atendimento 🍽️";
@@ -97,7 +94,6 @@
           return;
         }
 
-        // 🔄 ATIVA A MESA
         const { error: erroUpdate } = await supabase
           .from("mesas")
           .update({

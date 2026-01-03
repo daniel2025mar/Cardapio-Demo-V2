@@ -16,6 +16,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const titulo = document.querySelector("h1");
   const texto = document.querySelector("p");
 
+  // Função para redirecionar para o cardápio
+  const redirecionarParaCardapio = (numeroMesa) => {
+    window.location.href = `https://cardapio-demo-v2.vercel.app/?mesa=${numeroMesa}`;
+  };
+
   try {
     // 1️⃣ Ler número da mesa da URL
     const params = new URLSearchParams(window.location.search);
@@ -26,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     titulo.textContent = "Verificando mesa...";
-    texto.textContent = "Aguarde um instante";
+    texto.textContent = "Aguarde um instante...";
 
     // 2️⃣ Buscar mesa no Supabase
     const { data: mesa, error } = await supabase
@@ -47,12 +52,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 4️⃣ Se mesa já estiver ocupada
     if (mesa.cliente_presente === true) {
       titulo.textContent = "Mesa já ativa";
-      texto.textContent =
-        "Esta mesa já está sendo utilizada. Redirecionando para o cardápio...";
+      texto.textContent = "Esta mesa já está sendo utilizada. Redirecionando para o cardápio...";
 
       setTimeout(() => {
-        window.location.href =
-          `https://daniel2025mar.github.io/Cardapio-Demo-V2/?mesa=${numeroMesa}`;
+        redirecionarParaCardapio(numeroMesa);
       }, 1500);
 
       return; // ⛔ interrompe o fluxo
@@ -73,15 +76,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     texto.textContent = "Redirecionando para o cardápio...";
 
     setTimeout(() => {
-      window.location.href =
-        `https://daniel2025mar.github.io/Cardapio-Demo-V2/?mesa=${numeroMesa}`;
+      redirecionarParaCardapio(numeroMesa);
     }, 1500);
 
   } catch (err) {
     console.error("Erro ao ativar mesa:", err);
 
     titulo.textContent = "Erro";
-    texto.textContent =
-      err.message || "Não foi possível ativar a mesa.";
+    texto.textContent = err.message || "Não foi possível ativar a mesa.";
   }
 });

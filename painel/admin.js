@@ -5151,15 +5151,16 @@ function atualizarStatusVisual(mesaDiv, ocupada) {
   const statusText = mesaDiv.querySelector(".status-text");
 
   if (ocupada) {
-    monitor.classList.remove("bg-green-600");
+    monitor.classList.remove("bg-blue-800"); // remove azul se estava antes
     monitor.classList.add("bg-red-600");
-    statusText.textContent = "OCUPADA";
+    statusText.textContent = "OCUPADO";
   } else {
     monitor.classList.remove("bg-red-600");
-    monitor.classList.add("bg-green-600");
+    monitor.classList.add("bg-blue-800"); // adiciona azul escuro
     statusText.textContent = "LIVRE";
   }
 }
+
 
 // =========================
 // FUNÇÃO PARA CARREGAR MESAS

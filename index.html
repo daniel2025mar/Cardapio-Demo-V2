@@ -1,178 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <title>Burguer Fresh</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-   <link rel="stylesheet" href="styles.css/styles.css">
-   <link rel="stylesheet" href="/dist/output.css">
-
-
-   <style>
-    .ingrediente-item {
-      accent-color: rgb(216, 0, 0); /* cor do check */
-      width: 18px;       /* opcional, tamanho do checkbox */
-      height: 18px;      /* opcional */
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cardápio de Produtos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
-<body>
-    
+<body class="bg-gray-100">
 
-<div class="bg-gray-200 text-gray-800 font-bold text-center py-2 rounded-lg w-full overflow-hidden relative">
+  <div class="bg-gray-200 text-gray-800 font-bold text-center py-3 rounded-lg w-full overflow-hidden relative">
   <span id="rotating-text"></span>
 </div>
+<!-- Retângulo preto com logo e Horário de Atendimento (Topo da página) -->
+<section class="bg-black shadow-md p-4 flex flex-col justify-center items-center w-full h-auto relative">
+
+  <!-- Imagem de fundo -->
+  <img id="fundoTopoCardapio" src="https://link-da-sua-foto-de-fundo.com/fundo.jpg" 
+     alt="Fundo" 
+     class="absolute inset-0 w-full h-full object-cover opacity-30">
 
 
-
-<!--header-->
-    <header 
-
-    
-  class="relative w-full h-[420px] bg-cover bg-center" 
-  style="background-image: url('Imagem/hamburguerback.png');">
-
-  <!-- camada escura para “apagar” o fundo -->
-  <div class="absolute inset-0 bg-black bg-opacity-70"></div>
-
-  <!-- conteúdo centralizado -->
-  <div class="relative z-10 w-full h-full flex flex-col justify-center items-center text-center">
-
-  <!-- 🔐 Login / Cadastro no topo direito -->
-  <div class="absolute top-4 right-4 flex gap-3">
+  <!-- Botões no topo direito -->
+  <div class="absolute top-4 right-4 flex gap-3 z-20">
     <button id="btn-login" class="px-3 py-1 bg-white text-black font-semibold rounded hover:bg-gray-200 transition text-sm">
       Entrar
     </button>
 
     <button id="btn-cadastro" class="px-3 py-1 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition text-sm">
-  Criar Conta
-</button>
-
-
-
-    <img id="user-photo" class="w-10 h-10 rounded-full cursor-pointer hidden" alt="Foto do usuário" />
-
+      Criar Conta
+    </button>
   </div>
-  <!-- 🔐 FIM LOGIN -->
-   
 
-  <img 
-    src="./public/pngtree-burger-logo-png-image_6594283.png" 
-    alt="logo burguer"
-    class="w-52 h-52 rounded-full shadow-lg hover:scale-110 duration-200"
-  />
+  <!-- Logo da empresa -->
+ <div class="flex flex-col items-center justify-center mb-8">
+  <!-- Logo da Empresa -->
+  <img id="logoCardapio" 
+       src="https://link-da-sua-logo.com/logo.png" 
+       alt="Logo da Empresa" 
+       class="h-48 sm:h-56 w-auto object-contain mb-1">
 
-  <h1 class="text-4xl mt-2 font-bold text-white">
-    Burguer Fresh
+  <!-- Nome da Empresa -->
+  <h1 id="nomeEmpresa" class="text-4xl sm:text-5xl font-bold text-white text-center">
+    Carregando nome...
   </h1>
-  <p class="text-white text-sm font-medium italic">O melhor Hamburguer da cidade.</p>
-  
-  <span class="text-white font-medium">
-    Rua. nome da sua rua N 000 centro, sua cidade - UF
-  </span>
-
-  <div class="bg-green-600 px-4 py-1 rounded-lg mt-5" id="date-span">
-    <span class="text-white font-medium">Seg a Dom - 7:00 às 22:00</span>
-  </div>
 </div>
 
+
+  <!-- Endereço da Empresa -->
+  <div class="relative z-10 bg-white rounded-lg p-3 shadow-md flex flex-col items-center w-full max-w-[240px] sm:max-w-sm mb-6">
+    <div class="flex items-center gap-2 mb-2">
+      <!-- Ícone de localização -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.38 0 2.5-1.12 2.5-2.5S13.38 6 12 6s-2.5 1.12-2.5 2.5S10.62 11 12 11z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s8-4.5 8-10a8 8 0 10-16 0c0 5.5 8 10 8 10z" />
+      </svg>
+      <h3 class="text-xs sm:text-sm font-bold text-gray-800">Endereço</h3>
+    </div>
+    <p id="enderecoEmpresa" class="text-gray-700 font-semibold text-[10px] sm:text-xs text-center">
+      Carregando endereço...
+    </p>
+  </div>
+
+  <!-- Horário de Atendimento -->
+  <div class="relative z-10 bg-white rounded-lg p-3 shadow-md flex flex-col items-center w-full max-w-[240px] sm:max-w-sm min-h-[120px]">
+    <div class="flex items-center gap-2 mb-2">
+      <!-- Ícone de relógio -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="text-xs sm:text-sm font-bold text-gray-800">Horário de Atendimento</h3>
+    </div>
+    <div class="flex flex-col items-center justify-center bg-gray-100 rounded-lg p-3 w-full min-h-[60px]">
+      <p id="horarioAtendimento" class="text-gray-700 font-semibold text-[10px] sm:text-xs text-center">
+        Carregando horários...
+      </p>
+    </div>
+  </div>
+
+</section>
+
+<!-- Header Cardápio -->
+<header class=" text-black p-4 sm:p-8 text-center font-bold text-2xl sm:text-4xl md:text-4xl">
+  Conheça nosso Menu
 </header>
 
-<!--fim header-->
-
-<h2 class="text-2xl md:text-4xl font-bold text-center mt-9 mb-6">
-  Conheça nosso Menu
-</h2>
-
-
-<!-- Campo de pesquisa responsivo com ícone elegante -->
-<div class="flex justify-center mb-6 px-2">
-  <div class="relative w-full max-w-md sm:max-w-lg md:max-w-xl">
-    <!-- Ícone dentro do input -->
-    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-      <i class="fas fa-search"></i>
-    </span>
-
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Pesquise seu produto"
-      class="w-full pl-10 pr-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-red-600 transition text-sm sm:text-base"
-    />
-  </div>
-</div>
-
-<!-- Mensagem caso não encontre produtos -->
-<div id="noResults" class="text-center text-gray-600 font-medium mt-4 hidden">
-  Ops! Não encontramos produtos.
-</div>
-
-<!-- ============================
-     CATEGORIAS – CARDS MODERNOS
-=============================== -->
-<div class="relative mt-4">
-
-  <!-- BOTÃO ESQUERDO (mobile) -->
-<button id="navLeft"
-    class="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 
-           bg-transparent text-black p-3 rounded-full shadow z-20 
-           hover:text-red-600 transition-colors duration-300">
-    <i class="fas fa-chevron-left"></i>
-</button>
-
-<!-- BOTÃO DIREITO (mobile) -->
-<button id="navRight"
-    class="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 
-           bg-transparent text-black p-3 rounded-full shadow z-20 
-           hover:text-red-600 transition-colors duration-300">
-    <i class="fas fa-chevron-right"></i>
-</button>
-
-
-  <!-- Container das categorias -->
-  <div id="categoriaContainer"
-    class="flex justify-center gap-4 mt-0 mb-6 px-16 sm:px-10
-           overflow-x-auto sm:overflow-x-visible flex-nowrap scroll-smooth py-2">
-
-    <!-- Card Hambúrgueres -->
-    <div
-      class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 flex-shrink-0"
-      data-categoria="hamburgueres">
-      <i class="fas fa-hamburger text-red-600 text-xl sm:text-2xl mb-2"></i>
-      <span class="font-medium text-sm text-center mb-3 sm:mb-4">Hambúrgueres</span>
-      <div class="w-full h-1 bg-red-600 rounded-b-xl"></div>
-    </div>
-
-    <!-- Card Bebidas -->
-    <div
-      class="categoria-card-modern-small flex flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 sm:w-40 md:w-44 flex-shrink-0"
-      data-categoria="bebidas">
-      <i class="fas fa-wine-glass-alt text-red-600 text-xl sm:text-2xl mb-2"></i>
-      <span class="font-medium text-sm text-center mb-3 sm:mb-4">Bebidas</span>
-      <div class="w-full h-1 bg-red-600 rounded-b-xl"></div>
-    </div>
-
-    <!-- Card Cervejas (mobile escondido) -->
-    <div
-      class="hidden md:flex categoria-card-modern-small flex-col items-center justify-center cursor-pointer bg-white text-black rounded-xl p-3 hover:scale-105 hover:shadow-lg transition-transform duration-300 w-32 md:w-44 flex-shrink-0"
-      data-categoria="cervejas">
-      <i class="fas fa-beer text-red-600 text-xl md:text-2xl mb-2"></i>
-      <span class="font-medium text-sm text-center mb-3 md:mb-4">Cervejas</span>
-      <div class="w-full h-1 bg-red-600 rounded-b-xl"></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ============================
-     FIM CATEGORIAS
-=============================== -->
-
+<!-- ========================= -->
+<!-- Seção de Categorias -->
+<!-- ========================= -->
+<section id="categoriasSection" class="w-full p-4 sm:p-6 flex flex-wrap justify-center gap-4">
+  <!-- Categorias serão inseridas aqui via JS -->
+</section>
 <div class="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 
             text-center py-2 mt-3 font-medium shadow-md flex items-center justify-center gap-2 px-3">
 
@@ -186,831 +104,164 @@
     Este cardápio é apenas demonstrativo — nenhum pedido real será enviado.
   </p>
 </div>
+<!-- Cardápio -->
+<main class="p-2 sm:p-4 flex flex-col items-center gap-8">
 
-
-<!--inicio menu-->
-<div id="menu" class="px-4 py-6 bg-gray-50">
-
-  <!-- ============================
-       TÍTULO HAMBÚRGUERES
-  ============================= -->
-  <div class="mx-auto max-w-7xl px-2 mb-6">
-  <h2 class="font-bold text-3xl text-gray-800">Hambúrgueres</h2>
-  <p class="mt-1 text-sm text-gray-500 font-medium italic">Deliciosos hambúrgueres artesanais feitos com ingredientes frescos!</p>
-</div>
-
-
-  <!-- ============================
-       GRID HAMBÚRGUERES
-  ============================= -->
-  <main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
-
-   <!-- Produto Item -->
-<div class="flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200 produto-item" data-categoria="hamburgueres">
-  <img src="./Imagem/hamburguer.jpg" alt="Chesse Pickles"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <div>
-      <p class="font-bold text-lg mb-1">Chesse Pickles</p>
-      <p class="text-sm text-gray-600">Pão brioche, hambúrguer, mussarela empanada, picles, cebola roxa, alface e maionese Dev.</p>
+  <!-- ========================= -->
+  <!-- Ofertas do Dia -->
+  <!-- ========================= -->
+  <section class="w-full max-w-[1200px]">
+    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-center">Ofertas do Dia</h2>
+    <div id="ofertasContainer" 
+         class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 justify-center">
+      <!-- Produtos em oferta serão inseridos aqui -->
     </div>
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 20,60</p>
-      <div class="flex gap-2">
-        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Chesse Pickles">
-          <i class="fas fa-list"></i>
-        </button>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Chesse Pickles" data-price="20,60">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  </section>
 
+  <!-- ========================= -->
+  <!-- Produtos Normais -->
+  <!-- ========================= -->
+  
+<section class="w-full max-w-[1200px] rounded-xl p-4 mx-auto">
+  
 
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
-  <img src="./Imagem/hamburguer1.jpg" alt="Chicken"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <div>
-      <p class="font-bold text-lg mb-1">Chicken</p>
-      <p class="text-sm text-gray-600">Pão brioche, hambúrguer de frango empanado, queijo prato, bacon, cebola roxa, tomate, alface e maionese.</p>
-    </div>
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 22,30</p>
-      <div class="flex gap-2">
-        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Chicken">
-          <i class="fas fa-list"></i>
-        </button>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Chicken" data-price="22,30">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
-  <img src="./Imagem/hamburguer.jpg" alt="Hamburguer Magno"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <div>
-      <p class="font-bold text-lg mb-1">Hamburguer Magno</p>
-      <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou, burguer 180g, queijo prato e maionese da casa.</p>
-    </div>
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 18,90</p>
-      <div class="flex gap-2">
-        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Hamburguer Magno">
-          <i class="fas fa-list"></i>
-        </button>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Hamburguer Magno" data-price="18,90">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
-  <img src="./Imagem/hamburguer.jpg" alt="Hamburguer X Tudo"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <div>
-      <p class="font-bold text-lg mb-1">Hamburguer X Tudo</p>
-      <p class="text-sm text-gray-600">Pão levinho de fermentação natural da Trigou, burguer 180g, queijo prato e maionese da casa.</p>
-    </div>
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 18,90</p>
-      <div class="flex gap-2">
-        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Hamburguer X Tudo">
-          <i class="fas fa-list"></i>
-        </button>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Hamburguer X Tudo" data-price="18,90">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="hamburgueres">
-  <img src="./public/Imagem/cupim.png" alt="Cupim Burguer"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <div>
-      <p class="font-bold text-lg mb-1">Cupim Burguer</p>
-      <p class="text-sm text-gray-600">Pão brioche, alface americana, molho Dev, cupim defumado (8 horas na lenha de macieira), hambúrguer e queijo prato...</p>
-    </div>
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 50,90</p>
-      <div class="flex gap-2">
-        <button class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-white open-ingredientes-btn" data-name="Cupim Burguer">
-          <i class="fas fa-list"></i>
-        </button>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" data-name="Cupim Burguer" data-price="50,90">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-  </main>
-
-  <!-- ============================
-       TÍTULO BEBIDAS
-  ============================= -->
-  <div class="mx-auto max-w-7xl px-2 mb-6">
-  <h2 class="font-bold text-3xl text-gray-800">Refrigerantes e Sucos</h2>
-  <p class="mt-1 text-sm text-gray-500 font-medium italic">Refresque-se com nossas bebidas geladinhas e deliciosas!</p>
-</div>
-
-
-  <!-- ============================
-       GRID BEBIDAS
-  ============================= -->
-  <main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
-
-    <!-- Produto Item -->
-    <div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
-  <img src="./public/Imagem/cocazero.png" alt="Coca Cola Zero"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-
-    <!-- Título -->
-    <p class="font-bold text-lg mb-1">Coca Cola Zero</p>
-
-    <!-- Parágrafo logo abaixo -->
-    <p class="text-gray-600 text-sm mb-2">
-      Lata: Refrigerante gelado de 310ml
-    </p>
-
-    <!-- Preço + Botão -->
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 7,00</p>
-
-      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-        data-name="Coca Cola Zero"
-        data-price="7.00">
-        <i class="fas fa-shopping-cart text-white text-lg"></i>
-      </button>
-    </div>
-
-  </div>
-</div>
-
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
-  <img src="./public/Imagem/guaranazerofanta.png" alt="Fanta Guaraná"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <p class="font-bold text-lg mb-1">Fanta Guaraná</p>
-
-    <!-- Parágrafo logo abaixo -->
-    <p class="text-gray-600 text-sm mb-2">
-      Lata: Refrigerante gelado de 310ml
-    </p>
-
-    <!-- Preço + Botão -->
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 7,00</p>
-      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" 
-              data-name="Fanta Guaraná" 
-              data-price="7,00">
-        <i class="fas fa-shopping-cart text-white text-lg"></i>
-      </button>
-    </div>
-  </div>
-</div>
-
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
-  <img src="./public/Imagem/fantalaranja.png" alt="Fanta Laranja"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <p class="font-bold text-lg mb-1">Fanta Laranja</p>
-
-    <!-- Parágrafo logo abaixo -->
-    <p class="text-gray-600 text-sm mb-2">
-      Lata: Refrigerante gelado de 310ml
-    </p>
-
-    <!-- Preço + Botão -->
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 7,00</p>
-      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" 
-              data-name="Fanta Laranja" 
-              data-price="7,00">
-        <i class="fas fa-shopping-cart text-white text-lg"></i>
-      </button>
-    </div>
-  </div>
-</div>
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
-  <img src="./public/Imagem/aguamineral500.png" alt="Agua Mineral"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <p class="font-bold text-lg mb-1">Agua Mineral</p>
-
-    <!-- Parágrafo logo abaixo -->
-    <p class="text-gray-600 text-sm mb-2">
-      Garrafa: agua mineral de 500ml
-    </p>
-
-    <!-- Preço + Botão -->
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 3,00</p>
-      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" 
-              data-name="Agua Mineral" 
-              data-price="3,00">
-        <i class="fas fa-shopping-cart text-white text-lg"></i>
-      </button>
-    </div>
-  </div>
-</div>
-
-    <!-- Produto Item -->
-<div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="bebidas">
-  <img src="./public/Imagem/suco.png" alt="Suco Integral Natural One Laranja"
-       class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-  <div class="flex flex-col justify-between w-full">
-    <p class="font-bold text-lg mb-1">Suco Integral Natural One Laranja</p>
-
-    <!-- Parágrafo logo abaixo -->
-    <p class="text-gray-600 text-sm mb-2">
-      Garrafa: Suco geladinhas de 900ml
-    </p>
-
-    <!-- Preço + Botão -->
-    <div class="flex items-center justify-between mt-3">
-      <p class="font-bold text-lg text-red-600">R$ 13,00</p>
-      <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn" 
-              data-name="Suco Integral Natural One Laranja" 
-              data-price="13,00">
-        <i class="fas fa-shopping-cart text-white text-lg"></i>
-      </button>
-    </div>
-  </div>
-</div>
-  </main>
-
-  <!-- ============================
-     TÍTULO CERVEJAS
-=============================== -->
-<div class="mx-auto max-w-7xl px-2 mb-6">
-  <h2 class="font-bold text-3xl text-gray-800">Cervejas</h2>
-  <p class="mt-1 text-sm text-gray-500 font-medium italic">
-    Cervejas selecionadas e sempre bem geladas para você aproveitar quando quiser!
-  </p>
-</div>
-
-<!-- ============================
-     GRID CERVEJAS
-=============================== -->
-<main class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl mb-20">
-
-  <!-- Produto Item -->
-  <div id="Budweiser" class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="cervejas">
-    <img src="./public/Imagem/Budweiser 350.png" alt="Budweiser 350ml"
-         class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-    <div class="flex flex-col justify-between w-full">
-      <p class="font-bold text-lg mb-1">Budweiser 350ml</p>
-
-      <p class="text-gray-600 text-sm mb-2">
-        Long neck gelada de 350ml
-      </p>
-
-      <div class="flex items-center justify-between mt-3">
-        <p class="font-bold text-lg text-red-600">R$ 8,00</p>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-                data-name="Budweiser 350ml"
-                data-price="8,00">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
+  <!-- Categoria e descrição dinâmicas -->
+  <div id="categoriaInfo" class="text-center mb-4">
+    <!-- Será preenchido pelo JS -->
   </div>
 
-  <!-- Produto Item -->
-  <div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="cervejas">
-    <img src="./public/Imagem/heineken330.png" alt="Heineken 330ml"
-         class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-    <div class="flex flex-col justify-between w-full">
-      <p class="font-bold text-lg mb-1">Heineken 330ml</p>
-
-      <p class="text-gray-600 text-sm mb-2">
-        Long neck gelada de 330ml
-      </p>
-
-      <div class="flex items-center justify-between mt-3">
-        <p class="font-bold text-lg text-red-600">R$ 9,50</p>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-                data-name="Heineken 330ml"
-                data-price="9,50">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
+  <div id="produtosContainer" 
+       class="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 justify-center">
+    <!-- Produtos normais serão inseridos aqui -->
   </div>
+</section>
 
-  <!-- Produto Item -->
-  <div id="skollata350" class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="cervejas">
-    <img src="./public/Imagem/skol350.png" alt="Skol Lata 350ml"
-         class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-    <div class="flex flex-col justify-between w-full">
-      <p class="font-bold text-lg mb-1">Skol Lata 350ml</p>
-
-      <p class="text-gray-600 text-sm mb-2">
-        Lata gelada 350ml
-      </p>
-
-      <div class="flex items-center justify-between mt-3">
-        <p class="font-bold text-lg text-red-600">R$ 6,00</p>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-                data-name="Skol Lata 350ml"
-                data-price="6,00">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Produto Item -->
-  <div id="kaiser473" class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="cervejas">
-    <img src="./public/Imagem/kaiser473.png" alt="Kaiser Lata 473ml"
-         class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-    <div class="flex flex-col justify-between w-full">
-      <p class="font-bold text-lg mb-1">Kaiser Lata 473ml</p>
-
-      <p class="text-gray-600 text-sm mb-2">
-        Lata gelada 350ml
-      </p>
-
-      <div class="flex items-center justify-between mt-3">
-        <p class="font-bold text-lg text-red-600">R$ 4,00</p>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-                data-name="Kaiser Lata 473ml"
-                data-price="4,00">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Produto Item -->
-  <div class="produto-item flex gap-4 p-4 bg-white rounded-xl shadow hover:shadow-lg transition-shadow duration-200" data-categoria="cervejas">
-    <img src="./public/Imagem/beatessenses473.png" alt="Skol Beats Senses Lata 473ml"
-         class="w-28 h-28 rounded-lg object-cover hover:scale-105 hover:-rotate-2 transition-transform duration-300">
-
-    <div class="flex flex-col justify-between w-full">
-      <p class="font-bold text-lg mb-1">Skol Beats Senses Lata 473ml</p>
-
-      <p class="text-gray-600 text-sm mb-2">
-        Lata gelada 473ml
-      </p>
-
-      <div class="flex items-center justify-between mt-3">
-        <p class="font-bold text-lg text-red-600">R$ 13,00</p>
-        <button class="bg-gray-900 hover:bg-gray-800 px-5 py-2 rounded add-to-card-btn"
-                data-name="Skol Beats Senses Lata 473ml"
-                data-price="13,00">
-          <i class="fas fa-shopping-cart text-white text-lg"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 </main>
 
-</div>
-<!--fim menu-->
 
-
-<!-- 🔶 MODAL DE INGREDIENTES -->
-<div id="ingredientes-modal"
-     class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] hidden">
-
-  <div class="bg-white w-[90%] md:w-[400px] rounded-lg shadow-lg p-6 relative">
-
-    <!-- título -->
-    <h2 id="ingredientes-title" class="text-2xl font-semibold text-center mb-4 text-gray-800">
-      Ingredientes
-    </h2>
-
-    <!-- lista de ingredientes -->
-    <div id="ingredientes-list" class="space-y-2 max-h-60 overflow-y-auto p-2 border border-gray-200 rounded">
-      <!-- os ingredientes serão gerados pelo JS -->
-    </div>
-
-    <!-- TOTAL DOS INGREDIENTES -->
-    <p id="ingredientes-total" class="text-lg font-bold text-center mt-4 text-gray-900">
-      Total: R$ 0,00
-    </p>
-
-    <!-- FRASE PROFISSIONAL -->
-    <p id="ingredientes-info" class="text-sm text-gray-600 text-center mt-2">
-      A escolha dos ingredientes será aplicada em todas as unidades deste mesmo produto adicionadas ao carrinho.
-    </p>
-
-    <!-- botões -->
-    <div class="flex justify-between mt-5">
-      <button id="ingredientes-close"
-        class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition">
-        Fechar
-      </button>
-
-      <button id="ingredientes-save"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-        Salvar
-      </button>
-    </div>
+<div id="modalIndisponivel" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center">
+    <h2 class="text-lg font-bold mb-4">Produto indisponível</h2>
+    <p class="text-gray-700 mb-6">Este produto está indisponível no momento!</p>
+    <button id="btnFecharIndisponivel" class="px-4 py-2 bg-black text-white rounded hover:bg-gray-800">OK</button>
   </div>
 </div>
 
+<!-- Modal Produto -->
+<div id="modalProduto" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
+  <div class="bg-white p-4 sm:p-6 rounded-lg w-11/12 sm:w-96 relative max-h-[90vh] overflow-y-auto">
+    <button id="fecharModal" class="absolute top-2 right-2 text-gray-500 text-2xl font-bold">&times;</button>
+    <div id="modalConteudo"></div>
+  </div>
+</div>
 
-
-<!--model card-->
-<div class="bg-black/50 w-full h-full fixed top-0 left-0 z-[99] flex items-center justify-center hidden"
-  id="card-modal">
-  <div class="bg-white rounded-md min-w-[90%] md:min-w-[600px] relative overflow-hidden">
-
-    <!-- 🔴 Cabeçalho vermelho -->
-    <div class="bg-red-600 py-3">
-      <h2 class="text-center text-white font-bold text-2xl">Meu Carrinho</h2>
+<!-- Modal do Carrinho -->
+<div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
+  <div class="bg-white rounded-xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col">
+    
+    <!-- Cabeçalho -->
+    <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-3 sm:p-4 rounded-t-xl">
+      Meu Carrinho
     </div>
 
-    <!-- 🛒 Conteúdo do carrinho -->
-    <div class="p-5">
-      <div id="card-itens" class="flex justify-between mb-2 flex-col"></div>
-
-      <p class="font-bold"><span id="card-total">0,00</span></p>
-
-      <p class="font-bold mt-4">Endereço de Entrega:</p>
-      <input type="text"
-        placeholder="Digite o Endereço"
-        id="address"
-        class="w-full border-2 p-1 rounded my-1" />
-
-      <p class="text-red-600 hidden" id="address-warn">Esse campo é obrigatório.</p>
-
-     <label class="flex items-center gap-2 mt-4 cursor-pointer">
-  <input type="checkbox" id="retirarLocal" class="custom-checkbox">
-  <span>Retirar no local</span>
-</label>
-
-
-      <div class="flex items-center justify-between mt-5 w-full">
-        <button id="close-model-btn"
-          class="bg-gray-300 px-4 py-1 rounded hover:bg-gray-400 transition">Fechar</button>
-        <button id="checkout-btn"
-          class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition">Finalizar Pedido</button>
+    <!-- Conteúdo -->
+    <div class="p-2 sm:p-4 flex-1 overflow-y-auto space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200">
+      
+      <!-- Número e status do pedido -->
+      <div class="flex justify-between text-sm sm:text-base">
+        <span class="font-semibold text-gray-700">Pedido <span id="pedidoNumero">0000</span></span>
+        <span id="pedidoStatus" class="font-semibold text-blue-600">Aguardando
+        </span>
       </div>
 
-      <!-- 💼 Rodapé de crédito -->
-      <p class="text-center text-gray-600 text-sm mt-6">
-        Desenvolvido por <span class="font-semibold text-red-600">DM DESIGN GRAFICO</span>
-      </p>
+      <!-- Lista de produtos -->
+      <div>
+        <h3 class="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">Produtos:</h3>
+        <ul id="listaProdutos" class="space-y-1 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200 p-1">
+          <!-- Produtos serão adicionados via JS -->
+        </ul>
+      </div>
+
+      <!-- Totais -->
+      <div class="border-t pt-2 text-sm sm:text-base">
+        <p>Taxa de Entrega: <span id="taxaEntrega" class="text-blue-600 font-semibold">R$ 0,00</span></p>
+        <p>Total: <span id="totalPedido" class="font-bold">R$ 0,00</span></p>
+      </div>
+
+      <!-- Endereço -->
+      <div>
+        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="enderecoEntrega">Endereço de Entrega:</label>
+        <input id="enderecoEntrega" type="text" placeholder="Digite o Endereço" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+      </div>
+
+      <!-- Celular -->
+      <div>
+        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="celularContato">Celular para Contato:</label>
+        <input id="celularContato" type="tel" placeholder="(99) 99999-9999" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+      </div>
+
+      <!-- Retirar no local -->
+      <div class="flex items-center gap-2 text-sm sm:text-base">
+        <input type="checkbox" id="retirarLocal" class="w-4 h-4 sm:w-5 sm:h-5 accent-red-600">
+        <label for="retirarLocal" class="text-gray-700">Retirar no local</label>
+      </div>
+
     </div>
 
-    <!-- 🔥 Linha animada no rodapé -->
-    <div class="absolute bottom-0 left-0 w-full h-[4px] animated-line"></div>
+    <!-- Rodapé com botões -->
+    <div class="flex flex-col sm:flex-row justify-between p-2 sm:p-4 border-t bg-gray-50 gap-2">
+      <button id="limparCarrinho" class="flex-1 px-4 py-2 bg-yellow-400 text-white font-semibold rounded-lg hover:bg-yellow-500 transition text-sm sm:text-base">Limpar Carrinho</button>
+      <button id="fecharModalCarrinho" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition text-sm sm:text-base">Fechar</button>
+      <button id="finalizarPedido" class="flex-1 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition text-sm sm:text-base">Finalizar Pedido</button>
+    </div>
+
   </div>
 </div>
 
-<!-- 🔥 Estilo da animação -->
+<!-- Scrollbar estilizada -->
 <style>
-  @keyframes mudarCor {
-    0% {
-      background-color: white;
-    }
-
-    50% {
-      background-color: red;
-    }
-
-    100% {
-      background-color: white;
-    }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #f87171 #e5e7eb;
   }
-
-  .animated-line {
-    animation: mudarCor 2s linear infinite;
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #e5e7eb;
+    border-radius: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #f87171;
+    border-radius: 6px;
   }
 </style>
-<!--fim model card-->
 
-<!-- Modal de aviso elegante tamanho do screenshot -->
-<div id="loja-fechada-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-  <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-[650px] text-center transform scale-90 opacity-0 transition-all duration-300">
-    
-    <!-- Botão fechar -->
-    <button id="fechar-loja-fechada" class="absolute top-4 right-4 text-gray-500 text-2xl hover:text-gray-800 transition">&times;</button>
-    
-    <!-- Título -->
-    <h2 class="text-2xl font-bold mb-4 text-gray-900">
-      No momento, estamos fechados. Volte em breve!
-    </h2>
-    
-    <!-- Mensagem -->
-    <p class="mb-6 text-gray-600 text-lg">
-      Mas não se preocupe, você pode olhar o cardápio e voltar mais tarde.
-    </p>
-    
-    <!-- Botão OK -->
-    <button id="ok-loja-fechada" class="bg-black text-white font-semibold px-10 py-3 rounded-lg hover:bg-gray-800 transition">
-      OK
-    </button>
+<!-- Rodapé Desenvolvedor -->
+<section class="bg-black text-center text-gray-300 p-4 sm:p-6"
+         style="padding-bottom: 60px;">
+  <p class="mb-2 text-xs sm:text-sm tracking-wide">Desenvolvido por</p>
+  <a href="https://www.dmdesigngrafico.com.br" target="_blank" title="Visite o site da DM Design Gráfico">
+    <img src="../dist/Imagem/DMDESIGN.png" class="mx-auto w-24 sm:w-28 h-auto mb-4 cursor-pointer transition-transform duration-300 hover:scale-110 drop-shadow-lg brightness-0 invert"/>
+  </a>
+  <div class="mb-1 text-xs sm:text-sm">
+    <p id="empresaCNPJ" class="font-semibold text-gray-200">Sua Empresa — CNPJ: 00.000.000/0000-00</p>
+    <p class="text-gray-400 mt-1">© 2025 Todos os direitos reservados</p>
   </div>
-</div>
+  <p class="text-xs sm:text-sm font-medium text-red-400 mt-2 tracking-wide">
+    DM DESIGN GRÁFICO — Tecnologia & Soluções para Delivery
+  </p>
+</section>
 
-<!-- Modal de pedido enviado -->
-<div id="pedido-sucesso-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 transition-opacity duration-300">
-  <div class="bg-white rounded-2xl p-4 sm:p-8 w-[90%] max-w-xs sm:max-w-sm text-center shadow-xl transform scale-95 opacity-0 transition-all duration-300" id="pedido-modal-box">
-    
-    <div class="mb-3 sm:mb-4">
-      <svg class="mx-auto w-12 h-12 sm:w-16 sm:h-16 text-green-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-    </div>
-
-    <h2 class="text-lg sm:text-2xl font-bold mb-2 text-gray-800">🎉 Pedido enviado!</h2>
-
-    <p class="text-gray-600 mb-5 text-xs sm:text-base">
-      Seu pedido foi enviado com sucesso e chegará em aproximadamente 
-      <strong>30 minutos</strong>. 🍔🚀
-    </p>
-
-    <button 
-      id="pedido-sucesso-ok" 
-      class="px-5 py-2 bg-black text-white font-semibold rounded-full shadow hover:bg-gray-800 transition-colors duration-200 text-sm sm:text-base">
-      OK
-    </button>
-  </div>
-</div>
-
-
-
-
-<!--button card footer-->
-<footer class="w-full py-2 fixed bottom-0 z-40 flex items-center justify-center"
-  style="background-color: rgb(255, 0, 0);">
-  <button class="flex items-center gap-2 text-white font-bold" id="card-btn">
-    (<span id="card-count">0</span>)
-    Veja o meu carrinho
-    <i class="fas fa-shopping-cart text-lg text-white"></i>
+<!-- Botão fixo do carrinho -->
+<footer class="w-full py-2 fixed bottom-0 z-50 flex items-center justify-center px-2 sm:px-4" style="background-color: rgb(255, 0, 0);">
+  <button class="flex items-center gap-2 text-white font-bold text-sm sm:text-base" id="card-btn">
+    (<span id="card-count">0</span>) Veja o meu carrinho
+    <i class="fas fa-shopping-cart text-lg sm:text-xl text-white"></i>
   </button>
 </footer>
-<!--fim button card footer-->
-
-<div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-  <div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-xl relative transform scale-95 opacity-0 transition-all duration-300" id="login-modal-box">
-
-    <button id="login-fechar" class="absolute top-3 right-3 text-gray-500 text-2xl hover:text-gray-800 transition">
-      &times;
-    </button>
-
-    <h2 class="text-2xl font-bold mb-6 text-gray-900">Entrar ou Criar Conta</h2>
-
-    <!-- Botão Google -->
-    <button id="google-login-btn" class="w-full mb-3 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2">
-    <i class="fab fa-google text-xl"></i>
-    Entrar com Google
-</button>
-
-<!-- Botão Google invisível (necessário para o login) -->
-<div id="google-hidden-btn" style="display:none;"></div>
-<!-- ✅ Script do Google Identity -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 
-    <!-- Botão Facebook -->
-    <button class="w-full mb-3 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
-      <i class="fab fa-facebook text-xl"></i>
-      Entrar com Facebook
-    </button>
-
-    <p class="text-gray-500 text-sm mt-4">
-      Continuando, você aceita nossos Termos de Uso e Política de Privacidade.
-    </p>
-
-  </div>
-</div>
-
-<!-- ============================
-     MODAL DO PERFIL DO USUÁRIO (Estilo Dropdown)
-=============================== -->
-<div id="perfilModal-container" class="hidden fixed top-14 right-4 bg-white rounded-xl shadow-lg w-64 text-left z-50 border border-gray-200">
-  <div id="perfilModal-box" class="p-4">
-
-      <!-- Nome do usuário -->
-      <h2 id="perfilModal-nome" class="text-md font-semibold mb-4 text-gray-900">
-        Olá, Usuário
-      </h2>
-
-      <!-- Lista de opções -->
-      <div class="space-y-2 text-gray-800">
-
-        <!-- Editar Perfil -->
-        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <p class="font-medium">Editar Perfil</p>
-        </button>
-
-        <!-- Meus Pedidos -->
-
-        <button id="meus-pedidos-btn" class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-      d="M9 21h6m-7-4h8l1-7H7l1 7zm10-11H6l-2-3H2m14 5l2 2 4-4" />
-  </svg>
-
-  <p class="font-medium">Meus Pedidos</p>
-</button>
-
-
-
-        <!-- Meus Cupons -->
-        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6" />
-          </svg>
-          <p class="font-medium">Meus Cupons</p>
-        </button>
-
-        <!-- Gerenciar Notificações -->
-        <button class="flex items-center gap-2 w-full text-left hover:text-red-600 transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405M19 13V9a7 7 0 10-14 0v4l-2 2h18l-2-2z" />
-          </svg>
-          <p class="font-medium">Gerenciar Notificações</p>
-        </button>
-
-      </div>
-
-      <!-- Botão sair -->
-      <button id="perfilModal-logout" class="mt-4 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
-        Sair da Conta
-      </button>
-
-  </div>
-</div>
-
-<!-- Modal Meus Pedidos -->
-<div id="meusPedidosModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-  <div class="bg-white w-11/12 md:w-1/2 p-0 rounded-lg overflow-hidden relative">
-
-    <!-- 🔴 Cabeçalho vermelho -->
-    <div class="bg-red-600 p-4">
-      <h2 class="text-xl font-bold text-white text-center">Meus Pedidos</h2>
-    </div>
-
-    <!-- 🔽 Conteúdo interno -->
-    <div class="p-6">
-      <ul id="listaMeusPedidos" class="max-h-64 overflow-y-auto mb-4">
-        <!-- Lista de pedidos será inserida aqui via JS -->
-      </ul>
-
-      <button id="fecharMeusPedidos" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition w-full">
-        Fechar
-      </button>
-    </div>
-
-  </div>
-</div>
-
-
-
-</div>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script type="module" src="/main.js"></script>
-<script src="produtos.js"></script>
-
-
-
-<!-- Google Identity -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<div id="g_id_onload"
-     data-client_id="621855197030-q8979a04uvji9232rluhc9183dhnedfh.apps.googleusercontent.com"
-     data-callback="handleCredentialResponse"
-     data-auto_prompt="false">
-</div>
-
-<!-- Botão oficial do Google (fica escondido) -->
-<div id="google-signin-btn"
-     class="g_id_signin"
-     data-type="standard"
-     data-size="large"
-     data-theme="outline"
-     data-text="signin_with"
-     style="display:none;">
-</div>
-
-<!-- MODAL MOBILE DO PRODUTO -->
-<div id="mobileProductModal" class="fixed inset-0 bg-black/70 hidden justify-end items-end z-50 md:hidden">
-
-  <div class="bg-white w-full p-5 rounded-t-2xl shadow-lg animate-slide-up">
-
-    <img id="modalImg" src="" class="w-full h-52 object-cover rounded-xl mb-4">
-
-    <h2 id="modalName" class="text-xl font-bold mb-2"></h2>
-
-    <p id="modalDesc" class="text-gray-600 text-sm mb-3"></p>
-
-    <p id="modalPrice" class="text-red-600 font-bold text-xl mb-4"></p>
-
-    <!-- CONTROLE DE QUANTIDADE -->
-    <div class="flex items-center justify-center gap-4 mb-6">
-
-  <button id="qtyMinus"
-    class="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-lg text-2xl font-bold active:scale-95 transition">
-    −
-  </button>
-
-  <span id="qtyValue"
-    class="text-2xl font-semibold text-gray-900">
-    1
-  </span>
-
-  <button id="qtyPlus"
-    class="w-10 h-10 flex items-center justify-center bg-white border border-gray-300 rounded-lg text-2xl font-bold active:scale-95 transition">
-    +
-  </button>
-
-</div>
-
-
-    <button id="modalAddBtn"
-      class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-lg font-semibold">
-      Adicionar
-    </button>
-
-  </div>
-
-</div>
-
-<!-- MODAL DE AVISO PERSONALIZADO -->
-<div id="alertModal"
-     class="fixed inset-0 bg-black/60 hidden flex justify-center items-center z-[9999]">
-
-  <div class="bg-white rounded-2xl p-6 w-80 text-center shadow-xl animate-[fadeIn_0.25s_ease]">
-
-    <h2 class="text-xl font-bold text-red-600 mb-2">Atenção!!</h2>
-
-    <p id="alertModalMessage" class="text-gray-700 mb-5 leading-relaxed">
-      <!-- A mensagem será inserida aqui -->
-    </p>
-
-    <!-- Botão -->
-    <button id="alertModalBtn"
-      class="w-full bg-red-600 text-white font-semibold py-2 rounded-xl hover:bg-red-700 transition">
-      OK
-    </button>
-  </div>
-</div>
-
-<!-- Animação -->
-<style>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-</style>
-
-
+<script type="module" src="cardapio.js"></script>
 </body>
 </html>

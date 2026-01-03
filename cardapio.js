@@ -544,3 +544,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Pega o ano atual e coloca no span
   document.getElementById('anoAtual').textContent = new Date().getFullYear();
+
+// Impede zoom via Ctrl + roda do mouse e gestos de pinça
+document.addEventListener('wheel', function(e) {
+  if (e.ctrlKey) e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault();
+});

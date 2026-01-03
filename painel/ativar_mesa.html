@@ -6,45 +6,137 @@
   <title>Ativar Mesa</title>
 
   <style>
-    body {
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f9fafb;
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      overflow: hidden;
+      background-color: #121212; /* fundo preto fosco */
+      padding: 10px;
     }
 
     .container {
-      background: #ffffff;
-      padding: 40px 30px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      background: #1f1f1f;
+      padding: 40px 25px;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
       text-align: center;
-      max-width: 400px;
+      max-width: 380px;
       width: 100%;
+      position: relative;
+      transform: scale(0.95);
+      animation: popIn 0.5s forwards;
+      color: #f9fafb;
+    }
+
+    @keyframes popIn {
+      to { transform: scale(1); }
+    }
+
+    /* Logo da empresa */
+    .logo {
+      width: 110px;
+      height: auto;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      object-fit: contain;
+      opacity: 0;
+      animation: fadeIn 1s forwards 0.3s;
+      filter: brightness(1.2);
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
     h1 {
-      font-size: 26px;
+      font-size: 24px;
+      font-weight: 700;
       margin-bottom: 10px;
-      color: #111827;
+      letter-spacing: 0.5px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
     }
 
     p {
-      font-size: 16px;
-      color: #374151;
+      font-size: 15px;
+      color: #d1d5db;
+      margin-bottom: 25px;
     }
+
+    /* Loader animado estilizado */
+    .loader {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      border: 5px solid #333;
+      border-top: 5px solid #ef4444;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-shadow: 0 0 12px rgba(239,68,68,0.6);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Hover não tão exagerado em mobile */
+    @media (hover: hover) {
+      .container:hover {
+        transform: scale(1.02);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    /* Ajustes específicos para telas pequenas (360x800) */
+    @media (max-width: 400px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      .logo {
+        width: 90px;
+        margin-bottom: 15px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      .loader {
+        width: 40px;
+        height: 40px;
+        border-width: 4px;
+      }
+    }
+
   </style>
 </head>
 <body>
 
   <div class="container">
+    <!-- Logo da empresa -->
+    <img src="" alt="Logo da Empresa" class="logo" id="logoEmpresa">
+
     <h1>Verificando mesa...</h1>
     <p>Aguarde um instante</p>
+    <div class="loader"></div>
   </div>
+
 <script type="module" src="ativar.js"></script>
 </body>
 </html>

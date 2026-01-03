@@ -10,11 +10,38 @@ const SUPABASE_KEY =
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // =============================
+// FUNÇÃO PARA CARREGAR LOGO
+// =============================
+async function carregarLogoEmpresa() {
+  try {
+    const { data: empresa, error } = await supabase
+      .from("empresa")
+      .select("logotipo")
+      .eq("id", 1)
+      .single();
+
+    if (error) throw error;
+
+    if (empresa && empresa.logotipo) {
+      document.getElementById("logoEmpresa").src = empresa.logotipo;
+    } else {
+      // Se não tiver logo cadastrada, colocar uma padrão ou deixar vazio
+      document.getElementById("logoEmpresa").src = "logo-padrao.png";
+    }
+  } catch (err) {
+    console.error("Erro ao carregar logo da empresa:", err.message);
+  }
+}
+
+// =============================
 // ATIVAÇÃO DA MESA
 // =============================
 document.addEventListener("DOMContentLoaded", async () => {
   const titulo = document.querySelector("h1");
   const texto = document.querySelector("p");
+
+  // Carrega logo da empresa primeiro
+  await carregarLogoEmpresa();
 
   // Função para redirecionar para o cardápio
   const redirecionarParaCardapio = (numeroMesa) => {

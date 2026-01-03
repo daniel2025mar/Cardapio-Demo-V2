@@ -1,3 +1,4 @@
+ 
  // =============================
 //   CONFIGURAÇÃO DO SUPABASE
 // =============================
@@ -4937,18 +4938,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= FUNÇÃO UNIVERSAL PARA ABRIR TELAS =================
   function abrirTela(telaId) {
-    // Fecha submenus quando abrir qualquer tela
-    fecharTodosSubmenus();
+  // Fecha submenus
+  fecharTodosSubmenus();
 
-    // Esconde todas as seções
-    todasSeções.forEach(section => {
-      section.style.display = "none";
-    });
+  // Esconde todas as seções
+  todasSeções.forEach(section => {
+    section.style.display = "none";
+  });
 
-    // Mostra apenas a seção selecionada
-    const tela = document.getElementById(telaId);
-    if(tela) tela.style.display = "block";
+  // Mostra a seção
+  const tela = document.getElementById(telaId);
+  if (tela) tela.style.display = "block";
+
+  // ✅ SE FOR CADASTRO DE MESAS → GERA NÚMERO
+  if (telaId === "cadastro-mesas") {
+    gerarNumeroMesa();
   }
+}
+
 
   // ================= CLIQUE NOS SUBMENUS =================
   if(submenuCadastroMesas) {
@@ -5001,11 +5008,19 @@ function abrirTela(telaId, submenuAtivo) {
 
 // 4️⃣ Submenu Cadastro de Mesas
 const submenuCadastroMesas = document.querySelector('[data-submenu="cadastro-mesas"]');
-if(submenuCadastroMesas) {
+if (submenuCadastroMesas) {
   submenuCadastroMesas.addEventListener("click", () => {
-    abrirTela("cadastro-mesas", submenuCadastroMesas);
+    // Abre a tela
+    document.querySelectorAll(".content-section")
+      .forEach(sec => sec.style.display = "none");
+
+    document.getElementById("cadastro-mesas").style.display = "block";
+
+    // ✅ GERA O NÚMERO AQUI (SEM FALHA)
+    gerarNumeroMesa();
   });
 }
+
 
 // 5️⃣ Submenu Lista Mesas
 const submenuListaMesas = document.querySelector('[data-submenu="lista-mesas"]');
@@ -5169,12 +5184,13 @@ carregarMesas();
 // =========================
 // Inicial
 // =========================
-document.addEventListener("DOMContentLoaded", renderizarMesas);
+
 
 // =========================
 // Campos do formulário
 // =========================
 const numeroMesaInput = document.getElementById("numeroMesa");
+console.log("Input numeroMesa:", numeroMesaInput);
 const capacidadeInput = document.getElementById("capacidadeMesa");
 const descricaoInput = document.getElementById("descricaoMesa");
 const localizacaoInput = document.getElementById("localizacaoMesa");
@@ -5196,20 +5212,28 @@ let qrLinkGerado = "";
 // Gera próximo número da mesa
 // =========================
 async function gerarNumeroMesa() {
+  if (!numeroMesaInput) {
+    console.error("Campo numeroMesa não encontrado");
+    return;
+  }
+
   try {
     const { data, error } = await supabase
       .from("mesas")
-      .select("id")
-      .order("id", { ascending: false })
+      .select("numero")
+      .order("numero", { ascending: false })
       .limit(1);
 
     if (error) throw error;
 
     numeroMesaInput.value =
-      data.length === 0 ? "1" : (data[0].id + 1).toString();
+      data.length === 0 ? 1 : Number(data[0].numero) + 1;
+
+    console.log("Número da mesa gerado:", numeroMesaInput.value);
+
   } catch (err) {
     console.error("Erro ao gerar número da mesa:", err);
-    numeroMesaInput.value = "1";
+    numeroMesaInput.value = 1;
   }
 }
 
@@ -5294,9 +5318,28 @@ form.addEventListener("submit", async (e) => {
     gerarNumeroMesa();
     limparFormulario();
   } catch (err) {
-    console.error("Erro ao salvar mesa:", err);
-    alert("Erro ao salvar mesa. Verifique o console.");
+  console.error("Erro detalhado ao salvar mesa:", err);
+
+  let mensagem = "Não foi possível salvar a mesa.";
+
+  // Erro específico: número duplicado
+  if (err?.code === "23505") {
+    mensagem =
+      "Já existe uma mesa com este número.\n\n" +
+      "Atualize a página e tente novamente.";
   }
+  // Erro vindo do Supabase
+  else if (err?.message) {
+    mensagem =
+      "Ocorreu um erro inesperado.\n\n" +
+      "Detalhes técnicos:\n" +
+      err.message;
+  }
+
+  mostrarModalErro(mensagem, "Erro ao salvar mesa");
+}
+
+
 });
 
 // =========================
@@ -5339,4 +5382,4 @@ document
 // =========================
 // Inicial
 // =========================
-document.addEventListener("DOMContentLoaded", gerarNumeroMesa);
+

@@ -541,3 +541,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     logoCardapio.src = empresa.logotipo;
   }
 });
+
+// Pega o ano atual e coloca no span
+  document.getElementById('anoAtual').textContent = new Date().getFullYear();

@@ -1010,11 +1010,14 @@
           </p>
         </div>
 
-        <div
-          id="qrcodeContainer"
-          class="w-52 h-52 flex items-center justify-center rounded-2xl bg-gray-50 border-2 border-dashed border-indigo-300 shadow-inner mb-6"
-        >
-          <span class="text-gray-400 text-sm">QR Code</span>
+        <!-- 🔥 Wrapper esperado pelo JS -->
+        <div id="qrcodeWrapper" class="hidden w-full flex justify-center">
+          <div
+            id="qrcodeContainer"
+            class="w-52 h-52 flex items-center justify-center rounded-2xl bg-gray-50 border-2 border-dashed border-indigo-300 shadow-inner mb-6"
+          >
+            <span class="text-gray-400 text-sm">QR Code</span>
+          </div>
         </div>
 
         <div class="flex flex-col gap-4 w-full">

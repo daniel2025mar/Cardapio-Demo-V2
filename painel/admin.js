@@ -5064,50 +5064,63 @@ function renderizarMesa(mesa) {
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
 
-  // Se não existir, cria
+  // =========================
+  // CRIA SE NÃO EXISTIR
+  // =========================
   if (!mesaDiv) {
     mesaDiv = document.createElement("div");
     mesaDiv.id = `mesa-${mesa.id}`;
     mesaDiv.className = `
-      relative w-36 h-36 flex flex-col items-center justify-center
-      cursor-pointer transition-all transform
-      hover:scale-105 hover:shadow-2xl p-2 rounded-lg shadow-md
+      relative w-40 h-40 flex flex-col items-center justify-start
+      cursor-pointer transition-transform hover:scale-105
     `;
 
     mesaDiv.innerHTML = `
-      <div class="mesa w-24 h-16 bg-blue-500 rounded-md flex flex-col items-center justify-center shadow-md z-10 mb-2">
-        <span class="titulo text-white font-bold text-sm"></span>
-        <span class="valor text-xs text-gray-200 mt-1"></span>
+      <!-- MONITOR -->
+      <div class="monitor 
+        w-full h-28 rounded-md 
+        flex flex-col items-center justify-between
+        border-2 border-black
+        shadow-md
+      ">
+        <div class="titulo w-full text-center text-xs font-bold bg-black text-white py-1">
+          Mesa 000
+        </div>
+
+        <div class="status-text text-sm font-bold mt-2">
+          LIVRE
+        </div>
+
+        <div class="valor text-xs font-semibold mb-2">
+          R$ 0,00
+        </div>
       </div>
 
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 left-1/3"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute top-0 right-1/3"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 left-1/3"></div>
-      <div class="cadeira w-5 h-4 bg-gray-700 rounded-md absolute bottom-0 right-1/3"></div>
-
-      <div class="status absolute top-1 right-1 w-4 h-4 rounded-full border border-white shadow-lg"></div>
+      <!-- SUPORTE -->
+      <div class="base w-6 h-3 bg-black mt-1 rounded-sm"></div>
+      <div class="haste w-1 h-3 bg-black"></div>
+      <div class="base-final w-10 h-2 bg-black rounded-sm"></div>
     `;
 
-    // Clique (UI otimista)
+    // =========================
+    // CLICK (UI OTIMISTA)
+    // =========================
     mesaDiv.addEventListener("click", async () => {
-      const novoStatus = !mesasCache.get(mesa.id).cliente_presente;
+      const mesaAtual = mesasCache.get(mesa.id);
+      const novoStatus = !mesaAtual.cliente_presente;
 
-      // 🔥 Atualiza UI imediatamente
       atualizarStatusVisual(mesaDiv, novoStatus);
 
-      // Atualiza cache
       mesasCache.set(mesa.id, {
-        ...mesasCache.get(mesa.id),
+        ...mesaAtual,
         cliente_presente: novoStatus,
       });
 
-      // Atualiza banco
       const { error } = await supabase
         .from("mesas")
         .update({ cliente_presente: novoStatus })
         .eq("id", mesa.id);
 
-      // Se falhar, reverte
       if (error) {
         console.error("Erro ao atualizar mesa:", error);
         atualizarStatusVisual(mesaDiv, !novoStatus);
@@ -5117,9 +5130,14 @@ function renderizarMesa(mesa) {
     painelMesas.appendChild(mesaDiv);
   }
 
-  // Atualiza conteúdo
-  mesaDiv.querySelector(".titulo").textContent = `Mesa ${mesa.numero}`;
-  mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
+  // =========================
+  // ATUALIZA DADOS
+  // =========================
+  mesaDiv.querySelector(".titulo").textContent =
+    `Mesa ${String(mesa.numero).padStart(3, "0")}`;
+
+  mesaDiv.querySelector(".valor").textContent =
+    `R$ ${valorConsumido}`;
 
   atualizarStatusVisual(mesaDiv, ocupada);
 }
@@ -5128,14 +5146,20 @@ function renderizarMesa(mesa) {
 // STATUS VISUAL (rápido)
 // =========================
 function atualizarStatusVisual(mesaDiv, ocupada) {
-  const statusEl = mesaDiv.querySelector(".status");
+  const monitor = mesaDiv.querySelector(".monitor");
+  const statusText = mesaDiv.querySelector(".status-text");
 
-  statusEl.classList.remove("bg-green-500", "bg-red-500");
-  statusEl.classList.add(ocupada ? "bg-green-500" : "bg-red-500");
-
-  mesaDiv.classList.toggle("bg-green-50", ocupada);
-  mesaDiv.classList.toggle("bg-white", !ocupada);
+  if (ocupada) {
+    monitor.classList.remove("bg-green-600");
+    monitor.classList.add("bg-red-600");
+    statusText.textContent = "OCUPADA";
+  } else {
+    monitor.classList.remove("bg-red-600");
+    monitor.classList.add("bg-green-600");
+    statusText.textContent = "LIVRE";
+  }
 }
+
 
 // =========================
 // CARGA INICIAL

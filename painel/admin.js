@@ -5058,9 +5058,16 @@ const mesasCache = new Map();
 // =========================
 // RENDERIZAR / ATUALIZAR UMA MESA
 // =========================
+
+// =========================
+// FUNÇÃO PARA RENDERIZAR MESA
+// =========================
+
+// =========================
+// FUNÇÃO PARA RENDERIZAR MESA
+// =========================
 function renderizarMesa(mesa) {
   let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
-
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
 
@@ -5071,7 +5078,7 @@ function renderizarMesa(mesa) {
     mesaDiv = document.createElement("div");
     mesaDiv.id = `mesa-${mesa.id}`;
     mesaDiv.className = `
-      relative w-40 h-40 flex flex-col items-center justify-start
+      relative flex flex-col items-center justify-start
       cursor-pointer transition-transform hover:scale-105
     `;
 
@@ -5080,19 +5087,18 @@ function renderizarMesa(mesa) {
       <div class="monitor 
         w-full h-28 rounded-md 
         flex flex-col items-center justify-between
-        border-2 border-black
-        shadow-md
+        border-2 border-black shadow-md
       ">
         <div class="titulo w-full text-center text-xs font-bold bg-black text-white py-1">
-          Mesa 000
+          Mesa ${String(mesa.numero).padStart(3, "0")}
         </div>
 
         <div class="status-text text-sm font-bold mt-2">
-          LIVRE
+          ${ocupada ? "OCUPADA" : "LIVRE"}
         </div>
 
         <div class="valor text-xs font-semibold mb-2">
-          R$ 0,00
+          R$ ${valorConsumido}
         </div>
       </div>
 
@@ -5103,7 +5109,7 @@ function renderizarMesa(mesa) {
     `;
 
     // =========================
-    // CLICK (UI OTIMISTA)
+    // CLIQUE PARA ALTERAR STATUS
     // =========================
     mesaDiv.addEventListener("click", async () => {
       const mesaAtual = mesasCache.get(mesa.id);
@@ -5128,22 +5134,17 @@ function renderizarMesa(mesa) {
     });
 
     painelMesas.appendChild(mesaDiv);
+  } else {
+    // Atualiza os valores atuais
+    mesaDiv.querySelector(".titulo").textContent =
+      `Mesa ${String(mesa.numero).padStart(3, "0")}`;
+    mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
+    atualizarStatusVisual(mesaDiv, ocupada);
   }
-
-  // =========================
-  // ATUALIZA DADOS
-  // =========================
-  mesaDiv.querySelector(".titulo").textContent =
-    `Mesa ${String(mesa.numero).padStart(3, "0")}`;
-
-  mesaDiv.querySelector(".valor").textContent =
-    `R$ ${valorConsumido}`;
-
-  atualizarStatusVisual(mesaDiv, ocupada);
 }
 
 // =========================
-// STATUS VISUAL (rápido)
+// ATUALIZA STATUS VISUAL
 // =========================
 function atualizarStatusVisual(mesaDiv, ocupada) {
   const monitor = mesaDiv.querySelector(".monitor");
@@ -5160,30 +5161,57 @@ function atualizarStatusVisual(mesaDiv, ocupada) {
   }
 }
 
-
 // =========================
-// CARGA INICIAL
+// FUNÇÃO PARA CARREGAR MESAS
 // =========================
 async function carregarMesas() {
+  // =========================
+  // CONFIGURA GRID E GAP CORRETO
+  // =========================
   painelMesas.className =
-    "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4";
+    "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 p-6";
 
+  try {
+    const { data: mesas, error } = await supabase
+      .from("mesas")
+      .select("*")
+      .order("numero", { ascending: true });
+
+    if (error) {
+      console.error("Erro ao buscar mesas:", error);
+      return;
+    }
+
+    mesas.forEach((mesa) => {
+      mesasCache.set(mesa.id, mesa);
+      renderizarMesa(mesa);
+    });
+  } catch (err) {
+    console.error("Erro ao carregar mesas:", err);
+  }
+}
+
+// =========================
+// ATUALIZAÇÃO AUTOMÁTICA A CADA 3 SEGUNDOS
+// =========================
+setInterval(async () => {
   const { data: mesas, error } = await supabase
     .from("mesas")
     .select("*")
     .order("numero", { ascending: true });
 
-  if (error) {
-    console.error("Erro ao buscar mesas:", error);
-    return;
+  if (!error && mesas) {
+    mesas.forEach((mesaAtualizada) => {
+      mesasCache.set(mesaAtualizada.id, mesaAtualizada);
+      renderizarMesa(mesaAtualizada);
+    });
   }
+}, 3000); // 3000ms = 3 segundos
 
-  mesas.forEach((mesa) => {
-    mesasCache.set(mesa.id, mesa);
-    renderizarMesa(mesa);
-  });
-}
-
+// =========================
+// INICIALIZA
+// =========================
+carregarMesas();
 // =========================
 // REALTIME (atualiza só o que mudou)
 // =========================

@@ -784,6 +784,151 @@
   </style>
 </section>
 
+<!-- BOTÃO FLUTUANTE DO CHAT -->
+<button id="btnChat" aria-label="Abrir chat">💬</button>
+
+<!-- CHAT -->
+<div class="chat-box" id="chatBox">
+  <div class="chat-header">
+    <div class="agente">
+      <img src="/dist/Imagem/luiza.png" alt="Luiza" />
+      <div>
+        <strong>Luiza</strong>
+        <span>Suporte</span>
+      </div>
+    </div>
+    <button id="fecharChat">✕</button>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Digite sua mensagem..." />
+    <button id="btnEnviar">Enviar</button>
+  </div>
+</div>
+<style>
+#btnChat {
+  position: fixed;
+  bottom: 100px; /* afastado do WhatsApp */
+  right: 20px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+.chat-box {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  width: 320px;
+  max-height: 420px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  display: none;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+.chat-box.ativo {
+  display: flex;
+}
+
+.chat-header {
+  background: #2563eb;
+  color: #fff;
+  padding: 10px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agente {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agente img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.agente span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.chat-header button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.chat-messages {
+  padding: 10px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 14px;
+}
+
+.msg {
+  margin-bottom: 10px;
+  max-width: 85%;
+}
+
+.bot {
+  background: #f1f5f9;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.user {
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-left: auto;
+}
+
+.nome-bot {
+  font-weight: bold;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+
+.chat-input {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+}
+
+.chat-input button {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  padding: 0 15px;
+  cursor: pointer;
+}
+</style>
+
   <!-- BOTÃO FLUTUANTE WHATSAPP (SOMENTE DASHBOARD) -->
 <a
   href="#"
@@ -3497,6 +3642,7 @@ input:not(:placeholder-shown) + .label-flutuante {
     Desenvolvido por DM DESIGN GRAFICO
   </footer>
 
+  <script type="module" src="luiza.js" ></script>
   <script type="module" src="admin.js"></script>
 </body>
 </html>

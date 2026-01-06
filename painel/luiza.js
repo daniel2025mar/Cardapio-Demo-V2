@@ -26,6 +26,7 @@ const chatMessages = document.getElementById("chatMessages");
 let iniciou = false;
 let aguardandoCliente = false;
 let aguardandoErro = false;
+let aguardandoContinuidade = false;
 let clienteAtual = null;
 
 /* =============================
@@ -41,6 +42,15 @@ btnChat.onclick = () => {
 
 fecharChat.onclick = () => {
   chatBox.classList.remove("ativo");
+
+  setTimeout(() => {
+    chatMessages.innerHTML = "";
+    iniciou = false;
+    aguardandoCliente = false;
+    aguardandoErro = false;
+    aguardandoContinuidade = false;
+    clienteAtual = null;
+  }, 3000);
 };
 
 /* =============================
@@ -58,21 +68,48 @@ function enviarMensagem() {
   adicionarMensagemUsuario(texto);
   inputMensagem.value = "";
 
-  /* ===== DETECTAR DESBLOQUEIO ===== */
-  if (clienteAtual && usuarioPediuDesbloqueio(texto)) {
-    respostaSemPermissao(
-      "desbloquear clientes",
-      "liberar o acesso"
+  /* ===== CONTINUIDADE ===== */
+  if (aguardandoContinuidade) {
+    aguardandoContinuidade = false;
+
+    if (usuarioDisseNao(texto)) {
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        adicionarMensagemBot(
+          "Perfeito 😊<br><br>" +
+          "Fico feliz em ter ajudado!<br>" +
+          "Sempre que precisar, estarei por aqui 💙"
+        );
+        clienteAtual = null;
+      }, 1000);
+      return;
+    }
+
+    if (usuarioDisseSim(texto)) {
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        adicionarMensagemBot("Claro 😄 Vamos continuar!");
+        mostrarOpcoesIniciais();
+      }, 1000);
+      return;
+    }
+
+    adicionarMensagemBot(
+      "Só para confirmar 😊<br>Você precisa de mais alguma ajuda?<br><strong>sim</strong> ou <strong>não</strong>"
     );
+    aguardandoContinuidade = true;
     return;
   }
 
-  /* ===== DETECTAR BLOQUEIO ===== */
+  if (clienteAtual && usuarioPediuDesbloqueio(texto)) {
+    respostaSemPermissao("desbloquear clientes", "liberar o acesso");
+    return;
+  }
+
   if (clienteAtual && usuarioPediuBloqueio(texto)) {
-    respostaSemPermissao(
-      "bloquear clientes",
-      "realizar o bloqueio"
-    );
+    respostaSemPermissao("bloquear clientes", "realizar o bloqueio");
     return;
   }
 
@@ -112,7 +149,7 @@ async function buscarCliente(nomeDigitado) {
 
   const { data, error } = await supabase
     .from("clientes")
-    .select("id, nome, email, status");
+    .select("id, nome, email, status, bloqueado");
 
   removerDigitando();
 
@@ -187,30 +224,12 @@ window.acaoCliente = async function (acao) {
   }
 
   if (acao === "bloqueio") {
-    const { data, error } = await supabase
-      .from("clientes")
-      .select("bloqueado")
-      .eq("id", clienteAtual.id)
-      .single();
-
     removerDigitando();
-
-    if (error) {
-      adicionarMensagemBot("Ops 😕 Não consegui verificar o bloqueio agora.");
-      return;
-    }
-
-    if (data.bloqueado) {
-      adicionarMensagemBot(
-        `🔒 <strong>Atenção</strong><br><br>
-         O cliente <strong>${clienteAtual.nome}</strong> está <strong>BLOQUEADO</strong>.`
-      );
-    } else {
-      adicionarMensagemBot(
-        `✅ Tudo certo!<br><br>
-         O cliente <strong>${clienteAtual.nome}</strong> <strong>NÃO está bloqueado</strong>.`
-      );
-    }
+    adicionarMensagemBot(
+      clienteAtual.bloqueado
+        ? `🔒 O cliente <strong>${clienteAtual.nome}</strong> está <strong>BLOQUEADO</strong>.`
+        : `✅ O cliente <strong>${clienteAtual.nome}</strong> <strong>NÃO está bloqueado</strong>.`
+    );
   }
 };
 
@@ -218,10 +237,7 @@ window.acaoCliente = async function (acao) {
    UTILIDADES
 ============================= */
 function normalizarTexto(texto) {
-  return texto
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 function usuarioPediuDesbloqueio(texto) {
@@ -233,6 +249,18 @@ function usuarioPediuBloqueio(texto) {
   return t.includes("bloquear") || t.includes("bloqueio");
 }
 
+function usuarioDisseNao(texto) {
+  return ["nao", "não", "n", "nada", "encerrar", "finalizar"].some(p =>
+    normalizarTexto(texto).includes(p)
+  );
+}
+
+function usuarioDisseSim(texto) {
+  return ["sim", "s", "claro", "quero"].some(p =>
+    normalizarTexto(texto).includes(p)
+  );
+}
+
 function respostaSemPermissao(acao, descricao) {
   mostrarDigitando();
   setTimeout(() => {
@@ -240,8 +268,16 @@ function respostaSemPermissao(acao, descricao) {
     adicionarMensagemBot(
       "Entendo sua solicitação 😊<br><br>" +
       `No momento, eu não tenho permissão para <strong>${acao}</strong> no sistema.<br><br>` +
-      `Para ${descricao}, é necessário entrar em contato com o <strong>administrador do sistema</strong>, que poderá avaliar a solicitação.`
+      `Para ${descricao}, é necessário entrar em contato com o <strong>administrador do sistema</strong>.`
     );
+
+    setTimeout(() => {
+      adicionarMensagemBot(
+        "Posso te ajudar com mais alguma coisa? 😊<br>" +
+        "Responda com <strong>sim</strong> ou <strong>não</strong>."
+      );
+      aguardandoContinuidade = true;
+    }, 5000);
   }, 1200);
 }
 
@@ -288,12 +324,26 @@ function mensagemInicial() {
   mostrarDigitando();
   setTimeout(() => {
     removerDigitando();
+
     adicionarMensagemBot(
       "Oi 😊 Tudo bem?<br><br>" +
       "Eu sou a <strong>Luiza</strong>, do suporte.<br>" +
       "Como posso te ajudar agora?"
     );
-    setTimeout(mostrarOpcoesIniciais, 600);
+
+    setTimeout(() => {
+      mostrarOpcoesIniciais();
+
+      setTimeout(() => {
+        adicionarMensagemBot(
+          "Ah, só um detalhe importante 😊<br><br>" +
+          "Eu ainda não estou totalmente treinada para algumas situações, " +
+          "mas vou fazer o meu melhor para te ajudar da forma mais rápida possível 💙"
+        );
+      }, 800);
+
+    }, 600);
+
   }, 1200);
 }
 
@@ -316,6 +366,7 @@ window.selecionarOpcao = function (opcao) {
   mostrarDigitando();
   setTimeout(() => {
     removerDigitando();
+
     if (opcao === "cliente") {
       adicionarMensagemBot(
         "Perfeito 😊<br><br>Por favor, me diga o <strong>nome do cliente</strong>."

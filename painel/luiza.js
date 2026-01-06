@@ -8,7 +8,7 @@ const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* =============================
    ELEMENTOS DO CHAT
@@ -26,13 +26,13 @@ const chatMessages = document.getElementById("chatMessages");
 let iniciou = false;
 let aguardandoCliente = false;
 let aguardandoErro = false;
+let clienteAtual = null;
 
 /* =============================
    ABRIR / FECHAR CHAT
 ============================= */
 btnChat.onclick = () => {
   chatBox.classList.toggle("ativo");
-
   if (!iniciou) {
     mensagemInicial();
     iniciou = true;
@@ -47,7 +47,6 @@ fecharChat.onclick = () => {
    ENVIO DE MENSAGEM
 ============================= */
 btnEnviar.onclick = enviarMensagem;
-
 inputMensagem.addEventListener("keypress", e => {
   if (e.key === "Enter") enviarMensagem();
 });
@@ -59,110 +58,191 @@ function enviarMensagem() {
   adicionarMensagemUsuario(texto);
   inputMensagem.value = "";
 
-  /* -------- FLUXO CLIENTE -------- */
+  /* ===== DETECTAR DESBLOQUEIO ===== */
+  if (clienteAtual && usuarioPediuDesbloqueio(texto)) {
+    respostaSemPermissao(
+      "desbloquear clientes",
+      "liberar o acesso"
+    );
+    return;
+  }
+
+  /* ===== DETECTAR BLOQUEIO ===== */
+  if (clienteAtual && usuarioPediuBloqueio(texto)) {
+    respostaSemPermissao(
+      "bloquear clientes",
+      "realizar o bloqueio"
+    );
+    return;
+  }
+
   if (aguardandoCliente) {
     aguardandoCliente = false;
     buscarCliente(texto);
     return;
   }
 
-  /* -------- FLUXO ERRO -------- */
   if (aguardandoErro) {
     aguardandoErro = false;
-
     mostrarDigitando();
     setTimeout(() => {
       removerDigitando();
       adicionarMensagemBot(
-        "Obrigado por explicar 👍<br><br>" +
-        "Já entendi o problema.<br>" +
-        "Vou encaminhar isso para a equipe técnica."
+        "Obrigado por explicar 👍<br><br>Já entendi o problema."
       );
-    }, 1500);
+    }, 1200);
     return;
   }
 
-  /* -------- PADRÃO -------- */
   mostrarDigitando();
   setTimeout(() => {
     removerDigitando();
     adicionarMensagemBot(
-      "Entendi 😊<br><br>" +
-      "Pode me explicar um pouco melhor?"
+      "Entendi 😊<br><br>Pode me explicar um pouco melhor?"
     );
-  }, 1500);
+  }, 1200);
 }
 
 /* =============================
-   BUSCAR CLIENTE (IGNORA ACENTO)
+   BUSCAR CLIENTE
 ============================= */
 async function buscarCliente(nomeDigitado) {
   mostrarDigitando();
-
-  const nomeNormalizado = normalizarTexto(nomeDigitado);
+  const termo = normalizarTexto(nomeDigitado);
 
   const { data, error } = await supabase
     .from("clientes")
-    .select("nome, email, status");
+    .select("id, nome, email, status");
 
   removerDigitando();
 
-  if (error || !data || data.length === 0) {
-    adicionarMensagemBot(
-      "Hmm 🤔 Não encontrei nenhum cliente com esse nome."
-    );
+  if (error || !data?.length) {
+    adicionarMensagemBot("Ops 😕 Não consegui consultar os clientes agora.");
     return;
   }
 
   const cliente = data.find(c =>
-    normalizarTexto(c.nome).includes(nomeNormalizado)
+    normalizarTexto(c.nome).includes(termo)
   );
 
   if (!cliente) {
     adicionarMensagemBot(
-      "Não localizei esse cliente 😕<br>" +
-      "Pode conferir se o nome está correto?"
+      "Hmm 🤔 Não encontrei nenhum cliente com esse nome.<br>" +
+      "Tente digitar apenas o primeiro nome."
     );
     return;
   }
 
-  mostrarDigitando();
+  clienteAtual = cliente;
 
-  setTimeout(() => {
-    removerDigitando();
+  adicionarMensagemBot(
+    "<strong>Cliente encontrado ✅</strong><br><br>" +
+    `👤 <strong>Nome:</strong> ${cliente.nome}<br>` +
+    `📧 <strong>E-mail:</strong> ${cliente.email}<br>` +
+    `📌 <strong>Status:</strong> ${cliente.status}`
+  );
 
-    adicionarMensagemBot(
-      "<strong>Cliente encontrado ✅</strong><br><br>" +
-      `👤 <strong>Nome:</strong> ${cliente.nome}<br>` +
-      `📧 <strong>E-mail:</strong> ${cliente.email}<br>` +
-      `📌 <strong>Status:</strong> ${cliente.status}`
-    );
-
-    // Mensagem final
-    setTimeout(() => {
-      mostrarDigitando();
-
-      setTimeout(() => {
-        removerDigitando();
-        adicionarMensagemBot(
-          "ℹ️ No momento, eu ainda não estou treinada para continuar esse atendimento sozinha.<br><br>" +
-          "Um atendente humano dará continuidade em breve, tudo bem? 😊<br>" +
-          "Obrigada pela compreensão!"
-        );
-      }, 2000);
-
-    }, 2500);
-  }, 1500);
+  setTimeout(perguntarAcaoCliente, 1200);
 }
 
 /* =============================
-   NORMALIZAR TEXTO
+   AÇÕES DO CLIENTE
+============================= */
+function perguntarAcaoCliente() {
+  const div = document.createElement("div");
+  div.className = "msg bot";
+  div.innerHTML = `
+    <div class="nome-bot">Luiza</div>
+    Perfeito 😊<br><br>
+    O que você deseja fazer com este cliente?
+    <div class="opcoes-chat">
+      <button onclick="acaoCliente('status')">📌 Ver status</button>
+      <button onclick="acaoCliente('pedidos')">📦 Ver pedidos</button>
+      <button onclick="acaoCliente('bloqueio')">🔒 Ver bloqueio</button>
+    </div>
+  `;
+  chatMessages.appendChild(div);
+  rolarChat();
+}
+
+window.acaoCliente = async function (acao) {
+  mostrarDigitando();
+
+  if (acao === "status") {
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot(
+        `📌 O status de <strong>${clienteAtual.nome}</strong> é <strong>${clienteAtual.status}</strong>.`
+      );
+    }, 1000);
+  }
+
+  if (acao === "pedidos") {
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot(
+        "📦 Em breve vou conseguir listar os pedidos desse cliente 😉"
+      );
+    }, 1000);
+  }
+
+  if (acao === "bloqueio") {
+    const { data, error } = await supabase
+      .from("clientes")
+      .select("bloqueado")
+      .eq("id", clienteAtual.id)
+      .single();
+
+    removerDigitando();
+
+    if (error) {
+      adicionarMensagemBot("Ops 😕 Não consegui verificar o bloqueio agora.");
+      return;
+    }
+
+    if (data.bloqueado) {
+      adicionarMensagemBot(
+        `🔒 <strong>Atenção</strong><br><br>
+         O cliente <strong>${clienteAtual.nome}</strong> está <strong>BLOQUEADO</strong>.`
+      );
+    } else {
+      adicionarMensagemBot(
+        `✅ Tudo certo!<br><br>
+         O cliente <strong>${clienteAtual.nome}</strong> <strong>NÃO está bloqueado</strong>.`
+      );
+    }
+  }
+};
+
+/* =============================
+   UTILIDADES
 ============================= */
 function normalizarTexto(texto) {
   return texto
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function usuarioPediuDesbloqueio(texto) {
+  return normalizarTexto(texto).includes("desbloquear");
+}
+
+function usuarioPediuBloqueio(texto) {
+  const t = normalizarTexto(texto);
+  return t.includes("bloquear") || t.includes("bloqueio");
+}
+
+function respostaSemPermissao(acao, descricao) {
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      "Entendo sua solicitação 😊<br><br>" +
+      `No momento, eu não tenho permissão para <strong>${acao}</strong> no sistema.<br><br>` +
+      `Para ${descricao}, é necessário entrar em contato com o <strong>administrador do sistema</strong>, que poderá avaliar a solicitação.`
+    );
+  }, 1200);
 }
 
 /* =============================
@@ -179,53 +259,42 @@ function adicionarMensagemUsuario(texto) {
 function adicionarMensagemBot(texto) {
   const div = document.createElement("div");
   div.className = "msg bot";
-  div.innerHTML = `
-    <div class="nome-bot">Luiza</div>
-    ${texto}
-  `;
+  div.innerHTML = `<div class="nome-bot">Luiza</div>${texto}`;
   chatMessages.appendChild(div);
   rolarChat();
 }
 
 /* =============================
-   DIGITANDO...
+   DIGITANDO
 ============================= */
 function mostrarDigitando() {
   if (document.getElementById("digitando")) return;
-
   const div = document.createElement("div");
   div.className = "msg bot";
   div.id = "digitando";
-  div.innerHTML = `
-    <div class="nome-bot">Luiza</div>
-    <em>está digitando...</em>
-  `;
+  div.innerHTML = `<div class="nome-bot">Luiza</div><em>está digitando...</em>`;
   chatMessages.appendChild(div);
   rolarChat();
 }
 
 function removerDigitando() {
-  const div = document.getElementById("digitando");
-  if (div) div.remove();
+  document.getElementById("digitando")?.remove();
 }
 
 /* =============================
-   MENSAGEM INICIAL + OPÇÕES
+   INÍCIO
 ============================= */
 function mensagemInicial() {
   mostrarDigitando();
-
   setTimeout(() => {
     removerDigitando();
     adicionarMensagemBot(
       "Oi 😊 Tudo bem?<br><br>" +
       "Eu sou a <strong>Luiza</strong>, do suporte.<br>" +
-      "Estou aqui pra te ajudar no que precisar.<br><br>" +
-      "<em>Sobre o que você precisa de ajuda agora?</em>"
+      "Como posso te ajudar agora?"
     );
-
     setTimeout(mostrarOpcoesIniciais, 600);
-  }, 1500);
+  }, 1200);
 }
 
 function mostrarOpcoesIniciais() {
@@ -243,32 +312,24 @@ function mostrarOpcoesIniciais() {
   rolarChat();
 }
 
-/* =============================
-   OPÇÕES
-============================= */
 window.selecionarOpcao = function (opcao) {
   mostrarDigitando();
-
   setTimeout(() => {
     removerDigitando();
-
     if (opcao === "cliente") {
       adicionarMensagemBot(
-        "Perfeito 😊<br><br>" +
-        "Por favor, me diga<br>" +
-        "<strong>o nome do cliente</strong>."
+        "Perfeito 😊<br><br>Por favor, me diga o <strong>nome do cliente</strong>."
       );
       aguardandoCliente = true;
     }
 
     if (opcao === "erro") {
       adicionarMensagemBot(
-        "Certo 👍<br><br>" +
-        "Pode me explicar qual erro está acontecendo no sistema?"
+        "Certo 👍<br><br>Pode me explicar qual erro está acontecendo?"
       );
       aguardandoErro = true;
     }
-  }, 1200);
+  }, 1000);
 };
 
 /* =============================

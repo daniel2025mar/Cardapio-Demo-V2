@@ -25,23 +25,58 @@ export async function buscarProdutos() {
   return data;
 }
 
+function mostrarLoaderProdutos() {
+  const container = document.getElementById("produtosContainer");
+
+  container.innerHTML = `
+    <div class="loader-wrapper">
+      <div class="flex flex-col items-center gap-3">
+        <div class="loader-produtos"></div>
+        <span class="text-gray-600 font-medium text-sm tracking-wide">
+          Aguarde...
+        </span>
+      </div>
+    </div>
+  `;
+}
+
+
+function esconderLoaderProdutos() {
+  const container = document.getElementById("produtosContainer");
+  container.innerHTML = "";
+}
+
 // =============================
 // CARREGAR PRODUTOS NO CARDÁPIO
 // =============================
 export async function carregarProdutosNoCardapio() {
   const container = document.getElementById("produtosContainer");
 
-  // Grid padrão (mantém layout)
+  // =========================
+  // CONFIGURA GRID (ANTES)
+  // =========================
   container.style.display = "grid";
   container.style.gridTemplateColumns = "repeat(auto-fill, minmax(250px, 1fr))";
   container.style.gap = "1rem";
   container.style.padding = "1rem";
-  container.innerHTML = "";
+
+  // =========================
+  // MOSTRA LOADER
+  // =========================
+  mostrarLoaderProdutos();
+
+  // 🔴 FORÇA O BROWSER A RENDERIZAR O LOADER
+  await new Promise(resolve => requestAnimationFrame(resolve));
 
   /* =========================
      BUSCA PRODUTOS
   ========================= */
   const produtos = await buscarProdutos();
+
+  // =========================
+  // REMOVE LOADER
+  // =========================
+  container.innerHTML = "";
 
   if (!produtos || produtos.length === 0) {
     container.innerHTML =
@@ -107,11 +142,7 @@ export async function carregarProdutosNoCardapio() {
       const seloIndisponivel = indisponivel
         ? `
           <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded">
-            <span class="
-              text-white font-bold text-lg tracking-wide
-              transition-colors duration-200
-              group-hover:text-red-500
-            ">
+            <span class="text-white font-bold text-lg tracking-wide">
               INDISPONÍVEL
             </span>
           </div>
@@ -553,3 +584,51 @@ document.addEventListener('wheel', function(e) {
 document.addEventListener('gesturestart', function(e) {
   e.preventDefault();
 });
+
+  // animaçao do slide ofertas
+  const dots = document.querySelectorAll(".dot-indicador");
+  let dotAtual = 0;
+
+  function animarDots() {
+    dots.forEach(dot => dot.classList.remove("ativo"));
+    dots[dotAtual].classList.add("ativo");
+
+    dotAtual = (dotAtual + 1) % dots.length;
+  }
+
+  // inicia
+  animarDots();
+
+  // troca a cada 4 segundos
+  setInterval(animarDots, 4000);
+
+  // animaçao do subtitulo de ofertas
+  function atualizarSubtituloOfertas() {
+    const el = document.getElementById("subtituloOfertas");
+    if (!el) return;
+
+    const hora = new Date().getHours();
+    let texto = "";
+
+    if (hora >= 6 && hora < 12) {
+      texto = "Comece o dia aproveitando ofertas selecionadas para você";
+    } else if (hora >= 12 && hora < 18) {
+      texto = "Selecionamos ofertas exclusivas para você hoje";
+    } else {
+      texto = "Aproveite agora — ofertas especiais por tempo limitado";
+    }
+
+    // efeito suave
+    el.style.opacity = "0";
+    setTimeout(() => {
+      el.textContent = texto;
+      el.style.opacity = "1";
+    }, 300);
+  }
+
+  // Executa ao carregar
+  atualizarSubtituloOfertas();
+
+  // Atualiza a cada 10 minutos (opcional)
+  setInterval(atualizarSubtituloOfertas, 600000);
+

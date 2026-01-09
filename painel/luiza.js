@@ -2,7 +2,9 @@
 /* =============================
    CONFIGURAÇÃO DO SUPABASE
 ============================= */
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
+import { abrirCalculadora } from "./Calculadora.js";
 
 const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
 const SUPABASE_KEY =
@@ -64,6 +66,62 @@ inputMensagem.addEventListener("keypress", e => {
   if (e.key === "Enter") enviarMensagem();
 });
 
+/* =============================
+   LISTA DE ATUALIZAÇÕES DO SISTEMA
+============================= */
+const atualizacoes = [
+  {
+    id: 1,
+    data: "04/10/2025",
+    descricao: [
+      "Função adicionada de Cadastro de Clientes",
+      "Função de permissões restritas adicionadas",
+      "Função adicionada de Cadastro de Funcionarios",
+      "Função adicionada de Cadastro de produtos",
+      "Função de deslogar do painel de inatividade"
+    ]
+  },
+  {
+    id: 2,
+    data: "20/12/2025",
+    descricao: [
+      "Adicionado botão de ver atualizações no painel",
+      "Notificações de Pedidos Recebidos"
+    ]
+  },
+  {
+    id: 3,
+    data: "18/12/2025",
+    descricao: ["Corrigido problema de layout em telas pequenas"]
+  },
+  {
+    id: 4,
+    data: "15/12/2025",
+    descricao: ["Nova funcionalidade de seleção de cidade implementada"]
+  },
+  {
+    id: 5,
+    data: "25/12/2025",
+    descricao: ["Mudanças no Layout para datas comemorativas ('Tela de login')"]
+  },
+  {
+    id: 6,
+    data: "09/01/2026",
+    descricao: [
+      "Adicionando Luiza bot para suporte",
+      "Função de cadastro da empresa no cardápio",
+      "Função Cadastro de produtos",
+      "Função de cadastro e gerenciamento de mesa (QR Code)",
+      "Funcionalidade para o Bot Luiza",
+      "Funçao Calculadora"
+    ]
+  }
+];
+
+/* =============================
+   FUNÇÃO ENVIAR MENSAGEM
+============================= */
+
 function enviarMensagem() {
   const texto = inputMensagem.value.trim();
   if (!texto) return;
@@ -71,17 +129,87 @@ function enviarMensagem() {
   adicionarMensagemUsuario(texto);
   inputMensagem.value = "";
 
+  const textoNormalizado = texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+    
+  /* =============================
+     FECHAR CALCULADORA - PRIORIDADE
+  ============================ */
+  const palavrasFechar = ["fechar", "fecha", "sair"];
+  const palavrasCalc = ["calculadora", "calc"];
+
+  const querFecharCalculadora = palavrasFechar.some(pf =>
+    palavrasCalc.some(pc => textoNormalizado.includes(pf) && textoNormalizado.includes(pc))
+  );
+
+  if (querFecharCalculadora) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot("Ok, fechando a calculadora 💙");
+      fecharCalculadora(); // fecha imediatamente
+    }, 800);
+    return; // interrompe qualquer outro processamento
+  }
+
+  /* =============================
+     ABRIR CALCULADORA
+  ============================ */
+  const abrirCalcKeywords = ["calculadora", "abrir calculadora", "abrir calc"];
+  if (abrirCalcKeywords.some(p => textoNormalizado.includes(p))) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot("Aqui está a calculadora 🧮. Você pode usar agora!");
+      abrirCalculadora();
+    }, 800);
+    return;
+  }
+
+  /* =============================
+     ATUALIZAÇÕES DO SISTEMA
+  ============================ */
+  const pediuAtualizacao = ["atualizacao", "atualização", "novidade", "novidades"]
+    .some(p => textoNormalizado.includes(p));
+
+  if (pediuAtualizacao) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot(
+        "Ah, um momento 😊<br>Vou te mostrar o que tem na atualização do sistema..."
+      );
+
+      setTimeout(() => {
+        mostrarDigitando();
+        setTimeout(() => {
+          removerDigitando();
+
+          let mensagem = "<strong>✨ Atualizações do Sistema ✨</strong><br><br>";
+          atualizacoes.forEach(a => {
+            mensagem += `<div style="margin-bottom:10px;"><strong>${a.data}</strong><ul>`;
+            a.descricao.forEach(d => {
+              mensagem += `<li>${d}</li>`;
+            });
+            mensagem += "</ul></div>";
+          });
+
+          adicionarMensagemBot(mensagem);
+        }, 1000);
+      }, 1200);
+    }, 800);
+    return;
+  }
+
   /* =============================
      CARDÁPIO — BLOCO COMPLETO
   ============================ */
   if (typeof window.__cardapioState === "undefined") {
     window.__cardapioState = { aguardando: false, linkEnviado: false };
   }
-
-  const textoNormalizado = texto
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
 
   const pediuCardapio =
     textoNormalizado.includes("cardapio") ||
@@ -109,7 +237,7 @@ function enviarMensagem() {
 
     if (disseSim) {
       window.__cardapioState.aguardando = false;
-      window.__cardapioState.linkEnviado = true; // marcar que o link foi enviado
+      window.__cardapioState.linkEnviado = true;
       mostrarDigitando();
       setTimeout(() => {
         removerDigitando();
@@ -150,11 +278,10 @@ function enviarMensagem() {
   if (window.__cardapioState.linkEnviado) {
     const agradecimentos = ["obrigado", "obrigada", "valeu", "ok", "thanks"];
     if (agradecimentos.some(a => textoNormalizado.includes(a))) {
-      window.__cardapioState.linkEnviado = false; // resetar
+      window.__cardapioState.linkEnviado = false;
       mostrarDigitando();
       setTimeout(() => {
         removerDigitando();
-        // determinar hora do dia
         const hora = new Date().getHours();
         let saudacao = "";
         if (hora >= 5 && hora < 12) saudacao = "Tenha um ótimo dia";

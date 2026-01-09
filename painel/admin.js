@@ -3896,6 +3896,19 @@ document.addEventListener("DOMContentLoaded", () => {
       descricao: ["Funçao mudaças no Layout para datas Comemorativas 'Tela de login'",
                   
       ]
+    },
+    {
+      id: 6,
+      data: "09/01/2026",
+      descricao: ["Adicionando Luiza bot para suporte",
+                  "Funçao de cadastro de da empresa no cardapio",
+                  "Funçao Cadastro de produtos",
+                  "Funçao de cadastro e gerenciamento de mesa 'Qr Code",
+                  "Funcionalidade para o Bot Luiza",
+                  "Funçao para verificar se o cliente esta ou nao bloqueado no sistema",
+                  "Funçao Calculadora"
+                  
+      ]
     }
   ];
 

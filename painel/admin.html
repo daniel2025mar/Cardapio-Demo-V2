@@ -3638,9 +3638,107 @@ input:not(:placeholder-shown) + .label-flutuante {
   </div>
 </div>
 
+<div id="calculadora" class="calculadora-oculta">
+  <div class="calc-display-container">
+    <input type="text" id="calcDisplay" readonly placeholder="0">
+  </div>
+  <div class="calc-buttons">
+    <button onclick="calcPress('7')">7</button>
+    <button onclick="calcPress('8')">8</button>
+    <button onclick="calcPress('9')">9</button>
+    <button onclick="calcPress('/')">÷</button>
 
+    <button onclick="calcPress('4')">4</button>
+    <button onclick="calcPress('5')">5</button>
+    <button onclick="calcPress('6')">6</button>
+    <button onclick="calcPress('*')">×</button>
 
+    <button onclick="calcPress('1')">1</button>
+    <button onclick="calcPress('2')">2</button>
+    <button onclick="calcPress('3')">3</button>
+    <button onclick="calcPress('-')">−</button>
 
+    <button onclick="calcPress('0')">0</button>
+    <button onclick="calcPress('.')">.</button>
+    <button onclick="calcCalcular()">=</button>
+    <button onclick="calcPress('+')">+</button>
+
+    <button onclick="calcLimpar()" class="btn-clear">C</button>
+  </div>
+</div>
+
+<style>
+  .calculadora-oculta {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  background: #1e1e2f;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0px 12px 25px rgba(0,0,0,0.4);
+  z-index: 9999;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.calculadora-ativa {
+  display: block;
+}
+
+.calc-display-container {
+  margin-bottom: 15px;
+}
+
+#calcDisplay {
+  width: 100%;
+  height: 55px;
+  font-size: 24px;
+  text-align: right;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: #2e2e44;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.calc-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.calc-buttons button {
+  height: 55px;
+  font-size: 20px;
+  border: none;
+  border-radius: 12px;
+  background: #3e3e5e;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calc-buttons button:hover {
+  background: #5e5e8e;
+}
+
+.calc-buttons button:active {
+  transform: scale(0.95);
+}
+
+.btn-clear {
+  grid-column: span 4;
+  background: #e74c3c;
+}
+
+.btn-clear:hover {
+  background: #ff5c4d;
+}
+
+</style>
   <!-- FOOTER -->
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">
     Desenvolvido por DM DESIGN GRAFICO

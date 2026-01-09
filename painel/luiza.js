@@ -29,6 +29,9 @@ let aguardandoErro = false;
 let aguardandoContinuidade = false;
 let clienteAtual = null;
 
+
+
+
 /* =============================
    ABRIR / FECHAR CHAT
 ============================= */
@@ -67,6 +70,102 @@ function enviarMensagem() {
 
   adicionarMensagemUsuario(texto);
   inputMensagem.value = "";
+
+  /* =============================
+     CARDÁPIO — BLOCO COMPLETO
+  ============================ */
+  if (typeof window.__cardapioState === "undefined") {
+    window.__cardapioState = { aguardando: false, linkEnviado: false };
+  }
+
+  const textoNormalizado = texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const pediuCardapio =
+    textoNormalizado.includes("cardapio") ||
+    textoNormalizado.includes("menu");
+
+  if (pediuCardapio && !window.__cardapioState.aguardando) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot(
+        "Claro 😊<br><br>" +
+        "Você gostaria que eu te enviasse o <strong>link do cardápio</strong> agora?"
+      );
+      window.__cardapioState.aguardando = true;
+    }, 1000);
+    return;
+  }
+
+  if (window.__cardapioState.aguardando) {
+    const disseSim = ["sim", "s", "claro", "quero", "ok", "pode", "manda"]
+      .some(p => textoNormalizado.includes(p));
+
+    const disseNao = ["nao", "não", "n", "encerrar", "finalizar"]
+      .some(p => textoNormalizado.includes(p));
+
+    if (disseSim) {
+      window.__cardapioState.aguardando = false;
+      window.__cardapioState.linkEnviado = true; // marcar que o link foi enviado
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        adicionarMensagemBot(
+          "Perfeito 😄<br><br>" +
+          "Aqui está o link do cardápio 👇<br><br>" +
+          "🔗 <a href='https://cardapio-demo-v2.vercel.app/' target='_blank'>Acessar cardápio</a><br><br>" +
+          "Se precisar de mais alguma coisa, é só me chamar 💙"
+        );
+      }, 1000);
+      return;
+    }
+
+    if (disseNao) {
+      window.__cardapioState.aguardando = false;
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        adicionarMensagemBot(
+          "Tudo bem 😊<br><br>" +
+          "Quando quiser o cardápio, é só me avisar."
+        );
+      }, 1000);
+      return;
+    }
+
+    adicionarMensagemBot(
+      "Só para confirmar 😊<br>" +
+      "Você quer que eu envie o <strong>link do cardápio</strong>?<br>" +
+      "Responda com <strong>sim</strong> ou <strong>não</strong>."
+    );
+    return;
+  }
+
+  /* =============================
+     AGRADECIMENTO APÓS LINK DO CARDÁPIO
+  ============================ */
+  if (window.__cardapioState.linkEnviado) {
+    const agradecimentos = ["obrigado", "obrigada", "valeu", "ok", "thanks"];
+    if (agradecimentos.some(a => textoNormalizado.includes(a))) {
+      window.__cardapioState.linkEnviado = false; // resetar
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        // determinar hora do dia
+        const hora = new Date().getHours();
+        let saudacao = "";
+        if (hora >= 5 && hora < 12) saudacao = "Tenha um ótimo dia";
+        else if (hora >= 12 && hora < 18) saudacao = "Tenha uma ótima tarde";
+        else saudacao = "Tenha uma boa noite";
+
+        adicionarMensagemBot(`De nada! Qualquer coisa, é só me chamar 💙<br>${saudacao}!`);
+      }, 1000);
+      return;
+    }
+  }
 
   /* ===== CONTINUIDADE ===== */
   if (aguardandoContinuidade) {
@@ -139,6 +238,7 @@ function enviarMensagem() {
     );
   }, 1200);
 }
+
 
 /* =============================
    BUSCAR CLIENTE
@@ -382,6 +482,7 @@ window.selecionarOpcao = function (opcao) {
     }
   }, 1000);
 };
+
 
 /* =============================
    SCROLL

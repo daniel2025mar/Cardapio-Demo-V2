@@ -3638,107 +3638,162 @@ input:not(:placeholder-shown) + .label-flutuante {
   </div>
 </div>
 
+<!-- CALCULADORA -->
 <div id="calculadora" class="calculadora-oculta">
   <div class="calc-display-container">
-    <input type="text" id="calcDisplay" readonly placeholder="0">
+    <input type="text" id="calcDisplay" readonly>
   </div>
+
   <div class="calc-buttons">
+    <!-- Funções -->
+    <button onclick="calcLimpar()" class="btn-func">C</button>
+    <button onclick="calcBackspace()" class="btn-func">⌫</button>
+    <button onclick="calcPorcentagem()" class="btn-func">%</button>
+    <button onclick="calcRaiz()" class="btn-op">√</button>
+
+    <!-- Números / Operadores -->
     <button onclick="calcPress('7')">7</button>
     <button onclick="calcPress('8')">8</button>
     <button onclick="calcPress('9')">9</button>
-    <button onclick="calcPress('/')">÷</button>
+    <button onclick="calcPress('/')" class="btn-op">÷</button>
 
     <button onclick="calcPress('4')">4</button>
     <button onclick="calcPress('5')">5</button>
     <button onclick="calcPress('6')">6</button>
-    <button onclick="calcPress('*')">×</button>
+    <button onclick="calcPress('*')" class="btn-op">×</button>
 
     <button onclick="calcPress('1')">1</button>
     <button onclick="calcPress('2')">2</button>
     <button onclick="calcPress('3')">3</button>
-    <button onclick="calcPress('-')">−</button>
+    <button onclick="calcPress('-')" class="btn-op">−</button>
 
-    <button onclick="calcPress('0')">0</button>
+    <button onclick="calcInverterSinal()" class="btn-func">±</button>
+    <button onclick="calcPress('0')" class="btn-zero">0</button>
     <button onclick="calcPress('.')">.</button>
-    <button onclick="calcCalcular()">=</button>
-    <button onclick="calcPress('+')">+</button>
+    <button onclick="calcPress('+')" class="btn-op">+</button>
 
-    <button onclick="calcLimpar()" class="btn-clear">C</button>
+    <button onclick="calcQuadrado()" class="btn-func">x²</button>
+    <button onclick="calcCalcular()" class="btn-equal">=</button>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="calc-footer">
+    Calculadora • versão 1.1
   </div>
 </div>
 
 <style>
-  .calculadora-oculta {
+/* ===== CONTAINER ===== */
+.calculadora-oculta {
   display: none;
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 280px;
-  background: #1e1e2f;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0px 12px 25px rgba(0,0,0,0.4);
+  width: 260px;
+  background: #0b0b0b;
+  padding: 18px;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.7);
   z-index: 9999;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .calculadora-ativa {
   display: block;
 }
 
+/* ===== DISPLAY ===== */
 .calc-display-container {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 #calcDisplay {
   width: 100%;
-  height: 55px;
-  font-size: 24px;
-  text-align: right;
-  padding: 10px;
-  border-radius: 12px;
+  height: 42px;
+  background: #ffffff;
+  color: #000;
   border: none;
-  background: #2e2e44;
-  color: #fff;
-  box-sizing: border-box;
+  border-radius: 4px;
+  font-size: 20px;
+  text-align: right;
+  padding: 6px 8px;
 }
 
+/* ===== GRID ===== */
 .calc-buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
+/* ===== BOTÕES ===== */
 .calc-buttons button {
-  height: 55px;
-  font-size: 20px;
-  border: none;
-  border-radius: 12px;
-  background: #3e3e5e;
+  height: 42px;
+  background: #1c1c1c;
   color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s, transform 0.1s;
 }
 
 .calc-buttons button:hover {
-  background: #5e5e8e;
+  background: #2a2a2a;
 }
 
 .calc-buttons button:active {
   transform: scale(0.95);
 }
 
-.btn-clear {
-  grid-column: span 4;
-  background: #e74c3c;
+/* ===== FUNÇÕES ===== */
+.btn-func {
+  background: #2b2b2b;
 }
 
-.btn-clear:hover {
-  background: #ff5c4d;
+.btn-func:hover {
+  background: #3a3a3a;
 }
 
+/* ===== OPERADORES ===== */
+.btn-op {
+  background: #2b2b2b;
+}
+
+.btn-op:hover {
+  background: #3a3a3a;
+}
+
+/* ===== IGUAL ===== */
+.btn-equal {
+  background: #4a90e2;
+  color: #fff;
+  grid-column: span 2;
+}
+
+.btn-equal:hover {
+  background: #357abd;
+}
+
+/* ===== ZERO ===== */
+.btn-zero {
+  grid-column: span 2;
+}
+
+/* ===== RODAPÉ ===== */
+.calc-footer {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 11px;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+  user-select: none;
+  opacity: 0.8;
+}
 </style>
+
+
   <!-- FOOTER -->
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">
     Desenvolvido por DM DESIGN GRAFICO

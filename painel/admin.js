@@ -3906,7 +3906,9 @@ document.addEventListener("DOMContentLoaded", () => {
                   "Funçao de cadastro e gerenciamento de mesa 'Qr Code",
                   "Funcionalidade para o Bot Luiza",
                   "Funçao para verificar se o cliente esta ou nao bloqueado no sistema",
-                  "Funçao Calculadora"
+                  "Funçao Calculadora",
+                  "Funçao ver todos os clientes",
+                  "Melhorias na Luiza bot"
                   
       ]
     }

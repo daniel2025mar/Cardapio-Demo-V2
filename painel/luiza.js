@@ -113,7 +113,9 @@ const atualizacoes = [
       "Função Cadastro de produtos",
       "Função de cadastro e gerenciamento de mesa (QR Code)",
       "Funcionalidade para o Bot Luiza",
-      "Funçao Calculadora"
+      "Funçao Calculadora",
+      "Funçao ver todos os clientes",
+      "Melhorias na Luiza bot"
     ]
   }
 ];
@@ -138,7 +140,7 @@ function enviarMensagem() {
   /* =============================
      FECHAR CALCULADORA - PRIORIDADE
   ============================ */
-  const palavrasFechar = ["fechar", "fecha", "sair"];
+  const palavrasFechar = ["fechar", "feche", "fecha", "sair"];
   const palavrasCalc = ["calculadora", "calc"];
 
   const querFecharCalculadora = palavrasFechar.some(pf =>
@@ -168,6 +170,40 @@ function enviarMensagem() {
     }, 800);
     return;
   }
+
+  /* =============================
+   FUNCIONAMENTO SEM INTERNET
+============================= */
+const palavrasSemInternet = ["sem conexao", "sem conexão", "offline", "internet"];
+
+const perguntouSemInternet = palavrasSemInternet.some(p =>
+  textoNormalizado.includes(p)
+);
+
+if (perguntouSemInternet) {
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      "Infelizmente, nosso sistema não funciona sem conexão com a internet 💻🌐.<br>" +
+      "Como utilizamos banco de dados na nuvem, é necessário estar online para acessar todas as funcionalidades."
+    );
+
+    // Depois de enviar a mensagem, pergunta se deseja mais alguma coisa
+    setTimeout(() => {
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        adicionarMensagemBot(
+          "Posso te ajudar com mais alguma coisa? 😊<br>" +
+          "Responda com <strong>sim</strong> ou <strong>não</strong>."
+        );
+        aguardandoContinuidade = true; // ativa o estado para resposta de continuidade
+      }, 800);
+    }, 500); // pequeno delay antes de mostrar a pergunta
+  }, 4000); // delay de 4 segundos para a primeira resposta
+  return; // interrompe qualquer outro processamento
+}
 
      /* =============================
      CONSULTA DE MESAS OCUPADAS

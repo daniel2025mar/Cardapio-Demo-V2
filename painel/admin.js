@@ -4726,12 +4726,8 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.onclick = async () => {
         if (!confirm("Deseja bloquear esta categoria?")) return;
 
-        await supabase
-          .from("categorias")
-          .update({ ativo: false })
-          .eq("id", btn.dataset.id);
-
-        carregarCategoriasModal();
+        // Se quiser bloquear, você pode criar campo "ativo" opcional ou ignorar
+        alert("Bloqueio de categoria não implementado nesta versão.");
       };
     });
   }
@@ -4752,7 +4748,6 @@ document.addEventListener("DOMContentLoaded", () => {
   btnConfirmarSenhaAdmin.onclick = async () => {
     const senha = inputSenhaAdmin.value.trim();
 
-    // CAMPO VAZIO
     if (senha === "") {
       mostrarErroSenhaPorTempo("O campo senha não pode ficar vazio.");
       return;
@@ -4765,13 +4760,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .eq("password", senha)
       .eq("ativo", true);
 
-    // SENHA INCORRETA
     if (error || !admin || admin.length === 0) {
       mostrarErroSenhaPorTempo("Senha do administrador incorreta.");
       return;
     }
 
-    // SENHA CORRETA
     mensagemErroSenha.classList.add("hidden");
     modalSenhaAdmin.style.display = "none";
     inputSenhaAdmin.value = "";
@@ -4807,6 +4800,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnSalvarCategoria").onclick = async () => {
     const nome = nomeInput.value.trim();
     const descricao = descricaoInput.value.trim();
+    const icone = `/icones/${nome.toLowerCase()}.png`; // padrão, você pode ajustar
 
     if (nome === "") {
       mensagemErro.textContent = "O campo ‘Nome da Categoria’ não pode ficar vazio.";
@@ -4814,10 +4808,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Verificar duplicado pelo nome
     const { data: duplicado } = await supabase
       .from("categorias")
-      .select("*")
-      .or(`nome.ilike.${nome},descricao.ilike.${descricao}`);
+      .select("id")
+      .ilike("nome", nome);
 
     if (duplicado?.some(c => c.id !== editarId)) {
       mensagemErro.textContent = "Esta categoria já está cadastrada no sistema.";
@@ -4825,25 +4820,34 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    let result;
+
     if (editarId) {
-      await supabase
+      result = await supabase
         .from("categorias")
-        .update({ nome, descricao })
+        .update({ nome, descricao, icone })
         .eq("id", editarId);
-      alert("Categoria atualizada!");
     } else {
-      await supabase
+      result = await supabase
         .from("categorias")
-        .insert([{ nome, descricao, ativo: true }]);
-      alert("Categoria cadastrada!");
+        .insert([{ nome, descricao, icone }]);
     }
 
+    if (result.error) {
+      console.error("Erro ao salvar categoria:", result.error);
+      mensagemErro.textContent = result.error.message;
+      modalErro.classList.remove("hidden");
+      return;
+    }
+
+    alert(editarId ? "Categoria atualizada!" : "Categoria cadastrada!");
     modal.style.display = "none";
     editarId = null;
     carregarCategoriasModal();
   };
 
 });
+
 
 // =============================
 // FUNÇÃO PARA VERIFICAR ESTOQUE ZERADO
@@ -5444,8 +5448,125 @@ btnImprimirQR.addEventListener("click", () => {
 document
   .getElementById("btnLimparMesas")
   .addEventListener("click", limparFormulario);
+// =============================
+// DOM READY
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("modalClientes");
+  const lista = document.getElementById("listaClientes");
+  const btnFechar = modal.querySelector(".modal-fechar");
+  const inputBusca = document.getElementById("buscarCliente");
 
-// =========================
-// Inicial
-// =========================
+  let clientesCache = [];
 
+  // =============================
+  // NORMALIZAR TEXTO (IGNORAR ACENTO)
+  // =============================
+  function normalizarTexto(texto) {
+    return texto
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  // =============================
+  // OBSERVA ABERTURA DO MODAL
+  // =============================
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (
+        mutation.attributeName === "class" &&
+        modal.classList.contains("ativo")
+      ) {
+        carregarClientes();
+      }
+    });
+  });
+
+  observer.observe(modal, { attributes: true });
+
+  // =============================
+  // FECHAR MODAL
+  // =============================
+  btnFechar.addEventListener("click", () => {
+    modal.classList.remove("ativo");
+    inputBusca.value = "";
+  });
+
+  // =============================
+  // CARREGAR CLIENTES (SUPABASE)
+  // =============================
+  async function carregarClientes() {
+    lista.innerHTML = "<p>Carregando clientes...</p>";
+
+    try {
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("nome")
+        .order("nome", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        lista.innerHTML = "<p>Erro ao carregar clientes.</p>";
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        lista.innerHTML = "<p>Nenhum cliente encontrado.</p>";
+        return;
+      }
+
+      clientesCache = data;
+      renderizarClientes(data);
+    } catch (err) {
+      console.error(err);
+      lista.innerHTML = "<p>Erro inesperado.</p>";
+    }
+  }
+
+  // =============================
+  // RENDERIZAR CLIENTES
+  // =============================
+  function renderizarClientes(clientes) {
+    lista.innerHTML = "";
+
+    if (clientes.length === 0) {
+      lista.innerHTML =
+        '<p class="cliente-vazio">Nenhum cliente encontrado.</p>';
+      return;
+    }
+
+    clientes.forEach((cliente) => {
+      const item = document.createElement("div");
+      item.className = "cliente-item";
+
+      const nome = document.createElement("strong");
+      nome.textContent = cliente.nome;
+
+      const info = document.createElement("span");
+      info.textContent = "Cliente cadastrado no sistema";
+
+      item.appendChild(nome);
+      item.appendChild(info);
+      lista.appendChild(item);
+    });
+  }
+
+  // =============================
+  // BUSCA EM TEMPO REAL
+  // =============================
+  inputBusca.addEventListener("input", () => {
+    const termoDigitado = normalizarTexto(inputBusca.value);
+
+    if (!termoDigitado) {
+      renderizarClientes(clientesCache);
+      return;
+    }
+
+    const filtrados = clientesCache.filter((cliente) =>
+      normalizarTexto(cliente.nome).includes(termoDigitado)
+    );
+
+    renderizarClientes(filtrados);
+  });
+});

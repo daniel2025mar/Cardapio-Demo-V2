@@ -227,18 +227,32 @@ export function abrirModal(produto) {
       alert("Produto indisponível no momento!");
     } else {
       alert(`Produto "${produto.descricao_nfe}" adicionado ao pedido!`);
-      // Aqui você pode adicionar lógica para enviar ao carrinho
+      adicionarProdutoDireto(produto);
     }
   };
 
   // Botão de escolher opções
   const btnOpcoes = document.getElementById("btnEscolherOpcoes");
+
+  // Lista de categorias consideradas bebidas
+  const categoriasBebidas = ["bebidas", "refrigerantes", "sucos", "cervejas", "vinhos", "aguas", "destilados"];
+
+  // Normaliza a categoria do produto
+  const categoriaNormalizada = produto.categoria?.trim().toLowerCase() || "";
+
   if (btnOpcoes) {
-    btnOpcoes.addEventListener("click", () => {
-      abrirModalOpcoes(produto);
-    });
+    if (categoriasBebidas.includes(categoriaNormalizada)) {
+      btnOpcoes.style.display = "none"; // Esconde botão para qualquer bebida
+    } else {
+      btnOpcoes.style.display = "flex"; // Mostra botão para comidas
+      btnOpcoes.addEventListener("click", () => {
+        abrirModalOpcoes(produto);
+      });
+    }
   }
 }
+
+
 
 // Modal de seleção de opções
 function abrirModalOpcoes(produto) {
@@ -632,3 +646,102 @@ document.addEventListener('gesturestart', function(e) {
   // Atualiza a cada 10 minutos (opcional)
   setInterval(atualizarSubtituloOfertas, 600000);
 
+  async function carregarProdutosCategoriaSecundaria(nomeCategoria) {
+  const container = document.getElementById("produtosContainerSecundario");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="loader-wrapper">
+      <div class="loader-produtos"></div>
+    </div>
+  `;
+
+  const produtos = await buscarProdutos();
+  container.innerHTML = "";
+
+  const categoriaNormalizada = nomeCategoria.trim().toLowerCase();
+
+  const produtosFiltrados = produtos.filter(p =>
+    p.categoria &&
+    p.categoria.trim().toLowerCase() === categoriaNormalizada
+  );
+
+  if (produtosFiltrados.length === 0) {
+    container.innerHTML = `
+      <p class="col-span-full text-center text-gray-500">
+        Nenhum produto encontrado nesta categoria.
+      </p>
+    `;
+    return;
+  }
+
+  produtosFiltrados.forEach(produto => {
+    const indisponivel = produto.estoque === 0;
+
+    const card = document.createElement("div");
+    card.className =
+      "group bg-white rounded-lg shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition";
+
+    const imgClasses = indisponivel
+      ? "w-full h-40 object-cover rounded mb-2 grayscale"
+      : "w-full h-40 object-cover rounded mb-2";
+
+    const btnClasses = indisponivel
+      ? "px-3 py-1 bg-gray-400 text-white rounded cursor-not-allowed mt-auto"
+      : "px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition mt-auto";
+
+    const seloIndisponivel = indisponivel
+      ? `
+        <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded">
+          <span class="text-white font-bold text-lg">INDISPONÍVEL</span>
+        </div>
+      `
+      : "";
+
+    card.innerHTML = `
+      <div class="relative">
+        <img src="${produto.imagem_url}" alt="${produto.descricao}" class="${imgClasses}">
+        ${seloIndisponivel}
+      </div>
+
+      <h3 class="font-bold text-lg">${produto.descricao}</h3>
+
+      <p class="text-gray-600 text-sm mb-2">
+        Código: ${produto.codigo}
+      </p>
+
+      <span class="font-bold ${indisponivel ? "text-gray-500" : "text-red-600"} mb-2">
+        R$ ${produto.valor_sugerido.toFixed(2)}
+      </span>
+
+      <button class="${btnClasses}" ${indisponivel ? "disabled" : ""}>
+        ${indisponivel ? "Indisponível" : "Adicionar"}
+      </button>
+    `;
+
+    card.addEventListener("click", () => {
+      if (indisponivel) {
+        mostrarModalIndisponivel();
+        return;
+      }
+
+      // SE FOR BEBIDA, adiciona direto ao carrinho sem modal
+      if (categoriaNormalizada === "bebidas") {
+        adicionarProdutoDireto(produto); // função que adiciona direto
+      } else {
+        abrirModal(produto); // apenas alimentos abrem modal de opções
+      }
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// Função para adicionar direto ao carrinho
+function adicionarProdutoDireto(produto) {
+  // Aqui você adiciona o produto ao carrinho normalmente
+  // Exemplo:
+  carrinho.push({ ...produto, quantidade: 1 });
+  atualizarCarrinhoUI();
+  alert(`${produto.descricao} adicionado ao carrinho!`);
+}

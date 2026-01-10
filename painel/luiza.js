@@ -30,8 +30,8 @@ let aguardandoCliente = false;
 let aguardandoErro = false;
 let aguardandoContinuidade = false;
 let clienteAtual = null;
-
-
+let aguardandoMesaLivre = false;
+let cacheMesasLivres = [];
 
 
 /* =============================
@@ -169,6 +169,198 @@ function enviarMensagem() {
     return;
   }
 
+     /* =============================
+     CONSULTA DE MESAS OCUPADAS
+  ============================ */
+  const palavrasMesa = ["mesa", "mesas"];
+  const palavrasOcupada = ["ocupada", "ocupado", "ocupadas", "ocupados"];
+
+  const perguntouMesaOcupada =
+    palavrasMesa.some(p => textoNormalizado.includes(p)) &&
+    palavrasOcupada.some(p => textoNormalizado.includes(p));
+
+  if (perguntouMesaOcupada) {
+    mostrarDigitando();
+
+    setTimeout(async () => {
+      removerDigitando();
+      adicionarMensagemBot("Um momento, vou verificar no sistema. ⏳");
+
+      // Delay de 10 segundos antes da consulta
+      setTimeout(async () => {
+        await verificarMesas();
+      }, 10000);
+
+    }, 800);
+
+    return;
+  }
+
+/* =============================
+   CONSULTA DE VENCIMENTO MENSAL
+============================= */
+const palavrasVencimento = ["vence", "vencimento", "mensalidade", "pagamento mensal"];
+
+const perguntouVencimento = palavrasVencimento.some(p => textoNormalizado.includes(p));
+
+if (perguntouVencimento) {
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      "😊 Entendi sua dúvida sobre a mensalidade ou vencimento do sistema.<br><br>" +
+      "No momento, ainda não consigo informar essa informação diretamente, " +
+      "mas você pode verificar com o administrador do sistema."
+    );
+  }, 1000);
+  return; // interrompe o processamento normal
+}
+
+  /* =============================
+   VERIFICAR MESAS NO SUPABASE
+============================= */
+async function verificarMesas() {
+  mostrarDigitando();
+
+  const { data, error } = await supabase
+    .from("mesas")
+    .select("descricao, cliente_presente");
+
+  removerDigitando();
+
+  if (error || !data?.length) {
+    adicionarMensagemBot(
+      "Ops 😕 Não consegui verificar as mesas no momento."
+    );
+    return;
+  }
+
+  const mesasOcupadas = data.filter(m => m.cliente_presente === true);
+  const mesasLivres = data.filter(m => m.cliente_presente === false);
+
+  // guarda em memória para o próximo passo
+  cacheMesasLivres = mesasLivres;
+
+  if (mesasOcupadas.length === 0) {
+    adicionarMensagemBot(
+      "✅ Ótima notícia!<br><br>Todas as mesas estão <strong>livres</strong> no momento 😊"
+    );
+    return;
+  }
+
+  if (mesasLivres.length === 0) {
+    adicionarMensagemBot(
+      "⚠️ No momento, <strong>todas as mesas estão ocupadas</strong>."
+    );
+    return;
+  }
+
+  aguardandoMesaLivre = true;
+
+  adicionarMensagemBot(
+    `📊 Situação das mesas:<br><br>
+     🔴 <strong>Ocupadas:</strong> ${mesasOcupadas.length}<br>
+     🟢 <strong>Livres:</strong> ${mesasLivres.length}<br><br>
+     Se quiser, posso te ajudar a localizar uma mesa livre 😉`
+  );
+}
+
+  /* =============================
+     LOCALIZAR MESA LIVRE
+  ============================ */
+  if (aguardandoMesaLivre) {
+    const respostaSim = ["sim", "s", "quero", "quero sim", "ok", "pode"];
+
+    if (respostaSim.some(p => textoNormalizado.includes(p))) {
+      aguardandoMesaLivre = false;
+
+      if (!cacheMesasLivres.length) {
+        adicionarMensagemBot(
+          "Hmm 🤔 Parece que não há mesas livres agora."
+        );
+        return;
+      }
+
+      const mesaDisponivel = cacheMesasLivres[0]; // pega a primeira livre
+
+      mostrarDigitando();
+      setTimeout(() => {
+        removerDigitando();
+        adicionarMensagemBot(
+          `🪑 Mesa disponível encontrada!<br><br>
+           👉 <strong>Mesa:</strong> ${mesaDisponivel.descricao}<br><br>
+           Você já pode utilizá-la 😊`
+        );
+      }, 1000);
+
+      cacheMesasLivres = [];
+      return;
+    }
+
+    // Se respondeu algo diferente
+    adicionarMensagemBot(
+      "Tudo bem 😊<br>Se precisar de uma mesa livre, é só me avisar."
+    );
+    aguardandoMesaLivre = false;
+    cacheMesasLivres = [];
+    return;
+  }
+
+
+  /* =============================
+   O QUE É O GESTIOMAX
+============================= */
+
+const mencionouGestioMax = textoNormalizado.includes("gestiomax");
+
+const frasesGestioMax = [
+  "o que e",
+  "oque e",
+  "para que serve",
+  "explica",
+  "me fala",
+  "faz o que"
+];
+
+const perguntouExplicitamenteGestioMax = frasesGestioMax.some(frase =>
+  textoNormalizado.includes(frase)
+);
+
+// Caso especial: digitou apenas "gestiomax"
+const digitouSomenteGestioMax =
+  textoNormalizado.trim() === "gestiomax";
+
+const perguntouGestioMax =
+  mencionouGestioMax &&
+  (perguntouExplicitamenteGestioMax || digitouSomenteGestioMax);
+
+if (perguntouGestioMax) {
+  mostrarDigitando();
+
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      `<strong>O GestioMax</strong> é um sistema completo e inteligente de <strong>gestão de cardápio</strong>, 
+      desenvolvido para facilitar o dia a dia de restaurantes, lanchonetes, pizzarias e negócios do setor alimentício 🍽️<br><br>
+
+      Com o GestioMax, você consegue realizar o <strong>cadastro e gerenciamento de produtos</strong>, 
+      controlar mesas, organizar pedidos e manter todas as informações centralizadas em um único lugar, 
+      de forma simples, rápida e segura.<br><br>
+
+      Além disso, o sistema atende tanto o <strong>atendimento interno</strong> (mesas no local) 
+      quanto o <strong>atendimento externo</strong>, permitindo que seus clientes acessem o 
+      <strong>cardápio digital</strong> também para <strong>delivery</strong> 📦🚀<br><br>
+
+      Ou seja, o GestioMax não é apenas um cardápio digital — ele é uma <strong>plataforma completa de gestão</strong>, 
+      pensada para otimizar processos, melhorar a experiência do cliente e apoiar o crescimento do seu negócio de forma organizada 💙<br><br>
+
+      Se quiser, posso te explicar melhor alguma funcionalidade específica 😊`
+    );
+  }, 1200);
+
+  return;
+}
+
   /* =============================
      ATUALIZAÇÕES DO SISTEMA
   ============================ */
@@ -203,6 +395,43 @@ function enviarMensagem() {
     }, 800);
     return;
   }
+
+  /* =============================
+   VER TODOS OS CLIENTES
+============================= */
+
+const pediuTodosClientes = [
+  "todos os clientes",
+  "ver todos os clientes",
+  "listar clientes",
+  "lista de clientes",
+  "ver clientes no sistema"
+].some(p => textoNormalizado.includes(p));
+
+if (pediuTodosClientes) {
+  mostrarDigitando();
+
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      "Um momento 😊<br><br>Vou te mostrar todos os clientes do sistema."
+    );
+
+    // Delay de 10 segundos para abrir o modal
+    setTimeout(() => {
+      abrirModalClientes();
+    }, 10000);
+
+  }, 800);
+
+  return;
+}
+
+function abrirModalClientes() {
+  document
+    .getElementById("modalClientes")
+    .classList.add("ativo");
+}
 
   /* =============================
      CARDÁPIO — BLOCO COMPLETO

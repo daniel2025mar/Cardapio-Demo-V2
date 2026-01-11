@@ -5710,3 +5710,148 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+
+// Elementos do modal
+const modal = document.getElementById('modalFeedback');
+const fecharModal = document.getElementById('fecharModal'); 
+const cancelarBtn = modal.querySelector('button.bg-gray-200'); 
+const enviarBtn = modal.querySelector('button.bg-blue-600');
+const estrelas = document.querySelectorAll('.estrela');
+const feedbackInput = document.getElementById('feedbackInput');
+let avaliacao = 0;
+
+// Nome do usuário e empresa (exemplo: podem vir do login ou do sistema)
+const nomeUsuario = localStorage.getItem('nomeUsuario') || "Usuário Desconhecido";
+const nomeEmpresa = localStorage.getItem('nomeEmpresa') || "Empresa Desconhecida";
+
+// Mensagem de feedback textual
+let msgAvaliacao = document.getElementById('msgAvaliacao');
+if(!msgAvaliacao){
+  msgAvaliacao = document.createElement('p');
+  msgAvaliacao.id = 'msgAvaliacao';
+  msgAvaliacao.className = 'text-center text-gray-600 mb-4 font-medium';
+  const estrelasContainer = document.getElementById('estrelas');
+  estrelasContainer.parentNode.insertBefore(msgAvaliacao, estrelasContainer.nextSibling);
+}
+
+// Mensagens por nota
+const feedbackText = {
+  1: "Muito Ruim 😞",
+  2: "Ruim 😕",
+  3: "Regular 😐",
+  4: "Bom 🙂",
+  5: "Muito Bom 😄"
+};
+
+// ===========================
+// Abrir modal apenas 1 vez por mês
+// ===========================
+function abrirModalSeNaoVistoEsteMes() {
+  const hoje = new Date();
+  const anoMesAtual = `${hoje.getFullYear()}-${hoje.getMonth() + 1}`; // Ex: "2026-1"
+
+  const ultimaExibicao = localStorage.getItem('ultimaExibicaoFeedback');
+
+  if(ultimaExibicao !== anoMesAtual){
+    modal.classList.remove('hidden');
+    localStorage.setItem('ultimaExibicaoFeedback', anoMesAtual);
+  }
+}
+window.addEventListener('load', abrirModalSeNaoVistoEsteMes);
+
+// ===========================
+// Fechar modal
+// ===========================
+fecharModal.addEventListener('click', () => modal.classList.add('hidden'));
+cancelarBtn.addEventListener('click', () => modal.classList.add('hidden'));
+window.addEventListener('click', e => { if(e.target === modal) modal.classList.add('hidden') });
+
+// ===========================
+// Atualiza estrelas com efeito
+// ===========================
+function atualizarEstrelas(nota){
+  estrelas.forEach((estrela, index) => {
+    if(index < nota){
+      estrela.classList.remove('text-gray-300');
+      estrela.classList.add('text-blue-500', 'scale-110'); // efeito escala
+    } else {
+      estrela.classList.remove('text-blue-500', 'scale-110');
+      estrela.classList.add('text-gray-300');
+    }
+  });
+  msgAvaliacao.textContent = nota ? feedbackText[nota] : '';
+}
+
+// Eventos das estrelas
+estrelas.forEach((estrela, index) => {
+  // Hover: cresce levemente
+  estrela.addEventListener('mouseover', () => {
+    estrela.classList.add('scale-125', 'transition-transform', 'duration-200');
+    atualizarEstrelas(index + 1);
+  });
+
+  estrela.addEventListener('mouseout', () => {
+    estrela.classList.remove('scale-125');
+    atualizarEstrelas(avaliacao);
+  });
+
+  // Click: define avaliação com efeito “bounce”
+  estrela.addEventListener('click', () => {
+    avaliacao = index + 1;
+    atualizarEstrelas(avaliacao);
+    estrela.classList.add('animate-bounce');
+    setTimeout(() => estrela.classList.remove('animate-bounce'), 500);
+    console.log("Avaliação:", avaliacao);
+  });
+});
+
+// ===========================
+// Envio do feedback para Supabase
+// ===========================
+enviarBtn.addEventListener('click', async () => {
+  const mensagem = feedbackInput.value;
+
+  if(avaliacao === 0){
+    alert("Por favor, selecione uma avaliação de 1 a 5 estrelas.");
+    return;
+  }
+
+  // Informações adicionais do usuário
+  const navegador = navigator.userAgent;
+  const sistema_operacional = navigator.platform;
+  const url_pagina = window.location.href;
+
+  let dispositivo = "Desktop";
+  if(/Mobi|Android/i.test(navigator.userAgent)) dispositivo = "Mobile";
+  if(/iPad|Tablet/i.test(navigator.userAgent)) dispositivo = "Tablet";
+
+  try {
+    const { data, error } = await supabase
+      .from('feedbacks')
+      .insert([{
+        usuario: nomeUsuario,
+        empresa: nomeEmpresa,
+        avaliacao: avaliacao,
+        mensagem: mensagem,
+        navegador: navegador,
+        sistema_operacional: sistema_operacional,
+        url_pagina: url_pagina,
+        dispositivo: dispositivo
+      }]);
+
+    if(error){
+      console.error(error);
+      alert("Erro ao enviar o feedback. Tente novamente.");
+    } else {
+      alert("Obrigado pelo seu feedback!");
+      modal.classList.add('hidden');
+      feedbackInput.value = "";
+      atualizarEstrelas(0);
+      avaliacao = 0;
+    }
+  } catch(err){
+    console.error(err);
+    alert("Erro ao enviar o feedback. Verifique sua conexão.");
+  }
+});

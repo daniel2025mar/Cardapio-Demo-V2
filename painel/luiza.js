@@ -27,6 +27,8 @@ const chatMessages = document.getElementById("chatMessages");
 ============================= */
 let iniciou = false;
 let aguardandoCliente = false;
+let aguardandoFeedback = false;
+let confirmandoEnvioFeedback = false; // controla se o usuário disse sim ou não
 let aguardandoErro = false;
 let aguardandoContinuidade = false;
 let clienteAtual = null;
@@ -559,6 +561,43 @@ function abrirModalClientes() {
     }
   }
 
+  /* =============================
+// RESPOSTA DO FEEDBACK
+============================= */
+if (confirmandoEnvioFeedback) {
+  confirmandoEnvioFeedback = false; // desativa a espera para evitar loops
+
+  if (usuarioDisseSim(texto)) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot("Perfeito! Abrindo a área de feedback 💌");
+
+      // espera 3 segundos e abre o modal
+      setTimeout(() => {
+        const modal = document.getElementById("modalFeedback");
+        modal.classList.remove("hidden"); // mostra o modal
+      }, 3000);
+
+    }, 1000);
+    return;
+  }
+
+  if (usuarioDisseNao(texto)) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot("Tudo bem 😊<br>Se quiser enviar depois, é só me avisar.");
+    }, 1000);
+    return;
+  }
+
+  // Caso o usuário digite algo diferente
+  adicionarMensagemBot("Por favor, responda apenas com <strong>sim</strong> ou <strong>não</strong>.");
+  confirmandoEnvioFeedback = true; // reativa a espera
+  return;
+}
+
   /* ===== CONTINUIDADE ===== */
   if (aguardandoContinuidade) {
     aguardandoContinuidade = false;
@@ -848,6 +887,7 @@ function mostrarOpcoesIniciais() {
     <div class="opcoes-chat">
       <button onclick="selecionarOpcao('cliente')">👤 Cliente</button>
       <button onclick="selecionarOpcao('erro')">🛠 Erros do sistema</button>
+      <button onclick="selecionarOpcao('feedback')">💬 Feedback</button>
     </div>
   `;
   chatMessages.appendChild(div);
@@ -872,8 +912,19 @@ window.selecionarOpcao = function (opcao) {
       );
       aguardandoErro = true;
     }
+
+    if (opcao === "feedback") {
+      adicionarMensagemBot(
+        "Ótimo 💙<br><br>" +
+        "Gostaria de enviar um feedback? 😊<br>" +
+        "Responda com <strong>sim</strong> ou <strong>não</strong>."
+      );
+      confirmandoEnvioFeedback = true; // ativa a espera da resposta
+    }
+
   }, 1000);
 };
+
 
 
 /* =============================

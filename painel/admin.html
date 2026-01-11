@@ -4090,7 +4090,11 @@ input:not(:placeholder-shown) + .label-flutuante {
     <!-- Conteúdo detalhado com scroll invisível -->
     <div class="px-4 text-gray-700 text-sm text-center space-y-2 overflow-y-auto max-h-[60vh] w-full scrollbar-none flex flex-col items-center">
       <p><strong>Nome:</strong> Daniel Martins</p>
-      <p><strong>Email:</strong> dmdesigngrafico20@hotmail.com</p>
+      <p><strong>Email:</strong> 
+        <a href="mailto:dmdesigngrafico20@hotmail.com" class="text-blue-600 hover:underline">
+          dmdesigngrafico20@hotmail.com
+        </a>
+      </p>
       <p><strong>Telefone:</strong> (34) 9 9821-7498</p>
       <p><strong>Empresa:</strong> GM GestioMax</p>
       <p><strong>Função:</strong> Desenvolvedor do sistema de vendas e cardápio online</p>
@@ -4101,7 +4105,6 @@ input:not(:placeholder-shown) + .label-flutuante {
         <a href="https://www.instagram.com/design_grafico_dm?igsh=MW11bDh4Z2Y5c3VsYg==" class="text-blue-600 hover:underline" target="_blank">Instagram</a>
       </p>
     </div>
-
   </div>
 </div>
 
@@ -4117,6 +4120,39 @@ input:not(:placeholder-shown) + .label-flutuante {
   }
 </style>
 
+<!--fedback-->
+
+<div id="modalFeedback" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+  <div class="bg-white rounded-2xl w-96 p-6 relative shadow-2xl transform transition-all duration-300 scale-95 hover:scale-100">
+    
+    <!-- Botão de fechar -->
+    <button id="fecharModal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+    
+    <!-- Título do modal -->
+    <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Avalie sua experiência</h2>
+    
+    <!-- Subtítulo opcional -->
+    <p class="text-gray-500 text-sm text-center mb-4">Sua opinião nos ajuda a melhorar!</p>
+    
+    <!-- Área do feedback -->
+    <textarea id="feedbackInput" placeholder="Digite seu feedback..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition placeholder-gray-400"></textarea>
+    
+    <!-- Área das estrelas -->
+    <div id="estrelas" class="flex justify-center mb-6 space-x-3">
+      <span class="estrela cursor-pointer text-gray-300 text-3xl transition-colors duration-200 hover:text-blue-500">&#9733;</span>
+      <span class="estrela cursor-pointer text-gray-300 text-3xl transition-colors duration-200 hover:text-blue-500">&#9733;</span>
+      <span class="estrela cursor-pointer text-gray-300 text-3xl transition-colors duration-200 hover:text-blue-500">&#9733;</span>
+      <span class="estrela cursor-pointer text-gray-300 text-3xl transition-colors duration-200 hover:text-blue-500">&#9733;</span>
+      <span class="estrela cursor-pointer text-gray-300 text-3xl transition-colors duration-200 hover:text-blue-500">&#9733;</span>
+    </div>
+    
+    <!-- Botões -->
+    <div class="flex justify-between gap-3">
+      <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg w-1/2 hover:bg-gray-300 transition">Cancelar</button>
+      <button class="bg-blue-600 text-white px-4 py-2 rounded-lg w-1/2 hover:bg-blue-700 transition">Enviar</button>
+    </div>
+  </div>
+</div>
 
 
   <!-- FOOTER -->

@@ -5572,3 +5572,96 @@ document.addEventListener("DOMContentLoaded", () => {
     renderizarClientes(filtrados);
   });
 });
+
+//atualizaçao de taxa de entrega
+// =============================
+// ALTERAR TAXA DE ENTREGA
+// =============================
+
+const inputTaxa = document.getElementById("inputTaxaEntrega");
+const btnSalvarTaxa = document.getElementById("btnSalvarTaxa");
+const msgTaxa = document.getElementById("msgTaxa");
+
+// guarda o valor atual vindo do banco
+let valorAtualTaxa = null;
+
+/* =============================
+   CARREGAR TAXA AO ABRIR
+============================= */
+async function carregarTaxaEntrega() {
+  const { data, error } = await supabase
+    .from("taxa")
+    .select("valor")
+    .eq("id", 1)
+    .single();
+
+  if (error) {
+    console.error("Erro ao carregar taxa:", error);
+    return;
+  }
+
+  valorAtualTaxa = Number(data.valor);
+  inputTaxa.value = valorAtualTaxa.toFixed(2);
+}
+
+carregarTaxaEntrega();
+
+/* =============================
+   SALVAR NOVA TAXA
+============================= */
+btnSalvarTaxa.addEventListener("click", async () => {
+  const novoValor = parseFloat(inputTaxa.value);
+
+  // validação básica
+  if (isNaN(novoValor) || novoValor < 0) {
+    mostrarErroTaxa("Informe um valor válido para a taxa.");
+    return;
+  }
+
+  // 🚫 valor igual ao atual
+  if (novoValor === valorAtualTaxa) {
+    mostrarErroTaxa("O valor informado já é o valor atual da taxa.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("taxa")
+    .update({ valor: novoValor })
+    .eq("id", 1);
+
+  if (error) {
+    console.error("Erro ao atualizar taxa:", error);
+    mostrarErroTaxa("Erro ao salvar a taxa.");
+    return;
+  }
+
+  // atualiza valor local
+  valorAtualTaxa = novoValor;
+
+  mostrarSucessoTaxa();
+});
+
+/* =============================
+   FEEDBACK VISUAL
+============================= */
+function mostrarSucessoTaxa() {
+  msgTaxa.textContent = "✔ Taxa atualizada com sucesso!";
+  msgTaxa.classList.remove("hidden");
+  msgTaxa.classList.remove("text-red-600");
+  msgTaxa.classList.add("text-green-600");
+
+  setTimeout(() => {
+    msgTaxa.classList.add("hidden");
+  }, 3000);
+}
+
+function mostrarErroTaxa(mensagem) {
+  msgTaxa.textContent = mensagem;
+  msgTaxa.classList.remove("hidden");
+  msgTaxa.classList.remove("text-green-600");
+  msgTaxa.classList.add("text-red-600");
+
+  setTimeout(() => {
+    msgTaxa.classList.add("hidden");
+  }, 4000);
+}

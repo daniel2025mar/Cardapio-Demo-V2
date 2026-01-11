@@ -12,6 +12,19 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
 
+  // Bloqueia Ctrl + + / Ctrl + - / Ctrl + 0
+  window.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && 
+        (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+      e.preventDefault();
+    }
+  });
+
+  // Bloqueia zoom com scroll + Ctrl
+  window.addEventListener('wheel', function(e) {
+    if (e.ctrlKey) e.preventDefault();
+  }, { passive: false });
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   const spanEmpresa = document.getElementById("nomeEmpresa");
@@ -5665,3 +5678,35 @@ function mostrarErroTaxa(mensagem) {
     msgTaxa.classList.add("hidden");
   }, 4000);
 }
+
+//funçao onde mostra a informaçoes do desenvolvedor
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Seleciona elementos
+  const logoClick = document.getElementById('logoClick');
+  const modalSobre = document.getElementById('modalSobre');
+  const btnFechar = document.getElementById('btnFecharModal');
+
+  if (!logoClick || !modalSobre || !btnFechar) {
+    console.error('Elementos do modal não encontrados.');
+    return;
+  }
+
+  // Abrir modal ao clicar na logo
+  logoClick.addEventListener('click', () => {
+    modalSobre.classList.remove('hidden');
+  });
+
+  // Fechar modal ao clicar no botão X
+  btnFechar.addEventListener('click', (e) => {
+    e.stopPropagation(); // impede o clique de "subir" para o modal
+    modalSobre.classList.add('hidden');
+  });
+
+  // Fechar modal ao clicar fora da caixa
+  modalSobre.addEventListener('click', (e) => {
+    if (e.target === modalSobre) {
+      modalSobre.classList.add('hidden');
+    }
+  });
+});

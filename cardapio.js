@@ -564,34 +564,110 @@ esperarElemento("horarioAtendimento", () => {
     .subscribe();
 });
 
-// Lista de categorias (pode vir do Supabase ou API)
-const categorias = [
-  { id: 1, nome: "Bebidas" },
-  { id: 2, nome: "Lanches" },
-  { id: 3, nome: "Sobremesas" },
-  { id: 4, nome: "Promoções" },
-  { id: 5, nome: "Saladas" }
-];
-
-// Função para popular categorias
-function carregarCategorias() {
+/* =============================
+   CARREGAR CATEGORIAS COM PRODUTOS (POR NOME)
+============================= */
+async function carregarCategorias() {
   const container = document.getElementById("categoriasSection");
-  container.innerHTML = ""; // limpa antes de adicionar
+  container.innerHTML = "";
 
-  categorias.forEach(cat => {
-    const btn = document.createElement("button");
-    btn.textContent = cat.nome;
-    btn.className = "px-4 py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition text-sm sm:text-base";
-    btn.addEventListener("click", () => {
-      console.log("Categoria selecionada:", cat.nome);
-      // Aqui você pode filtrar os produtos pelo id/nome da categoria
+  // 🔹 Adiciona o card "Todos" manualmente
+  const buttonTodos = document.createElement("button");
+  buttonTodos.className = `
+    flex flex-col items-center justify-center gap-2
+    px-5 py-4
+    bg-white rounded-xl shadow-md
+    text-gray-700 font-semibold
+    hover:shadow-xl hover:text-red-600 transition
+    duration-300 ease-in-out
+    border-2 border-red-600
+  `;
+  buttonTodos.innerHTML = `
+    <div class="w-12 h-12 flex items-center justify-center bg-red-50 rounded-full">
+      <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 15l-5.878 3.09 1.123-6.545L.49 6.91l6.561-.955L10 0l2.949 5.955 6.561.955-4.755 4.635 1.123 6.545z"/>
+      </svg>
+    </div>
+    <span class="text-sm sm:text-base mt-1">Todos</span>
+  `;
+  buttonTodos.addEventListener("click", () => {
+    document.querySelectorAll("#categoriasSection button").forEach(b => {
+      b.classList.remove("border-red-600", "text-red-600");
     });
-    container.appendChild(btn);
+    buttonTodos.classList.add("border-red-600", "text-red-600");
+
+    console.log("Categoria selecionada: Todos");
+
+    // 👉 carregar todos os produtos
+    // carregarProdutosPorCategoria(""); // ou criar função que carrega todos
   });
+  container.appendChild(buttonTodos);
+
+  const { data: categorias, error } = await supabase
+    .from("categorias")
+    .select("id, nome, icone")
+    .order("nome", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar categorias:", error);
+    return;
+  }
+
+  for (const cat of categorias) {
+    const { data: produtos, error: erroProdutos } = await supabase
+      .from("produtos")
+      .select("id")
+      .eq("categoria", cat.nome)
+      .limit(1);
+
+    if (erroProdutos) {
+      console.error("Erro ao verificar produtos:", erroProdutos);
+      continue;
+    }
+
+    if (!produtos || produtos.length === 0) {
+      continue;
+    }
+
+    const button = document.createElement("button");
+    button.className = `
+      flex flex-col items-center justify-center gap-2
+      px-5 py-4
+      bg-white rounded-xl shadow-md
+      text-gray-700 font-semibold
+      hover:shadow-xl hover:text-red-600 transition
+      duration-300 ease-in-out
+      border-2 border-transparent
+    `;
+    button.innerHTML = `
+      <div class="w-12 h-12 flex items-center justify-center bg-red-50 rounded-full">
+        <img
+          src="${cat.icone}"
+          alt="${cat.nome}"
+          class="w-6 h-6 object-contain"
+        />
+      </div>
+      <span class="text-sm sm:text-base mt-1">${cat.nome}</span>
+    `;
+
+    button.addEventListener("click", () => {
+      document.querySelectorAll("#categoriasSection button").forEach(b => {
+        b.classList.remove("border-red-600", "text-red-600");
+      });
+      button.classList.add("border-red-600", "text-red-600");
+
+      console.log("Categoria selecionada:", cat.nome);
+
+      //carregarProdutosPorCategoria(cat.nome);
+    });
+
+    container.appendChild(button);
+  }
 }
 
-// Chama a função para popular as categorias
-carregarCategorias();
+// iniciar
+document.addEventListener("DOMContentLoaded", carregarCategorias);
+
 
 // Informações da 
 async function carregarEmpresa() {

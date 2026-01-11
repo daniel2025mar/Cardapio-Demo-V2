@@ -8,6 +8,9 @@ const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+let taxaEntregaValor = 0; // guarda a taxa real vinda do Supabase
+let apagandoCelular = false;
+
 // =============================
 // BUSCAR PRODUTOS
 // =============================
@@ -326,32 +329,141 @@ function abrirModalOpcoes(produto) {
 window.addEventListener("DOMContentLoaded", carregarProdutosNoCardapio);
 
 
- // Espera o DOM carregar
-  document.addEventListener("DOMContentLoaded", () => {
-    const botaoCarrinho = document.getElementById("card-btn");
-    const modal = document.getElementById("modalPedido");
-    const botaoFechar = document.getElementById("fecharModalCarrinho");
+async function carregarTaxaEntrega() {
+  try {
+    const { data, error } = await supabase
+      .from("taxa")
+      .select("valor")
+      .eq("id", 1)
+      .single();
 
-    // Abre o modal ao clicar no botão do footer
-    botaoCarrinho.addEventListener("click", () => {
-      modal.classList.remove("hidden");
-    });
+    if (error) {
+      console.error("Erro ao buscar taxa:", error);
+      return;
+    }
 
-    // Fecha o modal
-    botaoFechar.addEventListener("click", () => {
-      modal.classList.add("hidden");
-    });
+    taxaEntregaValor = Number(data.valor) || 0;
+    atualizarTaxaNaTela(taxaEntregaValor);
 
-    // Fecha clicando fora do conteúdo
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.add("hidden");
-      }
-    });
+  } catch (err) {
+    console.error("Erro inesperado ao carregar taxa:", err);
+  }
+}
+
+function atualizarTaxaNaTela(valor) {
+  const spanTaxa = document.getElementById("taxaEntrega");
+
+  if (!spanTaxa) return;
+
+  spanTaxa.textContent = valor.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function formatarCelular(valor) {
+  // pega somente números
+  let numeros = valor.replace(/\D/g, "").substring(0, 11);
+
+  let formatado = "";
+
+  if (numeros.length > 0) {
+    formatado = "(" + numeros.substring(0, 2);
+  }
+  if (numeros.length >= 3) {
+    formatado += ") " + numeros.substring(2, 3);
+  }
+  if (numeros.length >= 4) {
+    formatado += " " + numeros.substring(3, 7);
+  }
+  if (numeros.length >= 8) {
+    formatado += "-" + numeros.substring(7, 11);
+  }
+
+  return formatado;
+}
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const botaoCarrinho = document.getElementById("card-btn");
+  const modal = document.getElementById("modalPedido");
+  const botaoFechar = document.getElementById("fecharModalCarrinho");
+  const checkboxRetirarLocal = document.getElementById("retirarLocal");
+
+  const btnFinalizar = document.getElementById("finalizarPedido");
+  const inputEndereco = document.getElementById("enderecoEntrega");
+  const inputCelular = document.getElementById("celularContato");
+
+  // 🔢 Máscara do celular
+  inputCelular.addEventListener("input", () => {
+    inputCelular.value = formatarCelular(inputCelular.value);
   });
 
+  // Abre o modal
+  botaoCarrinho.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+  });
 
-  
+  // Fecha o modal
+  botaoFechar.addEventListener("click", () => {
+    modal.classList.add("hidden");
+  });
+
+  // Fecha clicando fora
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("hidden");
+    }
+  });
+
+  // Retirar no local
+  checkboxRetirarLocal.addEventListener("change", () => {
+    if (checkboxRetirarLocal.checked) {
+      atualizarTaxaNaTela(0);
+
+      inputEndereco.value = "";
+      inputEndereco.disabled = true;
+      inputEndereco.classList.add("bg-gray-100");
+    } else {
+      atualizarTaxaNaTela(taxaEntregaValor);
+
+      inputEndereco.disabled = false;
+      inputEndereco.classList.remove("bg-gray-100");
+    }
+  });
+
+  // 🔒 Validação ao finalizar pedido
+  btnFinalizar.addEventListener("click", (e) => {
+    let erro = false;
+
+    inputEndereco.classList.remove("border-red-500");
+    inputCelular.classList.remove("border-red-500");
+
+    // celular obrigatório e completo (16 caracteres)
+    if (inputCelular.value.trim().length < 16) {
+      erro = true;
+      inputCelular.classList.add("border-red-500");
+    }
+
+    // endereço obrigatório se for entrega
+    if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
+      erro = true;
+      inputEndereco.classList.add("border-red-500");
+    }
+
+    if (erro) {
+      e.preventDefault();
+      alert("⚠️ Preencha corretamente o celular e o endereço.");
+      return;
+    }
+
+    console.log("Pedido validado com sucesso!");
+  });
+
+  // Carrega taxa
+  carregarTaxaEntrega();
+});
  // =============================
 // CARREGAR HORÁRIO DE ATENDIMENTO
 // =============================

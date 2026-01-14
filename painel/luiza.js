@@ -933,3 +933,25 @@ window.selecionarOpcao = function (opcao) {
 function rolarChat() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+const avatars = document.querySelectorAll('.luiza-avatar');
+const modal = document.getElementById('modalLuiza');
+const modalImg = document.getElementById('imgLuizaModal');
+const closeBtn = document.querySelector('.close-luiza');
+
+avatars.forEach(img => {
+  img.style.cursor = "pointer";
+  img.addEventListener('click', () => {
+    modal.classList.add('ativo');
+    modalImg.src = img.src;
+    document.body.style.overflow = "hidden"; // trava scroll
+  });
+});
+
+closeBtn.onclick = () => {
+  modal.classList.remove('ativo');
+  document.body.style.overflow = "";
+};
+
+// clicar fora NÃO fecha (igual WhatsApp)
+// se quiser fechar tocando fora, me avisa

@@ -5855,3 +5855,45 @@ enviarBtn.addEventListener('click', async () => {
     alert("Erro ao enviar o feedback. Verifique sua conexão.");
   }
 });
+
+//funçao para atualizar o pedido delivery
+
+async function atualizarPedidosDelivery() {
+  const { count, error } = await supabase
+    .from('pedidos')
+    .select('id', { count: 'exact', head: true })
+    .eq('tipo_entrega', 'delivery')
+
+  if (error) {
+    console.error('Erro ao buscar pedidos delivery:', error)
+    return
+  }
+
+  const card = document.getElementById('cardPedidosDelivery')
+  if (card) {
+    card.textContent = count ?? 0
+  }
+}
+
+// 🔄 Atualização em tempo real
+supabase
+  .channel('pedidos-delivery-realtime')
+  .on(
+    'postgres_changes',
+    {
+      event: '*', // INSERT, UPDATE, DELETE
+      schema: 'public',
+      table: 'pedidos',
+      filter: 'tipo_entrega=eq.delivery'
+    },
+    (payload) => {
+      console.log('Pedido delivery alterado:', payload)
+      atualizarPedidosDelivery()
+    }
+  )
+  .subscribe()
+
+// 🚀 Atualiza ao abrir o dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  atualizarPedidosDelivery()
+})

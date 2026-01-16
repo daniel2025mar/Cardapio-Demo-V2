@@ -933,3 +933,67 @@ function adicionarProdutoDireto(produto) {
   atualizarCarrinhoUI();
   alert(`${produto.descricao} adicionado ao carrinho!`);
 }
+
+
+// ===============================
+// ELEMENTOS
+// ===============================
+const inputPesquisa = document.getElementById('pesquisaProduto')
+const resultado = document.getElementById('resultadoProdutos')
+const produtosContainer = document.getElementById('produtosContainer')
+
+// ===============================
+// BUSCA COM RESET TOTAL
+// ===============================
+async function verificarProduto(texto) {
+
+  // 🔁 RESET TOTAL
+  if (!texto || texto.trim() === '') {
+    resultado.innerHTML = ''
+
+    // Mostra cardápio normal novamente
+    produtosContainer.classList.remove('hidden')
+
+    return
+  }
+
+  // Oculta cardápio normal durante a busca
+  produtosContainer.classList.add('hidden')
+
+  const { data, error } = await supabase
+    .from('produtos')
+    .select('descricao')
+    .ilike('descricao', `%${texto}%`)
+    .limit(1)
+
+  if (error) {
+    console.error(error)
+    resultado.innerHTML = `
+      <p class="text-red-600 text-center font-semibold">
+        Erro ao consultar produtos
+      </p>
+    `
+    return
+  }
+
+  if (data.length > 0) {
+    resultado.innerHTML = `
+      <p class="text-green-600 text-center font-bold mt-2">
+        ✅ Temos esse produto no cardápio!
+      </p>
+    `
+  } else {
+    resultado.innerHTML = `
+      <p class="text-red-600 text-center font-bold mt-2">
+        ❌ Produto não encontrado
+      </p>
+    `
+  }
+}
+
+// ===============================
+// EVENTO
+// ===============================
+inputPesquisa.addEventListener('input', (e) => {
+  verificarProduto(e.target.value)
+})

@@ -5,7 +5,7 @@
   <!-- Bloquear zoom -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-  <title>Cardápio de Produtos</title>
+  <title>Cardápio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
@@ -47,7 +47,7 @@
 
   <!-- Nome da Empresa -->
   <h1 id="nomeEmpresa" class="text-4xl sm:text-5xl font-bold text-white text-center">
-    Carregando nome...
+    Carregando...
   </h1>
 </div>
 
@@ -92,27 +92,32 @@
 
 <!-- Pesquisa de Produtos -->
 <div class="w-full flex justify-center px-4 mb-6">
-  <div class="w-full max-w-md relative">
+  <div class="w-full max-w-md relative flex">
+    
+    <!-- Input -->
     <input 
       type="text" 
       id="pesquisaProduto"
       placeholder="Pesquisar produto..."
-      class="w-full p-3 pl-10 rounded-lg border border-gray-300 
-             focus:outline-none focus:ring-2 focus:ring-red-600
-             text-sm sm:text-base shadow-sm"
+      class="w-full p-3 pr-12 rounded-lg border border-gray-300
+             focus:outline-none text-sm sm:text-base shadow-sm"
     >
-    
-    <!-- Ícone de lupa -->
-    <svg xmlns="http://www.w3.org/2000/svg" 
-         class="h-5 w-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 0 0114 0z" />
-    </svg>
+
+    <!-- Botão com lupa -->
+    <button class="absolute right-0 top-0 h-full w-12 bg-red-600 rounded-r-lg flex items-center justify-center
+                   hover:bg-red-500 transition-colors duration-200">
+      <!-- Ícone de lupa profissional -->
+      <svg xmlns="http://www.w3.org/2000/svg" 
+           class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M10 2a8 8 0 105.292 14.292l4.708 4.708a1 1 0 001.414-1.414l-4.708-4.708A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/>
+      </svg>
+    </button>
+
   </div>
 </div>
 
 
+<div id="resultadoProdutos"></div>
 <!-- ========================= -->
 <!-- Seção de Categorias -->
 <!-- ========================= -->

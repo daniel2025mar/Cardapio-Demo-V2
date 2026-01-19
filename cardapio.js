@@ -117,6 +117,9 @@ export async function carregarProdutosNoCardapio() {
     const blocoCategoria = document.createElement("div");
     blocoCategoria.className = "col-span-full mb-4";
 
+    // ✅ ADICIONE ESTA LINHA
+    blocoCategoria.dataset.categoria = nomeCategoria;
+    
     blocoCategoria.innerHTML = `
       <h2 class="text-2xl font-bold mb-1">${categoria.nome}</h2>
       <p class="text-gray-600 italic">${categoria.descricao || ""}</p>
@@ -948,9 +951,7 @@ const produtosContainer = document.getElementById('produtosContainer')
 // ===============================
 // BUSCA REAL NO CARDÁPIO
 // ===============================
-// ===============================
-// BUSCA DENTRO DO CARDÁPIO
-// ===============================
+
 function filtrarProdutos(texto) {
   const termo = texto.trim().toLowerCase();
   const categorias = produtosContainer.querySelectorAll("[data-categoria]");

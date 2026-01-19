@@ -121,9 +121,28 @@
 <!-- ========================= -->
 <!-- Seção de Categorias -->
 <!-- ========================= -->
-<section id="categoriasSection" class="w-full p-4 sm:p-6 flex flex-wrap justify-center gap-4">
-  <!-- Categorias serão inseridas aqui via JS -->
+<section
+  id="categoriasSection"
+  class="
+    w-full
+    p-4 sm:p-6
+
+    /* MOBILE */
+    flex
+    gap-4
+    overflow-x-auto
+    flex-nowrap
+    scrollbar-hide
+
+    /* DESKTOP */
+    sm:flex-wrap
+    sm:justify-center
+    sm:overflow-visible
+  "
+>
+  <!-- Categorias via JS -->
 </section>
+
 <div class="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 
             text-center py-2 mt-3 font-medium shadow-md flex items-center justify-center gap-2 px-3">
 

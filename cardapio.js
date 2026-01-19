@@ -134,6 +134,11 @@ export async function carregarProdutosNoCardapio() {
       card.className =
         "group bg-white rounded-lg shadow p-4 flex flex-col cursor-pointer hover:shadow-lg transition";
 
+        // 🔽 AQUI (IMEDIATAMENTE APÓS CRIAR O CARD)
+       card.classList.add("produto-card");
+       card.dataset.nome = produto.descricao.toLowerCase();
+       card.dataset.categoria = nomeCategoria;
+       
       const imgClasses = indisponivel
         ? "w-full h-40 object-cover rounded mb-2 grayscale"
         : "w-full h-40 object-cover rounded mb-2";
@@ -934,66 +939,53 @@ function adicionarProdutoDireto(produto) {
   alert(`${produto.descricao} adicionado ao carrinho!`);
 }
 
-
 // ===============================
 // ELEMENTOS
 // ===============================
 const inputPesquisa = document.getElementById('pesquisaProduto')
-const resultado = document.getElementById('resultadoProdutos')
 const produtosContainer = document.getElementById('produtosContainer')
 
 // ===============================
-// BUSCA COM RESET TOTAL
+// BUSCA REAL NO CARDÁPIO
 // ===============================
-async function verificarProduto(texto) {
+// ===============================
+// BUSCA DENTRO DO CARDÁPIO
+// ===============================
+function filtrarProdutos(texto) {
+  const termo = texto.trim().toLowerCase();
+  const categorias = produtosContainer.querySelectorAll("[data-categoria]");
+  const cards = produtosContainer.querySelectorAll(".produto-card");
 
   // 🔁 RESET TOTAL
-  if (!texto || texto.trim() === '') {
-    resultado.innerHTML = ''
-
-    // Mostra cardápio normal novamente
-    produtosContainer.classList.remove('hidden')
-
-    return
+  if (!termo) {
+    categorias.forEach(cat => cat.classList.remove("hidden"));
+    cards.forEach(card => card.classList.remove("hidden"));
+    return;
   }
 
-  // Oculta cardápio normal durante a busca
-  produtosContainer.classList.add('hidden')
+  // Esconde tudo
+  categorias.forEach(cat => cat.classList.add("hidden"));
+  cards.forEach(card => card.classList.add("hidden"));
 
-  const { data, error } = await supabase
-    .from('produtos')
-    .select('descricao')
-    .ilike('descricao', `%${texto}%`)
-    .limit(1)
+  // Mostra apenas os produtos que batem
+  cards.forEach(card => {
+    if (card.dataset.nome.includes(termo)) {
+      card.classList.remove("hidden");
 
-  if (error) {
-    console.error(error)
-    resultado.innerHTML = `
-      <p class="text-red-600 text-center font-semibold">
-        Erro ao consultar produtos
-      </p>
-    `
-    return
-  }
-
-  if (data.length > 0) {
-    resultado.innerHTML = `
-      <p class="text-green-600 text-center font-bold mt-2">
-        ✅ Temos esse produto no cardápio!
-      </p>
-    `
-  } else {
-    resultado.innerHTML = `
-      <p class="text-red-600 text-center font-bold mt-2">
-        ❌ Produto não encontrado
-      </p>
-    `
-  }
+      // Mostra a categoria correspondente
+      const categoria = produtosContainer.querySelector(
+        `[data-categoria="${card.dataset.categoria}"]`
+      );
+      if (categoria) categoria.classList.remove("hidden");
+    }
+  });
 }
+
 
 // ===============================
 // EVENTO
 // ===============================
-inputPesquisa.addEventListener('input', (e) => {
-  verificarProduto(e.target.value)
-})
+inputPesquisa.addEventListener("input", e => {
+  filtrarProdutos(e.target.value);
+});
+

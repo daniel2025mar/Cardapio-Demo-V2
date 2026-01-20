@@ -10,6 +10,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let taxaEntregaValor = 0; // guarda a taxa real vinda do Supabase
 let apagandoCelular = false;
+let carrinho = [];
 
 // =============================
 // BUSCAR PRODUTOS
@@ -246,6 +247,7 @@ async function abrirModalAviso() {
 
 
 export function abrirModal(produto) {
+   console.log("MODAL ABERTO", produto); // 👈 TESTE
   const modal = document.getElementById("modalProduto");
   const conteudo = document.getElementById("modalConteudo");
 
@@ -275,44 +277,64 @@ export function abrirModal(produto) {
   document.getElementById("fecharModal").onclick = () => modal.classList.add("hidden");
 
   // Botão de adicionar ao pedido (agora com verificação de horário)
-  document.getElementById("btnAdicionarPedido").onclick = async () => {
-    // Verificar estoque
-    if (produto.estoque === 0) {
-      alert("Produto indisponível no momento!");
-      return;
-    }
+  
+document.getElementById("btnAdicionarPedido").onclick = async () => {
+  // 🔎 DEBUG – confirma clique e produto
+  console.log("CLIQUE FUNCIONOU", produto);
 
-    // ======= VERIFICAR HORÁRIO NO SUPABASE =======
-    const dias = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
-    const agora = new Date();
-    const diaSemana = dias[agora.getDay()];
+  // =========================
+  // VERIFICAÇÃO DE ESTOQUE
+  // =========================
+  if (!produto || produto.estoque <= 0) {
+    alert("Produto indisponível no momento!");
+    return;
+  }
 
-    const horaAtual = agora.toTimeString().split(" ")[0]; // HH:MM:SS
+  // =========================
+  // VERIFICAÇÃO DE HORÁRIO
+  // =========================
+  const dias = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+  const agora = new Date();
+  const diaSemana = dias[agora.getDay()];
+  const horaAtual = agora.toTimeString().slice(0, 8); // HH:MM:SS
 
-    const { data, error } = await supabase
-      .from("horarios_semana")
-      .select("hora_inicio, hora_fim")
-      .eq("dia_semana", diaSemana)
-      .single();
+  const { data, error } = await supabase
+    .from("horarios_semana")
+    .select("hora_inicio, hora_fim")
+    .eq("dia_semana", diaSemana)
+    .single();
 
-    if (error) {
-      console.error("Erro ao buscar horários:", error);
-      alert("Erro ao verificar horário. Tente novamente.");
-      return;
-    }
+  if (error || !data) {
+    console.error("Erro ao buscar horários:", error);
+    alert("Erro ao verificar horário de funcionamento.");
+    return;
+  }
 
-    const horaInicio = data.hora_inicio; // "07:00:00"
-    const horaFim = data.hora_fim;       // "23:59:00"
+  const { hora_inicio, hora_fim } = data;
 
-    if (horaAtual >= horaInicio && horaAtual <= horaFim) {
-      // DENTRO DO HORÁRIO
-      alert(`Produto "${produto.descricao_nfe}" adicionado ao pedido!`);
-      adicionarProdutoDireto(produto);
-    } else {
-      // FORA DO HORÁRIO
-      abrirModalAviso();
-    }
-  };
+  // =========================
+  // DENTRO DO HORÁRIO
+  // =========================
+  if (horaAtual >= hora_inicio && horaAtual <= hora_fim) {
+
+    // ✅ ENVIA O FORMATO CORRETO PARA O CARRINHO
+    adicionarProdutoDireto({
+      id: produto.id,
+      descricao: produto.descricao,        // 👈 nome correto
+      valor: produto.valor_sugerido,        // 👈 valor correto
+      quantidade: 1
+    });
+
+    modal.classList.add("hidden"); // fecha o modal do produto
+
+  } else {
+    // =========================
+    // FORA DO HORÁRIO
+    // =========================
+    abrirModalAviso();
+  }
+};
+
 
   // Botão de escolher opções
   const btnOpcoes = document.getElementById("btnEscolherOpcoes");
@@ -437,6 +459,38 @@ function atualizarTaxaNaTela(valor) {
     currency: "BRL",
   });
 }
+
+function atualizarCarrinhoUI() {
+  const lista = document.getElementById("listaProdutos");
+  const totalEl = document.getElementById("totalPedido");
+
+  lista.innerHTML = "";
+
+  let total = 0;
+
+  carrinho.forEach(produto => {
+    const subtotal = produto.valor * produto.quantidade;
+    total += subtotal;
+
+    const li = document.createElement("li");
+    li.className = "flex justify-between text-sm";
+
+    li.innerHTML = `
+      <span>${produto.descricao} (${produto.quantidade}x)</span>
+      <span>R$ ${subtotal.toFixed(2)}</span>
+    `;
+
+    lista.appendChild(li);
+  });
+
+  totalEl.textContent = `R$ ${total.toFixed(2)}`;
+}
+
+
+function abrirModalPedido() {
+  document.getElementById("modalPedido").classList.remove("hidden");
+}
+
 
 function formatarCelular(valor) {
   // pega somente números
@@ -1010,12 +1064,18 @@ document.addEventListener('gesturestart', function(e) {
 
 // Função para adicionar direto ao carrinho
 function adicionarProdutoDireto(produto) {
-  // Aqui você adiciona o produto ao carrinho normalmente
-  // Exemplo:
-  carrinho.push({ ...produto, quantidade: 1 });
+  const existente = carrinho.find(p => p.id === produto.id);
+
+  if (existente) {
+    existente.quantidade += 1;
+  } else {
+    carrinho.push(produto);
+  }
+
   atualizarCarrinhoUI();
-  alert(`${produto.descricao} adicionado ao carrinho!`);
+  abrirModalPedido();
 }
+
 
 // ===============================
 // ELEMENTOS

@@ -203,6 +203,48 @@ export async function carregarProdutosNoCardapio() {
 // =============================
 // ABRIR MODAL DE PRODUTO
 // =============================
+
+async function pegarLogotipoEmpresa() {
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("logotipo")
+    .eq("id", 1)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar logotipo:", error);
+    return null;
+  }
+
+  return data.logotipo;
+}
+
+async function abrirModalAviso() {
+  const modalAviso = document.getElementById("modalAviso");
+
+  // pegar logotipo no supabase
+  const logotipo = await pegarLogotipoEmpresa();
+
+  // colocar no modal
+  const imgLogo = document.getElementById("logoAviso");
+  imgLogo.src = logotipo || "";
+
+  modalAviso.classList.remove("hidden");
+
+  document.getElementById("btnFecharAviso").onclick = () => {
+  // fecha o modal de aviso
+  modalAviso.classList.add("hidden");
+
+  // fecha o modal do produto também
+  const modalProduto = document.getElementById("modalProduto");
+  modalProduto.classList.add("hidden");
+};
+
+}
+
+
+
+
 export function abrirModal(produto) {
   const modal = document.getElementById("modalProduto");
   const conteudo = document.getElementById("modalConteudo");
@@ -232,36 +274,63 @@ export function abrirModal(produto) {
   modal.classList.remove("hidden");
   document.getElementById("fecharModal").onclick = () => modal.classList.add("hidden");
 
-  // Botão de adicionar ao pedido
-  document.getElementById("btnAdicionarPedido").onclick = () => {
+  // Botão de adicionar ao pedido (agora com verificação de horário)
+  document.getElementById("btnAdicionarPedido").onclick = async () => {
+    // Verificar estoque
     if (produto.estoque === 0) {
       alert("Produto indisponível no momento!");
-    } else {
+      return;
+    }
+
+    // ======= VERIFICAR HORÁRIO NO SUPABASE =======
+    const dias = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+    const agora = new Date();
+    const diaSemana = dias[agora.getDay()];
+
+    const horaAtual = agora.toTimeString().split(" ")[0]; // HH:MM:SS
+
+    const { data, error } = await supabase
+      .from("horarios_semana")
+      .select("hora_inicio, hora_fim")
+      .eq("dia_semana", diaSemana)
+      .single();
+
+    if (error) {
+      console.error("Erro ao buscar horários:", error);
+      alert("Erro ao verificar horário. Tente novamente.");
+      return;
+    }
+
+    const horaInicio = data.hora_inicio; // "07:00:00"
+    const horaFim = data.hora_fim;       // "23:59:00"
+
+    if (horaAtual >= horaInicio && horaAtual <= horaFim) {
+      // DENTRO DO HORÁRIO
       alert(`Produto "${produto.descricao_nfe}" adicionado ao pedido!`);
       adicionarProdutoDireto(produto);
+    } else {
+      // FORA DO HORÁRIO
+      abrirModalAviso();
     }
   };
 
   // Botão de escolher opções
   const btnOpcoes = document.getElementById("btnEscolherOpcoes");
-
-  // Lista de categorias consideradas bebidas
   const categoriasBebidas = ["bebidas", "refrigerantes", "sucos", "cervejas", "vinhos", "aguas", "destilados"];
-
-  // Normaliza a categoria do produto
   const categoriaNormalizada = produto.categoria?.trim().toLowerCase() || "";
 
   if (btnOpcoes) {
     if (categoriasBebidas.includes(categoriaNormalizada)) {
-      btnOpcoes.style.display = "none"; // Esconde botão para qualquer bebida
+      btnOpcoes.style.display = "none";
     } else {
-      btnOpcoes.style.display = "flex"; // Mostra botão para comidas
+      btnOpcoes.style.display = "flex";
       btnOpcoes.addEventListener("click", () => {
         abrirModalOpcoes(produto);
       });
     }
   }
 }
+
 
 
 
@@ -475,9 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
  // =============================
 // CARREGAR HORÁRIO DE ATENDIMENTO
 // =============================
-// =============================
-// FUNÇÃO PARA CARREGAR HORÁRIO E STATUS
-// =============================
+
 async function carregarHorarioResumo() {
   const elemento = document.getElementById("horarioAtendimento");
   if (!elemento) return;
@@ -490,49 +557,57 @@ async function carregarHorarioResumo() {
     if (error) throw error;
     if (!data || data.length === 0) {
       elemento.textContent = "Horário não configurado";
+      elemento.className = "text-gray-500 font-semibold text-[10px] sm:text-xs text-center";
       return;
     }
 
     const ordemDias = ["domingo","segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
 
-    // Filtra apenas dias com horário definido e ordena
     const horariosValidos = data
       .filter(d => d.hora_inicio && d.hora_fim)
       .sort((a, b) => ordemDias.indexOf(a.dia_semana) - ordemDias.indexOf(b.dia_semana));
 
     if (horariosValidos.length === 0) {
       elemento.textContent = "Horário não configurado";
+      elemento.className = "text-gray-500 font-semibold text-[10px] sm:text-xs text-center";
       return;
     }
 
-    // Resumo do horário (primeiro e último dia)
     const primeiro = horariosValidos[0];
     const ultimo = horariosValidos[horariosValidos.length - 1];
     const textoResumo = `${primeiro.dia_semana.charAt(0).toUpperCase() + primeiro.dia_semana.slice(1)} a ${ultimo.dia_semana.charAt(0).toUpperCase() + ultimo.dia_semana.slice(1)} - ${primeiro.hora_inicio.substring(0,5)} às ${ultimo.hora_fim.substring(0,5)}`;
 
-    // Verifica se está aberto ou fechado
     const agora = new Date();
-    const diaAtual = ordemDias[agora.getDay()]; // domingo=0, segunda=1 ...
-    const horarioAtual = agora.getHours() * 60 + agora.getMinutes(); // minutos desde meia-noite
+    const diaAtual = ordemDias[agora.getDay()];
+    const horarioAtual = agora.getHours() * 60 + agora.getMinutes();
 
     const horarioHoje = horariosValidos.find(h => h.dia_semana === diaAtual);
 
     let status = "Fechado";
+    let corStatus = "!text-red-600";  // <- aqui
+
     if (horarioHoje) {
       const inicio = parseInt(horarioHoje.hora_inicio.substring(0,2)) * 60 + parseInt(horarioHoje.hora_inicio.substring(3,5));
       const fim = parseInt(horarioHoje.hora_fim.substring(0,2)) * 60 + parseInt(horarioHoje.hora_fim.substring(3,5));
+
       if (horarioAtual >= inicio && horarioAtual <= fim) {
         status = "Aberto";
+        corStatus = "!text-black"; // <- aqui
       }
     }
 
     elemento.textContent = `${textoResumo} — ${status}`;
 
+    elemento.classList.remove("text-red-600", "text-green-600", "text-gray-700", "text-gray-500");
+    elemento.classList.add("font-semibold", "text-[10px]", "sm:text-xs", "text-center", corStatus);
+
   } catch (err) {
     console.error("Erro ao buscar horários:", err.message);
     elemento.textContent = "Erro ao carregar horários";
+    elemento.className = "text-gray-500 font-semibold text-[10px] sm:text-xs text-center";
   }
 }
+
 
 // =============================
 // FUNÇÃO PARA ESPERAR ELEMENTO EXISTIR
@@ -989,4 +1064,5 @@ function filtrarProdutos(texto) {
 inputPesquisa.addEventListener("input", e => {
   filtrarProdutos(e.target.value);
 });
+
 

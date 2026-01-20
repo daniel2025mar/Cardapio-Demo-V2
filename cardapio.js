@@ -483,7 +483,17 @@ function atualizarCarrinhoUI() {
     lista.appendChild(li);
   });
 
-  totalEl.textContent = `R$ ${total.toFixed(2)}`;
+  // VERIFICA SE O CHECKBOX ESTÁ MARCADO
+  const retirarLocal = document.getElementById("retirarLocal").checked;
+
+  // SE MARCADO -> NÃO SOMA TAXA
+  // SE NÃO MARCADO -> SOMA TAXA
+  const totalComTaxa = retirarLocal ? total : total + taxaEntregaValor;
+
+  totalEl.textContent = `R$ ${totalComTaxa.toFixed(2)}`;
+
+  // 🔁 ATUALIZA O CONTADOR DO CARRINHO
+  atualizarContadorCarrinho();
 }
 
 
@@ -549,20 +559,25 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Retirar no local
-  checkboxRetirarLocal.addEventListener("change", () => {
-    if (checkboxRetirarLocal.checked) {
-      atualizarTaxaNaTela(0);
+  // Retirar no local
+checkboxRetirarLocal.addEventListener("change", () => {
+  if (checkboxRetirarLocal.checked) {
+    atualizarTaxaNaTela(0);
 
-      inputEndereco.value = "";
-      inputEndereco.disabled = true;
-      inputEndereco.classList.add("bg-gray-100");
-    } else {
-      atualizarTaxaNaTela(taxaEntregaValor);
+    inputEndereco.value = "";
+    inputEndereco.disabled = true;
+    inputEndereco.classList.add("bg-gray-100");
+  } else {
+    atualizarTaxaNaTela(taxaEntregaValor);
 
-      inputEndereco.disabled = false;
-      inputEndereco.classList.remove("bg-gray-100");
-    }
-  });
+    inputEndereco.disabled = false;
+    inputEndereco.classList.remove("bg-gray-100");
+  }
+
+  // 🔁 ATUALIZA O TOTAL DO PEDIDO
+  atualizarCarrinhoUI();
+});
+
 
   // 🔒 Validação ao finalizar pedido
   btnFinalizar.addEventListener("click", (e) => {
@@ -1072,9 +1087,24 @@ function adicionarProdutoDireto(produto) {
     carrinho.push(produto);
   }
 
+  // Atualiza o carrinho e o contador sempre
   atualizarCarrinhoUI();
+  atualizarContadorCarrinho();
+
   abrirModalPedido();
 }
+
+
+function atualizarContadorCarrinho() {
+  const cardCount = document.getElementById("card-count");
+  if (!cardCount) return;
+
+  // conta quantos produtos diferentes existem no carrinho
+  const totalProdutosDiferentes = carrinho.length;
+
+  cardCount.textContent = totalProdutosDiferentes;
+}
+
 
 
 // ===============================

@@ -370,38 +370,66 @@
 <!-- =============================
  MODAL AVISO DE CARRINHO EXISTENTE
 ============================= -->
+
 <div
   id="modalCarrinhoExistente"
-  class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4"
+  class="fixed inset-0 hidden z-50 flex items-center justify-center bg-black/70 px-4"
 >
-  <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 text-center space-y-4">
-    <h2 class="text-lg font-bold text-gray-800">
-      Você tem um pedido em andamento
+  <!-- Glass Card -->
+  <div
+    class="w-full max-w-md rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl p-6 text-center space-y-5 animate-glassIn"
+  >
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 text-white text-xs font-medium">
+      Pedido salvo
+    </div>
+
+    <!-- Título -->
+    <h2 class="text-2xl font-bold text-white">
+      Você já tem um pedido ativo
     </h2>
 
-    <p class="text-gray-600 text-sm">
-      Existem produtos no seu carrinho. Deseja continuar o pedido?
+    <!-- Texto -->
+    <p class="text-white/80 text-sm leading-relaxed">
+      Encontramos itens no seu carrinho.<br>
+      Deseja continuar de onde parou?
     </p>
 
-    <div class="flex gap-2">
-      <button
-        id="btnContinuarPedido"
-        class="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold"
-      >
-        Continuar
-      </button>
+    <!-- CTA principal -->
+    <button
+      id="btnContinuarPedido"
+      class="w-full bg-red-600 hover:bg-red-700 active:scale-95 text-white py-3.5 rounded-2xl font-semibold shadow-lg transition-all"
+    >
+      Continuar pedido
+    </button>
 
-      <button
-        id="btnFecharAviso"
-        class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-semibold"
-      >
-        Agora não
-      </button>
-    </div>
+    <!-- Secundário -->
+    <button
+      id="btnFecharAviso"
+      class="w-full border border-white/30 text-white/80 hover:text-white hover:border-white py-2.5 rounded-2xl text-sm transition-all"
+    >
+      Criar novo pedido
+    </button>
   </div>
 </div>
 
+<style>
+  @keyframes glassIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
+.animate-glassIn {
+  animation: glassIn 0.25s ease-out;
+}
+
+</style>
 <!-- Scrollbar estilizada -->
 <style>
   .scrollbar-thin {

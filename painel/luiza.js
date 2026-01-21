@@ -119,7 +119,17 @@ const atualizacoes = [
       "Funçao ver todos os clientes",
       "Melhorias na Luiza bot"
     ]
-  }
+  },
+  {
+      id: 7,
+      data: "21/01/2026",
+      descricao: ["Adicionando Luiza bot para suporte",
+                  "Melhorias no cardapio",
+                  "Funçao de mensagem de lembrete do Carrinho",
+                  "Funçao de carrinho de produtos"
+                  
+      ]
+    }
 ];
 
 /* =============================

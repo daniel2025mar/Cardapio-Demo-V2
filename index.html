@@ -157,7 +157,8 @@
   </p>
 </div>
 <!-- Cardápio -->
-<main class="p-2 sm:p-4 flex flex-col items-center gap-8">
+<main id="cardapio" class="p-2 sm:p-4 flex flex-col items-center gap-8">
+
 
   <!-- ========================= -->
   <!-- Ofertas do Dia -->
@@ -365,6 +366,41 @@
 
   </div>
 </div>
+
+<!-- =============================
+ MODAL AVISO DE CARRINHO EXISTENTE
+============================= -->
+<div
+  id="modalCarrinhoExistente"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4"
+>
+  <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-4 text-center space-y-4">
+    <h2 class="text-lg font-bold text-gray-800">
+      Você tem um pedido em andamento
+    </h2>
+
+    <p class="text-gray-600 text-sm">
+      Existem produtos no seu carrinho. Deseja continuar o pedido?
+    </p>
+
+    <div class="flex gap-2">
+      <button
+        id="btnContinuarPedido"
+        class="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold"
+      >
+        Continuar
+      </button>
+
+      <button
+        id="btnFecharAviso"
+        class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-semibold"
+      >
+        Agora não
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Scrollbar estilizada -->
 <style>

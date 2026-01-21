@@ -8,9 +8,168 @@ const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// =============================
+// CONFIGURAÇÕES DO CARRINHO
+// =============================
+const CHAVE_CARRINHO = "carrinhoPedido";
+const CHAVE_DATA = "carrinhoData";
+const DIAS_LIMITE = 4;
+
 let taxaEntregaValor = 0; // guarda a taxa real vinda do Supabase
 let apagandoCelular = false;
 let carrinho = [];
+
+// =============================
+// PERSISTÊNCIA TEMPORÁRIA DO CARRINHO
+// =============================
+
+// Salva carrinho no localStorage
+function salvarCarrinho() {
+  localStorage.setItem(CHAVE_CARRINHO, JSON.stringify(carrinho));
+  localStorage.setItem(CHAVE_DATA, new Date().toISOString());
+}
+
+// Carrega carrinho (válido por 4 dias)
+function carregarCarrinho() {
+  const dados = localStorage.getItem(CHAVE_CARRINHO);
+  const dataSalva = localStorage.getItem(CHAVE_DATA);
+
+  if (!dados || !dataSalva) return;
+
+  const agora = new Date();
+  const dataCarrinho = new Date(dataSalva);
+  const diffDias = (agora - dataCarrinho) / (1000 * 60 * 60 * 24);
+
+  if (diffDias > DIAS_LIMITE) {
+    limparCarrinhoStorage();
+    return;
+  }
+
+  carrinho = JSON.parse(dados);
+
+  atualizarCarrinhoUI();
+  atualizarStatusPedido(carrinho);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarCarrinho();
+
+  if (carrinho.length > 0) {
+    document
+      .getElementById("modalCarrinhoExistente")
+      .classList.remove("hidden");
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const modalAviso = document.getElementById("modalCarrinhoExistente");
+  const modalPedido = document.getElementById("modalPedido");
+
+  const btnFecharAviso = document.getElementById("btnFecharAviso");
+  const btnContinuarPedido = document.getElementById("btnContinuarPedido");
+
+  // 🔘 BOTÃO: AGORA NÃO
+  if (btnFecharAviso) {
+    btnFecharAviso.addEventListener("click", () => {
+      modalAviso.classList.add("hidden");
+    });
+  }
+
+  // 🔘 BOTÃO: CONTINUAR
+  if (btnContinuarPedido) {
+    btnContinuarPedido.addEventListener("click", () => {
+      modalAviso.classList.add("hidden");
+      modalPedido.classList.remove("hidden");
+    });
+  }
+
+});
+
+
+
+const cardapioEl = document.getElementById("cardapio");
+
+if (cardapioEl) {
+  const observer = new MutationObserver(() => {
+    const visivel =
+      !cardapioEl.classList.contains("hidden") &&
+      cardapioEl.offsetParent !== null;
+
+    if (visivel) {
+      verificarCarrinhoExistente();
+    }
+  });
+
+  observer.observe(cardapioEl, {
+    attributes: true,
+    attributeFilter: ["class", "style"]
+  });
+}
+
+
+
+// Limpa storage (somente quando finalizar pedido)
+function limparCarrinhoStorage() {
+  localStorage.removeItem(CHAVE_CARRINHO);
+  localStorage.removeItem(CHAVE_DATA);
+  carrinho = [];
+}
+
+document.getElementById("limparCarrinho").onclick = () => {
+  carrinho = [];
+  limparCarrinhoStorage();
+  atualizarCarrinhoUI();
+  atualizarStatusPedido(carrinho);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    verificarCarrinhoExistente(); // 🔥 AQUI
+
+  carregarCarrinho();
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  carregarProdutosNoCardapio();
+  carregarCarrinho(); // 🔥 ESSENCIAL
+});
+
+
+// ultimo pedido
+
+// ✅ FUNÇÃO PARA BUSCAR O ÚLTIMO PEDIDO
+async function carregarUltimoPedido() {
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("id")
+    .order("id", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error("Erro ao buscar o último pedido:", error);
+    return;
+  }
+
+  const ultimoId = data[0]?.id ?? 0;
+  const proximo = ultimoId + 1;
+  document.getElementById("pedidoNumero").innerText =
+    String(proximo).padStart(4, "0");
+}
+
+function atualizarStatusPedido(carrinho) {
+  const statusEl = document.getElementById("pedidoStatus");
+
+  if (carrinho && carrinho.length > 0) {
+    statusEl.innerText = "Em Andamento";
+    statusEl.classList.remove("text-blue-600");
+    statusEl.classList.add("text-green-600");
+  } else {
+    statusEl.innerText = "Aguardando";
+    statusEl.classList.remove("text-green-600");
+    statusEl.classList.add("text-blue-600");
+  }
+}
+
 
 // =============================
 // BUSCAR PRODUTOS
@@ -499,6 +658,11 @@ function atualizarCarrinhoUI() {
 
 function abrirModalPedido() {
   document.getElementById("modalPedido").classList.remove("hidden");
+
+   // 🔥 Atualiza o número do pedido sempre que abrir o modal
+  carregarUltimoPedido();
+  // 🔥 Atualiza o status conforme o carrinho
+  atualizarStatusPedido(carrinho);
 }
 
 
@@ -1087,12 +1251,13 @@ function adicionarProdutoDireto(produto) {
     carrinho.push(produto);
   }
 
-  // Atualiza o carrinho e o contador sempre
+  salvarCarrinho();                 // 🔥 FALTAVA ISSO
   atualizarCarrinhoUI();
   atualizarContadorCarrinho();
-
+  atualizarStatusPedido(carrinho);  // 🔥 mantém status correto
   abrirModalPedido();
 }
+
 
 
 function atualizarContadorCarrinho() {

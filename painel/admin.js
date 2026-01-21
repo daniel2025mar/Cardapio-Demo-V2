@@ -3914,7 +3914,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: 6,
       data: "09/01/2026",
       descricao: ["Adicionando Luiza bot para suporte",
-                  "Funçao de cadastro de da empresa no cardapio",
+                  "Funçao de cadastro da empresa no cardapio",
                   "Funçao Cadastro de produtos",
                   "Funçao de cadastro e gerenciamento de mesa 'Qr Code",
                   "Funcionalidade para o Bot Luiza",
@@ -3922,6 +3922,16 @@ document.addEventListener("DOMContentLoaded", () => {
                   "Funçao Calculadora",
                   "Funçao ver todos os clientes",
                   "Melhorias na Luiza bot"
+                  
+      ]
+    },
+    {
+      id: 7,
+      data: "21/01/2026",
+      descricao: ["Adicionando Luiza bot para suporte",
+                  "Melhorias no cardapio",
+                  "Funçao de mensagem de lembrete do Carrinho",
+                  "Funçao de carrinho de produtos"
                   
       ]
     }

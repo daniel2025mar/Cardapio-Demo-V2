@@ -1176,3 +1176,28 @@ btnCadastro.addEventListener("click", async () => {
     alert("Erro ao tentar logar com Google!");
   }
 });
+
+async function verificarLogin() {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+    // usuário não logado
+    document.getElementById("btn-cadastro").style.display = "block";
+    document.getElementById("userPhoto").classList.add("hidden");
+    return;
+  }
+
+  const user = data.user;
+
+  // esconder botão criar conta
+  document.getElementById("btn-cadastro").style.display = "none";
+
+  // mostrar foto
+  const userPhoto = document.getElementById("userPhoto");
+  userPhoto.src = user.user_metadata.avatar_url || user.user_metadata.picture;
+  userPhoto.classList.remove("hidden");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  verificarLogin();
+});

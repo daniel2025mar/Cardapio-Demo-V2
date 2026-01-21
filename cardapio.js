@@ -1155,4 +1155,24 @@ inputPesquisa.addEventListener("input", e => {
   filtrarProdutos(e.target.value);
 });
 
+//cadastro login
+const btnCadastro = document.getElementById("btn-cadastro");
 
+btnCadastro.addEventListener("click", async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+
+    if (error) {
+      alert("Erro ao tentar logar com Google: " + error.message);
+      return;
+    }
+
+    // se deu certo, ele redireciona automaticamente
+    console.log("Login Google iniciado", data);
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao tentar logar com Google!");
+  }
+});

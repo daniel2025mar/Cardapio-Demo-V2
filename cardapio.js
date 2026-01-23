@@ -69,6 +69,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+
+async function abrirModalPedidosSeLogado() {
+  const logado = await usuarioEstaLogado();
+
+  if (!logado) {
+    alert("Faça login para acessar seus pedidos.");
+    return;
+  }
+
+  const modalPedidos = document.getElementById("modalPedidos");
+  if (modalPedidos) {
+    modalPedidos.classList.remove("hidden");
+  }
+}
+
+// expõe para onclick
+window.abrirModalPedidosSeLogado = abrirModalPedidosSeLogado;
+
 async function preencherNomeUsuarioCarrinho() {
   const { data, error } = await supabase.auth.getUser();
 
@@ -717,7 +735,30 @@ function formatarCelular(valor) {
   return formatado;
 }
 
+function abrirModalLoginNecessario() {
+  const modal = document.getElementById("modalLoginNecessario");
+  if (modal) modal.classList.remove("hidden");
+}
 
+document.addEventListener("DOMContentLoaded", () => {
+  const btnFechar = document.getElementById("btnFecharModalLogin");
+  const modal = document.getElementById("modalLoginNecessario");
+
+  if (btnFechar) {
+    btnFechar.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  }
+
+  // Fecha clicando fora
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   const botaoCarrinho = document.getElementById("card-btn");
@@ -734,8 +775,19 @@ document.addEventListener("DOMContentLoaded", () => {
     inputCelular.value = formatarCelular(inputCelular.value);
   });
 
-  // Abre o modal
-  botaoCarrinho.addEventListener("click", () => {
+  // ===============================
+  // 🛒 ABRIR MODAL (SÓ SE LOGADO)
+  // ===============================
+  botaoCarrinho.addEventListener("click", async () => {
+    const { data, error } = await supabase.auth.getUser();
+    const usuarioLogado = !error && !!data.user;
+
+    if (!usuarioLogado) {
+      abrirModalLoginNecessario();
+      return;
+    }
+
+    // usuário logado → abre modal
     modal.classList.remove("hidden");
   });
 
@@ -751,41 +803,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Retirar no local
-  // Retirar no local
-checkboxRetirarLocal.addEventListener("change", () => {
-  if (checkboxRetirarLocal.checked) {
-    atualizarTaxaNaTela(0);
+  // ===============================
+  // 📦 RETIRAR NO LOCAL
+  // ===============================
+  checkboxRetirarLocal.addEventListener("change", () => {
+    if (checkboxRetirarLocal.checked) {
+      atualizarTaxaNaTela(0);
 
-    inputEndereco.value = "";
-    inputEndereco.disabled = true;
-    inputEndereco.classList.add("bg-gray-100");
-  } else {
-    atualizarTaxaNaTela(taxaEntregaValor);
+      inputEndereco.value = "";
+      inputEndereco.disabled = true;
+      inputEndereco.classList.add("bg-gray-100");
+    } else {
+      atualizarTaxaNaTela(taxaEntregaValor);
 
-    inputEndereco.disabled = false;
-    inputEndereco.classList.remove("bg-gray-100");
-  }
+      inputEndereco.disabled = false;
+      inputEndereco.classList.remove("bg-gray-100");
+    }
 
-  // 🔁 ATUALIZA O TOTAL DO PEDIDO
-  atualizarCarrinhoUI();
-});
+    // 🔁 Atualiza total
+    atualizarCarrinhoUI();
+  });
 
-
-  // 🔒 Validação ao finalizar pedido
+  // ===============================
+  // 🔒 VALIDAÇÃO AO FINALIZAR
+  // ===============================
   btnFinalizar.addEventListener("click", (e) => {
     let erro = false;
 
     inputEndereco.classList.remove("border-red-500");
     inputCelular.classList.remove("border-red-500");
 
-    // celular obrigatório e completo (16 caracteres)
+    // celular obrigatório
     if (inputCelular.value.trim().length < 16) {
       erro = true;
       inputCelular.classList.add("border-red-500");
     }
 
-    // endereço obrigatório se for entrega
+    // endereço obrigatório se entrega
     if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
       erro = true;
       inputEndereco.classList.add("border-red-500");
@@ -803,6 +857,7 @@ checkboxRetirarLocal.addEventListener("change", () => {
   // Carrega taxa
   carregarTaxaEntrega();
 });
+
  // =============================
 // CARREGAR HORÁRIO DE ATENDIMENTO
 // =============================

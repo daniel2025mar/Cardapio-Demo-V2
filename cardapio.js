@@ -51,15 +51,44 @@ function carregarCarrinho() {
   atualizarStatusPedido(carrinho);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   carregarCarrinho();
+  preencherNomeUsuarioCarrinho();
 
-  if (carrinho.length > 0) {
+  // 🔐 verifica se está logado
+  const { data } = await supabase.auth.getUser();
+  const usuarioLogado = !!data?.user;
+
+  // ✅ só mostra o modal se:
+  // - tiver carrinho
+  // - estiver logado
+  if (usuarioLogado && carrinho.length > 0) {
     document
       .getElementById("modalCarrinhoExistente")
       .classList.remove("hidden");
   }
 });
+
+async function preencherNomeUsuarioCarrinho() {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) return;
+
+  const user = data.user;
+
+  // Nome prioritário
+  const nome =
+    user.user_metadata.full_name ||
+    user.user_metadata.name ||
+    user.email?.split("@")[0] ||
+    "Olá";
+
+  const elNome = document.getElementById("nomeUsuarioCarrinho");
+  if (elNome) {
+    elNome.textContent = nome;
+  }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -1366,3 +1395,88 @@ async function verificarLogin() {
 document.addEventListener("DOMContentLoaded", () => {
   verificarLogin();
 });
+
+
+  const userPhoto = document.getElementById("userPhoto");
+  const modalConta = document.getElementById("modalContaCliente");
+
+  // Abrir / fechar ao clicar na foto
+  userPhoto.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    modalConta.classList.toggle("hidden");
+    posicionarModalConta();
+  });
+
+  // Fecha ao clicar fora
+  modalConta.addEventListener("click", (e) => {
+    if (e.target === modalConta) {
+      fecharModalConta();
+    }
+  });
+
+  function fecharModalConta() {
+    modalConta.classList.add("hidden");
+  }
+
+  function posicionarModalConta() {
+    const modalBox = modalConta.querySelector("div");
+
+    // Remove centralização padrão
+    modalConta.classList.remove("items-center", "justify-center");
+    modalConta.classList.add("items-start", "justify-end");
+
+    // Estilo tipo dropdown
+    modalBox.classList.add(
+      "mt-16",
+      "mr-4"
+    );
+  }
+
+  // ===============================
+// LOGOUT DO CLIENTE + MODAL SUCESSO
+// ===============================
+
+async function logoutCliente() {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error("Erro ao sair da conta:", error);
+      return;
+    }
+
+    // Fecha modal da conta
+    fecharModalConta();
+
+    // Atualiza interface (volta para estado deslogado)
+    const btnCadastro = document.getElementById("btn-cadastro");
+    const userPhoto = document.getElementById("userPhoto");
+
+    if (btnCadastro) btnCadastro.style.display = "block";
+    if (userPhoto) userPhoto.classList.add("hidden");
+
+    // Abre modal de sucesso
+    abrirModalLogout();
+
+  } catch (err) {
+    console.error("Erro inesperado no logout:", err);
+  }
+}
+
+// Modal Logout Sucesso
+function abrirModalLogout() {
+  const modal = document.getElementById("modalLogoutSucesso");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function fecharModalLogout() {
+  const modal = document.getElementById("modalLogoutSucesso");
+  if (modal) modal.classList.add("hidden");
+}
+
+// ===============================
+// EXPÕE FUNÇÕES PARA onclick
+// ===============================
+window.logoutCliente = logoutCliente;
+window.fecharModalLogout = fecharModalLogout;

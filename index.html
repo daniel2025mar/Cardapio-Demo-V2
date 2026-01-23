@@ -32,7 +32,8 @@
     <button id="btn-cadastro" class="px-3 py-1 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition text-sm">
       Criar Conta
     </button>
-    <img id="userPhoto" class="hidden w-8 h-8 rounded-full" alt="Foto do usuário">
+    <img id="userPhoto" class="hidden w-8 h-8 rounded-full cursor-pointer" alt="Foto do usuário"/>
+
 
   </div>
 
@@ -391,9 +392,12 @@
 
     <!-- Texto -->
     <p class="text-white/80 text-sm leading-relaxed">
-      Encontramos itens no seu carrinho.<br>
-      Deseja continuar de onde parou?
-    </p>
+  <strong id="nomeUsuarioCarrinho" class="font-semibold text-white">
+    Olá
+  </strong>, encontramos itens no seu carrinho.<br>
+  Deseja continuar de onde parou?
+</p>
+
 
     <!-- CTA principal -->
     <button
@@ -481,6 +485,115 @@
     DM DESIGN GRÁFICO — Tecnologia & Soluções para Delivery
   </p>
 </section>
+
+<!-- Modal Conta do Cliente -->
+<div
+  id="modalContaCliente"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4"
+>
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden">
+
+    <!-- Cabeçalho -->
+    <div class="bg-red-600 text-white text-center font-bold text-lg p-4">
+      Minha Conta
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="p-4 space-y-3">
+
+      <!-- Opção Histórico -->
+      <button
+        onclick="abrirHistoricoPedidos()"
+        class="w-full flex items-center gap-3 border rounded-xl p-3 hover:bg-gray-50 transition text-left"
+      >
+        <span class="text-xl">📦</span>
+        <div>
+          <p class="font-semibold text-gray-800">
+            Histórico de pedidos
+          </p>
+          <p class="text-sm text-gray-500">
+            Veja seus pedidos anteriores
+          </p>
+        </div>
+      </button>
+
+      <!-- Sair da conta -->
+      <button
+        onclick="logoutCliente()"
+        class="w-full flex items-center gap-3 border rounded-xl p-3 hover:bg-red-50 transition text-left"
+      >
+        <span class="text-xl">🚪</span>
+        <div>
+          <p class="font-semibold text-gray-800">
+            Sair da conta
+          </p>
+          <p class="text-sm text-gray-500">
+            Encerrar sessão atual
+          </p>
+        </div>
+      </button>
+    </div>
+
+    <!-- Rodapé -->
+    <button
+      onclick="fecharModalConta()"
+      class="text-sm text-gray-500 py-3 hover:underline"
+    >
+      Fechar
+    </button>
+  </div>
+</div>
+
+
+<!-- Modal Logout Sucesso -->
+<div
+  id="modalLogoutSucesso"
+  class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4"
+>
+  <div
+    class="bg-white rounded-3xl shadow-2xl w-full max-w-sm text-center p-6 sm:p-8
+           animate-[fadeInScale_.25s_ease-out]"
+  >
+
+    <!-- Ícone -->
+    <div class="flex justify-center mb-4">
+      <div class="w-16 h-16 flex items-center justify-center rounded-full bg-green-100">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-8 h-8 text-green-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Texto -->
+    <h2 class="text-xl font-bold text-gray-900">
+      Logout realizado
+    </h2>
+
+    <p class="text-sm text-gray-600 mt-2">
+      Você saiu da sua conta com sucesso.
+    </p>
+
+    <!-- Botão -->
+    <button
+      onclick="fecharModalLogout()"
+      class="mt-6 w-full bg-black text-white py-3 rounded-xl font-semibold
+             hover:opacity-90 active:scale-[0.98] transition"
+    >
+      Entendi
+    </button>
+  </div>
+</div>
 
 <!-- Aviso legal do cardápio físico -->
 <div class="mt-6 mb-14 text-center text-xs text-gray-500 px-4">

@@ -5,7 +5,7 @@
   <!-- Bloquear zoom -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-  <title>Cardápio</title>
+  <title>Cardápio Carregando...</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
@@ -295,6 +295,152 @@
   </div>
 </div>
 
+<!-- MODAL SEM INTERNET -->
+<div id="modalSemInternet" class="modalErroCustom hidden">
+  <div class="modalContent">
+    <span id="fecharModalSemInternet" class="fecharModal">&times;</span>
+
+    <div class="modalIcon">
+      <span>📡</span>
+    </div>
+
+    <h2>Sem conexão</h2>
+    <p>Verifique sua internet e tente novamente.</p>
+
+    <button id="btnOkSemInternet" class="btnOk">OK</button>
+  </div>
+</div>
+
+<style>
+  /* --------------------------
+  MODAL SEM INTERNET (ESTILO)
+--------------------------- */
+.modalErroCustom {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 99999;
+  transition: opacity 0.3s ease;
+}
+
+.modalErroCustom.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modalErroCustom.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modalContent {
+  width: 90%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 25px 25px 20px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.fecharModal {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #777;
+}
+
+.modalIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  margin: 0 auto 15px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.modalContent h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #111;
+}
+
+.modalContent p {
+  margin: 10px 0 18px;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.btnOk {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  background: #000;     /* PRETO */
+  color: #fff;
+  font-weight: bold;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btnOk:hover {
+  background: #333;     /* PRETO MAIS CLARO NO HOVER */
+}
+
+
+</style>
+
+<style>
+  .modalErroCustom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+
+.fecharModal {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.hidden {
+  display: none;
+}
+
+.modalErroCustom.show {
+  display: flex;
+}
+
+</style>
 <!-- Modal Produto -->
 <div id="modalProduto" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
   <div class="bg-white p-4 sm:p-6 rounded-lg w-11/12 sm:w-96 relative max-h-[90vh] overflow-y-auto">

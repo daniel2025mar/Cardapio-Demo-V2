@@ -867,6 +867,48 @@ window.onclick = function(event) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+
+  const modal = document.getElementById("modalSemInternet");
+  const fechar = document.getElementById("fecharModalSemInternet");
+  const btnOk = document.getElementById("btnOkSemInternet");
+
+  function mostrarModalSemInternet() {
+    modal.classList.remove("hidden");
+    modal.classList.add("show");
+  }
+
+  function esconderModalSemInternet() {
+    modal.classList.remove("show");
+    modal.classList.add("hidden");
+  }
+
+  // Evento quando perde internet
+  window.addEventListener("offline", () => {
+    mostrarModalSemInternet();
+  });
+
+  // Evento quando volta internet
+  window.addEventListener("online", () => {
+    esconderModalSemInternet();
+  });
+
+  // Fechar com X
+  fechar.addEventListener("click", () => {
+    esconderModalSemInternet();
+  });
+
+  // Fechar com OK
+  btnOk.addEventListener("click", () => {
+    esconderModalSemInternet();
+  });
+
+  // Verifica se já está offline ao abrir a página
+  if (!navigator.onLine) {
+    mostrarModalSemInternet();
+  }
+});
+
 // ===============================
 // MODAL DE ERRO CUSTOMIZADO (COMPLETO)
 // ===============================

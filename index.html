@@ -303,10 +303,91 @@
   </div>
 </div>
 
+<!-- Modal do Carrinho -->
+<div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
+  <div class="bg-white rounded-xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col -translate-y-8">
+
+    <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-3 sm:p-4 rounded-t-xl">
+      Meu Carrinho
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="p-2 sm:p-4 flex-1 overflow-y-auto space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200">
+
+      <!-- Número e status do pedido -->
+      <div class="flex justify-between text-sm sm:text-base">
+        <span class="font-semibold text-gray-700">Pedido <span id="pedidoNumero">0000</span></span>
+        <span id="pedidoStatus" class="font-semibold text-blue-600">Aguardando</span>
+      </div>
+
+      <!-- Lista de produtos -->
+      <div>
+        <h3 class="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">Produtos:</h3>
+        <ul id="listaProdutos" class="space-y-1 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200 p-1">
+          <!-- Produtos serão adicionados via JS -->
+        </ul>
+      </div>
+
+      <!-- Totais -->
+      <div class="border-t pt-2 text-sm sm:text-base">
+        <p>Taxa de Entrega: <span id="taxaEntrega" class="text-blue-600 font-semibold">R$ 0,00</span></p>
+        <p>Total: <span id="totalPedido" class="font-bold">R$ 0,00</span></p>
+      </div>
+
+      <!-- Endereço -->
+      <div>
+        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="enderecoEntrega">Endereço de Entrega:</label>
+        <input id="enderecoEntrega" type="text" placeholder="Digite o Endereço" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+      </div>
+
+      <!-- Celular -->
+      <div>
+        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="celularContato">Celular para Contato:</label>
+        <input id="celularContato" type="tel" inputmode="numeric" placeholder="(99) 9 9999-9999" maxlength="16" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+      </div>
+
+      <!-- Retirar no local -->
+      <div class="flex items-center gap-2 text-sm sm:text-base">
+        <input type="checkbox" id="retirarLocal" class="w-4 h-4 sm:w-5 sm:h-5 accent-red-600">
+        <label for="retirarLocal" class="text-gray-700">Retirar no local</label>
+      </div>
+
+    </div>
+
+    <!-- Rodapé com botões -->
+   <div class="flex justify-between p-3 sm:p-4 border-t bg-gray-50 gap-2">
+
+  <button id="limparCarrinho"
+    class="w-28 h-10 flex items-center justify-center gap-2 border border-red-300 text-red-600 rounded-lg bg-white hover:bg-red-50 transition">
+    🗑️ Excluir
+  </button>
+
+  <button id="fecharModalCarrinho"
+    class="w-24 h-10 flex items-center justify-center gap-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+    Fechar
+  </button>
+
+  <button id="finalizarPedido"
+    class="w-32 h-10 flex items-center justify-center gap-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+    Finalizar
+  </button>
+
+</div>
+
+
+
+  </div>
+</div>
+
+
+<!-- =========================
+     MODAL DE AVISO CUSTOM
+========================= -->
 <style>
-  html, body {
+  /* NÃO mexer no html e body para não dar conflito */
+  /* html, body {
     height: 100%;
-  }
+  } */
 
   /* Fundo do modal */
   .modalCustom {
@@ -319,6 +400,22 @@
     height: 100%;
     min-height: 100vh;
     background: rgba(0, 0, 0, 0.55);
+
+    /* isolamento total do modal quando escondido */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  /* mostrar o modal */
+  .modalCustom.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+
+    visibility: visible;
+    opacity: 1;
   }
 
   /* Caixa do modal */
@@ -390,14 +487,6 @@
     border-radius: 10px;
   }
 
-  /* mostrar o modal */
-  .modalCustom.show {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 10px;
-  }
-
   /* Ajuste para celulares */
   @media (max-width: 600px) {
     .modalCustomContent {
@@ -452,136 +541,6 @@
     <button id="btnOkErro" class="btn-okCustom">OK</button>
   </div>
 </div>
-
-
-<!-- Modal do Carrinho -->
-<div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
-  <div class="bg-white rounded-xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col transform -translate-y-4 sm:-translate-y-7">
-
-    <!-- Cabeçalho -->
-    <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-3 sm:p-4 rounded-t-xl">
-      Meu Carrinho
-    </div>
-
-    <!-- Conteúdo -->
-    <div class="p-2 sm:p-4 flex-1 overflow-y-auto space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200">
-
-      <!-- Número e status do pedido -->
-      <div class="flex justify-between text-sm sm:text-base">
-        <span class="font-semibold text-gray-700">
-          Pedido <span id="pedidoNumero">0000</span>
-        </span>
-        <span id="pedidoStatus" class="font-semibold text-blue-600">
-          Aguardando
-        </span>
-      </div>
-
-      <!-- Lista de produtos -->
-      <div>
-        <h3 class="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">
-          Produtos:
-        </h3>
-        <ul
-          id="listaProdutos"
-          class="space-y-1 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200 p-1"
-        >
-          <!-- Produtos via JS -->
-        </ul>
-      </div>
-
-      <!-- Totais -->
-      <div class="border-t pt-2 text-sm sm:text-base">
-        <p>
-          Taxa de Entrega:
-          <span id="taxaEntrega" class="text-blue-600 font-semibold">
-            R$ 0,00
-          </span>
-        </p>
-        <p>
-          Total:
-          <span id="totalPedido" class="font-bold">
-            R$ 0,00
-          </span>
-        </p>
-      </div>
-
-      <!-- Endereço -->
-      <div>
-        <label for="enderecoEntrega" class="font-semibold text-gray-700 text-sm sm:text-base">
-          Endereço de Entrega:
-        </label>
-        <input
-          id="enderecoEntrega"
-          type="text"
-          placeholder="Digite o Endereço"
-          class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
-        >
-      </div>
-
-      <!-- Celular -->
-      <div>
-        <label for="celularContato" class="font-semibold text-gray-700 text-sm sm:text-base">
-          Celular para Contato:
-        </label>
-        <input
-          id="celularContato"
-          type="tel"
-          inputmode="numeric"
-          placeholder="(99) 9 9999-9999"
-          maxlength="16"
-          class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
-        >
-      </div>
-
-      <!-- Retirar no local -->
-      <div class="flex items-center gap-2 text-sm sm:text-base">
-        <input
-          type="checkbox"
-          id="retirarLocal"
-          class="w-4 h-4 sm:w-5 sm:h-5 accent-red-600"
-        >
-        <label for="retirarLocal" class="text-gray-700">
-          Retirar no local
-        </label>
-      </div>
-
-    </div>
-
-    <!-- Rodapé com botões -->
-    <div class="flex items-center gap-2 p-2 sm:p-3 border-t bg-gray-50">
-
-      <!-- Excluir -->
-      <button
-        id="limparCarrinho"
-        class="px-3 py-1.5 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition text-xs sm:text-sm flex items-center gap-1"
-      >
-        🗑 Excluir
-      </button>
-
-      <div class="flex gap-2 ml-auto">
-
-        <!-- Fechar -->
-        <button
-          id="fecharModalCarrinho"
-          class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-xs sm:text-sm"
-        >
-          Fechar
-        </button>
-
-        <!-- Finalizar -->
-        <button
-          id="finalizarPedido"
-          class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition text-sm sm:text-base shadow-md"
-        >
-          Finalizar
-        </button>
-
-      </div>
-    </div>
-
-  </div>
-</div>
-
 
 <!-- =============================
  MODAL AVISO DE CARRINHO EXISTENTE

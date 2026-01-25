@@ -18,6 +18,8 @@ const DIAS_LIMITE = 4;
 let taxaEntregaValor = 0; // guarda a taxa real vinda do Supabase
 let apagandoCelular = false;
 let carrinho = [];
+let itensSelecionados = new Set();
+
 
 // =============================
 // PERSISTÊNCIA TEMPORÁRIA DO CARRINHO
@@ -47,6 +49,24 @@ function carregarCarrinho() {
 
   carrinho = JSON.parse(dados);
 
+  atualizarCarrinhoUI();
+  atualizarStatusPedido(carrinho);
+}
+function removerUmaUnidade(produtoId) {
+  const index = carrinho.findIndex(p => p.id === produtoId);
+
+  if (index === -1) return;
+
+  // 🔽 diminui a quantidade
+  carrinho[index].quantidade--;
+
+  // ❌ se zerou, remove do carrinho
+  if (carrinho[index].quantidade <= 0) {
+    carrinho.splice(index, 1);
+  }
+
+  // 🔄 atualiza tudo
+  salvarCarrinho();
   atualizarCarrinhoUI();
   atualizarStatusPedido(carrinho);
 }
@@ -163,12 +183,52 @@ function limparCarrinhoStorage() {
   carrinho = [];
 }
 
+async function abrirModalAvisoCustom() {
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("logotipo")
+    .limit(1)
+    .single();
+
+  if (!error) {
+    document.getElementById("logoModalCustom").src = data.logotipo;
+  }
+
+  document.getElementById("modalAvisoCustom").classList.add("show");
+}
+
+function fecharModalAvisoCustom() {
+  document.getElementById("modalAvisoCustom").classList.remove("show");
+}
+
+document.getElementById("fecharModalCustom").onclick = fecharModalAvisoCustom;
+document.getElementById("btnOkCustom").onclick = fecharModalAvisoCustom;
+
+window.onclick = function(event) {
+  if (event.target == document.getElementById("modalAvisoCustom")) {
+    fecharModalAvisoCustom();
+  }
+}
+
+
 document.getElementById("limparCarrinho").onclick = () => {
-  carrinho = [];
-  limparCarrinhoStorage();
+  if (itensSelecionados.size === 0) {
+    abrirModalAvisoCustom();
+    return;
+  }
+
+  itensSelecionados.forEach(produtoId => {
+    removerUmaUnidade(produtoId);
+  });
+
+  // 🧹 limpa seleção após remover
+  itensSelecionados.clear();
+
+  salvarCarrinho();
   atualizarCarrinhoUI();
   atualizarStatusPedido(carrinho);
 };
+
 
 document.addEventListener("DOMContentLoaded", () => {
     verificarCarrinhoExistente(); // 🔥 AQUI
@@ -671,7 +731,6 @@ function atualizarCarrinhoUI() {
   const totalEl = document.getElementById("totalPedido");
 
   lista.innerHTML = "";
-
   let total = 0;
 
   carrinho.forEach(produto => {
@@ -679,28 +738,41 @@ function atualizarCarrinhoUI() {
     total += subtotal;
 
     const li = document.createElement("li");
-    li.className = "flex justify-between text-sm";
+    li.className = "flex justify-between text-sm cursor-pointer";
+
+    // 🔴 SE ESTIVER SELECIONADO, FICA VERMELHO
+    if (itensSelecionados.has(produto.id)) {
+      li.classList.add("text-red-600", "font-semibold");
+    }
 
     li.innerHTML = `
       <span>${produto.descricao} (${produto.quantidade}x)</span>
       <span>R$ ${subtotal.toFixed(2)}</span>
     `;
 
+    // 🖱️ CLIQUE → SELECIONA / DESSELECIONA
+    li.addEventListener("click", () => {
+      if (itensSelecionados.has(produto.id)) {
+        itensSelecionados.delete(produto.id);
+      } else {
+        itensSelecionados.add(produto.id);
+      }
+
+      atualizarCarrinhoUI();
+    });
+
     lista.appendChild(li);
   });
 
-  // VERIFICA SE O CHECKBOX ESTÁ MARCADO
+  // ✅ TAXA DE ENTREGA
   const retirarLocal = document.getElementById("retirarLocal").checked;
-
-  // SE MARCADO -> NÃO SOMA TAXA
-  // SE NÃO MARCADO -> SOMA TAXA
   const totalComTaxa = retirarLocal ? total : total + taxaEntregaValor;
 
   totalEl.textContent = `R$ ${totalComTaxa.toFixed(2)}`;
 
-  // 🔁 ATUALIZA O CONTADOR DO CARRINHO
   atualizarContadorCarrinho();
 }
+
 
 
 function abrirModalPedido() {
@@ -759,6 +831,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+async function abrirModalErro(texto) {
+  // BUSCAR LOGO NO SUPABASE
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("logotipo")
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar logo:", error);
+  } else {
+    const logoUrl = data.logotipo;
+    document.getElementById("logoModalErro").src = logoUrl;
+  }
+
+  // EXIBIR MENSAGEM
+  document.getElementById("textoErro").innerText = texto;
+
+  // ABRIR O MODAL
+  document.getElementById("modalErroCustom").classList.add("show");
+}
+
+function fecharModalErro() {
+  document.getElementById("modalErroCustom").classList.remove("show");
+}
+
+document.getElementById("fecharModalErro").onclick = fecharModalErro;
+document.getElementById("btnOkErro").onclick = fecharModalErro;
+
+window.onclick = function(event) {
+  if (event.target == document.getElementById("modalErroCustom")) {
+    fecharModalErro();
+  }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const botaoCarrinho = document.getElementById("card-btn");
@@ -847,7 +955,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (erro) {
       e.preventDefault();
-      alert("⚠️ Preencha corretamente o celular e o endereço.");
+      abrirModalErro("⚠️ Preencha corretamente o celular e o endereço.");
       return;
     }
 
@@ -1535,3 +1643,48 @@ function fecharModalLogout() {
 // ===============================
 window.logoutCliente = logoutCliente;
 window.fecharModalLogout = fecharModalLogout;
+
+
+// Função para mostrar/ocultar o modal
+function atualizarModal(bloqueado) {
+  const modal = document.getElementById("modalManutencao");
+
+  if (bloqueado) {
+    modal.classList.remove("hidden");
+  } else {
+    modal.classList.add("hidden");
+  }
+}
+
+// Função para verificar o estado do cardápio
+async function verificarEstadoCardapio() {
+  const { data } = await supabase
+    .from("config_cardapio")
+    .select("cardapio_bloqueado")
+    .eq("id", 1)
+    .single();
+
+  atualizarModal(data.cardapio_bloqueado);
+
+  if (!data.cardapio_bloqueado) {
+    carregarCardapio();
+  }
+}
+
+// Ao carregar a página
+document.addEventListener("DOMContentLoaded", async () => {
+  await verificarEstadoCardapio();
+
+  // Realtime: fica ouvindo mudanças na tabela
+  supabase
+    .channel("cardapio-status")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "config_cardapio", filter: "id=eq.1" },
+      (payload) => {
+        // Quando o Admin mudar o status no painel, o cardápio atualiza imediatamente
+        verificarEstadoCardapio();
+      }
+    )
+    .subscribe();
+});

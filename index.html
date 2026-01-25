@@ -303,10 +303,161 @@
   </div>
 </div>
 
+<style>
+  html, body {
+    height: 100%;
+  }
+
+  /* Fundo do modal */
+  .modalCustom {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Caixa do modal */
+  .modalCustomContent {
+    background: #fff;
+    margin: 12% auto;
+    padding: 25px 25px;
+    border-radius: 18px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    position: relative;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Botão fechar */
+  .closeCustom {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    font-size: 22px;
+    color: #6b7280;
+    cursor: pointer;
+  }
+
+  .closeCustom:hover {
+    color: #111827;
+  }
+
+  /* Logo */
+  .logo-modalCustom {
+    width: 110px;
+    display: block;
+    margin: 0 auto 10px auto;
+  }
+
+  /* Texto */
+  .modalCustom p {
+    font-size: 16px;
+    color: #111827;
+    margin: 14px 0 20px;
+    font-weight: 600;
+  }
+
+  /* Botão OK (não azul) */
+  .btn-okCustom {
+    background: #374151;
+    color: #fff;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn-okCustom:hover {
+    background: #1f2937;
+    transform: translateY(-1px);
+  }
+
+  /* Pequeno detalhe em cima do modal */
+  .modalTopLine {
+    height: 4px;
+    width: 70px;
+    background: #374151;
+    margin: 0 auto 14px auto;
+    border-radius: 10px;
+  }
+
+  /* mostrar o modal */
+  .modalCustom.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px;
+  }
+
+  /* Ajuste para celulares */
+  @media (max-width: 600px) {
+    .modalCustomContent {
+      margin: 0;
+      width: 100%;
+      max-width: 360px;
+      padding: 18px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .logo-modalCustom {
+      width: 90px;
+      margin-bottom: 8px;
+    }
+
+    .modalCustom p {
+      font-size: 15px;
+    }
+
+    .btn-okCustom {
+      padding: 10px 18px;
+    }
+  }
+</style>
+
+<div id="modalAvisoCustom" class="modalCustom">
+  <div class="modalCustomContent">
+    <span id="fecharModalCustom" class="closeCustom">&times;</span>
+
+    <!-- detalhe decorativo -->
+    <div class="modalTopLine"></div>
+
+    <!-- Logo da empresa -->
+    <img id="logoModalCustom" alt="Logo da empresa" class="logo-modalCustom">
+
+    <p>Selecione um item para remover.</p>
+    <button id="btnOkCustom" class="btn-okCustom">OK</button>
+  </div>
+</div>
+
+<!-- MODAL DE ERRO -->
+<div id="modalErroCustom" class="modalCustom">
+  <div class="modalCustomContent">
+    <span id="fecharModalErro" class="closeCustom">&times;</span>
+    <div class="modalTopLine"></div>
+
+    <img id="logoModalErro" class="logo-modalCustom" src="" alt="Logo">
+
+    <p id="textoErro">⚠️ Preencha corretamente o celular e o endereço.</p>
+
+    <button id="btnOkErro" class="btn-okCustom">OK</button>
+  </div>
+</div>
+
+
 <!-- Modal do Carrinho -->
 <div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
-  <div class="bg-white rounded-xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col">
-    
+  <div class="bg-white rounded-xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col transform -translate-y-4 sm:-translate-y-7">
+
     <!-- Cabeçalho -->
     <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-3 sm:p-4 rounded-t-xl">
       Meu Carrinho
@@ -314,59 +465,123 @@
 
     <!-- Conteúdo -->
     <div class="p-2 sm:p-4 flex-1 overflow-y-auto space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200">
-      
+
       <!-- Número e status do pedido -->
       <div class="flex justify-between text-sm sm:text-base">
-        <span class="font-semibold text-gray-700">Pedido <span id="pedidoNumero">0000</span></span>
-        <span id="pedidoStatus" class="font-semibold text-blue-600">Aguardando
+        <span class="font-semibold text-gray-700">
+          Pedido <span id="pedidoNumero">0000</span>
+        </span>
+        <span id="pedidoStatus" class="font-semibold text-blue-600">
+          Aguardando
         </span>
       </div>
 
       <!-- Lista de produtos -->
       <div>
-        <h3 class="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">Produtos:</h3>
-        <ul id="listaProdutos" class="space-y-1 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200 p-1">
-          <!-- Produtos serão adicionados via JS -->
+        <h3 class="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">
+          Produtos:
+        </h3>
+        <ul
+          id="listaProdutos"
+          class="space-y-1 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200 p-1"
+        >
+          <!-- Produtos via JS -->
         </ul>
       </div>
 
       <!-- Totais -->
       <div class="border-t pt-2 text-sm sm:text-base">
-        <p>Taxa de Entrega: <span id="taxaEntrega" class="text-blue-600 font-semibold">R$ 0,00</span></p>
-        <p>Total: <span id="totalPedido" class="font-bold">R$ 0,00</span></p>
+        <p>
+          Taxa de Entrega:
+          <span id="taxaEntrega" class="text-blue-600 font-semibold">
+            R$ 0,00
+          </span>
+        </p>
+        <p>
+          Total:
+          <span id="totalPedido" class="font-bold">
+            R$ 0,00
+          </span>
+        </p>
       </div>
 
       <!-- Endereço -->
       <div>
-        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="enderecoEntrega">Endereço de Entrega:</label>
-        <input id="enderecoEntrega" type="text" placeholder="Digite o Endereço" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+        <label for="enderecoEntrega" class="font-semibold text-gray-700 text-sm sm:text-base">
+          Endereço de Entrega:
+        </label>
+        <input
+          id="enderecoEntrega"
+          type="text"
+          placeholder="Digite o Endereço"
+          class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
+        >
       </div>
 
       <!-- Celular -->
       <div>
-        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="celularContato">Celular para Contato:</label>
-        <input id="celularContato"type="tel"inputmode="numeric"placeholder="(99) 9 9999-9999"maxlength="16"class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
-/>
-
+        <label for="celularContato" class="font-semibold text-gray-700 text-sm sm:text-base">
+          Celular para Contato:
+        </label>
+        <input
+          id="celularContato"
+          type="tel"
+          inputmode="numeric"
+          placeholder="(99) 9 9999-9999"
+          maxlength="16"
+          class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base"
+        >
       </div>
 
       <!-- Retirar no local -->
       <div class="flex items-center gap-2 text-sm sm:text-base">
-        <input type="checkbox" id="retirarLocal" class="w-4 h-4 sm:w-5 sm:h-5 accent-red-600">
-        <label for="retirarLocal" class="text-gray-700">Retirar no local</label>
+        <input
+          type="checkbox"
+          id="retirarLocal"
+          class="w-4 h-4 sm:w-5 sm:h-5 accent-red-600"
+        >
+        <label for="retirarLocal" class="text-gray-700">
+          Retirar no local
+        </label>
       </div>
 
     </div>
 
     <!-- Rodapé com botões -->
-    <div class="flex flex-col sm:flex-row justify-between p-2 sm:p-4 border-t bg-gray-50 gap-2">
-      <button id="limparCarrinho" class="flex-1 px-4 py-2 bg-yellow-400 text-white font-semibold rounded-lg hover:bg-yellow-500 transition text-sm sm:text-base">Limpar Carrinho</button>
-      <button id="fecharModalCarrinho" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition text-sm sm:text-base">Fechar</button>
-      <button id="finalizarPedido" class="flex-1 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition text-sm sm:text-base">Finalizar Pedido</button>
+    <div class="flex items-center gap-2 p-2 sm:p-3 border-t bg-gray-50">
+
+      <!-- Excluir -->
+      <button
+        id="limparCarrinho"
+        class="px-3 py-1.5 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition text-xs sm:text-sm flex items-center gap-1"
+      >
+        🗑 Excluir
+      </button>
+
+      <div class="flex gap-2 ml-auto">
+
+        <!-- Fechar -->
+        <button
+          id="fecharModalCarrinho"
+          class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-xs sm:text-sm"
+        >
+          Fechar
+        </button>
+
+        <!-- Finalizar -->
+        <button
+          id="finalizarPedido"
+          class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition text-sm sm:text-base shadow-md"
+        >
+          Finalizar
+        </button>
+
+      </div>
     </div>
 
   </div>
 </div>
+
 
 <!-- =============================
  MODAL AVISO DE CARRINHO EXISTENTE
@@ -468,6 +683,18 @@
     border-radius: 6px;
   }
 </style>
+
+<!-- Modal Manutenção -->
+<div id="modalManutencao" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-md text-center">
+    <h2 class="text-2xl font-bold mb-3">🚧 Cardápio em Manutenção</h2>
+    <p class="text-gray-600 mb-4">
+      O cardápio está temporariamente indisponível.<br>
+      Volte mais tarde.
+    </p>
+    
+  </div>
+</div>
 
 <!-- Modal de aviso -->
 <div id="modalAviso" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50 backdrop-blur-sm">

@@ -378,6 +378,39 @@
 
   </div>
 </div>
+<!--Mensagem de bloqueio-->
+<div id="toast" class="hidden fixed bottom-5 right-5 bg-white border border-gray-200 shadow-lg rounded-lg p-4 max-w-sm">
+  <div id="toastTitulo" class="font-bold text-gray-900"></div>
+  <div id="toastMensagem" class="text-gray-700 mt-1"></div>
+</div>
+
+<style>
+  #toast {
+    transition: all 0.3s ease;
+    z-index: 99999;
+  }
+
+  #toast.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ======= AJUSTE PARA CELULARES ======= */
+  @media (max-width: 768px) {
+    #toast {
+      right: 1rem;     /* mais espaço nas laterais */
+      left: 1rem;      /* centraliza automaticamente */
+      max-width: none; /* ocupa mais espaço na tela */
+      width: auto;     /* ajusta conforme o conteúdo */
+    }
+  }
+</style>
 
 
 <!-- =========================

@@ -867,7 +867,53 @@ window.onclick = function(event) {
   }
 }
 
+// ===============================
+// MODAL DE ERRO CUSTOMIZADO (COMPLETO)
+// ===============================
+async function mostrarModalErro(mensagem) {
+  const modalErroCustom = document.getElementById("modalErroCustom");
+  const textoErro = document.getElementById("textoErro");
+  const fecharModalErro = document.getElementById("fecharModalErro");
+  const btnOkErro = document.getElementById("btnOkErro");
+  const logoModalErro = document.getElementById("logoModalErro");
 
+  // Atualiza a mensagem
+  textoErro.innerText = mensagem;
+
+  // BUSCA O LOGOTIPO NO SUPABASE
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("logotipo")
+    .limit(1)
+    .single();
+
+  if (!error && data?.logotipo) {
+    logoModalErro.src = data.logotipo;
+  }
+
+  // Abre o modal
+  modalErroCustom.classList.add("show");
+
+  // Fecha ao clicar no X
+  fecharModalErro.addEventListener("click", () => {
+    modalErroCustom.classList.remove("show");
+  });
+
+  // Fecha ao clicar no OK
+  btnOkErro.addEventListener("click", () => {
+    modalErroCustom.classList.remove("show");
+  });
+
+  // Fecha clicando fora do modal
+  window.addEventListener("click", (e) => {
+    if (e.target === modalErroCustom) {
+      modalErroCustom.classList.remove("show");
+    }
+  });
+}
+
+
+// aqui e a funçao de enviar pedidos
 document.addEventListener("DOMContentLoaded", () => {
   const botaoCarrinho = document.getElementById("card-btn");
   const modal = document.getElementById("modalPedido");
@@ -877,6 +923,40 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnFinalizar = document.getElementById("finalizarPedido");
   const inputEndereco = document.getElementById("enderecoEntrega");
   const inputCelular = document.getElementById("celularContato");
+
+  // Toast (mensagem estilizada)
+  const toast = document.getElementById("toast");
+  const toastTitulo = document.getElementById("toastTitulo");
+  const toastMensagem = document.getElementById("toastMensagem");
+
+  // Nome da empresa (buscado no Supabase)
+  let nomeEmpresa = "suporte"; // valor padrão caso dê erro
+
+  async function carregarNomeEmpresa() {
+    const { data, error } = await supabase
+      .from("empresa")
+      .select("nome")
+      .limit(1)
+      .single();
+
+    if (!error && data?.nome) {
+      nomeEmpresa = data.nome;
+    }
+  }
+
+  function mostrarToast(titulo, mensagem) {
+    toastTitulo.innerText = titulo;
+    toastMensagem.innerText = mensagem;
+
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
+
+    // fecha automaticamente após 4 segundos
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.classList.add("hidden");
+    }, 4000);
+  }
 
   // 🔢 Máscara do celular
   inputCelular.addEventListener("input", () => {
@@ -933,9 +1013,46 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ===============================
-  // 🔒 VALIDAÇÃO AO FINALIZAR
+  // 🔒 VALIDAÇÃO AO FINALIZAR (COM BLOQUEIO)
   // ===============================
-  btnFinalizar.addEventListener("click", (e) => {
+  btnFinalizar.addEventListener("click", async (e) => {
+    e.preventDefault(); // evita enviar o form automaticamente
+
+    // 1️⃣ Verifica usuário logado
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const usuarioLogado = !userError && !!userData.user;
+
+    if (!usuarioLogado) {
+      abrirModalLoginNecessario();
+      return;
+    }
+
+    const emailLogado = userData.user.email;
+
+    // 2️⃣ Consulta na tabela clientes
+    const { data: cliente, error: errCliente } = await supabase
+      .from("clientes")
+      .select("id, nome, email, bloqueado")
+      .eq("email", emailLogado)
+      .single();
+
+    if (errCliente) {
+      mostrarToast("Erro", "Ocorreu um erro ao verificar seu cadastro. Por favor, tente novamente.");
+      return;
+    }
+
+    // 3️⃣ Se estiver bloqueado
+    if (cliente?.bloqueado === true) {
+      mostrarToast(
+        "Acesso bloqueado",
+        `Seu acesso ao sistema está bloqueado. Por favor, entre em contato com a ${nomeEmpresa} para mais informações.`
+      );
+      return;
+    }
+
+    // ===============================
+    // 🧾 VALIDAÇÃO DO PEDIDO
+    // ===============================
     let erro = false;
 
     inputEndereco.classList.remove("border-red-500");
@@ -954,16 +1071,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (erro) {
-      e.preventDefault();
-      abrirModalErro("⚠️ Preencha corretamente o celular e o endereço.");
-      return;
-    }
+  mostrarModalErro("⚠️ Por favor, preencha corretamente os campos de telefone e endereço para prosseguir com o pedido.");
+  return;
+}
+
 
     console.log("Pedido validado com sucesso!");
+
+    // Aqui você pode chamar sua função finalizarPedido()
+    // finalizarPedido();
   });
 
   // Carrega taxa
   carregarTaxaEntrega();
+
+  // Carrega nome da empresa
+  carregarNomeEmpresa();
 });
 
  // =============================

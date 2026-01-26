@@ -150,6 +150,182 @@ function enviarMensagem() {
 
     
   /* =============================
+   ÁREA DO ENTREGADOR
+============================= */
+
+
+const LINK_ENTREGADOR =
+  "https://daniel2025mar.github.io/Cardapio-Demo-V2/painelentregador/loginentregador.html";
+
+// estado global
+if (typeof window.__entregadorState === "undefined") {
+  window.__entregadorState = {
+    ativo: false,
+    aguardandoEnvioAcesso: false,
+    aguardandoNomeEntregador: false
+  };
+}
+
+// palavras relacionadas ao entregador
+const palavrasEntregador = [
+  "entregador",
+  "entrega",
+  "area do entregador",
+  "pedido nao encontrado",
+  "atraso na entrega",
+  "dificuldade com endereco",
+  "outro problema"
+];
+
+// palavras que indicam painel
+const palavrasPainel = [
+  "painel",
+  "link",
+  "login",
+  "acesso",
+  "sistema"
+];
+
+const chamouEntregador = palavrasEntregador.some(p =>
+  textoNormalizado.includes(p)
+);
+
+const pediuPainel = palavrasPainel.some(p =>
+  textoNormalizado.includes(p)
+);
+
+/* 👉 CASO 1: PEDIU PAINEL */
+if (pediuPainel && !window.__entregadorState.aguardandoEnvioAcesso) {
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      `Perfeito 😊<br><br>
+      Aqui está o <strong>link do painel do entregador</strong> 👇<br><br>
+      🚚 <a href="${LINK_ENTREGADOR}" target="_blank">
+      Acessar Painel do Entregador</a><br><br>
+      Você precisa que eu envie esse acesso para o <strong>entregador</strong>?<br>
+      Responda com <strong>sim</strong> ou <strong>não</strong>.`
+    );
+    window.__entregadorState.aguardandoEnvioAcesso = true;
+  }, 800);
+
+  return;
+}
+
+/* 👉 CONFIRMAÇÃO */
+if (window.__entregadorState.aguardandoEnvioAcesso) {
+  window.__entregadorState.aguardandoEnvioAcesso = false;
+
+  if (usuarioDisseSim(texto)) {
+    window.__entregadorState.aguardandoNomeEntregador = true;
+
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot(
+        "Perfeito 🚚💙<br><br>Qual é o <strong>nome de usuário do entregador</strong>?"
+      );
+    }, 800);
+
+    return;
+  }
+
+  if (usuarioDisseNao(texto)) {
+    mostrarDigitando();
+    setTimeout(() => {
+      removerDigitando();
+      adicionarMensagemBot(
+        "Tudo bem 😊<br><br>Se precisar do acesso depois, é só me chamar."
+      );
+    }, 800);
+    return;
+  }
+
+  adicionarMensagemBot(
+    "Por favor 😊<br>Responda apenas com <strong>sim</strong> ou <strong>não</strong>."
+  );
+  window.__entregadorState.aguardandoEnvioAcesso = true;
+  return;
+}
+
+/* 👉 RECEBE USERNAME DO ENTREGADOR */
+if (window.__entregadorState.aguardandoNomeEntregador) {
+  window.__entregadorState.aguardandoNomeEntregador = false;
+
+  const usernameEntregador = texto.trim();
+
+  mostrarDigitando();
+
+  setTimeout(async () => {
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("username, password")
+      .ilike("username", usernameEntregador)
+      .eq("cargo", "Entregador")
+      .eq("ativo", true)
+      .single();
+
+    removerDigitando();
+
+    if (error || !data) {
+      adicionarMensagemBot(
+        `❌ Não encontrei nenhum entregador ativo com o usuário <strong>${usernameEntregador}</strong>.<br><br>
+        Verifique o nome e tente novamente.`
+      );
+
+      window.__entregadorState.aguardandoNomeEntregador = true;
+      return;
+    }
+
+    adicionarMensagemBot(
+      `🚚 <strong>Acesso do Entregador</strong><br><br>
+      👤 <strong>Usuário:</strong> ${data.username}<br>
+      🔑 <strong>Senha:</strong> ${data.password}<br><br>
+      🌐 <a href="${LINK_ENTREGADOR}" target="_blank">
+      Acessar Painel do Entregador</a><br><br>
+      Basta enviar essas informações para o entregador 😊`
+    );
+  }, 800);
+
+  return;
+}
+
+/* 👉 ÁREA DO ENTREGADOR */
+if (chamouEntregador && !window.__entregadorState.ativo) {
+  window.__entregadorState.ativo = true;
+
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      `🚚 <strong>Área do Entregador</strong><br><br>
+      Escolha uma opção ou descreva o que você precisa:<br><br>
+      📦 Pedido não encontrado<br>
+      ⏰ Atraso na entrega<br>
+      📍 Dificuldade com endereço<br>
+      ❓ Outro problema`
+    );
+  }, 1000);
+
+  return;
+}
+
+/* 👉 FALLBACK */
+if (window.__entregadorState.ativo) {
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      "Entendi 👍<br><br>Pode me explicar melhor o que você precisa?"
+    );
+  }, 800);
+
+  return;
+}
+
+
+  /* =============================
      FECHAR CALCULADORA - PRIORIDADE
   ============================ */
   const palavrasFechar = ["fechar", "feche", "fecha", "sair"];
@@ -408,6 +584,7 @@ if (perguntouGestioMax) {
 
   return;
 }
+
 
   /* =============================
      ATUALIZAÇÕES DO SISTEMA
@@ -898,6 +1075,7 @@ function mostrarOpcoesIniciais() {
       <button onclick="selecionarOpcao('cliente')">👤 Cliente</button>
       <button onclick="selecionarOpcao('erro')">🛠 Erros do sistema</button>
       <button onclick="selecionarOpcao('feedback')">💬 Feedback</button>
+      <button onclick="selecionarOpcao('entregador')">🚴 Entregador</button>
     </div>
   `;
   chatMessages.appendChild(div);
@@ -906,6 +1084,7 @@ function mostrarOpcoesIniciais() {
 
 window.selecionarOpcao = function (opcao) {
   mostrarDigitando();
+
   setTimeout(() => {
     removerDigitando();
 
@@ -929,13 +1108,25 @@ window.selecionarOpcao = function (opcao) {
         "Gostaria de enviar um feedback? 😊<br>" +
         "Responda com <strong>sim</strong> ou <strong>não</strong>."
       );
-      confirmandoEnvioFeedback = true; // ativa a espera da resposta
+      confirmandoEnvioFeedback = true;
+    }
+
+    // 👉 NOVA OPÇÃO: ENTREGADOR
+    if (opcao === "entregador") {
+      adicionarMensagemBot(
+        "🚚 <strong>Área do Entregador</strong><br><br>" +
+        "Escolha uma das opções abaixo ou descreva o que você precisa:<br><br>" +
+        "📦 Pedido não encontrado<br>" +
+        "⏰ Atraso na entrega<br>" +
+        "📍 Dificuldade com endereço<br>" +
+        "❓ Outro problema"
+      );
+
+      aguardandoEntregador = true;
     }
 
   }, 1000);
 };
-
-
 
 /* =============================
    SCROLL

@@ -210,8 +210,12 @@ window.onclick = function(event) {
   }
 }
 
-
 document.getElementById("limparCarrinho").onclick = () => {
+  const modalPedido = document.getElementById("modalPedido");
+
+  // só continua se houver produtos
+  if (carrinho.length === 0) return;
+
   if (itensSelecionados.size === 0) {
     abrirModalAvisoCustom();
     return;
@@ -221,14 +225,11 @@ document.getElementById("limparCarrinho").onclick = () => {
     removerUmaUnidade(produtoId);
   });
 
-  // 🧹 limpa seleção após remover
   itensSelecionados.clear();
-
   salvarCarrinho();
   atualizarCarrinhoUI();
   atualizarStatusPedido(carrinho);
 };
-
 
 document.addEventListener("DOMContentLoaded", () => {
     verificarCarrinhoExistente(); // 🔥 AQUI
@@ -1087,7 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cliente?.bloqueado === true) {
       mostrarToast(
         "Acesso bloqueado",
-        `Seu acesso ao sistema está bloqueado. Por favor, entre em contato com a ${nomeEmpresa} para mais informações.`
+        `Seu acesso ao cardápio está bloqueado. Por favor, entre em contato com a ${nomeEmpresa} para mais informações.`
       );
       return;
     }
@@ -1733,9 +1734,11 @@ async function verificarLogin() {
   }
 
   // ⚠️ CONTROLE DO MODAL DE NOME
+  // Abre **APENAS se for login via Google**
+  const isGoogle = user.identities?.some(id => id.provider === "google");
   const modalJaMostrou = localStorage.getItem("modal_nome_mostrado");
 
-  if (!user.user_metadata?.nome_apelido && !modalJaMostrou) {
+  if (isGoogle && !user.user_metadata?.nome_apelido && !modalJaMostrou) {
     const modal = document.getElementById("modalNome");
 
     if (modal) {
@@ -1743,7 +1746,7 @@ async function verificarLogin() {
     }
 
     // 👉 carrega logo da empresa (se existir)
-    await carregarLogoEmpresa();
+    await carregarLogotipoEmpresa();
 
     localStorage.setItem("modal_nome_mostrado", "true");
   }
@@ -1752,7 +1755,6 @@ async function verificarLogin() {
 // ===============================
 // CARREGA LOGO DA EMPRESA
 // ===============================
-
 async function carregarLogotipoEmpresa() {
   const img = document.getElementById("logoEmpresa");
   if (!img) return;
@@ -1772,8 +1774,9 @@ async function carregarLogotipoEmpresa() {
   img.classList.remove("hidden");
 }
 
-document.addEventListener("DOMContentLoaded", carregarLogotipoEmpresa);
-
+// ===============================
+// CONFIGURAÇÃO DO MODAL DE NOME
+// ===============================
 const btnSalvarNome = document.getElementById("btnSalvarNome");
 const inputNome = document.getElementById("inputNome");
 const erroNome = document.getElementById("erroNome");
@@ -1784,16 +1787,32 @@ inputNome.addEventListener("input", () => {
   erroNome.classList.add("hidden");
 });
 
-// BOTÃO APENAS FECHA O MODAL
+// BOTÃO DE CONFIRMAÇÃO DO NOME
 btnSalvarNome.addEventListener("click", () => {
   const nome = inputNome.value.trim();
 
-  // valida apenas para não deixar vazio ou número
-  if (!nome || /\d/.test(nome)) {
+  // Regex: permite letras (maiúsculas/minúsculas), acentos e espaços
+  const regexValido = /^[A-Za-zÀ-ÖØ-öø-ÿ ]+$/;
+
+  // valida campo vazio ou caracteres inválidos
+  if (!nome || !regexValido.test(nome)) {
+
+    // se estiver vazio
+    if (!nome) {
+      erroNome.textContent = "Por favor, informe seu nome completo.";
+    } else {
+      // se tiver número ou caracteres inválidos
+      erroNome.textContent = "O nome deve conter apenas letras.";
+      inputNome.value = ""; // limpa o campo
+    }
+
     erroNome.classList.remove("hidden");
     inputNome.focus();
     return;
   }
+
+  // Nome válido
+  erroNome.classList.add("hidden");
 
   // futuramente esse nome será salvo no banco
   console.log("Nome digitado (não salvo ainda):", nome);
@@ -1801,13 +1820,13 @@ btnSalvarNome.addEventListener("click", () => {
   modalNome.classList.add("hidden");
 });
 
-
-document.getElementById("modalNome").classList.remove("hidden");
-
-
+// ===============================
+// INICIALIZAÇÃO
+// ===============================
 document.addEventListener("DOMContentLoaded", () => {
   verificarLogin();
 });
+
 
 
   const userPhoto = document.getElementById("userPhoto");

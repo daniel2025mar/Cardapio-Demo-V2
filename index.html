@@ -881,6 +881,196 @@
   </p>
 </section>
 
+<!-- MODAL NOME DO USUÁRIO -->
+<div id="modalNome" class="modal hidden">
+  <div class="modalContent">
+
+    <div class="modalHeader">
+      <div class="modalAvatar">
+        <div class="logoWrapper">
+          <img
+            id="logoEmpresa"
+            class="logoModal"
+            alt="Logo do Cardápio"
+          />
+        </div>
+      </div>
+    </div>
+
+    <h3>Bem-vindo ao Cardápio</h3>
+
+    <p class="modalText">
+      Antes de continuar, diga como podemos te chamar
+    </p>
+
+    <div class="inputWrapper">
+      <input
+        type="text"
+        id="inputNome"
+        placeholder="Digite seu nome"
+      />
+      <small id="erroNome" class="erro hidden">
+        Números não são permitidos
+      </small>
+    </div>
+
+    <button id="btnSalvarNome">Confirmar</button>
+
+  </div>
+</div>
+
+<style>
+/* FUNDO DO MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 20, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(8px);
+}
+
+/* CONTEÚDO */
+.modalContent {
+  background: #ffffff;
+  width: 90%;
+  max-width: 380px;
+  border-radius: 22px;
+  padding: 0 28px 30px;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+  animation: modalEnter 0.45s cubic-bezier(.2,.8,.2,1);
+}
+
+/* HEADER */
+.modalHeader {
+  display: flex;
+  justify-content: center;
+  margin-top: -48px;
+}
+
+/* CÍRCULO VERMELHO */
+.modalAvatar {
+  width: 96px;
+  height: 96px;
+  background: linear-gradient(135deg, #ff1f1f, #ff4d00);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 36px rgba(255, 31, 31, 0.6);
+}
+
+/* ANEL BRANCO DA LOGO */
+.logoWrapper {
+  width: 72px;
+  height: 72px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* LOGO */
+.logoModal {
+  max-width: 56px;
+  max-height: 56px;
+  object-fit: contain;
+}
+
+/* TEXTOS */
+.modalContent h3 {
+  margin-top: 24px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+}
+
+.modalText {
+  font-size: 14px;
+  color: #666;
+  margin: 10px 0 22px;
+  line-height: 1.5;
+}
+
+/* INPUT */
+.inputWrapper {
+  position: relative;
+}
+
+.modalContent input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  font-size: 15px;
+  outline: none;
+  background: #fafafa;
+  transition: all 0.25s ease;
+}
+
+.modalContent input:focus {
+  background: #fff;
+  border-color: #ff1f1f;
+  box-shadow: 0 0 0 4px rgba(255, 31, 31, 0.2);
+}
+
+/* ERRO */
+.erro {
+  margin-top: 8px;
+  display: block;
+  font-size: 13px;
+  color: #ff1f1f;
+  font-weight: 600;
+}
+
+/* BOTÃO */
+.modalContent button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff1f1f, #ff4d00);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 14px 28px rgba(255, 31, 31, 0.55);
+}
+
+.modalContent button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(255, 31, 31, 0.65);
+}
+
+.modalContent button:active {
+  transform: scale(0.97);
+}
+
+/* ESCONDER */
+.hidden {
+  display: none;
+}
+
+/* ANIMAÇÃO */
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+</style>
+
+
 <!-- Modal Conta do Cliente -->
 <div
   id="modalContaCliente"

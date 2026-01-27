@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Login - Garçom</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      overflow: hidden;
+      touch-action: none;
+      font-family: 'Poppins', sans-serif;
+      height: 100%;
+    }
+
+    :root {
+      --cor-primaria: #2563eb;
+      --cor-secundaria: #1d4ed8;
+      --cor-glow: rgba(37, 99, 235, 0.45);
+    }
+
+    .bg-animated {
+      background: radial-gradient(circle at top, #0f172a, #020617 70%);
+    }
+
+    .glass {
+      background: rgba(2, 6, 23, 0.75);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--cor-glow);
+      box-shadow: 0 0 40px var(--cor-glow);
+    }
+
+    .btn-gradient {
+      background-size: 200% 200%;
+      background-image: linear-gradient(135deg, var(--cor-secundaria), var(--cor-primaria), var(--cor-secundaria));
+      animation: gradientMove 4s ease infinite;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+      transform: translateY(-18px) scale(0.85);
+      color: var(--cor-primaria);
+    }
+
+    .field label {
+      transition: 0.25s ease;
+      pointer-events: none;
+    }
+
+    input {
+      background-color: transparent !important;
+      color: white;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-animated flex items-center justify-center px-4">
+
+  <div class="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
+
+    <!-- BRANDING -->
+    <div class="md:hidden flex flex-col justify-center p-6 text-white text-center bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 mb-6 rounded-xl">
+      <h1 class="text-3xl font-extrabold mb-3 leading-tight">Garçom<br>GestioMax</h1>
+      <p class="text-base opacity-95">Gerencie pedidos e mesas diretamente no seu celular.</p>
+    </div>
+
+    <!-- Branding desktop -->
+    <div class="hidden md:flex flex-col justify-center p-10 text-white bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500">
+      <h1 class="text-4xl font-extrabold mb-6 leading-tight">
+        Garçom<br>GestioMax
+      </h1>
+      <p class="text-base opacity-95">Gerencie pedidos e mesas diretamente no seu celular.</p>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="glass p-8 sm:p-10 text-white flex flex-col justify-center">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-center mb-2">Acessar Sistema</h2>
+      <p class="text-center text-gray-400 mb-8 text-sm">Faça login com seu usuário de garçom</p>
+
+      <form id="login-form" class="space-y-7">
+        <div class="field relative">
+          <input id="username" type="text" required placeholder=" " autocomplete="username" class="peer w-full border-b border-slate-600 py-2 text-white focus:outline-none">
+          <label class="absolute left-0 top-2 text-gray-400 text-sm">Usuário</label>
+        </div>
+
+        <div class="field relative">
+          <input id="password" type="password" required placeholder=" " autocomplete="current-password" class="peer w-full border-b border-slate-600 py-2 text-white focus:outline-none pr-10">
+          <label class="absolute left-0 top-2 text-gray-400 text-sm">Senha</label>
+          <span id="togglePassword" class="absolute right-0 top-2 cursor-pointer opacity-70 hover:opacity-100">👁️</span>
+        </div>
+
+        <button type="submit" class="btn-gradient w-full py-2.5 rounded-xl font-semibold tracking-wide shadow-lg">Entrar</button>
+      </form>
+
+      <p id="login-error" class="hidden text-red-400 text-sm mt-5 text-center font-medium"></p>
+
+      <p class="text-center text-xs text-gray-500 mt-8">© 2025 Sua Empresa</p>
+    </div>
+
+  </div>
+
+  <!-- JS externo -->
+  <script type="module" src="loginGarcom.js"></script>
+
+</body>
+</html>

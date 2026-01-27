@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GestioMax Sistemas Garçom</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- TOPO -->
+  <header class="topo">
+    <div>
+      <h2>Pedidos: Garçom</h2>
+      <span id="nomeGarcom">Bem-vindo</span>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="container">
+
+    <!-- NOTIFICAÇÃO -->
+    <div id="notificacao" class="notificacao hidden">
+      <p>
+        ⚠️ Existem mesas <strong>não atendidas</strong> no momento!
+      </p>
+    </div>
+
+    <!-- CAMPO MESA -->
+    <div class="campo">
+      <label for="mesa">Mesa Ocupada</label>
+      <select id="mesa">
+        <option value="">Carregando mesas...</option>
+      </select>
+    </div>
+
+    <!-- STATUS DA MESA -->
+    <div id="statusMesa" class="status-mesa">
+      <span id="iconeStatus" class="status-icone"></span>
+      <div>
+        <p id="textoStatus" class="status-texto">
+          Selecione uma mesa para ver o status
+        </p>
+      </div>
+    </div>
+
+    <!-- CAMPO DE PESQUISA -->
+    <div class="campo">
+      <label for="pesquisa">Pesquisar Produto</label>
+      <input type="text" id="pesquisa" placeholder="Digite o nome do produto..." />
+    </div>
+
+    <!-- LISTA DE PRODUTOS -->
+    <div class="campo">
+      <label for="listaProdutos">Produtos</label>
+      <div id="listaProdutos" class="lista-produtos">
+        <!-- Aqui vai aparecer a lista com checkbox -->
+      </div>
+    </div>
+
+    <!-- VALOR TOTAL -->
+    <div class="campo totalPedido">
+      <label>Total do Pedido</label>
+      <div id="valorTotal">R$ 0,00</div>
+    </div>
+
+    <!-- BOTÃO -->
+    <button class="btn-enviar" onclick="enviarPedido()">
+      Enviar Pedido para a Cozinha 🚀
+    </button>
+
+  </main>
+
+  <!-- MODAL DE ERRO -->
+<div id="modalErro" class="modalErro hidden">
+  <div class="modalContent">
+
+    <!-- LOGO -->
+    <div class="modalLogo">
+      <img src="../dist/Imagem/LogoTipo.png" alt="Logo do sistema">
+    </div>
+
+    <div class="modalHeader">
+      <h3>Atenção</h3>
+      <span id="fecharModalErro" class="fecharModal">&times;</span>
+    </div>
+
+    <div class="modalBody">
+      <p id="mensagemErro"></p>
+    </div>
+
+    <div class="modalFooter">
+      <button id="btnOkErro" class="btnOk">OK</button>
+    </div>
+
+  </div>
+</div>
+
+
+  <!-- RODAPÉ FIXO -->
+  <footer class="rodape">
+    Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>
+  </footer>
+
+
+  <!-- ÁUDIO -->
+  <audio id="somAlerta" preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9e9d7d4c6a.mp3?filename=notification-8021.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- JS -->
+  <script type="module" src="painelgargon.js"></script>
+
+</body>
+</html>

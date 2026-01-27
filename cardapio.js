@@ -1699,26 +1699,111 @@ btnCadastro.addEventListener("click", async () => {
   }
 });
 
+// ===============================
+// VERIFICA LOGIN DO USUÁRIO
+// ===============================
 async function verificarLogin() {
   const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data.user) {
-    // usuário não logado
-    document.getElementById("btn-cadastro").style.display = "block";
-    document.getElementById("userPhoto").classList.add("hidden");
+  // ❌ Usuário NÃO logado
+  if (error || !data?.user) {
+    const btnCadastro = document.getElementById("btn-cadastro");
+    const userPhoto = document.getElementById("userPhoto");
+
+    if (btnCadastro) btnCadastro.style.display = "block";
+    if (userPhoto) userPhoto.classList.add("hidden");
+
     return;
   }
 
   const user = data.user;
 
-  // esconder botão criar conta
-  document.getElementById("btn-cadastro").style.display = "none";
-
-  // mostrar foto
+  // ✅ Usuário logado
+  const btnCadastro = document.getElementById("btn-cadastro");
   const userPhoto = document.getElementById("userPhoto");
-  userPhoto.src = user.user_metadata.avatar_url || user.user_metadata.picture;
-  userPhoto.classList.remove("hidden");
+
+  if (btnCadastro) btnCadastro.style.display = "none";
+
+  if (userPhoto) {
+    userPhoto.src =
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture ||
+      "";
+    userPhoto.classList.remove("hidden");
+  }
+
+  // ⚠️ CONTROLE DO MODAL DE NOME
+  const modalJaMostrou = localStorage.getItem("modal_nome_mostrado");
+
+  if (!user.user_metadata?.nome_apelido && !modalJaMostrou) {
+    const modal = document.getElementById("modalNome");
+
+    if (modal) {
+      modal.classList.remove("hidden");
+    }
+
+    // 👉 carrega logo da empresa (se existir)
+    await carregarLogoEmpresa();
+
+    localStorage.setItem("modal_nome_mostrado", "true");
+  }
 }
+
+// ===============================
+// CARREGA LOGO DA EMPRESA
+// ===============================
+
+async function carregarLogotipoEmpresa() {
+  const img = document.getElementById("logoEmpresa");
+  if (!img) return;
+
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("logotipo")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (error || !data?.logotipo) {
+    console.warn("Empresa sem logotipo válido");
+    return;
+  }
+
+  img.src = data.logotipo;
+  img.classList.remove("hidden");
+}
+
+document.addEventListener("DOMContentLoaded", carregarLogotipoEmpresa);
+
+const btnSalvarNome = document.getElementById("btnSalvarNome");
+const inputNome = document.getElementById("inputNome");
+const erroNome = document.getElementById("erroNome");
+const modalNome = document.getElementById("modalNome");
+
+// ESCONDE ERRO AO DIGITAR
+inputNome.addEventListener("input", () => {
+  erroNome.classList.add("hidden");
+});
+
+// BOTÃO APENAS FECHA O MODAL
+btnSalvarNome.addEventListener("click", () => {
+  const nome = inputNome.value.trim();
+
+  // valida apenas para não deixar vazio ou número
+  if (!nome || /\d/.test(nome)) {
+    erroNome.classList.remove("hidden");
+    inputNome.focus();
+    return;
+  }
+
+  // futuramente esse nome será salvo no banco
+  console.log("Nome digitado (não salvo ainda):", nome);
+
+  modalNome.classList.add("hidden");
+});
+
+
+document.getElementById("modalNome").classList.remove("hidden");
+
 
 document.addEventListener("DOMContentLoaded", () => {
   verificarLogin();

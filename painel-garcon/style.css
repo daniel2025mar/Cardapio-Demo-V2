@@ -15,6 +15,34 @@ body {
   padding-bottom: 60px; /* espaço pro rodapé fixo */
 }
 
+/* Espaçamento interno do container principal */
+main.container {
+  padding-top: 20px; /* aumenta o valor se quiser mais espaço */
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+main.container {
+  margin-top: -7px; /* afasta todo o main do topo */
+}
+
+/* Espaçamento interno do container */
+main.container {
+  padding-top: 20px; /* afasta do topo */
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Lista de produtos com scroll */
+.lista-produtos {
+  max-height: 300px;   /* altura máxima da lista, ajuste conforme precisar */
+  overflow-y: auto;    /* ativa scroll vertical */
+  border: 1px solid #ddd;  /* opcional: borda para delimitar */
+  border-radius: 6px;      /* cantos arredondados */
+  padding: 8px;             /* espaçamento interno */
+  background-color: #fff;   /* fundo branco */
+}
+
 /* =========================
    HEADER / TOPO
 ========================= */
@@ -374,6 +402,23 @@ select option {
   margin-top: 18px;
   display: flex;
   justify-content: center;
+}
+
+/* BOTÃO DE LOGOUT NO TOPO */
+#btnLogout {
+  padding: 6px 12px;          /* Espaçamento interno */
+  background-color: #684dff;  /* Cor de fundo vermelho */
+  color: #fff;                /* Texto branco */
+  border: none;               /* Sem borda */
+  border-radius: 6px;         /* Cantos arredondados */
+  cursor: pointer;            /* Cursor de clique */
+  font-weight: 600;           /* Texto em negrito */
+  transition: background-color 0.3s ease; /* Animação suave no hover */
+}
+
+/* Efeito quando o usuário passa o mouse */
+#btnLogout:hover {
+  background-color: #5c3ee0;  /* Vermelho mais escuro no hover */
 }
 
 .btnOk {

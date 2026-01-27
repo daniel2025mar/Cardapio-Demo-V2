@@ -253,6 +253,26 @@ inputPesquisa.addEventListener("input", () => {
   renderizarProdutos(produtosFiltrados);
 });
 
+// FUNÇÃO DE LOGOUT
+async function deslogar() {
+  try {
+    // Se estiver usando Supabase Auth
+    await supabase.auth.signOut();
+
+    // Remove usuário do localStorage
+    localStorage.removeItem("usuarioLogado");
+
+    // Redireciona para a tela de login do garçom
+    window.location.href = "garconLogin.html";
+  } catch (error) {
+    console.error("Erro ao deslogar:", error);
+    alert("Não foi possível sair. Tente novamente.");
+  }
+}
+
+// Torna a função global para poder ser chamada pelo onclick do botão
+window.deslogar = deslogar;
+
 // Verifica mesas não atendidas
 async function verificarMesasNaoAtendidas() {
   const { data, error } = await supabase

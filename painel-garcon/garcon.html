@@ -15,9 +15,12 @@
 
   <!-- TOPO -->
   <header class="topo">
-    <div>
+    <div class="topo-left">
       <h2>Pedidos: Garçom</h2>
       <span id="nomeGarcom">Bem-vindo</span>
+    </div>
+    <div class="topo-right">
+      <button id="btnLogout" onclick="deslogar()">Sair 🚪</button>
     </div>
   </header>
 
@@ -77,36 +80,34 @@
   </main>
 
   <!-- MODAL DE ERRO -->
-<div id="modalErro" class="modalErro hidden">
-  <div class="modalContent">
+  <div id="modalErro" class="modalErro hidden">
+    <div class="modalContent">
 
-    <!-- LOGO -->
-    <div class="modalLogo">
-      <img src="../dist/Imagem/LogoTipo.png" alt="Logo do sistema">
+      <!-- LOGO -->
+      <div class="modalLogo">
+        <img src="../dist/Imagem/LogoTipo.png" alt="Logo do sistema">
+      </div>
+
+      <div class="modalHeader">
+        <h3>Atenção</h3>
+        <span id="fecharModalErro" class="fecharModal">&times;</span>
+      </div>
+
+      <div class="modalBody">
+        <p id="mensagemErro"></p>
+      </div>
+
+      <div class="modalFooter">
+        <button id="btnOkErro" class="btnOk">OK</button>
+      </div>
+
     </div>
-
-    <div class="modalHeader">
-      <h3>Atenção</h3>
-      <span id="fecharModalErro" class="fecharModal">&times;</span>
-    </div>
-
-    <div class="modalBody">
-      <p id="mensagemErro"></p>
-    </div>
-
-    <div class="modalFooter">
-      <button id="btnOkErro" class="btnOk">OK</button>
-    </div>
-
   </div>
-</div>
-
 
   <!-- RODAPÉ FIXO -->
   <footer class="rodape">
     Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>
   </footer>
-
 
   <!-- ÁUDIO -->
   <audio id="somAlerta" preload="auto">

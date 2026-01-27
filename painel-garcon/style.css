@@ -407,7 +407,7 @@ select option {
 /* BOTÃO DE LOGOUT NO TOPO */
 #btnLogout {
   padding: 6px 12px;          /* Espaçamento interno */
-  background-color: #684dff;  /* Cor de fundo vermelho */
+  background-color: #1d4ed8;  /* Cor de fundo vermelho */
   color: #fff;                /* Texto branco */
   border: none;               /* Sem borda */
   border-radius: 6px;         /* Cantos arredondados */

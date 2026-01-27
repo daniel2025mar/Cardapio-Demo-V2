@@ -58,3 +58,31 @@ form.addEventListener("submit", async (e) => {
   // Redireciona para a tela do garçom
   window.location.href = "garcon.html";
 });
+
+
+// Pegar elementos do HTML
+const anoSpan = document.getElementById("anoAtual");
+const nomeSpan = document.getElementById("nomeEmpresa");
+
+// Atualiza o ano automaticamente
+anoSpan.textContent = new Date().getFullYear();
+
+// Função para buscar nome da empresa
+async function carregarNomeEmpresa() {
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("nome")
+    .limit(1)
+    .single(); // pega apenas um registro
+
+  if (error) {
+    console.error("Erro ao buscar empresa:", error);
+    nomeSpan.textContent = "Sua Empresa"; // fallback
+    return;
+  }
+
+  nomeSpan.textContent = data.nome;
+}
+
+// Chama a função
+carregarNomeEmpresa();

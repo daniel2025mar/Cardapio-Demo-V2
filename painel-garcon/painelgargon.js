@@ -427,15 +427,16 @@ window.enviarPedido = function () {
   const mesaSelecionada = selectMesa.value;
 
   if (!mesaSelecionada) {
-    alert("Selecione a mesa!");
+    abrirModalErro("Selecione a mesa para iniciar o atendimento");
     return;
   }
 
   const itensSelecionados = document.querySelectorAll(".checkboxProduto:checked");
   if (itensSelecionados.length === 0) {
-    alert("Selecione pelo menos 1 produto!");
+    abrirModalErro("Selecione pelo menos 1 produto!");
     return;
   }
 
-  alert("Pedido enviado para a cozinha 🚀");
+  abrirModalErro("Pedido enviado para a cozinha 🚀");
 };
+

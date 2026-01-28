@@ -404,6 +404,7 @@ select option {
   justify-content: center;
 }
 
+
 /* BOTÃO DE LOGOUT NO TOPO */
 #btnLogout {
   padding: 6px 12px;          /* Espaçamento interno */
@@ -460,6 +461,151 @@ select option {
   color: #fff;
   font-weight: 600;
 }
+
+/* =========================
+   PROMOÇÕES DO DIA
+========================= */
+.campo.promocoes {
+  padding: 14px;
+  border-radius: 14px;
+  background: #fff7ed; /* fundo quente */
+  border: 2px dashed #fb923c;
+}
+
+.campo.promocoes h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #c2410c;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.campo.promocoes ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.campo.promocoes ul li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-left: 6px solid #fb923c;
+}
+
+/* preço destacado automaticamente */
+.campo.promocoes ul li::after {
+  content: "🔥";
+  font-size: 16px;
+}
+
+/* =========================
+   BOTÃO PEDIDO RÁPIDO
+========================= */
+.btn-rapido {
+  width: 100%;
+  margin-top: 18px; /* 👈 desce o botão */
+  padding: 16px;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ff7a18, #ffb347);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(255, 122, 24, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+/* efeito de destaque */
+.btn-rapido:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.05);
+  box-shadow: 0 14px 32px rgba(255, 122, 24, 0.55);
+}
+
+.btn-rapido:active {
+  transform: scale(0.96);
+  box-shadow: 0 6px 16px rgba(255, 122, 24, 0.4);
+}
+
+/* mobile */
+@media (max-width: 480px) {
+  .btn-rapido {
+    font-size: 16px;
+    padding: 14px;
+  }
+}
+
+
+/* =========================
+   ESTATÍSTICAS
+========================= */
+.campo.estatisticas {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.campo.estatisticas h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* cada linha */
+.campo.estatisticas p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* valores */
+.campo.estatisticas p span {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+/* cores individuais */
+#mesasAtendidas {
+  color: #2563eb;
+}
+
+#pedidosDia {
+  color: #16a34a;
+}
+
+#totalFaturado {
+  color: #f97316;
+}
+
+.produtoItem.aviso {
+  text-align: center;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 20px;
+}
+
 
 /* =========================
    RESPONSIVO

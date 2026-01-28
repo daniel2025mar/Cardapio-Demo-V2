@@ -85,18 +85,56 @@ async function carregarMesas() {
 async function carregarProdutos() {
   const { data, error } = await supabase
     .from("produtos")
-    .select("id, descricao, estoque, valor_sugerido")
+    .select("id, descricao, estoque, valor_sugerido, categoria")
     .order("descricao", { ascending: true });
 
   if (error) {
     console.error("Erro ao carregar produtos:", error);
-    listaProdutos.innerHTML = `<p>Erro ao carregar produtos: ${error.message}</p>`;
+    listaProdutos.innerHTML = `<p>Erro ao carregar produtos</p>`;
     return;
   }
 
   produtosDados = data;
   renderizarProdutos(produtosDados);
 }
+
+
+
+async function carregarProdutosPorCategoria(nomeCategoria) {
+  const { data, error } = await supabase
+    .from("produtos")
+    .select("id, descricao, estoque, valor_sugerido, categoria")
+    .eq("categoria", nomeCategoria)
+    .order("descricao", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao filtrar produtos:", error);
+    listaProdutos.innerHTML = `
+      <div class="produtoItem">
+        <p>Erro ao carregar produtos</p>
+      </div>
+    `;
+    return;
+  }
+
+  // ✅ CATEGORIA EXISTE, MAS SEM PRODUTOS
+  if (!data || data.length === 0) {
+    listaProdutos.innerHTML = `
+      <div class="produtoItem">
+        <p>
+          🕒 Ainda não temos produtos nesta categoria.<br>
+          <strong>Em breve serão adicionados!</strong>
+        </p>
+      </div>
+    `;
+    produtosDados = [];
+    return;
+  }
+
+  produtosDados = data;
+  renderizarProdutos(produtosDados);
+}
+
 
 // Renderiza a lista de produtos
 function renderizarProdutos(produtos) {
@@ -272,6 +310,44 @@ async function deslogar() {
 
 // Torna a função global para poder ser chamada pelo onclick do botão
 window.deslogar = deslogar;
+
+
+async function carregarCategorias() {
+  const select = document.getElementById("filtroCategoria");
+
+  // limpa opções antigas (mantém "Todos")
+  select.innerHTML = `<option value="todos">Todas</option>`;
+
+  const { data, error } = await supabase
+    .from("categorias")
+    .select("nome")
+    .order("nome", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar categorias:", error);
+    return;
+  }
+
+  data.forEach(categoria => {
+    const option = document.createElement("option");
+    option.value = categoria.nome;   // usa o nome para filtrar
+    option.textContent = categoria.nome;
+    select.appendChild(option);
+  });
+}
+
+/* chama ao carregar a página */
+carregarCategorias();
+
+document.getElementById("filtroCategoria").addEventListener("change", (e) => {
+  const categoriaSelecionada = e.target.value;
+
+  if (categoriaSelecionada === "todos") {
+    carregarProdutos(); // carrega todos
+  } else {
+    carregarProdutosPorCategoria(categoriaSelecionada);
+  }
+});
 
 // Verifica mesas não atendidas
 async function verificarMesasNaoAtendidas() {

@@ -27,55 +27,102 @@
   <!-- CONTEÚDO PRINCIPAL -->
   <main class="container">
 
-    <!-- NOTIFICAÇÃO -->
-    <div id="notificacao" class="notificacao hidden">
-      <p>
-        ⚠️ Existem mesas <strong>não atendidas</strong> no momento!
-      </p>
-    </div>
+    <div class="painel-lateral">
 
-    <!-- CAMPO MESA -->
-    <div class="campo">
-      <label for="mesa">Mesa Ocupada</label>
-      <select id="mesa">
-        <option value="">Carregando mesas...</option>
-      </select>
-    </div>
-
-    <!-- STATUS DA MESA -->
-    <div id="statusMesa" class="status-mesa">
-      <span id="iconeStatus" class="status-icone"></span>
-      <div>
-        <p id="textoStatus" class="status-texto">
-          Selecione uma mesa para ver o status
-        </p>
+      <!-- CAMPO MESA -->
+      <div class="campo">
+        <label for="mesa">Mesa Ocupada</label>
+        <select id="mesa">
+          <option value="">Carregando mesas...</option>
+        </select>
       </div>
-    </div>
 
-    <!-- CAMPO DE PESQUISA -->
-    <div class="campo">
-      <label for="pesquisa">Pesquisar Produto</label>
-      <input type="text" id="pesquisa" placeholder="Digite o nome do produto..." />
-    </div>
-
-    <!-- LISTA DE PRODUTOS -->
-    <div class="campo">
-      <label for="listaProdutos">Produtos</label>
-      <div id="listaProdutos" class="lista-produtos">
-        <!-- Aqui vai aparecer a lista com checkbox -->
+      <!-- STATUS DA MESA -->
+      <div id="statusMesa" class="status-mesa">
+        <span id="iconeStatus" class="status-icone"></span>
+        <div>
+          <p id="textoStatus" class="status-texto">
+            Selecione uma mesa para ver o status
+          </p>
+        </div>
       </div>
+
+      <!-- PEDIDOS EM ANDAMENTO -->
+      <div class="campo">
+        <h3>Pedidos em Andamento</h3>
+        <div id="pedidosAndamento" class="lista-pedidos">
+          <!-- Lista de pedidos enviados -->
+        </div>
+      </div>
+
+      <!-- ESTATÍSTICAS RÁPIDAS -->
+      <div class="campo estatisticas">
+        <h3>Estatísticas</h3>
+        <p>Mesas atendidas: <span id="mesasAtendidas">0</span></p>
+        <p>Pedidos do dia: <span id="pedidosDia">0</span></p>
+        <p>Total faturado: <span id="totalFaturado">R$ 0,00</span></p>
+      </div>
+
     </div>
 
-    <!-- VALOR TOTAL -->
-    <div class="campo totalPedido">
-      <label>Total do Pedido</label>
-      <div id="valorTotal">R$ 0,00</div>
+    <div class="painel-central">
+
+      <!-- CAMPO DE PESQUISA -->
+      <div class="campo">
+        <label for="pesquisa">Pesquisar Produto</label>
+        <input type="text" id="pesquisa" placeholder="Digite o nome do produto..." />
+      </div>
+
+      <!-- FILTRO POR CATEGORIA -->
+      <div class="campo">
+  <label for="filtroCategoria">Filtrar Categoria</label>
+  <select id="filtroCategoria">
+    <option value="todos">Todas</option>
+  </select>
+</div>
+
+
+      <!-- LISTA DE PRODUTOS -->
+      <div class="campo">
+        <label for="listaProdutos">Produtos</label>
+        <div id="listaProdutos" class="lista-produtos">
+          <!-- Produtos com checkbox -->
+        </div>
+      </div>
+
+      <!-- OBSERVAÇÃO POR PRODUTO -->
+      <div class="campo">
+        <label for="observacao">Observação do Pedido</label>
+        <input type="text" id="observacao" placeholder="Ex: sem cebola, bem passado..." />
+      </div>
+
+      <!-- VALOR TOTAL -->
+      <div class="campo totalPedido">
+        <label>Total do Pedido</label>
+        <div id="valorTotal">R$ 0,00</div>
+      </div>
+
+      <!-- BOTÕES DE AÇÃO -->
+      <div class="campo botoes">
+        <button class="btn-enviar" onclick="enviarPedido()">Enviar Pedido 🚀</button>
+        <button class="btn-rapido" onclick="pedidoRapido()">Pedido Rápido ⚡</button>
+      </div>
+
+      <!-- PROMOÇÕES / SUGESTÕES DO DIA -->
+      <div class="campo promocoes">
+      <h3>Promoções do Dia</h3>
+      <ul id="listaPromocoes">
+    <!-- promoções vêm do banco -->
+      </ul>
     </div>
 
-    <!-- BOTÃO -->
-    <button class="btn-enviar" onclick="enviarPedido()">
-      Enviar Pedido para a Cozinha 🚀
-    </button>
+    <div class="incentivo-promocao">
+    💡 Ofereça essas promoções ao cliente!  
+    <strong>Você ganha comissão por cada venda realizada.</strong>
+    </div>
+</div>
+
+    </div>
 
   </main>
 

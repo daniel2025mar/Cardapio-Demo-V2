@@ -27,6 +27,270 @@ if (!usuarioLogado) {
   nomeGarcom.innerText = `Bem-vindo (a), ${usuarioLogado.username}`;
 }
 
+// carrega relatorio do garcom
+async function carregarRelatorioGarcom() {
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  if (!usuarioLogado || !usuarioLogado.username) {
+    return;
+  }
+
+  const hoje = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+
+  const { data, error } = await supabase
+    .from("relatorio_garcom")
+    .select("mesas_atendidas, total_pedidos, total_faturado")
+    .eq("nome_garcom", usuarioLogado.username) // 🔐 só o próprio garçom
+    .eq("data", hoje)
+    .maybeSingle(); // evita erro se não existir
+
+  if (!data) {
+    // não tem registro para esse garçom hoje
+    document.getElementById("mesasAtendidas").textContent = 0;
+    document.getElementById("pedidosDia").textContent = 0;
+    document.getElementById("totalFaturado").textContent = "R$ 0,00";
+    return;
+  }
+
+  document.getElementById("mesasAtendidas").textContent = data.mesas_atendidas;
+  document.getElementById("pedidosDia").textContent = data.total_pedidos;
+  document.getElementById("totalFaturado").textContent =
+    data.total_faturado.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+}
+
+/* =====================================================
+   RELATÓRIO PDF DO GARÇOM (COM LOGO E EMPRESA)
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const inputData = document.getElementById("dataRelatorio");
+  const campoPdf = document.getElementById("campoPdf");
+  const btnGerarPdf = document.getElementById("btnGerarPdf");
+
+  if (!inputData || !campoPdf || !btnGerarPdf) return;
+
+  /* =============================
+     1️⃣ DATA ATUAL
+  ============================== */
+  const hoje = new Date();
+  inputData.value = hoje.toISOString().split("T")[0];
+  campoPdf.classList.remove("hidden");
+
+  inputData.addEventListener("change", () => {
+    campoPdf.classList.toggle("hidden", !inputData.value);
+  });
+
+  /* =============================
+     2️⃣ GERAR PDF
+  ============================== */
+  btnGerarPdf.addEventListener("click", async () => {
+    const dataSelecionada = inputData.value;
+
+    if (!dataSelecionada) {
+      abrirModalErro("Selecione uma data.");
+      return;
+    }
+
+    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+    if (!usuarioLogado || !usuarioLogado.username) {
+      abrirModalErro("Garçom não identificado.");
+      return;
+    }
+
+    const nomeGarcom = usuarioLogado.username;
+
+    /* =============================
+       3️⃣ VERIFICA SE GARÇOM TEM
+          ALGUM REGISTRO
+    ============================== */
+    const { data: registrosGarcom, error: erroGarcom } = await supabase
+      .from("relatorio_garcom")
+      .select("id")
+      .eq("nome_garcom", nomeGarcom)
+      .limit(1);
+
+    if (erroGarcom) {
+      console.error(erroGarcom);
+      abrirModalErro("Erro ao verificar registros do garçom.");
+      return;
+    }
+
+    if (!registrosGarcom || registrosGarcom.length === 0) {
+      abrirModalErro(
+        "Seu usuário ainda não possui nenhum registro."
+      );
+      return;
+    }
+
+    /* =============================
+       4️⃣ BUSCAR RELATÓRIO NA DATA
+    ============================== */
+    const { data: relatorio, error } = await supabase
+      .from("relatorio_garcom")
+      .select("*")
+      .eq("nome_garcom", nomeGarcom)
+      .eq("data", dataSelecionada)
+      .single();
+
+    if (error || !relatorio) {
+      abrirModalErro(
+        "Nenhum relatório encontrado para esta data."
+      );
+      return;
+    }
+
+    /* =============================
+       5️⃣ BUSCAR EMPRESA
+    ============================== */
+    const empresa = await buscarEmpresa();
+
+    /* =============================
+       6️⃣ GERAR PDF
+    ============================== */
+    await gerarPdfRelatorio(relatorio, empresa);
+  });
+});
+
+/* =====================================================
+   BUSCAR EMPRESA (NOME + LOGO)
+===================================================== */
+async function buscarEmpresa() {
+  const { data, error } = await supabase
+    .from("empresa")
+    .select("nome, logotipo")
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    console.error("Erro ao buscar empresa:", error);
+    return { nome: "Empresa", logotipo: null };
+  }
+
+  return data;
+}
+
+/* =====================================================
+   CONVERTER IMAGEM URL → BASE64
+===================================================== */
+async function carregarImagemBase64(url) {
+  if (!url) return null;
+
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/* =====================================================
+   GERAR PDF
+===================================================== */
+async function gerarPdfRelatorio(relatorio, empresa) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const largura = doc.internal.pageSize.getWidth();
+  const corPrimaria = [33, 37, 41];
+
+  /* =============================
+     LOGO
+  ============================== */
+  let logoBase64 = null;
+  if (empresa.logotipo) {
+    logoBase64 = await carregarImagemBase64(empresa.logotipo);
+  }
+
+  if (logoBase64) {
+    doc.addImage(logoBase64, "PNG", 20, 15, 28, 28);
+  }
+
+  /* =============================
+     CABEÇALHO
+  ============================== */
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...corPrimaria);
+  doc.text(empresa.nome, 55, 30);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text("Relatório Diário do Garçom", 55, 38);
+
+  doc.setDrawColor(180);
+  doc.line(20, 45, largura - 20, 45);
+
+  /* =============================
+     DADOS
+  ============================== */
+  doc.setFontSize(12);
+  doc.setTextColor(0);
+
+  doc.text("Garçom:", 20, 60);
+  doc.setFont("helvetica", "bold");
+  doc.text(relatorio.nome_garcom, 50, 60);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("Data:", 20, 70);
+  doc.setFont("helvetica", "bold");
+  doc.text(formatarData(relatorio.data), 50, 70);
+
+  /* =============================
+     ESTATÍSTICAS
+  ============================== */
+  doc.setDrawColor(200);
+  doc.roundedRect(20, 80, largura - 40, 45, 4, 4);
+
+  doc.setFont("helvetica", "normal");
+  doc.text("Mesas atendidas:", 30, 97);
+  doc.text("Pedidos do dia:", 30, 107);
+  doc.text("Total faturado:", 30, 117);
+
+  doc.setFont("helvetica", "bold");
+  doc.text(String(relatorio.mesas_atendidas), 120, 97);
+  doc.text(String(relatorio.total_pedidos), 120, 107);
+  doc.text(
+    `R$ ${Number(relatorio.total_faturado).toFixed(2)}`,
+    120,
+    117
+  );
+
+  /* =============================
+     RODAPÉ
+  ============================== */
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text(
+    `Relatório gerado em ${new Date().toLocaleString("pt-BR")}`,
+    largura / 2,
+    285,
+    { align: "center" }
+  );
+
+  /* =============================
+     SALVAR
+  ============================== */
+  doc.save(
+    `relatorio_${relatorio.nome_garcom}_${relatorio.data}.pdf`
+  );
+}
+
+/* =====================================================
+   FORMATAR DATA
+===================================================== */
+function formatarData(data) {
+  const [ano, mes, dia] = data.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+
+
+
 // elementos
 const selectMesa = document.getElementById("mesa");
 const statusMesa = document.getElementById("statusMesa");
@@ -420,6 +684,7 @@ selectMesa.addEventListener("change", () => {
 
 // CARREGA AS MESAS E PRODUTOS
 carregarMesas();
+carregarRelatorioGarcom();
 carregarProdutos();
 
 // ENVIAR PEDIDO

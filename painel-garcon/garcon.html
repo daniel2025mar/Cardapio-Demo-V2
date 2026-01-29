@@ -62,6 +62,18 @@
 
       <!-- ESTATÍSTICAS RÁPIDAS -->
       <div class="campo estatisticas">
+
+        <div class="campo">
+        <label for="dataRelatorio">Consultar data de Pedidos realizados</label>
+        <input type="date" id="dataRelatorio" />
+         </div>
+
+         <div class="campo hidden" id="campoPdf">
+         <button id="btnGerarPdf" class="btn-enviar">
+    Gerar PDF do Relatório 📄
+     </button>
+     </div>
+
         <h3>Estatísticas</h3>
         <p>Mesas atendidas: <span id="mesasAtendidas">0</span></p>
         <p>Pedidos do dia: <span id="pedidosDia">0</span></p>
@@ -165,6 +177,9 @@
   <audio id="somAlerta" preload="auto">
     <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9e9d7d4c6a.mp3?filename=notification-8021.mp3" type="audio/mpeg">
   </audio>
+  
+  <!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- JS -->
   <script type="module" src="painelgargon.js"></script>

@@ -130,6 +130,33 @@ textarea {
   resize: none;
 }
 
+#btnGerarPdf {
+  height: 32px;
+  padding: 0 16px;
+  background: linear-gradient(135deg, #161fa3, #152580);
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  font-size: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 10px 22px rgba(12, 14, 95, 0.35);
+  transition: all 0.25s ease;
+}
+
+/* hover bonito */
+#btnGerarPdf:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(22, 67, 163, 0.45);
+}
+
+/* click */
+#btnGerarPdf:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 16px rgba(22, 163, 74, 0.3);
+}
+
 /* =========================
    BOTÃO ENVIAR
 ========================= */
@@ -609,6 +636,90 @@ select option {
 .hidden {
   display: none;
 }
+
+.linha-relatorio {
+  display: flex;
+  align-items: flex-end; /* alinha input e botão */
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* deixa os campos equilibrados */
+.linha-relatorio .campo {
+  flex: 1;
+}
+/* linha principal */
+.linha-relatorio {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* linha principal */
+.linha-relatorio {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+/* campo */
+.campo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 140px;
+}
+
+/* 🔒 NÃO QUEBRA O TEXTO DO LABEL */
+.campo label {
+  white-space: nowrap;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+/* input date compacto */
+.campo input[type="date"] {
+  width: 100%;
+  height: 32px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 12px;
+}
+
+/* campo do botão */
+#campoPdf {
+  flex: 0 0 auto;
+}
+
+/* botão */
+#btnGerarPdf {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 📱 Mobile continua lado a lado */
+@media (max-width: 600px) {
+  .linha-relatorio {
+    gap: 6px;
+  }
+
+  .campo label {
+    font-size: 11px;
+  }
+
+  #btnGerarPdf {
+    font-size: 11px;
+    padding: 0 10px;
+  }
+}
+
 
 
 /* =========================

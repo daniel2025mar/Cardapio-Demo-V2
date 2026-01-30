@@ -27,7 +27,37 @@ if (!usuarioLogado) {
   nomeGarcom.innerText = `Bem-vindo (a), ${usuarioLogado.username}`;
 }
 
-// carrega relatorio do garcom
+
+
+// 🔄 VERIFICA VIRADA DO DIA (SÓ TELA)
+function verificarViradaDoDia() {
+  const hoje = dataHojeBrasil();
+  const ultimoDia = localStorage.getItem("ultimoDiaRelatorio");
+
+  // se nunca foi salvo, salva o dia atual
+  if (!ultimoDia) {
+    localStorage.setItem("ultimoDiaRelatorio", hoje);
+    return false;
+  }
+
+  if (ultimoDia !== hoje) {
+    // ⚠️ proteção contra elementos inexistentes
+    const mesas = document.getElementById("mesasAtendidas");
+    const pedidos = document.getElementById("pedidosDia");
+    const faturado = document.getElementById("totalFaturado");
+
+    if (mesas) mesas.textContent = 0;
+    if (pedidos) pedidos.textContent = 0;
+    if (faturado) faturado.textContent = "R$ 0,00";
+
+    localStorage.setItem("ultimoDiaRelatorio", hoje);
+    return true;
+  }
+
+  return false;
+}
+
+// 📊 CARREGAR RELATÓRIO DO GARÇOM
 async function carregarRelatorioGarcom() {
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
 
@@ -35,35 +65,56 @@ async function carregarRelatorioGarcom() {
     return;
   }
 
-  const hoje = new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+  // 🔄 se virou o dia, não busca relatório antigo
+  const virouDia = verificarViradaDoDia();
+  if (virouDia) return;
+
+  const hoje = dataHojeBrasil();
 
   const { data, error } = await supabase
     .from("relatorio_garcom")
     .select("mesas_atendidas, total_pedidos, total_faturado")
-    .eq("nome_garcom", usuarioLogado.username) // 🔐 só o próprio garçom
+    .eq("nome_garcom", usuarioLogado.username)
     .eq("data", hoje)
-    .maybeSingle(); // evita erro se não existir
+    .maybeSingle();
 
-  if (!data) {
-    // não tem registro para esse garçom hoje
-    document.getElementById("mesasAtendidas").textContent = 0;
-    document.getElementById("pedidosDia").textContent = 0;
-    document.getElementById("totalFaturado").textContent = "R$ 0,00";
+  if (error) {
+    console.error("Erro ao carregar relatório:", error);
     return;
   }
 
-  document.getElementById("mesasAtendidas").textContent = data.mesas_atendidas;
-  document.getElementById("pedidosDia").textContent = data.total_pedidos;
-  document.getElementById("totalFaturado").textContent =
-    data.total_faturado.toLocaleString("pt-BR", {
+  const mesas = document.getElementById("mesasAtendidas");
+  const pedidos = document.getElementById("pedidosDia");
+  const faturado = document.getElementById("totalFaturado");
+
+  if (!data) {
+    if (mesas) mesas.textContent = 0;
+    if (pedidos) pedidos.textContent = 0;
+    if (faturado) faturado.textContent = "R$ 0,00";
+    return;
+  }
+
+  if (mesas) mesas.textContent = data.mesas_atendidas;
+  if (pedidos) pedidos.textContent = data.total_pedidos;
+  if (faturado) {
+    faturado.textContent = Number(data.total_faturado).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
+  }
 }
+
+
 
 /* =====================================================
    RELATÓRIO PDF DO GARÇOM (COM LOGO E EMPRESA)
 ===================================================== */
+// ✅ DATA ATUAL NO PADRÃO BRASIL
+function dataHojeBrasil() {
+  const hoje = new Date();
+  hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
+  return hoje.toISOString().split("T")[0];
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const inputData = document.getElementById("dataRelatorio");
@@ -73,10 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!inputData || !campoPdf || !btnGerarPdf) return;
 
   /* =============================
-     1️⃣ DATA ATUAL
+     1️⃣ DATA ATUAL (BRASIL)
   ============================== */
-  const hoje = new Date();
-  inputData.value = hoje.toISOString().split("T")[0];
+  inputData.value = dataHojeBrasil();
   campoPdf.classList.remove("hidden");
 
   inputData.addEventListener("change", () => {
@@ -119,9 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!registrosGarcom || registrosGarcom.length === 0) {
-      abrirModalErro(
-        "Seu usuário ainda não possui nenhum registro."
-      );
+      abrirModalErro("Seu usuário ainda não possui nenhum registro.");
       return;
     }
 
@@ -136,9 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .single();
 
     if (error || !relatorio) {
-      abrirModalErro(
-        "Nenhum relatório encontrado para esta data."
-      );
+      abrirModalErro("Nenhum relatório encontrado para esta data.");
       return;
     }
 
@@ -153,6 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await gerarPdfRelatorio(relatorio, empresa);
   });
 });
+
 
 /* =====================================================
    BUSCAR EMPRESA (NOME + LOGO)
@@ -613,6 +660,17 @@ document.getElementById("filtroCategoria").addEventListener("change", (e) => {
   }
 });
 
+function mesaAindaAtendida(ultimoAtendimento, minutos = 30) {
+  if (!ultimoAtendimento) return false;
+
+  const agora = new Date();
+  const ultimo = new Date(ultimoAtendimento);
+
+  const diffMin = (agora - ultimo) / 1000 / 60;
+
+  return diffMin < minutos;
+}
+
 // Verifica mesas não atendidas
 async function verificarMesasNaoAtendidas() {
   const { data, error } = await supabase
@@ -687,8 +745,14 @@ carregarMesas();
 carregarRelatorioGarcom();
 carregarProdutos();
 
-// ENVIAR PEDIDO
-window.enviarPedido = function () {
+// Função para gerar UUID (se ainda não tiver)
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+window.enviarPedido = async function () {
   const mesaSelecionada = selectMesa.value;
 
   if (!mesaSelecionada) {
@@ -696,12 +760,93 @@ window.enviarPedido = function () {
     return;
   }
 
-  const itensSelecionados = document.querySelectorAll(".checkboxProduto:checked");
-  if (itensSelecionados.length === 0) {
-    abrirModalErro("Selecione pelo menos 1 produto!");
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+  if (!usuarioLogado || !usuarioLogado.username || !usuarioLogado.id) {
+    abrirModalErro("Garçom não identificado.");
     return;
   }
 
-  abrirModalErro("Pedido enviado para a cozinha 🚀");
+  const nomeGarcom = usuarioLogado.username;
+  const garcomId = usuarioLogado.id;
+
+  // ✅ DATA REAL DO SISTEMA (SEM UTC)
+  const agora = new Date();
+  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
+  const hoje = agora.toISOString().split("T")[0];
+  const timestampAgora = agora.toISOString();
+
+  // ✅ Pegando produtos com quantidade > 0
+  const itensSelecionados = [];
+  let totalPedidos = 0;
+  let valorTotal = 0;
+
+  document.querySelectorAll(".checkboxProduto:checked").forEach((checkbox) => {
+    const id = checkbox.getAttribute("data-id");
+    const inputQtd = document.querySelector(`.quantidadeProduto[data-id="${id}"]`);
+    const qtd = Number(inputQtd.value);
+    const produto = produtosDados.find(p => String(p.id) === id);
+
+    if (qtd > 0 && produto) {
+      const valorProduto = Number(produto.valor_sugerido);
+      itensSelecionados.push({ id, qtd, valor: valorProduto });
+      totalPedidos += 1;
+      valorTotal += valorProduto * qtd;
+    }
+  });
+
+  if (itensSelecionados.length === 0 || valorTotal <= 0) {
+    abrirModalErro("Selecione pelo menos 1 produto para enviar o pedido!");
+    return;
+  }
+
+  // 🔎 Verifica registro do dia
+  const { data: registroExistente, error: erroCheck } = await supabase
+    .from("relatorio_garcom")
+    .select("*")
+    .eq("nome_garcom", nomeGarcom)
+    .eq("data", hoje)
+    .maybeSingle();
+
+  if (erroCheck) {
+    console.error(erroCheck);
+    abrirModalErro("Erro ao verificar registro do garçom.");
+    return;
+  }
+
+  if (registroExistente) {
+    await supabase
+      .from("relatorio_garcom")
+      .update({
+        mesas_atendidas: registroExistente.mesas_atendidas + 1,
+        total_pedidos: registroExistente.total_pedidos + totalPedidos,
+        total_faturado: Number(registroExistente.total_faturado) + valorTotal,
+        updated_at: timestampAgora
+      })
+      .eq("id", registroExistente.id);
+  } else {
+    await supabase
+      .from("relatorio_garcom")
+      .insert([{
+        id: uuidv4(),
+        garcom_id: garcomId,
+        nome_garcom: nomeGarcom,
+        data: hoje,
+        mesas_atendidas: 1,
+        total_pedidos: totalPedidos,
+        total_faturado: valorTotal,
+        created_at: timestampAgora,
+        updated_at: timestampAgora
+      }]);
+  }
+
+  await supabase
+    .from("mesas")
+    .update({ atendida: true })
+    .eq("id", mesaSelecionada);
+
+  abrirModalErro("Pedido enviado e registro atualizado com sucesso 🚀");
+
+  await carregarMesas();
+  await carregarRelatorioGarcom();
 };
 

@@ -52,6 +52,19 @@
         </div>
       </div>
 
+      <div class="linha-relatorio">
+  <div class="campo">
+    <label for="dataRelatorio">Consultar data de Pedidos realizados</label>
+    <input type="date" id="dataRelatorio" />
+  </div>
+
+  <div class="campo hidden" id="campoPdf">
+    <button id="btnGerarPdf" class="btn-enviar">
+      Gerar PDF do Relatório 📄
+    </button>
+  </div>
+</div>
+
       <!-- PEDIDOS EM ANDAMENTO -->
       <div class="campo">
         <h3>Pedidos em Andamento</h3>
@@ -63,17 +76,7 @@
       <!-- ESTATÍSTICAS RÁPIDAS -->
       <div class="campo estatisticas">
 
-        <div class="campo">
-        <label for="dataRelatorio">Consultar data de Pedidos realizados</label>
-        <input type="date" id="dataRelatorio" />
-         </div>
-
-         <div class="campo hidden" id="campoPdf">
-         <button id="btnGerarPdf" class="btn-enviar">
-    Gerar PDF do Relatório 📄
-     </button>
-     </div>
-
+        
         <h3>Estatísticas</h3>
         <p>Mesas atendidas: <span id="mesasAtendidas">0</span></p>
         <p>Pedidos do dia: <span id="pedidosDia">0</span></p>

@@ -116,227 +116,6 @@ function dataHojeBrasil() {
   return hoje.toISOString().split("T")[0];
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const inputData = document.getElementById("dataRelatorio");
-  const campoPdf = document.getElementById("campoPdf");
-  const btnGerarPdf = document.getElementById("btnGerarPdf");
-
-  if (!inputData || !campoPdf || !btnGerarPdf) return;
-
-  /* =============================
-     1️⃣ DATA ATUAL (BRASIL)
-  ============================== */
-  inputData.value = dataHojeBrasil();
-  campoPdf.classList.remove("hidden");
-
-  inputData.addEventListener("change", () => {
-    campoPdf.classList.toggle("hidden", !inputData.value);
-  });
-
-  /* =============================
-     2️⃣ GERAR PDF
-  ============================== */
-  btnGerarPdf.addEventListener("click", async () => {
-    const dataSelecionada = inputData.value;
-
-    if (!dataSelecionada) {
-      abrirModalErro("Selecione uma data.");
-      return;
-    }
-
-    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-    if (!usuarioLogado || !usuarioLogado.username) {
-      abrirModalErro("Garçom não identificado.");
-      return;
-    }
-
-    const nomeGarcom = usuarioLogado.username;
-
-    /* =============================
-       3️⃣ VERIFICA SE GARÇOM TEM
-          ALGUM REGISTRO
-    ============================== */
-    const { data: registrosGarcom, error: erroGarcom } = await supabase
-      .from("relatorio_garcom")
-      .select("id")
-      .eq("nome_garcom", nomeGarcom)
-      .limit(1);
-
-    if (erroGarcom) {
-      console.error(erroGarcom);
-      abrirModalErro("Erro ao verificar registros do garçom.");
-      return;
-    }
-
-    if (!registrosGarcom || registrosGarcom.length === 0) {
-      abrirModalErro("Seu usuário ainda não possui nenhum registro.");
-      return;
-    }
-
-    /* =============================
-       4️⃣ BUSCAR RELATÓRIO NA DATA
-    ============================== */
-    const { data: relatorio, error } = await supabase
-      .from("relatorio_garcom")
-      .select("*")
-      .eq("nome_garcom", nomeGarcom)
-      .eq("data", dataSelecionada)
-      .single();
-
-    if (error || !relatorio) {
-      abrirModalErro("Nenhum relatório encontrado para esta data.");
-      return;
-    }
-
-    /* =============================
-       5️⃣ BUSCAR EMPRESA
-    ============================== */
-    const empresa = await buscarEmpresa();
-
-    /* =============================
-       6️⃣ GERAR PDF
-    ============================== */
-    await gerarPdfRelatorio(relatorio, empresa);
-  });
-});
-
-
-/* =====================================================
-   BUSCAR EMPRESA (NOME + LOGO)
-===================================================== */
-async function buscarEmpresa() {
-  const { data, error } = await supabase
-    .from("empresa")
-    .select("nome, logotipo")
-    .limit(1)
-    .single();
-
-  if (error || !data) {
-    console.error("Erro ao buscar empresa:", error);
-    return { nome: "Empresa", logotipo: null };
-  }
-
-  return data;
-}
-
-/* =====================================================
-   CONVERTER IMAGEM URL → BASE64
-===================================================== */
-async function carregarImagemBase64(url) {
-  if (!url) return null;
-
-  const response = await fetch(url);
-  const blob = await response.blob();
-
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
-}
-
-/* =====================================================
-   GERAR PDF
-===================================================== */
-async function gerarPdfRelatorio(relatorio, empresa) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  const largura = doc.internal.pageSize.getWidth();
-  const corPrimaria = [33, 37, 41];
-
-  /* =============================
-     LOGO
-  ============================== */
-  let logoBase64 = null;
-  if (empresa.logotipo) {
-    logoBase64 = await carregarImagemBase64(empresa.logotipo);
-  }
-
-  if (logoBase64) {
-    doc.addImage(logoBase64, "PNG", 20, 15, 28, 28);
-  }
-
-  /* =============================
-     CABEÇALHO
-  ============================== */
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(...corPrimaria);
-  doc.text(empresa.nome, 55, 30);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  doc.text("Relatório Diário do Garçom", 55, 38);
-
-  doc.setDrawColor(180);
-  doc.line(20, 45, largura - 20, 45);
-
-  /* =============================
-     DADOS
-  ============================== */
-  doc.setFontSize(12);
-  doc.setTextColor(0);
-
-  doc.text("Garçom:", 20, 60);
-  doc.setFont("helvetica", "bold");
-  doc.text(relatorio.nome_garcom, 50, 60);
-
-  doc.setFont("helvetica", "normal");
-  doc.text("Data:", 20, 70);
-  doc.setFont("helvetica", "bold");
-  doc.text(formatarData(relatorio.data), 50, 70);
-
-  /* =============================
-     ESTATÍSTICAS
-  ============================== */
-  doc.setDrawColor(200);
-  doc.roundedRect(20, 80, largura - 40, 45, 4, 4);
-
-  doc.setFont("helvetica", "normal");
-  doc.text("Mesas atendidas:", 30, 97);
-  doc.text("Pedidos do dia:", 30, 107);
-  doc.text("Total faturado:", 30, 117);
-
-  doc.setFont("helvetica", "bold");
-  doc.text(String(relatorio.mesas_atendidas), 120, 97);
-  doc.text(String(relatorio.total_pedidos), 120, 107);
-  doc.text(
-    `R$ ${Number(relatorio.total_faturado).toFixed(2)}`,
-    120,
-    117
-  );
-
-  /* =============================
-     RODAPÉ
-  ============================== */
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.text(
-    `Relatório gerado em ${new Date().toLocaleString("pt-BR")}`,
-    largura / 2,
-    285,
-    { align: "center" }
-  );
-
-  /* =============================
-     SALVAR
-  ============================== */
-  doc.save(
-    `relatorio_${relatorio.nome_garcom}_${relatorio.data}.pdf`
-  );
-}
-
-/* =====================================================
-   FORMATAR DATA
-===================================================== */
-function formatarData(data) {
-  const [ano, mes, dia] = data.split("-");
-  return `${dia}/${mes}/${ano}`;
-}
-
-
-
 
 // elementos
 const selectMesa = document.getElementById("mesa");
@@ -756,7 +535,26 @@ window.enviarPedido = async function () {
   const mesaSelecionada = selectMesa.value;
 
   if (!mesaSelecionada) {
-    abrirModalErro("Selecione a mesa para iniciar o atendimento");
+    abrirModalErro("Selecione uma mesa para iniciar o atendimento");
+    return;
+  }
+
+  // ✅ Verifica se a mesa já está atendida
+  const { data: mesaAtualDb, error: erroMesa } = await supabase
+    .from("mesas")
+    .select("atendida, ultimo_atendimento, descricao")
+    .eq("id", mesaSelecionada)
+    .maybeSingle();
+
+  if (erroMesa) {
+    console.error(erroMesa);
+    abrirModalErro("Erro ao verificar status da mesa.");
+    return;
+  }
+
+  if (mesaAtualDb && mesaAtualDb.atendida) {
+    const horaUltimoAtendimento = new Date(mesaAtualDb.ultimo_atendimento).toLocaleTimeString();
+    abrirModalErro(`Não é possível fazer pedido para ${mesaAtualDb.descricao} no momento. Último atendimento: ${horaUltimoAtendimento}`);
     return;
   }
 
@@ -769,13 +567,13 @@ window.enviarPedido = async function () {
   const nomeGarcom = usuarioLogado.username;
   const garcomId = usuarioLogado.id;
 
-  // ✅ DATA REAL DO SISTEMA (SEM UTC)
+  // DATA REAL DO SISTEMA
   const agora = new Date();
   agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
   const hoje = agora.toISOString().split("T")[0];
   const timestampAgora = agora.toISOString();
 
-  // ✅ Pegando produtos com quantidade > 0
+  // Pegando produtos com quantidade > 0
   const itensSelecionados = [];
   let totalPedidos = 0;
   let valorTotal = 0;
@@ -799,7 +597,7 @@ window.enviarPedido = async function () {
     return;
   }
 
-  // 🔎 Verifica registro do dia
+  // Verifica registro do dia no relatório do garçom
   const { data: registroExistente, error: erroCheck } = await supabase
     .from("relatorio_garcom")
     .select("*")
@@ -839,14 +637,41 @@ window.enviarPedido = async function () {
       }]);
   }
 
+  // Atualiza mesa como atendida e salva último atendimento
   await supabase
     .from("mesas")
-    .update({ atendida: true })
+    .update({ atendida: true, ultimo_atendimento: timestampAgora })
     .eq("id", mesaSelecionada);
+
+  // Atualiza status visual
+  const mesaAtual = mesasDados.find(m => String(m.id) === mesaSelecionada);
+  if (mesaAtual) {
+    mesaAtual.atendida = true;
+    mesaAtual.ultimo_atendimento = timestampAgora;
+
+    statusMesa.className = "status-mesa atendida";
+    textoStatus.textContent = `${mesaAtual.descricao} já foi atendida.`;
+  }
 
   abrirModalErro("Pedido enviado e registro atualizado com sucesso 🚀");
 
-  await carregarMesas();
   await carregarRelatorioGarcom();
-};
 
+  // ⏱️ Volta a marcar como não atendida após 40 minutos
+  setTimeout(async () => {
+    await supabase
+      .from("mesas")
+      .update({ atendida: false, ultimo_atendimento: null })
+      .eq("id", mesaSelecionada);
+
+    if (mesaAtual) {
+      mesaAtual.atendida = false;
+      mesaAtual.ultimo_atendimento = null;
+
+      statusMesa.className = "status-mesa nao-atendida";
+      textoStatus.textContent = `${mesaAtual.descricao} ainda não foi atendida.`;
+    }
+
+    // NÃO chamar carregarMesas() para não mexer no select
+  }, 40 * 60 * 1000); // 40 minutos
+};

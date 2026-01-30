@@ -28,9 +28,9 @@
   <main class="container">
 
     <!-- NOTIFICAÇÃO MESA NÃO ATENDIDA -->
-<div id="notificacao" class="notificacao hidden">
-  ⚠️ Existem mesas <strong>aguardando atendimento</strong> no momento.
-</div>
+    <div id="notificacao" class="notificacao hidden">
+      ⚠️ Existem mesas <strong>aguardando atendimento</strong> no momento.
+    </div>
 
     <div class="painel-lateral">
 
@@ -52,19 +52,6 @@
         </div>
       </div>
 
-      <div class="linha-relatorio">
-  <div class="campo">
-    <label for="dataRelatorio">Consultar data de Pedidos realizados</label>
-    <input type="date" id="dataRelatorio" />
-  </div>
-
-  <div class="campo hidden" id="campoPdf">
-    <button id="btnGerarPdf" class="btn-enviar">
-      Gerar PDF do Relatório 📄
-    </button>
-  </div>
-</div>
-
       <!-- PEDIDOS EM ANDAMENTO -->
       <div class="campo">
         <h3>Pedidos em Andamento</h3>
@@ -75,8 +62,6 @@
 
       <!-- ESTATÍSTICAS RÁPIDAS -->
       <div class="campo estatisticas">
-
-        
         <h3>Estatísticas</h3>
         <p>Mesas atendidas: <span id="mesasAtendidas">0</span></p>
         <p>Pedidos do dia: <span id="pedidosDia">0</span></p>
@@ -95,12 +80,11 @@
 
       <!-- FILTRO POR CATEGORIA -->
       <div class="campo">
-  <label for="filtroCategoria">Filtrar Categoria</label>
-  <select id="filtroCategoria">
-    <option value="todos">Todas</option>
-  </select>
-</div>
-
+        <label for="filtroCategoria">Filtrar Categoria</label>
+        <select id="filtroCategoria">
+          <option value="todos">Todas</option>
+        </select>
+      </div>
 
       <!-- LISTA DE PRODUTOS -->
       <div class="campo">
@@ -130,18 +114,16 @@
 
       <!-- PROMOÇÕES / SUGESTÕES DO DIA -->
       <div class="campo promocoes">
-      <h3>Promoções do Dia</h3>
-      <ul id="listaPromocoes">
-    <!-- promoções vêm do banco -->
-      </ul>
-    </div>
+        <h3>Promoções do Dia</h3>
+        <ul id="listaPromocoes">
+          <!-- promoções vêm do banco -->
+        </ul>
+      </div>
 
-    <div class="incentivo-promocao">
-    💡 Ofereça essas promoções ao cliente!  
-    <strong>Você ganha comissão por cada venda realizada.</strong>
-    </div>
-</div>
-
+      <div class="incentivo-promocao">
+        💡 Ofereça essas promoções ao cliente!  
+        <strong>Você ganha comissão por cada venda realizada.</strong>
+      </div>
     </div>
 
   </main>
@@ -181,9 +163,6 @@
     <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9e9d7d4c6a.mp3?filename=notification-8021.mp3" type="audio/mpeg">
   </audio>
   
-  <!-- jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <!-- JS -->
   <script type="module" src="painelgargon.js"></script>
 

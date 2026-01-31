@@ -28,6 +28,77 @@ if (!usuarioLogado) {
 }
 
 
+/* =====================================================
+   CONTROLE DE ACESSO – PAINEL DO GARÇOM (COM DELAY 10s)
+===================================================== */
+
+let logoutEmAndamento = false;
+
+// 🔍 Verifica se o garçom ainda tem acesso
+async function verificarAcessoGarcom() {
+  if (logoutEmAndamento) return;
+
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  // Sem sessão
+  if (!usuarioLogado || !usuarioLogado.id) {
+    window.location.href = "garconLogin.html";
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("usuarios")
+    .select("id, ativo, cargo")
+    .eq("id", usuarioLogado.id)
+    .maybeSingle();
+
+  // Usuário removido
+  if (error || !data) {
+    iniciarLogout("⚠️ Seu acesso foi removido pelo administrador.");
+    return;
+  }
+
+  // Usuário desativado
+  if (data.ativo === false) {
+    iniciarLogout("🚫 Seu acesso foi desativado pelo administrador.");
+    return;
+  }
+
+  // Cargo incorreto
+  if (data.cargo !== "Garçom") {
+    iniciarLogout("⛔ Você não possui permissão para acessar este painel.");
+  }
+}
+
+// ⏳ Logout forçado com mensagem por 10 segundos
+function iniciarLogout(mensagem) {
+  if (logoutEmAndamento) return;
+
+  logoutEmAndamento = true;
+
+  abrirModalErro(`
+    ${mensagem}
+    Você será redirecionado para o login em 10 segundos.
+  `);
+
+  setTimeout(async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {}
+
+    localStorage.removeItem("usuarioLogado");
+    window.location.href = "garconLogin.html";
+  }, 10000); // ⏱️ 10 segundos
+}
+
+// 🚀 Inicialização
+document.addEventListener("DOMContentLoaded", () => {
+  verificarAcessoGarcom();
+});
+
+// 🔄 Revalida acesso a cada 15 segundos
+setInterval(verificarAcessoGarcom, 15000);
+
 
 // 🔄 VERIFICA VIRADA DO DIA (SÓ TELA)
 function verificarViradaDoDia() {
@@ -140,11 +211,10 @@ document.addEventListener("click", () => {
   }
 });
 
-// Carrega as mesas
 async function carregarMesas() {
   const { data, error } = await supabase
     .from("mesas")
-    .select("id, descricao, atendida, cliente_presente")
+    .select("id, descricao, atendida, cliente_presente, ultimo_atendimento")
     .eq("ativo", true)
     .eq("cliente_presente", true)
     .order("numero", { ascending: true });
@@ -157,8 +227,7 @@ async function carregarMesas() {
 
   mesasDados = data;
 
-  selectMesa.innerHTML = "";
-  selectMesa.innerHTML += '<option value="">Selecione a mesa</option>';
+  selectMesa.innerHTML = '<option value="">Selecione a mesa</option>';
 
   data.forEach((mesa) => {
     selectMesa.innerHTML += `
@@ -170,6 +239,7 @@ async function carregarMesas() {
 
   verificarMesasNaoAtendidas();
 }
+
 
 // Carrega os produtos
 async function carregarProdutos() {
@@ -439,16 +509,7 @@ document.getElementById("filtroCategoria").addEventListener("change", (e) => {
   }
 });
 
-function mesaAindaAtendida(ultimoAtendimento, minutos = 30) {
-  if (!ultimoAtendimento) return false;
 
-  const agora = new Date();
-  const ultimo = new Date(ultimoAtendimento);
-
-  const diffMin = (agora - ultimo) / 1000 / 60;
-
-  return diffMin < minutos;
-}
 
 // Verifica mesas não atendidas
 async function verificarMesasNaoAtendidas() {
@@ -475,17 +536,57 @@ async function verificarMesasNaoAtendidas() {
   }
 }
 
-// REALTIME MESAS
+// supabase
 supabase
-  .channel("public:mesas")
+  .channel("mesas-realtime")
   .on(
     "postgres_changes",
-    { event: "*", schema: "public", table: "mesas" },
-    () => {
-      carregarMesas();
+    {
+      event: "UPDATE",
+      schema: "public",
+      table: "mesas",
+    },
+    (payload) => {
+      const mesaAtualizada = payload.new;
+
+      console.log("📡 Mesa alterada:", mesaAtualizada);
+
+      // 1️⃣ Atualiza o estado local
+      const index = mesasDados.findIndex(
+        m => String(m.id) === String(mesaAtualizada.id)
+      );
+
+      if (index !== -1) {
+        mesasDados[index] = mesaAtualizada;
+      }
+
+      // 2️⃣ Atualiza status da mesa selecionada
+      atualizarStatusMesaSelecionada();
+
+      // 3️⃣ Atualiza painel visual
+      renderizarMesasPainel();
+
+      // 🔔 4️⃣ ATUALIZA NOTIFICAÇÃO (⚠️ ISSO FALTAVA)
+      verificarMesasNaoAtendidas();
     }
   )
   .subscribe();
+
+  function renderizarMesasPainel() {
+  const painel = document.getElementById("painelMesas");
+  painel.innerHTML = "";
+
+  mesasDados
+    .filter(m => m.cliente_presente)
+    .forEach(mesa => {
+      const div = document.createElement("div");
+      div.className = mesa.atendida ? "mesa atendida" : "mesa livre";
+      div.textContent = mesa.descricao;
+      painel.appendChild(div);
+    });
+}
+
+
 
 // REALTIME PRODUTOS
 supabase
@@ -519,16 +620,134 @@ selectMesa.addEventListener("change", () => {
   }
 });
 
-// CARREGA AS MESAS E PRODUTOS
-carregarMesas();
-carregarRelatorioGarcom();
-carregarProdutos();
+document.addEventListener("DOMContentLoaded", () => {
+  carregarMesas();
+  carregarProdutos();
+  carregarRelatorioGarcom();
+   // 🔔 verifica logo ao abrir a tela
+  verificarMesasNaoAtendidas();
+});
+
 
 // Função para gerar UUID (se ainda não tiver)
 function uuidv4() {
   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
   );
+}
+
+let canalMesasRealtime = null;
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarMesas();
+  carregarProdutos();
+  carregarRelatorioGarcom();
+
+
+});
+
+
+async function verificarMesasInativas() {
+  const agora = new Date();
+
+  const { data: mesas, error } = await supabase
+    .from("mesas")
+    .select("id, ultimo_atendimento, descricao")
+    .eq("atendida", true);
+
+  if (error) {
+    console.error("Erro ao buscar mesas:", error);
+    return;
+  }
+
+  for (const mesa of mesas) {
+    if (!mesa.ultimo_atendimento) continue;
+
+    const ultimo = new Date(mesa.ultimo_atendimento);
+    const diffSegundos = (agora - ultimo) / 1000;
+
+    // ⏱️ TESTE: 15 SEGUNDOS
+    if (diffSegundos >= 15) {
+      const { error: updateError } = await supabase
+        .from("mesas")
+        .update({
+          atendida: false,
+          ultimo_atendimento: null
+        })
+        .eq("id", mesa.id);
+
+      if (updateError) {
+        console.error("Erro ao liberar mesa:", updateError);
+      } else {
+        console.log(`✅ Mesa ${mesa.descricao} liberada após 15 segundos`);
+      }
+    }
+  }
+}
+
+
+setInterval(verificarMesasInativas, 10000); // 10 segundos
+
+function atualizarStatusMesaSelecionada() {
+  const mesaId = selectMesa.value;
+  if (!mesaId) return;
+
+  const mesa = mesasDados.find(m => String(m.id) === mesaId);
+
+  statusMesa.className = "status-mesa";
+  textoStatus.textContent = "Status indisponível";
+
+  if (!mesa) return;
+
+  if (mesa.atendida === true) {
+    statusMesa.className = "status-mesa atendida";
+    textoStatus.textContent = `${mesa.descricao} já foi atendida.`;
+  }
+
+  if (mesa.atendida === false) {
+    statusMesa.className = "status-mesa nao-atendida";
+    textoStatus.textContent = `${mesa.descricao} ainda não foi atendida.`;
+  }
+}
+
+// Função que verifica se o pedido está dentro do horário permitido
+async function verificarHorarioAtendimento() {
+  const agora = new Date();
+  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset()); // horário BR
+  const diaSemanaArray = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+  const diaSemana = diaSemanaArray[agora.getDay()];
+
+  // Busca horário do dia atual
+  const { data: horario, error } = await supabase
+    .from("horarios_semana")
+    .select("hora_inicio, hora_fim")
+    .ilike("dia_semana", diaSemana)
+    .maybeSingle();
+
+  if (error || !horario) {
+    return { permitido: false, mensagem: "Horário de atendimento não configurado para hoje." };
+  }
+
+  // Converte horário para segundos
+  function horaParaSegundos(horaStr) {
+    const [h, m, s] = horaStr.split(":").map(Number);
+    return h * 3600 + m * 60 + (s || 0);
+  }
+
+  const inicioSegundos = horaParaSegundos(horario.hora_inicio);
+  const fimSegundos = horaParaSegundos(horario.hora_fim);
+  const horaAtualSegundos = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
+
+  if (horaAtualSegundos < inicioSegundos || horaAtualSegundos > fimSegundos) {
+    return {
+      permitido: false,
+      mensagem: `⛔ Pedido bloqueado\nVocê está fora do horário de atendimento.\n🕒 Horário permitido: ${horario.hora_inicio} às ${horario.hora_fim}`
+    };
+  }
+
+  return { permitido: true };
 }
 
 window.enviarPedido = async function () {
@@ -539,25 +758,63 @@ window.enviarPedido = async function () {
     return;
   }
 
-  // ✅ Verifica se a mesa já está atendida
+  // 🔹 VALIDAÇÃO DE HORÁRIO (ANTES DE QUALQUER OUTRA COISA)
+  const agora = new Date();
+  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset()); // Ajusta para horário do Brasil
+
+  const diasSemana = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+  const diaSemana = diasSemana[agora.getDay()];
+
+  // 🔹 Busca horário do dia atual ignorando maiúsculas/minúsculas
+  const { data: horario, error: erroHorario } = await supabase
+    .from("horarios_semana")
+    .select("hora_inicio, hora_fim")
+    .ilike("dia_semana", diaSemana)  // ← Corrigido
+    .maybeSingle();
+
+  if (erroHorario || !horario) {
+    abrirModalErro("⛔ Horário de atendimento não configurado para hoje.");
+    return;
+  }
+
+  // Função segura para converter HH:MM ou HH:MM:SS em segundos
+  function horaParaSegundos(horaStr) {
+    const partes = horaStr.trim().split(":").map(Number);
+    const h = partes[0] || 0;
+    const m = partes[1] || 0;
+    const s = partes[2] || 0;
+    return h * 3600 + m * 60 + s;
+  }
+
+  const inicioSegundos = horaParaSegundos(horario.hora_inicio);
+  const fimSegundos = horaParaSegundos(horario.hora_fim);
+  const horaAtualSegundos = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
+
+  // ⚠️ BLOQUEIA se estiver fora do horário
+  if (horaAtualSegundos < inicioSegundos || horaAtualSegundos > fimSegundos) {
+    abrirModalErro(`
+      ⛔ Pedido bloqueado<br><br>
+      Você está fora do horário de atendimento.<br><br>
+      🕒 Horário permitido:<br>
+      <strong>${horario.hora_inicio}</strong> às <strong>${horario.hora_fim}</strong>
+    `);
+    return; // Para a execução da função imediatamente
+  }
+
+  // 🔹 Busca dados da mesa
   const { data: mesaAtualDb, error: erroMesa } = await supabase
     .from("mesas")
     .select("atendida, ultimo_atendimento, descricao")
     .eq("id", mesaSelecionada)
     .maybeSingle();
 
-  if (erroMesa) {
+  if (erroMesa || !mesaAtualDb) {
     console.error(erroMesa);
     abrirModalErro("Erro ao verificar status da mesa.");
     return;
   }
 
-  if (mesaAtualDb && mesaAtualDb.atendida) {
-    const horaUltimoAtendimento = new Date(mesaAtualDb.ultimo_atendimento).toLocaleTimeString();
-    abrirModalErro(`Não é possível fazer pedido para ${mesaAtualDb.descricao} no momento. Último atendimento: ${horaUltimoAtendimento}`);
-    return;
-  }
-
+  // 🔹 DADOS DO GARÇOM
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado || !usuarioLogado.username || !usuarioLogado.id) {
     abrirModalErro("Garçom não identificado.");
@@ -567,13 +824,10 @@ window.enviarPedido = async function () {
   const nomeGarcom = usuarioLogado.username;
   const garcomId = usuarioLogado.id;
 
-  // DATA REAL DO SISTEMA
-  const agora = new Date();
-  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
   const hoje = agora.toISOString().split("T")[0];
   const timestampAgora = agora.toISOString();
 
-  // Pegando produtos com quantidade > 0
+  // 🔹 Produtos selecionados
   const itensSelecionados = [];
   let totalPedidos = 0;
   let valorTotal = 0;
@@ -597,7 +851,7 @@ window.enviarPedido = async function () {
     return;
   }
 
-  // Verifica registro do dia no relatório do garçom
+  // 🔹 Relatório do garçom
   const { data: registroExistente, error: erroCheck } = await supabase
     .from("relatorio_garcom")
     .select("*")
@@ -637,41 +891,54 @@ window.enviarPedido = async function () {
       }]);
   }
 
-  // Atualiza mesa como atendida e salva último atendimento
+  // 🔹 Marca mesa como atendida
   await supabase
     .from("mesas")
-    .update({ atendida: true, ultimo_atendimento: timestampAgora })
+    .update({
+      atendida: true,
+      ultimo_atendimento: timestampAgora
+    })
     .eq("id", mesaSelecionada);
 
-  // Atualiza status visual
   const mesaAtual = mesasDados.find(m => String(m.id) === mesaSelecionada);
   if (mesaAtual) {
     mesaAtual.atendida = true;
     mesaAtual.ultimo_atendimento = timestampAgora;
 
     statusMesa.className = "status-mesa atendida";
-    textoStatus.textContent = `${mesaAtual.descricao} já foi atendida.`;
+    textoStatus.textContent = `${mesaAtual.descricao} em atendimento.`;
   }
 
-  abrirModalErro("Pedido enviado e registro atualizado com sucesso 🚀");
+  // 🔥 Remove notificação se não houver mais mesa sem atendimento
+  const existeMesaNaoAtendida = mesasDados.some(
+    m => m.ativo && m.cliente_presente && !m.atendida
+  );
+
+  if (!existeMesaNaoAtendida) {
+    notificacao.classList.add("hidden");
+  }
+
+  abrirModalErro("Pedido enviado com sucesso 🚀");
 
   await carregarRelatorioGarcom();
-
-  // ⏱️ Volta a marcar como não atendida após 40 minutos
-  setTimeout(async () => {
-    await supabase
-      .from("mesas")
-      .update({ atendida: false, ultimo_atendimento: null })
-      .eq("id", mesaSelecionada);
-
-    if (mesaAtual) {
-      mesaAtual.atendida = false;
-      mesaAtual.ultimo_atendimento = null;
-
-      statusMesa.className = "status-mesa nao-atendida";
-      textoStatus.textContent = `${mesaAtual.descricao} ainda não foi atendida.`;
-    }
-
-    // NÃO chamar carregarMesas() para não mexer no select
-  }, 40 * 60 * 1000); // 40 minutos
 };
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+  if (!usuarioLogado || !usuarioLogado.id) return;
+
+  const chaveTutorial = `tutorial_painel_garcom_${usuarioLogado.id}`;
+
+  const tutorialVisto = localStorage.getItem(chaveTutorial);
+
+  if (!tutorialVisto) {
+    document.getElementById("tutorialPainel").classList.remove("hidden");
+  }
+
+  document.getElementById("btnFecharTutorial").addEventListener("click", () => {
+    localStorage.setItem(chaveTutorial, "true");
+    document.getElementById("tutorialPainel").classList.add("hidden");
+  });
+});

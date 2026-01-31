@@ -668,8 +668,8 @@ async function verificarMesasInativas() {
     const ultimo = new Date(mesa.ultimo_atendimento);
     const diffSegundos = (agora - ultimo) / 1000;
 
-    // ⏱️ TESTE: 15 SEGUNDOS
-    if (diffSegundos >= 15) {
+    // ⏱️ 40 MINUTOS = 2400 segundos
+    if (diffSegundos >= 2400) {
       const { error: updateError } = await supabase
         .from("mesas")
         .update({
@@ -681,14 +681,15 @@ async function verificarMesasInativas() {
       if (updateError) {
         console.error("Erro ao liberar mesa:", updateError);
       } else {
-        console.log(`✅ Mesa ${mesa.descricao} liberada após 15 segundos`);
+        console.log(`✅ Mesa ${mesa.descricao} liberada após 40 minutos`);
       }
     }
   }
 }
 
+// Verifica mesas a cada 10 segundos (pode ajustar se quiser)
+setInterval(verificarMesasInativas, 10000);
 
-setInterval(verificarMesasInativas, 10000); // 10 segundos
 
 function atualizarStatusMesaSelecionada() {
   const mesaId = selectMesa.value;
@@ -712,43 +713,6 @@ function atualizarStatusMesaSelecionada() {
   }
 }
 
-// Função que verifica se o pedido está dentro do horário permitido
-async function verificarHorarioAtendimento() {
-  const agora = new Date();
-  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset()); // horário BR
-  const diaSemanaArray = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
-  const diaSemana = diaSemanaArray[agora.getDay()];
-
-  // Busca horário do dia atual
-  const { data: horario, error } = await supabase
-    .from("horarios_semana")
-    .select("hora_inicio, hora_fim")
-    .ilike("dia_semana", diaSemana)
-    .maybeSingle();
-
-  if (error || !horario) {
-    return { permitido: false, mensagem: "Horário de atendimento não configurado para hoje." };
-  }
-
-  // Converte horário para segundos
-  function horaParaSegundos(horaStr) {
-    const [h, m, s] = horaStr.split(":").map(Number);
-    return h * 3600 + m * 60 + (s || 0);
-  }
-
-  const inicioSegundos = horaParaSegundos(horario.hora_inicio);
-  const fimSegundos = horaParaSegundos(horario.hora_fim);
-  const horaAtualSegundos = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
-
-  if (horaAtualSegundos < inicioSegundos || horaAtualSegundos > fimSegundos) {
-    return {
-      permitido: false,
-      mensagem: `⛔ Pedido bloqueado\nVocê está fora do horário de atendimento.\n🕒 Horário permitido: ${horario.hora_inicio} às ${horario.hora_fim}`
-    };
-  }
-
-  return { permitido: true };
-}
 
 window.enviarPedido = async function () {
   const mesaSelecionada = selectMesa.value;
@@ -756,49 +720,6 @@ window.enviarPedido = async function () {
   if (!mesaSelecionada) {
     abrirModalErro("Selecione uma mesa para iniciar o atendimento");
     return;
-  }
-
-  // 🔹 VALIDAÇÃO DE HORÁRIO (ANTES DE QUALQUER OUTRA COISA)
-  const agora = new Date();
-  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset()); // Ajusta para horário do Brasil
-
-  const diasSemana = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
-  const diaSemana = diasSemana[agora.getDay()];
-
-  // 🔹 Busca horário do dia atual ignorando maiúsculas/minúsculas
-  const { data: horario, error: erroHorario } = await supabase
-    .from("horarios_semana")
-    .select("hora_inicio, hora_fim")
-    .ilike("dia_semana", diaSemana)  // ← Corrigido
-    .maybeSingle();
-
-  if (erroHorario || !horario) {
-    abrirModalErro("⛔ Horário de atendimento não configurado para hoje.");
-    return;
-  }
-
-  // Função segura para converter HH:MM ou HH:MM:SS em segundos
-  function horaParaSegundos(horaStr) {
-    const partes = horaStr.trim().split(":").map(Number);
-    const h = partes[0] || 0;
-    const m = partes[1] || 0;
-    const s = partes[2] || 0;
-    return h * 3600 + m * 60 + s;
-  }
-
-  const inicioSegundos = horaParaSegundos(horario.hora_inicio);
-  const fimSegundos = horaParaSegundos(horario.hora_fim);
-  const horaAtualSegundos = agora.getHours() * 3600 + agora.getMinutes() * 60 + agora.getSeconds();
-
-  // ⚠️ BLOQUEIA se estiver fora do horário
-  if (horaAtualSegundos < inicioSegundos || horaAtualSegundos > fimSegundos) {
-    abrirModalErro(`
-      ⛔ Pedido bloqueado<br><br>
-      Você está fora do horário de atendimento.<br><br>
-      🕒 Horário permitido:<br>
-      <strong>${horario.hora_inicio}</strong> às <strong>${horario.hora_fim}</strong>
-    `);
-    return; // Para a execução da função imediatamente
   }
 
   // 🔹 Busca dados da mesa
@@ -814,7 +735,6 @@ window.enviarPedido = async function () {
     return;
   }
 
-  // 🔹 DADOS DO GARÇOM
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
   if (!usuarioLogado || !usuarioLogado.username || !usuarioLogado.id) {
     abrirModalErro("Garçom não identificado.");
@@ -824,17 +744,22 @@ window.enviarPedido = async function () {
   const nomeGarcom = usuarioLogado.username;
   const garcomId = usuarioLogado.id;
 
+  // DATA REAL (Brasil)
+  const agora = new Date();
+  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
   const hoje = agora.toISOString().split("T")[0];
   const timestampAgora = agora.toISOString();
 
-  // 🔹 Produtos selecionados
+  // Produtos selecionados
   const itensSelecionados = [];
   let totalPedidos = 0;
   let valorTotal = 0;
 
   document.querySelectorAll(".checkboxProduto:checked").forEach((checkbox) => {
     const id = checkbox.getAttribute("data-id");
-    const inputQtd = document.querySelector(`.quantidadeProduto[data-id="${id}"]`);
+    const inputQtd = document.querySelector(
+      `.quantidadeProduto[data-id="${id}"]`
+    );
     const qtd = Number(inputQtd.value);
     const produto = produtosDados.find(p => String(p.id) === id);
 
@@ -851,7 +776,7 @@ window.enviarPedido = async function () {
     return;
   }
 
-  // 🔹 Relatório do garçom
+  // 🔹 Relatório do garçom (por dia)
   const { data: registroExistente, error: erroCheck } = await supabase
     .from("relatorio_garcom")
     .select("*")
@@ -900,6 +825,7 @@ window.enviarPedido = async function () {
     })
     .eq("id", mesaSelecionada);
 
+  // 🔹 Atualiza estado local (SEM F5)
   const mesaAtual = mesasDados.find(m => String(m.id) === mesaSelecionada);
   if (mesaAtual) {
     mesaAtual.atendida = true;
@@ -909,9 +835,12 @@ window.enviarPedido = async function () {
     textoStatus.textContent = `${mesaAtual.descricao} em atendimento.`;
   }
 
-  // 🔥 Remove notificação se não houver mais mesa sem atendimento
+  // 🔥 REMOVE NOTIFICAÇÃO SE NÃO EXISTIR MAIS MESA SEM ATENDIMENTO
   const existeMesaNaoAtendida = mesasDados.some(
-    m => m.ativo && m.cliente_presente && !m.atendida
+    m =>
+      m.ativo === true &&
+      m.cliente_presente === true &&
+      m.atendida === false
   );
 
   if (!existeMesaNaoAtendida) {
@@ -922,8 +851,6 @@ window.enviarPedido = async function () {
 
   await carregarRelatorioGarcom();
 };
-
-
 
 document.addEventListener("DOMContentLoaded", () => {
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));

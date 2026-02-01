@@ -27,6 +27,26 @@ if (!usuarioLogado) {
   nomeGarcom.innerText = `Bem-vindo (a), ${usuarioLogado.username}`;
 }
 
+// Elementos do tutorial
+const tutorial = document.getElementById("tutorialPainel");
+const btnFecharTutorial = document.getElementById("btnFecharTutorial");
+
+// Verifica se o tutorial já foi visto
+const tutorialVisto = localStorage.getItem("tutorialVisto");
+
+if (!tutorialVisto) {
+  // Mostra o tutorial
+  tutorial.classList.remove("hidden");
+  document.body.style.overflow = "hidden"; // trava scroll
+}
+
+// Fecha o tutorial
+btnFecharTutorial.addEventListener("click", () => {
+  tutorial.classList.add("hidden");
+  document.body.style.overflow = ""; // libera scroll
+  localStorage.setItem("tutorialVisto", "true"); // marca como visto
+});
+
 
 /* =====================================================
    CONTROLE DE ACESSO – PAINEL DO GARÇOM (COM DELAY 10s)

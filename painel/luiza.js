@@ -324,6 +324,25 @@ if (window.__entregadorState.ativo) {
   return;
 }
 
+/* =============================
+   DETECÇÃO DE CORES PISCANDO NAS MESAS
+============================= */
+const coresPiscando = ["piscando", "amarelo", "amarela", "laranja", "laranjado"];
+
+const mencionouCor = coresPiscando.some(p => textoNormalizado.includes(p));
+
+if (mencionouCor) {
+  mostrarDigitando();
+  setTimeout(() => {
+    removerDigitando();
+    adicionarMensagemBot(
+      "Olá 😊<br><br>" +
+      "A cor que você está visualizando na mesa indica que ela ainda está aguardando atendimento. " +
+      "Por favor, aguarde até que um atendente seja direcionado para atendê-la. 💙"
+    );
+  }, 800);
+  return; // interrompe o processamento normal
+}
 
   /* =============================
      FECHAR CALCULADORA - PRIORIDADE

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel do Administrador - Moderno</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="dashboard">
+
+    <!-- Menu lateral -->
+    <aside class="sidebar">
+      <div class="logo">
+        <i class="fas fa-cogs"></i> Admin
+      </div>
+      <nav>
+        <ul>
+          <li class="active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</li>
+          <li data-tab="empresas"><i class="fas fa-building"></i> Empresas</li>
+          <li data-tab="suporte"><i class="fas fa-headset"></i> Suporte</li>
+          <li data-tab="notificacoes"><i class="fas fa-bell"></i> Notificações</li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <main class="main-content">
+      <header>
+        <h1>Painel do Administrador</h1>
+      </header>
+
+      <!-- Dashboard inicial -->
+      <section id="dashboard" class="tab-content active">
+        <div class="cards">
+          <div class="card">
+            <i class="fas fa-building"></i>
+            <h3>Empresas</h3>
+            <p id="totalEmpresas">0</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-headset"></i>
+            <h3>Chamados</h3>
+            <p id="totalChamados">0</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-bell"></i>
+            <h3>Notificações</h3>
+            <p id="totalNotificacoes">0</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção Empresas -->
+      <section id="empresas" class="tab-content">
+        <h2>Empresas</h2>
+        <div class="filtro">
+          <input type="text" id="buscaEmpresa" placeholder="Buscar empresa...">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Status</th>
+              <th>Pagamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="listaEmpresas"></tbody>
+        </table>
+      </section>
+
+      <!-- Seção Suporte -->
+      <section id="suporte" class="tab-content">
+        <h2>Suporte</h2>
+        <div class="filtro">
+          <input type="text" id="buscaSuporte" placeholder="Buscar chamados...">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Assunto</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="listaSuporte"></tbody>
+        </table>
+      </section>
+
+      <!-- Seção Notificações -->
+      <section id="notificacoes" class="tab-content">
+        <h2>Notificações</h2>
+        <p>Enviar notificações para as empresas aqui.</p>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="modalNotificacao" class="modal hidden">
+    <h2>Enviar Notificação</h2>
+    <textarea id="mensagemNotificacao" placeholder="Escreva a mensagem..."></textarea>
+    <button id="btnEnviarNotificacao">Enviar</button>
+    <button id="btnFecharModal">Fechar</button>
+  </div>
+
+  <div id="modalSuporte" class="modal hidden">
+    <h2>Responder Chamado</h2>
+    <textarea id="mensagemSuporte" placeholder="Escreva sua resposta..."></textarea>
+    <button id="btnEnviarSuporte">Enviar Resposta</button>
+    <button id="btnFecharModalSuporte">Fechar</button>
+  </div>
+
+  <script src="desenvolvimento.js"></script>
+</body>
+</html>
+a

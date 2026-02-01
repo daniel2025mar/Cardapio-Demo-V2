@@ -5122,7 +5122,7 @@ function renderizarMesa(mesa) {
   const atendida = mesa.atendida === true; // Verifica se já foi atendida
 
   // =========================
-  // CRIA SE NÃO EXISTIR
+  // CRIA MESA SE NÃO EXISTIR
   // =========================
   if (!mesaDiv) {
     mesaDiv = document.createElement("div");
@@ -5168,12 +5168,13 @@ function renderizarMesa(mesa) {
       // Atualiza visual imediatamente
       atualizarStatusVisual(mesaDiv, novoStatus, mesaAtual.atendida);
 
+      // Atualiza cache local
       mesasCache.set(mesa.id, {
         ...mesaAtual,
         cliente_presente: novoStatus,
       });
 
-      // Atualiza hora_ocupada apenas se a mesa estiver sendo ocupada
+      // Define hora_ocupada: se ocupada → registra hora, se livre → apaga
       const horaAtual = novoStatus ? horaSP() : null;
 
       const { error } = await supabase
@@ -5186,11 +5187,13 @@ function renderizarMesa(mesa) {
 
       if (error) {
         console.error("Erro ao atualizar mesa:", error);
+        // Reverte visual se houver erro
         atualizarStatusVisual(mesaDiv, !novoStatus, mesaAtual.atendida);
       }
     });
 
     painelMesas.appendChild(mesaDiv);
+
   } else {
     // =========================
     // ATUALIZA VALORES EXISTENTES
@@ -5200,7 +5203,7 @@ function renderizarMesa(mesa) {
     mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
     atualizarStatusVisual(mesaDiv, ocupada, atendida);
 
-    // Se já estiver ocupada, atualiza a hora automaticamente
+    // Atualiza hora_ocupada automaticamente só se mesa estiver ocupada e não tiver hora registrada
     if (ocupada && !mesa.hora_ocupada) {
       const horaAtual = horaSP();
       supabase
@@ -5213,6 +5216,7 @@ function renderizarMesa(mesa) {
     }
   }
 }
+
 
 // =========================
 // ATUALIZA STATUS VISUAL
@@ -5239,6 +5243,7 @@ function atualizarStatusVisual(mesaDiv, ocupada, atendida = true) {
     statusText.textContent = "LIVRE";
   }
 }
+
 
 
 

@@ -991,6 +991,7 @@ function atualizarSelectMesas() {
     selectMesa.appendChild(option);
   });
 
+  // Mantém mesa selecionada se ainda existir
   if (mesaSelecionadaAnterior && mesasPrioridade.some(m => String(m.id) === mesaSelecionadaAnterior)) {
     selectMesa.value = mesaSelecionadaAnterior;
   }
@@ -1026,11 +1027,9 @@ function atualizarListaPrioridade() {
 // 4️⃣ Atualiza tempo de cada <li> a cada segundo, persistindo no localStorage
 function atualizarLiTempo(li, mesa) {
   const key = `mesa_tempo_${mesa.id}`;
-
-  // Verifica se já existe tempo salvo no localStorage
   let horaOcupada = localStorage.getItem(key);
+
   if (!horaOcupada) {
-    // Se não existe, salva o valor do banco (hora_ocupada)
     horaOcupada = mesa.hora_ocupada;
     localStorage.setItem(key, horaOcupada);
   } else {
@@ -1077,7 +1076,78 @@ setInterval(atualizarPrioridadeMesas, 15000);
 // Chamada inicial
 atualizarPrioridadeMesas();
 
+// =============================
+// 🔹 CORREÇÃO NA VALIDAÇÃO DO BOTÃO ENVIAR
+// =============================
+function validarMesaSelecionada(mesaId) {
+  // Usa mesasPrioridade para validar, não mesasDados
+  return mesasPrioridade.some(m => String(m.id) === String(mesaId));
+}
 
+// =============================
+// FUNÇÃO DO MODAL GERAR COMANDA
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+  const modalGerarComanda = document.getElementById("modalGerarComanda");
+  if (!modalGerarComanda) return;
+
+  const btnFecharModal = document.getElementById("btnFecharModalCliente");
+  const btnCancelarCliente = document.getElementById("btnCancelarCliente");
+  const btnConfirmarCliente = document.getElementById("btnConfirmarCliente");
+  const inputNomeCliente = document.getElementById("nomeClienteInput");
+
+  // Função para abrir modal
+  function abrirModalComanda() {
+    if (!modalGerarComanda.classList.contains("hidden")) return;
+    inputNomeCliente.value = ""; // Limpa campo
+    modalGerarComanda.classList.remove("hidden");
+    inputNomeCliente.focus();
+  }
+
+  // Função para fechar modal
+  function fecharModalComanda() {
+    modalGerarComanda.classList.add("hidden");
+  }
+
+  // Clique no X para fechar
+  btnFecharModal?.addEventListener("click", fecharModalComanda);
+
+  // Clique no botão Cancelar
+  btnCancelarCliente?.addEventListener("click", fecharModalComanda);
+
+  // Clique no botão Confirmar
+  btnConfirmarCliente?.addEventListener("click", () => {
+    const nomeCliente = inputNomeCliente.value.trim();
+    if (!nomeCliente) {
+      alert("Informe o nome do cliente para gerar a comanda.");
+      return;
+    }
+
+    // Aqui você pode gerar a comanda (PDF, impressão, etc.)
+    console.log("📝 Comanda gerada para:", nomeCliente);
+
+    // Fecha o modal após confirmar
+    fecharModalComanda();
+  });
+
+  // Exporta função para o botão enviar
+  window.abrirModalGerarComandaAsync = async function () {
+    return new Promise((resolve) => {
+      abrirModalComanda();
+
+      // Espera o usuário clicar em Confirmar ou Cancelar/Fechar
+      function handleClose() {
+        modalGerarComanda.removeEventListener("click", handleClose);
+        resolve();
+      }
+
+      // Escuta botão Confirmar ou Fechar
+      btnConfirmarCliente.addEventListener("click", () => resolve(), { once: true });
+      btnCancelarCliente.addEventListener("click", () => resolve(), { once: true });
+      btnFecharModal.addEventListener("click", () => resolve(), { once: true });
+    });
+  };
+});
 
 // =============================
 // ✅ BOTÃO ENVIAR COMPLETO (RELATORIO_GARCOM)
@@ -1124,7 +1194,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // 🚫 BLOQUEIA SE A MESA JÁ FOI ATENDIDA
       if (mesa.atendida) {
         abrirModalErro(`⚠️ ${mesa.descricao} já foi atendida. Não é possível fazer pedido no momento.`);
         return;
@@ -1181,7 +1250,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .maybeSingle();
 
       if (relatorio) {
-        // 🟢 UPDATE
         const { error } = await supabase
           .from("relatorio_garcom")
           .update({
@@ -1198,7 +1266,6 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
       } else {
-        // 🔵 INSERT
         const { error } = await supabase
           .from("relatorio_garcom")
           .insert({
@@ -1228,7 +1295,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .update({
           atendida: true,
           ativo: true,
-          ultimo_atendimento: horaSP // ✅ Salva horário SP correto
+          ultimo_atendimento: horaSP
         })
         .eq("id", mesa.id);
 
@@ -1243,6 +1310,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       calcularTotal();
 
+      // =============================
+      // 9️⃣ ABRIR MODAL GERAR COMANDA ANTES DO SUCESSO
+      // =============================
+      const modalGerarComanda = document.getElementById("modalGerarComanda");
+      if (modalGerarComanda) {
+        modalGerarComanda.classList.remove("hidden");
+
+        await new Promise((resolve) => {
+          const btnFecharComanda = modalGerarComanda.querySelector(".btn-fechar-comanda");
+          if (!btnFecharComanda) {
+            resolve();
+            return;
+          }
+
+          btnFecharComanda.addEventListener("click", () => {
+            modalGerarComanda.classList.add("hidden");
+            resolve();
+          }, { once: true });
+        });
+      }
+
+      // =============================
+      // 🔟 MOSTRAR MENSAGEM DE SUCESSO
+      // =============================
       abrirModalErro("✅ Pedido enviado com sucesso!");
       carregarRelatorioGarcom();
 

@@ -905,6 +905,7 @@ select option {
 }
 
 
+
 /* =============================
    CARD DE MESAS PRIORITÁRIAS
 ============================= */
@@ -968,4 +969,148 @@ select option {
   .container {
     margin-top: -24px;
   }
+}
+
+/* =============================
+MODAL GERAR COMANDA - AZUL ESCURO (SEM CONFLITOS)
+============================= */
+
+/* Overlay */
+.comanda-modal-overlay {
+  position: fixed; /* sempre fixo na tela */
+  inset: 0;
+  background: rgba(0,0,0,0.5); /* fundo escuro semi-transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* acima de tudo */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.comanda-modal-overlay:not(.hidden) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Card do modal */
+.comanda-modal-card {
+  background: #fff; /* branco neutro */
+  border-radius: 20px;
+  width: 380px;
+  max-width: 90%;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 25px 20px 20px 20px;
+  position: relative;
+  animation: comandaModalIn 0.3s ease-out;
+}
+
+@keyframes comandaModalIn {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Logo */
+.comanda-modal-logo img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+
+/* Título e subtítulo */
+.comanda-modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+}
+
+.comanda-modal-header p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+/* Input */
+.comanda-modal-body {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.comanda-modal-body input {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.comanda-modal-body input:focus {
+  border-color: #002366; /* azul escuro */
+  box-shadow: 0 0 10px rgba(0,35,102,0.3); /* sombra azul escuro suave */
+}
+
+/* Footer (botões) */
+.comanda-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.comanda-btn-primary {
+  background: #002366; /* azul escuro */
+  color: #fff;
+  padding: 10px 25px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.comanda-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,35,102,0.4);
+}
+
+.comanda-btn-secondary {
+  background: #eee;
+  color: #333;
+  padding: 10px 25px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.comanda-btn-secondary:hover {
+  background: #ddd;
+}
+
+/* Botão fechar pequeno */
+.comanda-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.comanda-close:hover {
+  color: #002366; /* azul escuro no hover */
+  transform: rotate(90deg);
 }

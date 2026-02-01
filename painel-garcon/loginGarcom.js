@@ -4,7 +4,6 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-
 const SUPABASE_URL = "https://jvxxueyvvgqakbnclgoe.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2eHh1ZXl2dmdxYWtibmNsZ29lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMjM3MzYsImV4cCI6MjA3OTU5OTczNn0.zx8i4hKRBq41uEEBI6s-Z70RyOVlvYz0G4IMgnemT3E"; // sua key completa aqui
@@ -48,7 +47,14 @@ form.addEventListener("submit", async (e) => {
 
   if (error || !data) {
     errorMsg.classList.remove("hidden");
-    errorMsg.innerText = "Usuário ou senha inválidos, ou sem permissão!";
+    errorMsg.innerText = "Usuário ou senha inválidos!";
+    return;
+  }
+
+  // ✅ Verifica se usuário está ativo
+  if (!data.ativo) {
+    errorMsg.classList.remove("hidden");
+    errorMsg.innerText = "Acesso bloqueado!";
     return;
   }
 
@@ -58,7 +64,6 @@ form.addEventListener("submit", async (e) => {
   // Redireciona para a tela do garçom
   window.location.href = "garcon.html";
 });
-
 
 // Pegar elementos do HTML
 const anoSpan = document.getElementById("anoAtual");

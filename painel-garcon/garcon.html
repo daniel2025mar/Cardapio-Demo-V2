@@ -108,8 +108,8 @@
 
       <!-- BOTÕES DE AÇÃO -->
       <div class="campo botoes">
-        <button class="btn-enviar" onclick="enviarPedido()">Enviar Pedido 🚀</button>
-        
+      <button class="btn-enviar">Enviar Pedido 🚀</button>
+
       </div>
 
       <!-- PROMOÇÕES / SUGESTÕES DO DIA -->
@@ -152,6 +152,30 @@
 
     </div>
   </div>
+
+  <!-- =============================
+ MODAL MESA JÁ ATENDIDA
+============================= -->
+<div id="modalMesaAtendida" class="modal-overlay">
+
+  <div class="modal-conteudo">
+
+    <div class="modal-icone">
+      ⚠️
+    </div>
+
+    <h2 class="modal-titulo">Mesa já atendida</h2>
+
+    <p id="textoMesaAtendida" class="modal-texto"></p>
+
+    <button id="btnFecharMesaAtendida" class="btn-modal">
+      Entendi
+    </button>
+
+  </div>
+
+</div>
+
 
   <div id="tutorialPainel" class="tutorial hidden">
   <div class="tutorial-box animate-in">

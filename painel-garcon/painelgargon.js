@@ -691,6 +691,63 @@ async function verificarMesasInativas() {
 setInterval(verificarMesasInativas, 10000);
 
 
+// =============================
+// 🔄 FUNÇÃO PARA LIBERAR MESAS APÓS 10 MINUTOS
+// =============================
+async function liberarMesas10Minutos() {
+  try {
+    const agora = new Date();
+
+    // Busca todas as mesas que estão marcadas como atendidas
+    const { data: mesas, error } = await supabase
+      .from("mesas")
+      .select("id, atendida, descricao, ultimo_atendimento")
+      .eq("atendida", true);
+
+    if (error) {
+      console.error("Erro ao buscar mesas:", error);
+      return;
+    }
+
+    if (!mesas || mesas.length === 0) return;
+
+    for (const mesa of mesas) {
+      if (!mesa.ultimo_atendimento) continue;
+
+      const ultimo = new Date(mesa.ultimo_atendimento);
+      const diffSegundos = (agora - ultimo) / 1000;
+      const diffMinutos = diffSegundos / 60;
+
+      // ⏱️ Se passou 10 minutos desde o último atendimento
+      if (diffMinutos >= 10) {
+        const { error: updateError } = await supabase
+          .from("mesas")
+          .update({
+            atendida: false,
+            ultimo_atendimento: null // limpa o último atendimento
+          })
+          .eq("id", mesa.id);
+
+        if (updateError) {
+          console.error("Erro ao liberar mesa:", updateError);
+        } else {
+          console.log(`✅ Mesa ${mesa.descricao} liberada automaticamente após 10 minutos`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Erro na função liberarMesas10Minutos:", err);
+  }
+}
+
+// =============================
+// 🔄 RODAR AUTOMATICAMENTE A CADA 1 MINUTO
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+  setInterval(liberarMesas10Minutos, 60000); // 60.000 ms = 1 minuto
+});
+
+
 function atualizarStatusMesaSelecionada() {
   const mesaId = selectMesa.value;
   if (!mesaId) return;
@@ -713,159 +770,339 @@ function atualizarStatusMesaSelecionada() {
   }
 }
 
+// =============================
+// 🔥 REMOVE ACENTOS
+// =============================
+function removerAcentos(texto) {
 
-window.enviarPedido = async function () {
-  const mesaSelecionada = selectMesa.value;
+  console.log("🔤 removerAcentos() recebido:", texto);
 
-  if (!mesaSelecionada) {
-    abrirModalErro("Selecione uma mesa para iniciar o atendimento");
-    return;
+  if (!texto) return "";
+
+  const resultado = texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  console.log("🔤 removerAcentos() resultado:", resultado);
+
+  return resultado;
+}
+
+
+// =============================
+// 🔥 CONVERTE HORA PARA SEGUNDOS
+// =============================
+function horaParaSegundos(hora) {
+
+  console.log("⏱️ Convertendo hora:", hora);
+
+  if (!hora) return 0;
+
+  const partes = hora.split(":").map(Number);
+
+  if (partes.length !== 3 || partes.some(isNaN)) {
+    console.error("❌ Hora inválida:", hora);
+    return 0;
   }
 
-  // 🔹 Busca dados da mesa
-  const { data: mesaAtualDb, error: erroMesa } = await supabase
-    .from("mesas")
-    .select("atendida, ultimo_atendimento, descricao")
-    .eq("id", mesaSelecionada)
-    .maybeSingle();
+  const segundos = partes[0] * 3600 + partes[1] * 60 + partes[2];
 
-  if (erroMesa || !mesaAtualDb) {
-    console.error(erroMesa);
-    abrirModalErro("Erro ao verificar status da mesa.");
-    return;
-  }
+  console.log("⏱️ Hora em segundos:", segundos);
 
-  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-  if (!usuarioLogado || !usuarioLogado.username || !usuarioLogado.id) {
-    abrirModalErro("Garçom não identificado.");
-    return;
-  }
+  return segundos;
+}
 
-  const nomeGarcom = usuarioLogado.username;
-  const garcomId = usuarioLogado.id;
 
-  // DATA REAL (Brasil)
-  const agora = new Date();
-  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
-  const hoje = agora.toISOString().split("T")[0];
-  const timestampAgora = agora.toISOString();
+// =============================
+// ✅ VERIFICAR HORÁRIO
+// =============================
+async function verificarHorarioPedido() {
 
-  // Produtos selecionados
-  const itensSelecionados = [];
-  let totalPedidos = 0;
-  let valorTotal = 0;
+  console.log("========== 🚀 INÍCIO VERIFICAÇÃO HORÁRIO ==========");
 
-  document.querySelectorAll(".checkboxProduto:checked").forEach((checkbox) => {
-    const id = checkbox.getAttribute("data-id");
-    const inputQtd = document.querySelector(
-      `.quantidadeProduto[data-id="${id}"]`
-    );
-    const qtd = Number(inputQtd.value);
-    const produto = produtosDados.find(p => String(p.id) === id);
+  try {
 
-    if (qtd > 0 && produto) {
-      const valorProduto = Number(produto.valor_sugerido);
-      itensSelecionados.push({ id, qtd, valor: valorProduto });
-      totalPedidos += 1;
-      valorTotal += valorProduto * qtd;
+    const agora = new Date();
+    console.log("📆 Data completa agora:", agora);
+
+    const diasSemana = [
+      "domingo",
+      "segunda",
+      "terça",
+      "quarta",
+      "quinta",
+      "sexta",
+      "sábado"
+    ];
+
+    let diaAtual = diasSemana[agora.getDay()];
+    console.log("📅 Dia original:", diaAtual);
+
+    diaAtual = removerAcentos(diaAtual);
+
+    const horaAtual = agora.toTimeString().split(" ")[0];
+    console.log("⏰ Hora atual:", horaAtual);
+
+    // 🔎 Consulta Supabase
+    console.log("📡 Consultando Supabase...");
+
+    const { data, error } = await supabase
+      .from("horarios_semana")
+      .select("hora_inicio, hora_fim")
+      .eq("dia_semana", diaAtual)
+      .maybeSingle();
+
+    console.log("📡 Resposta Supabase:", data, error);
+
+    if (error || !data) {
+      console.error("❌ Erro ou sem dados do Supabase");
+      return false;
     }
-  });
 
-  if (itensSelecionados.length === 0 || valorTotal <= 0) {
-    abrirModalErro("Selecione pelo menos 1 produto para enviar o pedido!");
-    return;
+    const horaInicio = data.hora_inicio;
+    const horaFim = data.hora_fim;
+
+    console.log("🕒 Hora início banco:", horaInicio);
+    console.log("🕒 Hora fim banco:", horaFim);
+
+    const atualSeg = horaParaSegundos(horaAtual);
+    const inicioSeg = horaParaSegundos(horaInicio);
+    const fimSeg = horaParaSegundos(horaFim);
+
+    console.log("📊 Segundos atual:", atualSeg);
+    console.log("📊 Segundos início:", inicioSeg);
+    console.log("📊 Segundos fim:", fimSeg);
+
+    let permitido = false;
+
+    // 🔥 Horário que passa da meia-noite (sexta)
+    if (fimSeg < inicioSeg) {
+
+      console.log("🌙 Horário atravessa meia-noite");
+
+      permitido = atualSeg >= inicioSeg || atualSeg <= fimSeg;
+
+    } else {
+
+      permitido = atualSeg >= inicioSeg && atualSeg <= fimSeg;
+    }
+
+    console.log("✅ Resultado permitido:", permitido);
+    console.log("========== ✅ FIM VERIFICAÇÃO HORÁRIO ==========");
+
+    return permitido;
+
+  } catch (erro) {
+
+    console.error("❌ Erro geral validação horário:", erro);
+    return false;
   }
+}
 
-  // 🔹 Relatório do garçom (por dia)
-  const { data: registroExistente, error: erroCheck } = await supabase
-    .from("relatorio_garcom")
-    .select("*")
-    .eq("nome_garcom", nomeGarcom)
-    .eq("data", hoje)
-    .maybeSingle();
 
-  if (erroCheck) {
-    console.error(erroCheck);
-    abrirModalErro("Erro ao verificar registro do garçom.");
-    return;
+// =============================
+// 📦 FUNÇÃO GLOBAL ENVIAR PEDIDO
+// =============================
+window.enviarPedido = async function () {
+
+  console.log("📦 Função enviarPedido executada");
+
+  try {
+
+    // 👉 Aqui entra seu código real de envio
+    alert("Pedido enviado com sucesso!");
+
+  } catch (erro) {
+
+    console.error("Erro ao enviar pedido:", erro);
+    abrirModalErro("Erro ao enviar pedido.");
   }
-
-  if (registroExistente) {
-    await supabase
-      .from("relatorio_garcom")
-      .update({
-        mesas_atendidas: registroExistente.mesas_atendidas + 1,
-        total_pedidos: registroExistente.total_pedidos + totalPedidos,
-        total_faturado: Number(registroExistente.total_faturado) + valorTotal,
-        updated_at: timestampAgora
-      })
-      .eq("id", registroExistente.id);
-  } else {
-    await supabase
-      .from("relatorio_garcom")
-      .insert([{
-        id: uuidv4(),
-        garcom_id: garcomId,
-        nome_garcom: nomeGarcom,
-        data: hoje,
-        mesas_atendidas: 1,
-        total_pedidos: totalPedidos,
-        total_faturado: valorTotal,
-        created_at: timestampAgora,
-        updated_at: timestampAgora
-      }]);
-  }
-
-  // 🔹 Marca mesa como atendida
-  await supabase
-    .from("mesas")
-    .update({
-      atendida: true,
-      ultimo_atendimento: timestampAgora
-    })
-    .eq("id", mesaSelecionada);
-
-  // 🔹 Atualiza estado local (SEM F5)
-  const mesaAtual = mesasDados.find(m => String(m.id) === mesaSelecionada);
-  if (mesaAtual) {
-    mesaAtual.atendida = true;
-    mesaAtual.ultimo_atendimento = timestampAgora;
-
-    statusMesa.className = "status-mesa atendida";
-    textoStatus.textContent = `${mesaAtual.descricao} em atendimento.`;
-  }
-
-  // 🔥 REMOVE NOTIFICAÇÃO SE NÃO EXISTIR MAIS MESA SEM ATENDIMENTO
-  const existeMesaNaoAtendida = mesasDados.some(
-    m =>
-      m.ativo === true &&
-      m.cliente_presente === true &&
-      m.atendida === false
-  );
-
-  if (!existeMesaNaoAtendida) {
-    notificacao.classList.add("hidden");
-  }
-
-  abrirModalErro("Pedido enviado com sucesso 🚀");
-
-  await carregarRelatorioGarcom();
 };
 
+// =============================
+// ✅ BOTÃO ENVIAR COMPLETO (RELATORIO_GARCOM)
+// =============================
 document.addEventListener("DOMContentLoaded", () => {
-  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-  if (!usuarioLogado || !usuarioLogado.id) return;
 
-  const chaveTutorial = `tutorial_painel_garcom_${usuarioLogado.id}`;
+  const btnEnviar = document.querySelector(".btn-enviar");
+  if (!btnEnviar) return;
 
-  const tutorialVisto = localStorage.getItem(chaveTutorial);
+  btnEnviar.addEventListener("click", async () => {
 
-  if (!tutorialVisto) {
-    document.getElementById("tutorialPainel").classList.remove("hidden");
-  }
+    try {
 
-  document.getElementById("btnFecharTutorial").addEventListener("click", () => {
-    localStorage.setItem(chaveTutorial, "true");
-    document.getElementById("tutorialPainel").classList.add("hidden");
+      console.log("🚀 Iniciando envio pedido");
+
+      // =============================
+      // 1️⃣ VALIDAR HORÁRIO
+      // =============================
+      const permitido = await verificarHorarioPedido();
+
+      if (!permitido) {
+        abrirModalErro("🚫 Fora do horário de atendimento.");
+        return;
+      }
+
+      // =============================
+      // 2️⃣ VALIDAR MESA
+      // =============================
+      const mesaSelecionada = selectMesa.value;
+
+      if (!mesaSelecionada) {
+        abrirModalErro("Selecione uma mesa.");
+        return;
+      }
+
+      const mesa = mesasDados.find(m => String(m.id) === mesaSelecionada);
+
+      if (!mesa) {
+        abrirModalErro("Mesa inválida.");
+        return;
+      }
+
+      // 🚫 BLOQUEIA SE A MESA JÁ FOI ATENDIDA
+      if (mesa.atendida) {
+        abrirModalErro(`⚠️ ${mesa.descricao} já foi atendida. Não é possível fazer pedido no momento.`);
+        return;
+      }
+
+      // =============================
+      // 3️⃣ VALIDAR PRODUTOS
+      // =============================
+      const checkboxes = document.querySelectorAll(".checkboxProduto:checked");
+
+      if (checkboxes.length === 0) {
+        abrirModalErro("Selecione pelo menos um produto.");
+        return;
+      }
+
+      // =============================
+      // 4️⃣ PEGAR GARÇOM
+      // =============================
+      const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+      if (!usuarioLogado) {
+        abrirModalErro("Garçom não identificado.");
+        return;
+      }
+
+      // =============================
+      // 5️⃣ CALCULAR TOTAIS
+      // =============================
+      let totalPedido = 0;
+      let totalItens = 0;
+
+      for (const checkbox of checkboxes) {
+
+        const idProduto = checkbox.getAttribute("data-id");
+
+        const inputQtd = document.querySelector(
+          `.quantidadeProduto[data-id="${idProduto}"]`
+        );
+
+        const quantidade = Number(inputQtd.value);
+
+        const produto = produtosDados.find(
+          p => String(p.id) === idProduto
+        );
+
+        if (!produto) continue;
+
+        const subtotal = produto.valor_sugerido * quantidade;
+
+        totalPedido += subtotal;
+        totalItens += quantidade;
+      }
+
+      // =============================
+      // 6️⃣ ATUALIZAR RELATÓRIO GARÇOM
+      // =============================
+      const hoje = dataHojeBrasil();
+      const agora = new Date();
+
+      const { data: relatorio } = await supabase
+        .from("relatorio_garcom")
+        .select("*")
+        .eq("garcom_id", usuarioLogado.id)
+        .eq("data", hoje)
+        .maybeSingle();
+
+      if (relatorio) {
+        const { error } = await supabase
+          .from("relatorio_garcom")
+          .update({
+            total_pedidos: relatorio.total_pedidos + totalItens,
+            total_faturado: Number(relatorio.total_faturado) + totalPedido,
+            mesas_atendidas: relatorio.mesas_atendidas + 1,
+            updated_at: agora
+          })
+          .eq("id", relatorio.id);
+
+        if (error) {
+          console.error(error);
+          abrirModalErro("Erro ao atualizar relatório.");
+          return;
+        }
+
+      } else {
+        const { error } = await supabase
+          .from("relatorio_garcom")
+          .insert({
+            id: uuidv4(),
+            garcom_id: usuarioLogado.id,
+            nome_garcom: usuarioLogado.username,
+            data: hoje,
+            mesas_atendidas: 1,
+            total_pedidos: totalItens,
+            total_faturado: totalPedido,
+            created_at: agora,
+            updated_at: agora
+          });
+
+        if (error) {
+          console.error(error);
+          abrirModalErro("Erro ao salvar relatório.");
+          return;
+        }
+      }
+
+      // =============================
+      // 7️⃣ ATUALIZAR MESA
+      // =============================
+      await supabase
+        .from("mesas")
+        .update({
+          atendida: true,
+          ativo: true,
+          ultimo_atendimento: new Date()
+        })
+        .eq("id", mesa.id);
+
+      // =============================
+      // 8️⃣ LIMPAR TELA
+      // =============================
+      document.querySelectorAll(".checkboxProduto")
+        .forEach(c => c.checked = false);
+
+      document.querySelectorAll(".quantidadeProduto")
+        .forEach(q => {
+          q.disabled = true;
+          q.value = 1;
+        });
+
+      calcularTotal();
+
+      abrirModalErro("✅ Pedido enviado com sucesso!");
+      carregarRelatorioGarcom();
+
+    } catch (erro) {
+
+      console.error("Erro geral envio:", erro);
+      abrirModalErro("Erro ao enviar pedido.");
+
+    }
+
   });
+
 });

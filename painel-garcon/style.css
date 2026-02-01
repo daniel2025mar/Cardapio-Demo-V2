@@ -267,6 +267,80 @@ textarea {
   box-shadow: 0 8px 20px rgba(40,167,69,0.4);
 }
 
+/* Overlay fundo */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+}
+
+/* Caixa modal */
+.modal-conteudo {
+  background: linear-gradient(180deg, #ffffff, #f8f9fa);
+  padding: 35px 30px;
+  border-radius: 18px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  animation: modalEntrada 0.35s ease;
+}
+
+/* Ícone */
+.modal-icone {
+  font-size: 55px;
+  margin-bottom: 10px;
+}
+
+/* Título */
+.modal-titulo {
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #dc3545;
+}
+
+/* Texto */
+.modal-texto {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 25px;
+  line-height: 1.4;
+}
+
+/* Botão */
+.btn-modal {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  border: none;
+  padding: 10px 30px;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+}
+
+.btn-modal:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,123,255,0.4);
+}
+
+/* Animação */
+@keyframes modalEntrada {
+  from {
+    transform: translateY(40px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
 /* =========================
    BOTÃO ENVIAR
 ========================= */

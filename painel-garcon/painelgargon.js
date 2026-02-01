@@ -919,6 +919,7 @@ window.enviarPedido = async function () {
     abrirModalErro("Erro ao enviar pedido.");
   }
 };
+
 let mesasPrioridade = []; // todas as mesas ocupadas
 let mesasPrioridadeNaoAtendidas = []; // apenas mesas com atendida = false
 let liMesasMap = new Map(); // <li> de cada mesa
@@ -937,10 +938,10 @@ async function atualizarPrioridadeMesas() {
       return;
     }
 
-    // Salva mesas e transforma ultimo_atendimento em Date
+    // Salva mesas e transforma hora_ocupada em Date
     mesasPrioridade = mesas.map(m => ({
       ...m,
-      ultimo_atendimento: m.ultimo_atendimento ? new Date(m.ultimo_atendimento) : new Date()
+      hora_ocupada: m.hora_ocupada ? new Date(m.hora_ocupada) : new Date()
     }));
 
     // Filtra apenas as mesas não atendidas para lista de prioridade
@@ -997,7 +998,6 @@ function atualizarListaPrioridade() {
     if (!mesasPrioridadeNaoAtendidas.some(m => m.id === id)) {
       li.remove();
       liMesasMap.delete(id);
-      // Remove do localStorage também
       localStorage.removeItem(`mesa_tempo_${id}`);
     }
   });
@@ -1008,19 +1008,18 @@ function atualizarLiTempo(li, mesa) {
   const key = `mesa_tempo_${mesa.id}`;
 
   // Verifica se já existe tempo salvo no localStorage
-  let ultimoAtendimento = localStorage.getItem(key);
-  if (!ultimoAtendimento) {
-    // Se não existe, salva o valor do banco
-    ultimoAtendimento = mesa.ultimo_atendimento;
-    localStorage.setItem(key, ultimoAtendimento);
+  let horaOcupada = localStorage.getItem(key);
+  if (!horaOcupada) {
+    // Se não existe, salva o valor do banco (hora_ocupada)
+    horaOcupada = mesa.hora_ocupada;
+    localStorage.setItem(key, horaOcupada);
   } else {
-    // Se existe, transforma em Date
-    ultimoAtendimento = new Date(ultimoAtendimento);
+    horaOcupada = new Date(horaOcupada);
   }
 
   function atualizar() {
     const agora = new Date();
-    const tempo = Math.floor((agora - new Date(ultimoAtendimento)) / 60000);
+    const tempo = Math.floor((agora - new Date(horaOcupada)) / 60000); // em minutos
 
     li.textContent = `${mesa.descricao} - ${tempo} min sem pedido`;
 
@@ -1057,6 +1056,7 @@ setInterval(atualizarPrioridadeMesas, 15000);
 
 // Chamada inicial
 atualizarPrioridadeMesas();
+
 
 
 // =============================

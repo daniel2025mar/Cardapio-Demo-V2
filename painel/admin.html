@@ -11,6 +11,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
+    
+    /* Mesa ocupada mas não atendida */
+     .alerta-piscar {
+  animation: piscar 1s infinite;
+  background-color: rgb(255, 165, 0); /* laranja */
+  border-color: rgb(255, 140, 0); /* laranja mais escuro */
+}
+
+@keyframes piscar {
+  0%, 100% { background-color: rgb(255, 165, 0); }
+  50% { background-color: rgb(255, 255, 255); } /* branco no meio do piscar */
+}
+
+
     .content-section { display: none; }
     .menu-item.active {
       background-color: #2563eb !important;

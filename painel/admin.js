@@ -5098,12 +5098,19 @@ const painelMesas = document.getElementById("painelMesas");
 const mesasCache = new Map();
 
 // =========================
-// RENDERIZAR / ATUALIZAR UMA MESA
+// FUNÇÃO PARA RETORNAR HORÁRIO DE SÃO PAULO
 // =========================
+function horaSP() {
+  const agora = new Date();
 
-// =========================
-// FUNÇÃO PARA RENDERIZAR MESA
-// =========================
+  // Converte para horário de São Paulo (GMT-3)
+  const utc = agora.getTime() + agora.getTimezoneOffset() * 60000;
+  const fusoSP = utc - 3 * 60 * 60000; // GMT-3
+  const dataSP = new Date(fusoSP);
+
+  // Retorna no formato "YYYY-MM-DD HH:MM:SS"
+  return dataSP.toISOString().replace("T", " ").slice(0, 19);
+}
 
 // =========================
 // FUNÇÃO PARA RENDERIZAR MESA
@@ -5112,6 +5119,7 @@ function renderizarMesa(mesa) {
   let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
+  const atendida = mesa.atendida === true; // Verifica se já foi atendida
 
   // =========================
   // CRIA SE NÃO EXISTIR
@@ -5157,51 +5165,82 @@ function renderizarMesa(mesa) {
       const mesaAtual = mesasCache.get(mesa.id);
       const novoStatus = !mesaAtual.cliente_presente;
 
-      atualizarStatusVisual(mesaDiv, novoStatus);
+      // Atualiza visual imediatamente
+      atualizarStatusVisual(mesaDiv, novoStatus, mesaAtual.atendida);
 
       mesasCache.set(mesa.id, {
         ...mesaAtual,
         cliente_presente: novoStatus,
       });
 
+      // Atualiza hora_ocupada apenas se a mesa estiver sendo ocupada
+      const horaAtual = novoStatus ? horaSP() : null;
+
       const { error } = await supabase
         .from("mesas")
-        .update({ cliente_presente: novoStatus })
+        .update({ 
+          cliente_presente: novoStatus,
+          hora_ocupada: horaAtual
+        })
         .eq("id", mesa.id);
 
       if (error) {
         console.error("Erro ao atualizar mesa:", error);
-        atualizarStatusVisual(mesaDiv, !novoStatus);
+        atualizarStatusVisual(mesaDiv, !novoStatus, mesaAtual.atendida);
       }
     });
 
     painelMesas.appendChild(mesaDiv);
   } else {
-    // Atualiza os valores atuais
+    // =========================
+    // ATUALIZA VALORES EXISTENTES
+    // =========================
     mesaDiv.querySelector(".titulo").textContent =
       `Mesa ${String(mesa.numero).padStart(3, "0")}`;
     mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
-    atualizarStatusVisual(mesaDiv, ocupada);
+    atualizarStatusVisual(mesaDiv, ocupada, atendida);
+
+    // Se já estiver ocupada, atualiza a hora automaticamente
+    if (ocupada && !mesa.hora_ocupada) {
+      const horaAtual = horaSP();
+      supabase
+        .from("mesas")
+        .update({ hora_ocupada: horaAtual })
+        .eq("id", mesa.id)
+        .then(({ error }) => {
+          if (error) console.error("Erro ao atualizar hora_ocupada:", error);
+        });
+    }
   }
 }
 
 // =========================
 // ATUALIZA STATUS VISUAL
 // =========================
-function atualizarStatusVisual(mesaDiv, ocupada) {
+function atualizarStatusVisual(mesaDiv, ocupada, atendida = true) {
   const monitor = mesaDiv.querySelector(".monitor");
   const statusText = mesaDiv.querySelector(".status-text");
 
+  // Remove todas as cores e alertas antes de aplicar novas
+  monitor.classList.remove("bg-red-600", "bg-blue-800", "alerta-piscar");
+
   if (ocupada) {
-    monitor.classList.remove("bg-blue-800"); // remove azul se estava antes
-    monitor.classList.add("bg-red-600");
-    statusText.textContent = "OCUPADO";
+    if (!atendida) {
+      // Mesa ocupada mas não atendida → cor alerta piscando (ex: laranja)
+      monitor.classList.add("alerta-piscar");
+    } else {
+      // Mesa ocupada e atendida → vermelho normal
+      monitor.classList.add("bg-red-600");
+    }
+    statusText.textContent = "OCUPADA";
   } else {
-    monitor.classList.remove("bg-red-600");
-    monitor.classList.add("bg-blue-800"); // adiciona azul escuro
+    // Mesa livre → azul
+    monitor.classList.add("bg-blue-800");
     statusText.textContent = "LIVRE";
   }
 }
+
+
 
 
 // =========================

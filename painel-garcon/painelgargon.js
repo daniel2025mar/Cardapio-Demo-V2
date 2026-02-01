@@ -919,6 +919,145 @@ window.enviarPedido = async function () {
     abrirModalErro("Erro ao enviar pedido.");
   }
 };
+let mesasPrioridade = []; // todas as mesas ocupadas
+let mesasPrioridadeNaoAtendidas = []; // apenas mesas com atendida = false
+let liMesasMap = new Map(); // <li> de cada mesa
+
+// 1️⃣ Carrega mesas do Supabase
+async function atualizarPrioridadeMesas() {
+  try {
+    const { data: mesas, error } = await supabase
+      .from("mesas")
+      .select("*")
+      .eq("cliente_presente", true) // somente mesas ocupadas
+      .eq("ativo", true);           // somente mesas ativas
+
+    if (error) {
+      console.error("Erro ao buscar mesas:", error);
+      return;
+    }
+
+    // Salva mesas e transforma ultimo_atendimento em Date
+    mesasPrioridade = mesas.map(m => ({
+      ...m,
+      ultimo_atendimento: m.ultimo_atendimento ? new Date(m.ultimo_atendimento) : new Date()
+    }));
+
+    // Filtra apenas as mesas não atendidas para lista de prioridade
+    mesasPrioridadeNaoAtendidas = mesasPrioridade.filter(m => !m.atendida);
+
+    atualizarSelectMesas();              // todas mesas ocupadas
+    atualizarListaPrioridade();          // só as não atendidas
+    atualizarNotificacao();
+
+  } catch (err) {
+    console.error("Erro na prioridade de mesas:", err);
+  }
+}
+
+// 2️⃣ Atualiza select de mesas (todas ocupadas)
+function atualizarSelectMesas() {
+  const selectMesa = document.getElementById("mesa");
+  if (!selectMesa) return;
+
+  const mesaSelecionadaAnterior = selectMesa.value;
+  selectMesa.innerHTML = '<option value="">Selecione a mesa</option>';
+
+  mesasPrioridade.forEach(mesa => {
+    const option = document.createElement("option");
+    option.value = mesa.id;
+    option.textContent = mesa.descricao;
+    selectMesa.appendChild(option);
+  });
+
+  if (mesaSelecionadaAnterior && mesasPrioridade.some(m => String(m.id) === mesaSelecionadaAnterior)) {
+    selectMesa.value = mesaSelecionadaAnterior;
+  }
+}
+
+// 3️⃣ Cria ou atualiza lista de prioridade (somente mesas não atendidas)
+function atualizarListaPrioridade() {
+  const listaPrioridade = document.getElementById("listaPrioridadeMesas");
+  if (!listaPrioridade) return;
+
+  mesasPrioridadeNaoAtendidas.forEach(mesa => {
+    let li = liMesasMap.get(mesa.id);
+
+    if (!li) {
+      li = document.createElement("li");
+      listaPrioridade.appendChild(li);
+      liMesasMap.set(mesa.id, li);
+    }
+
+    atualizarLiTempo(li, mesa);
+  });
+
+  // Remove <li> de mesas que não estão mais na lista de prioridade
+  liMesasMap.forEach((li, id) => {
+    if (!mesasPrioridadeNaoAtendidas.some(m => m.id === id)) {
+      li.remove();
+      liMesasMap.delete(id);
+      // Remove do localStorage também
+      localStorage.removeItem(`mesa_tempo_${id}`);
+    }
+  });
+}
+
+// 4️⃣ Atualiza tempo de cada <li> a cada segundo, persistindo no localStorage
+function atualizarLiTempo(li, mesa) {
+  const key = `mesa_tempo_${mesa.id}`;
+
+  // Verifica se já existe tempo salvo no localStorage
+  let ultimoAtendimento = localStorage.getItem(key);
+  if (!ultimoAtendimento) {
+    // Se não existe, salva o valor do banco
+    ultimoAtendimento = mesa.ultimo_atendimento;
+    localStorage.setItem(key, ultimoAtendimento);
+  } else {
+    // Se existe, transforma em Date
+    ultimoAtendimento = new Date(ultimoAtendimento);
+  }
+
+  function atualizar() {
+    const agora = new Date();
+    const tempo = Math.floor((agora - new Date(ultimoAtendimento)) / 60000);
+
+    li.textContent = `${mesa.descricao} - ${tempo} min sem pedido`;
+
+    if (tempo > 20) li.style.color = "red";
+    else if (tempo > 10) li.style.color = "orange";
+    else li.style.color = "green";
+  }
+
+  atualizar();
+  setInterval(atualizar, 1000);
+}
+
+// 5️⃣ Atualiza notificação geral
+function atualizarNotificacao() {
+  const notificacao = document.getElementById("notificacao");
+  const somAlerta = document.getElementById("somAlerta");
+
+  if (!notificacao) return;
+
+  if (mesasPrioridadeNaoAtendidas.length > 0) {
+    notificacao.classList.remove("hidden");
+    notificacao.innerHTML = `⚠️ Existem mesas aguardando atendimento no momento.`;
+    if (somAlerta && somAlerta.paused) somAlerta.play().catch(() => {});
+  } else {
+    notificacao.classList.add("hidden");
+  }
+}
+
+// 🔄 Atualiza tempo das mesas em tempo real (1s)
+setInterval(() => atualizarListaPrioridade(), 1000);
+
+// 🔄 Atualiza mesas do Supabase a cada 15s
+setInterval(atualizarPrioridadeMesas, 15000);
+
+// Chamada inicial
+atualizarPrioridadeMesas();
+
 
 // =============================
 // ✅ BOTÃO ENVIAR COMPLETO (RELATORIO_GARCOM)
@@ -928,17 +1067,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnEnviar = document.querySelector(".btn-enviar");
   if (!btnEnviar) return;
 
+  // Função para pegar o horário de SP
+  function agoraSP() {
+    const agora = new Date();
+    const offsetSP = -3 * 60; // SP é UTC-3
+    const timeSP = new Date(agora.getTime() + offsetSP * 60 * 1000);
+    return timeSP.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:MM:SS"
+  }
+
   btnEnviar.addEventListener("click", async () => {
 
     try {
-
       console.log("🚀 Iniciando envio pedido");
 
       // =============================
       // 1️⃣ VALIDAR HORÁRIO
       // =============================
       const permitido = await verificarHorarioPedido();
-
       if (!permitido) {
         abrirModalErro("🚫 Fora do horário de atendimento.");
         return;
@@ -948,14 +1093,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // 2️⃣ VALIDAR MESA
       // =============================
       const mesaSelecionada = selectMesa.value;
-
       if (!mesaSelecionada) {
         abrirModalErro("Selecione uma mesa.");
         return;
       }
 
       const mesa = mesasDados.find(m => String(m.id) === mesaSelecionada);
-
       if (!mesa) {
         abrirModalErro("Mesa inválida.");
         return;
@@ -971,7 +1114,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // 3️⃣ VALIDAR PRODUTOS
       // =============================
       const checkboxes = document.querySelectorAll(".checkboxProduto:checked");
-
       if (checkboxes.length === 0) {
         abrirModalErro("Selecione pelo menos um produto.");
         return;
@@ -981,7 +1123,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // 4️⃣ PEGAR GARÇOM
       // =============================
       const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-
       if (!usuarioLogado) {
         abrirModalErro("Garçom não identificado.");
         return;
@@ -994,23 +1135,14 @@ document.addEventListener("DOMContentLoaded", () => {
       let totalItens = 0;
 
       for (const checkbox of checkboxes) {
-
         const idProduto = checkbox.getAttribute("data-id");
-
-        const inputQtd = document.querySelector(
-          `.quantidadeProduto[data-id="${idProduto}"]`
-        );
-
+        const inputQtd = document.querySelector(`.quantidadeProduto[data-id="${idProduto}"]`);
         const quantidade = Number(inputQtd.value);
 
-        const produto = produtosDados.find(
-          p => String(p.id) === idProduto
-        );
-
+        const produto = produtosDados.find(p => String(p.id) === idProduto);
         if (!produto) continue;
 
         const subtotal = produto.valor_sugerido * quantidade;
-
         totalPedido += subtotal;
         totalItens += quantidade;
       }
@@ -1019,7 +1151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 6️⃣ ATUALIZAR RELATÓRIO GARÇOM
       // =============================
       const hoje = dataHojeBrasil();
-      const agora = new Date();
+      const horaSP = agoraSP();
 
       const { data: relatorio } = await supabase
         .from("relatorio_garcom")
@@ -1029,13 +1161,14 @@ document.addEventListener("DOMContentLoaded", () => {
         .maybeSingle();
 
       if (relatorio) {
+        // 🟢 UPDATE
         const { error } = await supabase
           .from("relatorio_garcom")
           .update({
             total_pedidos: relatorio.total_pedidos + totalItens,
             total_faturado: Number(relatorio.total_faturado) + totalPedido,
             mesas_atendidas: relatorio.mesas_atendidas + 1,
-            updated_at: agora
+            updated_at: horaSP
           })
           .eq("id", relatorio.id);
 
@@ -1044,8 +1177,8 @@ document.addEventListener("DOMContentLoaded", () => {
           abrirModalErro("Erro ao atualizar relatório.");
           return;
         }
-
       } else {
+        // 🔵 INSERT
         const { error } = await supabase
           .from("relatorio_garcom")
           .insert({
@@ -1056,8 +1189,8 @@ document.addEventListener("DOMContentLoaded", () => {
             mesas_atendidas: 1,
             total_pedidos: totalItens,
             total_faturado: totalPedido,
-            created_at: agora,
-            updated_at: agora
+            created_at: horaSP,
+            updated_at: horaSP
           });
 
         if (error) {
@@ -1075,21 +1208,18 @@ document.addEventListener("DOMContentLoaded", () => {
         .update({
           atendida: true,
           ativo: true,
-          ultimo_atendimento: new Date()
+          ultimo_atendimento: horaSP // ✅ Salva horário SP correto
         })
         .eq("id", mesa.id);
 
       // =============================
       // 8️⃣ LIMPAR TELA
       // =============================
-      document.querySelectorAll(".checkboxProduto")
-        .forEach(c => c.checked = false);
-
-      document.querySelectorAll(".quantidadeProduto")
-        .forEach(q => {
-          q.disabled = true;
-          q.value = 1;
-        });
+      document.querySelectorAll(".checkboxProduto").forEach(c => c.checked = false);
+      document.querySelectorAll(".quantidadeProduto").forEach(q => {
+        q.disabled = true;
+        q.value = 1;
+      });
 
       calcularTotal();
 
@@ -1097,10 +1227,8 @@ document.addEventListener("DOMContentLoaded", () => {
       carregarRelatorioGarcom();
 
     } catch (erro) {
-
       console.error("Erro geral envio:", erro);
       abrirModalErro("Erro ao enviar pedido.");
-
     }
 
   });

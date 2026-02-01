@@ -905,6 +905,61 @@ select option {
 }
 
 
+/* =============================
+   CARD DE MESAS PRIORITÁRIAS
+============================= */
+.prioridade-mesas {
+  background-color: #f9f9f9; /* fundo claro */
+  border: 2px solid #ddd; /* borda suave */
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 10px;
+}
+
+.prioridade-mesas h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+#listaPrioridadeMesas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#listaPrioridadeMesas li {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background-color: #e0f0ff; /* fundo padrão leve */
+  color: #333;
+}
+
+/* Cores por prioridade */
+#listaPrioridadeMesas li[style*="green"] {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+#listaPrioridadeMesas li[style*="orange"] {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+#listaPrioridadeMesas li[style*="red"] {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Hover para destaque */
+#listaPrioridadeMesas li:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
 
 /* =========================
    RESPONSIVO

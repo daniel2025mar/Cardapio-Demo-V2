@@ -631,7 +631,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 // ===============================
-//   APLICAR PERMISSÕES
+//   APLICAR PERMISSÕES MENUS E SUBMENUS
 // ===============================
 let permissoesDetalhadas = {};
 
@@ -4562,13 +4562,12 @@ document.addEventListener("click", (e) => {
     menuCompartilhar.classList.add("hidden");
   }
 });
-
 let avisoMostrado = false;
 let modalHorarioAberto = false;
 
-/* ===============================
-   DIA DA SEMANA (igual banco)
-=============================== */
+// ----------------------------
+// DIA DA SEMANA
+// ----------------------------
 function getDiaSemanaTexto() {
   const dias = [
     "domingo",
@@ -4582,10 +4581,9 @@ function getDiaSemanaTexto() {
   return dias[new Date().getDay()];
 }
 
-/* ===============================
-   CONVERTE HORA PARA DATE
-   (com ajuste de dia)
-=============================== */
+// ----------------------------
+// CONVERTE HORA PARA DATE
+// ----------------------------
 function horaParaDate(hora, ajusteDia = 0) {
   const [h, m, s] = hora.split(":");
   const d = new Date();
@@ -4594,12 +4592,11 @@ function horaParaDate(hora, ajusteDia = 0) {
   return d;
 }
 
-/* ===============================
-   MODAL AVISO (3 MIN)
-=============================== */
+// ----------------------------
+// MODAL AVISO ENCERRAMENTO
+// ----------------------------
 function mostrarModalAvisoEncerramento() {
   if (avisoMostrado) return;
-
   avisoMostrado = true;
 
   const modal = document.getElementById("modalAvisoEncerramento");
@@ -4612,9 +4609,9 @@ function mostrarModalAvisoEncerramento() {
   };
 }
 
-/* ===============================
-   MODAL BLOQUEIO HORÁRIO
-=============================== */
+// ----------------------------
+// MODAL BLOQUEIO HORÁRIO
+// ----------------------------
 function mostrarModalHorario() {
   if (modalHorarioAberto) return;
 
@@ -4625,10 +4622,12 @@ function mostrarModalHorario() {
   modal.classList.add("flex");
 }
 
-/* ===============================
-   FUNÇÃO PRINCIPAL
-=============================== */
-async function verificarHorarioSistema() {
+// ----------------------------
+// VERIFICA HORÁRIO (só se o servidor estiver online)
+// ----------------------------
+async function verificarHorarioSistema(servidorOnline) {
+  if (!servidorOnline) return; // ⚠️ Se offline, não mostra modalHorario
+
   const diaSemana = getDiaSemanaTexto();
 
   const { data, error } = await supabase
@@ -4637,39 +4636,22 @@ async function verificarHorarioSistema() {
     .eq("dia_semana", diaSemana)
     .single();
 
-  // ❌ Sem configuração válida → BLOQUEIA
   if (error || !data || !data.hora_inicio || !data.hora_fim) {
     mostrarModalHorario();
     return;
   }
 
   const agora = new Date();
-
   let horaInicio = horaParaDate(data.hora_inicio);
   let horaFim = horaParaDate(data.hora_fim);
 
-  /* ===============================
-     CASO VIRE A MADRUGADA
-     Ex: 20:00 → 06:00
-  =============================== */
+  // Caso o expediente passe da meia-noite (ex: 20:00 → 06:00)
   if (horaFim <= horaInicio) {
-    // Se agora é depois da meia-noite
-    if (agora < horaFim) {
-      horaInicio.setDate(horaInicio.getDate() - 1);
-    } else {
-      horaFim.setDate(horaFim.getDate() + 1);
-    }
+    if (agora < horaFim) horaInicio.setDate(horaInicio.getDate() - 1);
+    else horaFim.setDate(horaFim.getDate() + 1);
   }
 
-  /* ===============================
-     FORA DO HORÁRIO
-  =============================== */
-  if (agora < horaInicio) {
-    mostrarModalHorario();
-    return;
-  }
-
-  if (agora >= horaFim) {
+  if (agora < horaInicio || agora >= horaFim) {
     mostrarModalHorario();
 
     setTimeout(async () => {
@@ -4680,25 +4662,63 @@ async function verificarHorarioSistema() {
     return;
   }
 
-  /* ===============================
-     DENTRO DO HORÁRIO
-  =============================== */
   modalHorarioAberto = false;
 
   const diferencaMs = horaFim - agora;
   const diferencaMin = Math.ceil(diferencaMs / 60000);
 
-  // 🔔 Aviso 3 minutos antes
+  // Aviso 3 minutos antes do fechamento
   if (diferencaMin <= 3 && diferencaMin > 0 && !avisoMostrado) {
     mostrarModalAvisoEncerramento();
   }
 }
 
-/* ===============================
-   EXECUÇÃO
-=============================== */
-setInterval(verificarHorarioSistema, 1000);
-verificarHorarioSistema();
+// ----------------------------
+// VERIFICA SERVIDOR + HORÁRIO
+// ----------------------------
+async function verificarServidor() {
+  const modalManutencao = document.getElementById("modalMaintenance");
+  if (!modalManutencao) return;
+
+  let servidorOnline = false;
+
+  try {
+    const { error } = await supabase.from("config").select("id").limit(1);
+    if (!error) servidorOnline = true;
+
+    // Servidor online → esconde modal
+    modalManutencao.classList.add("hidden");
+  } catch (err) {
+    console.error("🚨 Supabase offline:", err);
+
+    // Servidor offline → mostra modal
+    modalManutencao.classList.remove("hidden");
+  }
+
+  // Só verifica horário se servidor estiver online
+  verificarHorarioSistema(servidorOnline);
+}
+
+// ----------------------------
+// EXECUÇÃO
+// ----------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  verificarServidor();
+  setInterval(verificarServidor, 30000);
+
+  document.getElementById("btnCloseMaintenance")?.addEventListener("click", () => {
+    document.getElementById("modalMaintenance")?.classList.add("hidden");
+  });
+
+  document.getElementById("btnConfirmarHorario")?.addEventListener("click", () => {
+    document.getElementById("modalHorario")?.classList.add("hidden");
+  });
+
+  document.getElementById("btnConfirmarAvisoEncerramento")?.addEventListener("click", () => {
+    document.getElementById("modalAvisoEncerramento")?.classList.add("hidden");
+  });
+});
+
 
 // cadastro de categorias
 document.addEventListener("DOMContentLoaded", () => {
@@ -6043,3 +6063,66 @@ supabase
 document.addEventListener('DOMContentLoaded', () => {
   atualizarPedidosDelivery()
 })
+
+let servidorOnline = null;       // Estado atual do servidor (null = ainda não verificado)
+let animacaoPontinhos = null;    // Intervalo para animação "..."
+
+async function verificarServidorSupabase() {
+  const modal = document.getElementById("modalMaintenance");
+  const title = document.getElementById("modalMaintenanceTitle");
+  const msg = document.getElementById("modalMaintenanceMsg");
+  const btn = document.getElementById("btnCloseMaintenance");
+
+  if (!modal) return;
+
+  try {
+    // Tenta acessar uma tabela leve
+    const { error } = await supabase
+      .from("config")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+
+    // Servidor OK
+    if (servidorOnline === false || servidorOnline === null) {
+      // Só atualiza se o estado mudou
+      servidorOnline = true;
+      modal.classList.remove("show");
+      clearInterval(animacaoPontinhos);
+      animacaoPontinhos = null;
+    }
+
+  } catch (err) {
+    console.error("🚨 Não foi possível conectar ao Supabase:", err);
+
+    // Servidor offline
+    if (servidorOnline === true || servidorOnline === null) {
+      servidorOnline = false;
+
+      title.textContent = "Servidor em manutenção";
+      msg.textContent = "Nosso sistema está temporariamente indisponível. Por favor, tente novamente mais tarde.";
+      btn.classList.remove("hidden");
+      modal.classList.add("show");
+
+      // Se quiser, animação de tentativas (pontinhos) pode ficar aqui também
+      if (!animacaoPontinhos) {
+        let dots = 0;
+        animacaoPontinhos = setInterval(() => {
+          msg.textContent = "Tentando reconectar" + ".".repeat(dots);
+          dots = (dots + 1) % 4;
+        }, 500);
+      }
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  verificarServidorSupabase();             // Verifica ao abrir
+  setInterval(verificarServidorSupabase, 5000); // Verifica a cada 5 segundos
+
+  // Botão de fechar modal
+  document.getElementById("btnCloseMaintenance")?.addEventListener("click", () => {
+    document.getElementById("modalMaintenance")?.classList.remove("show");
+  });
+});

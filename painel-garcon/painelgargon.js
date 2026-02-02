@@ -1345,3 +1345,74 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
+// ==============================
+// CONEXÃO GARÇOM - CORRIGIDO
+// ==============================
+let garcomServidorOnline = true;       // Estado real do servidor
+let garcomModalAberto = false;         // Se modal está realmente aberto
+let garcomAnimacaoPontinhos = null;    // Intervalo da animação "..."
+
+async function verificarServidorGarcom() {
+  const modal = document.getElementById("modalGarcomMaintenance");
+  const title = document.getElementById("modalGarcomTitle");
+  const msg = document.getElementById("modalGarcomMsg");
+
+  if (!modal) return;
+
+  try {
+    // Tenta acessar tabela leve
+    const { error } = await supabase
+      .from("mesas")
+      .select("id")
+      .limit(1);
+
+    if (error) throw error;
+
+    // ✅ Servidor online
+    if (!garcomServidorOnline) {
+      // Antes estava offline → fechar modal
+      garcomServidorOnline = true;
+
+      if (garcomModalAberto) {
+        modal.classList.remove("show");
+        garcomModalAberto = false;
+
+        // Limpa animação
+        clearInterval(garcomAnimacaoPontinhos);
+        garcomAnimacaoPontinhos = null;
+      }
+    }
+
+  } catch (err) {
+    console.error("🚨 Não foi possível conectar ao Supabase (garçom):", err);
+
+    // ❌ Servidor offline
+    if (garcomServidorOnline) {
+      // Só ativa o modal se o estado mudou
+      garcomServidorOnline = false;
+
+      // Configura modal de conexão
+      title.textContent = "Servidor em manutenção";
+      msg.textContent = "Nosso sistema está temporariamente indisponível. Por favor, tente novamente mais tarde.";
+
+      modal.classList.add("show");
+      garcomModalAberto = true;
+
+      // Inicia animação de pontinhos se não estiver rodando
+      if (!garcomAnimacaoPontinhos) {
+        let dots = 0;
+        garcomAnimacaoPontinhos = setInterval(() => {
+          dots = (dots + 1) % 4;
+          msg.textContent = "Aguarde enquanto verificamos a conexão" + ".".repeat(dots);
+        }, 500);
+      }
+    }
+  }
+}
+
+// Executa ao abrir e a cada 5 segundos
+document.addEventListener("DOMContentLoaded", () => {
+  verificarServidorGarcom();
+  setInterval(verificarServidorGarcom, 5000);
+});

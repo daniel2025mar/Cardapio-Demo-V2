@@ -636,15 +636,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 let permissoesDetalhadas = {};
 
 function aplicarPermissoes(usuario) {
-  const permissoes = usuario.permissoes || [];
-  window.permissoesDetalhadas = usuario.permissoes_detalhadas || {};
 
-  // ===============================
-  // ATUALIZA NOME DO USUÁRIO (DESKTOP + MOBILE)
-  // ===============================
+  const permissoes = usuario.permissoes || [];
+
+  // ✅ Carrega permissões detalhadas vindas do banco
+  window.permissoesDetalhadas = { ...(usuario.permissoes_detalhadas || {}) };
+
   const nomeUsuario = usuario.nome || usuario.username || "Usuário";
 
-  // Desktop (header)
+  // ===============================
+  // ATUALIZA NOME DO USUÁRIO
+  // ===============================
   const userSpanDesktop = document.getElementById("usuario-logado");
   if (userSpanDesktop) {
     userSpanDesktop.innerHTML = `
@@ -653,7 +655,6 @@ function aplicarPermissoes(usuario) {
     `;
   }
 
-  // Mobile (abaixo do header)
   const userSpanMobile = document.getElementById("usuario-logado-mobile");
   if (userSpanMobile) {
     userSpanMobile.innerHTML = `
@@ -663,7 +664,7 @@ function aplicarPermissoes(usuario) {
   }
 
   // ===============================
-  // ESCONDE TUDO INICIALMENTE
+  // ESCONDE TUDO
   // ===============================
   document.querySelectorAll(".content-section").forEach(sec => {
     sec.style.display = "none";
@@ -673,23 +674,11 @@ function aplicarPermissoes(usuario) {
     label.style.display = "none";
   });
 
-  /**
-   * 🔥 MUITO IMPORTANTE
-   * Submenus NÃO podem ficar display:none
-   * Quem controla abrir/fechar é o JS (classe .aberto)
-   */
-  const submenuProdutos = document.getElementById("submenu-produtos");
-  if (submenuProdutos) {
-    submenuProdutos.style.display = "block";
-  }
-
   // ===============================
-  // VERIFICA ACESSO TOTAL
+  // ACESSO TOTAL
   // ===============================
-  const isAcessoTotal = permissoes.includes("Acesso Total");
+  if (permissoes.includes("Acesso Total")) {
 
-  if (isAcessoTotal) {
-    // Libera tudo
     document.querySelectorAll(".content-section").forEach(sec => {
       sec.style.display = "block";
     });
@@ -701,13 +690,6 @@ function aplicarPermissoes(usuario) {
     abrirDashboard();
     ativarMenu();
     ativarMenuConfiguracoes();
-
-    // Acesso Total = todas permissões
-    window.permissoesDetalhadas["Acesso Total"] = {
-      excluir: true,
-      bloquear: true,
-      editar: true
-    };
 
     return;
   }
@@ -722,17 +704,19 @@ function aplicarPermissoes(usuario) {
     acesso_produtos: "produtos",
     acesso_funcionarios: "funcionarios",
     acesso_relatorios: "relatorios",
-    acesso_configuracoes: "configuracoes"
+    acesso_configuracoes: "configuracoes",
+    acesso_mesas: "mesas"
   };
 
   // ===============================
-  // APLICA PERMISSÕES INDIVIDUAIS
+  // APLICA PERMISSÕES
   // ===============================
   permissoes.forEach(p => {
+
     const secaoID = PERMISSAO_MAP[p];
     if (!secaoID) return;
 
-    // Libera seção
+    // Libera seção principal
     const secao = document.getElementById(secaoID);
     if (secao) secao.style.display = "block";
 
@@ -741,24 +725,27 @@ function aplicarPermissoes(usuario) {
       document.querySelectorAll("aside nav label")
     ).find(label => label.dataset.menu === secaoID);
 
-    if (menuItem) {
-      menuItem.style.display = "flex";
+    if (menuItem) menuItem.style.display = "flex";
+
+    // ===============================
+    // ✅ REGRA ESPECÍFICA MESAS
+    // ===============================
+    if (secaoID === "mesas") {
+
+      // Mostra submenu geral (se existir)
+      const submenuMesas = document.getElementById("submenu-mesas");
+      if (submenuMesas) submenuMesas.style.display = "block";
+
+      // ✅ LIBERA SOMENTE LISTA DE MESAS
+      document
+        .querySelectorAll('[data-menu="lista-mesas"]')
+        .forEach(sub => sub.style.display = "flex");
     }
 
-    /**
-     * 🔓 REGRA ESPECÍFICA → PRODUTOS
-     */
-    if (secaoID === "produtos") {
-      document
-        .querySelectorAll("#submenu-produtos label")
-        .forEach(sub => {
-          sub.style.display = "flex";
-        });
-    }
   });
 
   // ===============================
-  // MOSTRA PRIMEIRA SEÇÃO PERMITIDA
+  // MOSTRA PRIMEIRA SEÇÃO
   // ===============================
   const primeiraSecao = document.querySelector(
     ".content-section[style*='display: block']"
@@ -768,23 +755,15 @@ function aplicarPermissoes(usuario) {
     document.querySelectorAll(".content-section").forEach(sec => {
       sec.style.display = "none";
     });
+
     primeiraSecao.style.display = "block";
   }
 
   ativarMenu();
   ativarMenuConfiguracoes();
-
-  // ===============================
-  // PERMISSÕES ESPECÍFICAS (EXEMPLO)
-  // ===============================
-  if (permissoes.includes("acesso_clientes")) {
-    window.permissoesDetalhadas["acesso_clientes"] = {
-      editar: true,
-      excluir: false,
-      bloquear: false
-    };
-  }
 }
+
+
 
 
 
@@ -2385,9 +2364,7 @@ formFuncionario.addEventListener("submit", async (e) => {
   const usuario = document.getElementById("usuarioFuncionario").value.trim();
   const senha = document.getElementById("senhaFuncionario").value.trim();
   const email = document.getElementById("emailFuncionario").value.trim();
-  const cargo = document.getElementById("cargoFuncionario").value; // 🔥 AQUI
-
-  console.log("➡️ Dados capturados:", { nome, usuario, senha, email, cargo });
+  const cargo = document.getElementById("cargoFuncionario").value;
 
   if (!cargo) {
     alert("Selecione um cargo");
@@ -2395,20 +2372,23 @@ formFuncionario.addEventListener("submit", async (e) => {
   }
 
   try {
+
     let funcionarioId;
     let usuarioId;
 
     // =============================
-    // 1️⃣ Capturar permissões como ARRAY
+    // 🔥 CAPTURAR PERMISSÕES
     // =============================
     const permissoes = [];
+
     const checkboxes = [
       { id: "permAcessoTotal", valor: "Acesso Total" },
       { id: "permClientes", valor: "acesso_clientes" },
       { id: "permPedidos", valor: "acesso_pedidos" },
       { id: "permProdutos", valor: "acesso_produtos" },
       { id: "permFuncionarios", valor: "acesso_funcionarios" },
-      { id: "permRelatorios", valor: "acesso_relatorios" }
+      { id: "permRelatorios", valor: "acesso_relatorios" },
+      { id: "permMesas", valor: "acesso_mesas" } // ✅ NOVO
     ];
 
     checkboxes.forEach(item => {
@@ -2420,10 +2400,11 @@ formFuncionario.addEventListener("submit", async (e) => {
 
     console.log("📌 Permissões:", permissoes);
 
+    // =============================
+    // ✏️ ATUALIZAR FUNCIONÁRIO
+    // =============================
     if (formFuncionario.dataset.editingId) {
-      // =============================
-      // ✏️ ATUALIZAR FUNCIONÁRIO
-      // =============================
+
       const idUsuario = formFuncionario.dataset.editingId;
 
       const { data: usuarioAtualizado, error: errorUsuario } = await supabase
@@ -2431,8 +2412,8 @@ formFuncionario.addEventListener("submit", async (e) => {
         .update({
           username: usuario,
           password: senha,
-          email: email,
-          cargo: cargo,          // 🔥 SALVA O CARGO SELECIONADO
+          email: email || null,
+          cargo: cargo,
           permissoes: permissoes
         })
         .eq("id", idUsuario)
@@ -2450,16 +2431,20 @@ formFuncionario.addEventListener("submit", async (e) => {
 
       if (errorFuncUpdate) throw errorFuncUpdate;
 
-    } else {
-      // =============================
-      // ➕ CADASTRAR NOVO FUNCIONÁRIO
-      // =============================
+    }
+
+    // =============================
+    // ➕ NOVO FUNCIONÁRIO
+    // =============================
+    else {
+
       const { data: funcionarioData, error: errorFuncionario } = await supabase
         .from("funcionarios")
         .insert([{ nome_completo: nome }])
         .select();
 
       if (errorFuncionario) throw errorFuncionario;
+
       funcionarioId = funcionarioData[0].id;
 
       const { data: usuarioData, error: errorUsuario } = await supabase
@@ -2469,16 +2454,20 @@ formFuncionario.addEventListener("submit", async (e) => {
           username: usuario,
           password: senha,
           email: email || null,
-          cargo: cargo,              // 🔥 AQUI TAMBÉM
+          cargo: cargo,
           funcionario_id: funcionarioId,
           permissoes: permissoes
         }])
         .select();
 
       if (errorUsuario) throw errorUsuario;
+
       usuarioId = usuarioData[0].id;
     }
 
+    // =============================
+    // ✅ FINALIZAÇÃO
+    // =============================
     alert(
       formFuncionario.dataset.editingId
         ? "Funcionário atualizado com sucesso!"
@@ -2492,9 +2481,10 @@ formFuncionario.addEventListener("submit", async (e) => {
 
   } catch (err) {
     console.error("❌ ERRO AO SALVAR FUNCIONÁRIO:", err);
-    alert("Erro ao salvar funcionário. Veja o console.");
+    alert("Erro ao salvar funcionário.");
   }
 });
+
 
 
 // ==============================
@@ -2529,13 +2519,13 @@ async function carregarFuncionario(idFuncionario) {
 // ABRIR MODAL DE EDIÇÃO COM FUNCIONÁRIO + USUÁRIO
 // ==============================
 async function abrirModalEdicao(f) {
+
   const modal = document.getElementById("modal-editar-funcionario");
   if (!modal) return console.error("Modal não encontrado!");
 
-  // Abre o modal
   modal.classList.remove("hidden");
 
-  // Função auxiliar para preencher campo se existir
+  // Helpers
   const setValue = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.value = value || '';
@@ -2543,16 +2533,22 @@ async function abrirModalEdicao(f) {
 
   const setChecked = (id, condition) => {
     const el = document.getElementById(id);
-    if (el) el.checked = condition;
+    if (el) el.checked = !!condition;
   };
 
-  // Preenche campos do funcionário
+  // =========================
+  // CAMPOS FUNCIONÁRIO
+  // =========================
   setValue("editarIdFuncionario", f.id);
   setValue("editarNomeFuncionario", f.nome_completo);
 
-  // Busca usuário associado se f.usuarios não existir
+  // =========================
+  // BUSCAR USUÁRIO
+  // =========================
   let usuario = f.usuarios?.[0];
+
   if (!usuario) {
+
     const { data: usuarios, error } = await supabase
       .from('usuarios')
       .select('*')
@@ -2565,48 +2561,91 @@ async function abrirModalEdicao(f) {
     usuario = usuarios?.[0] || null;
   }
 
-  // Preenche campos do usuário se existir
+  // =========================
+  // PREENCHER DADOS USUÁRIO
+  // =========================
   if (usuario) {
+
     setValue("editarUsuarioFuncionario", usuario.username);
     setValue("editarSenhaFuncionario", usuario.password);
     setValue("editarEmailFuncionario", usuario.email);
 
     const permissoes = usuario.permissoes || [];
+
     setChecked("editarPermAcessoTotal", permissoes.includes("Acesso Total"));
     setChecked("editarPermClientes", permissoes.includes("acesso_clientes"));
     setChecked("editarPermPedidos", permissoes.includes("acesso_pedidos"));
     setChecked("editarPermProdutos", permissoes.includes("acesso_produtos"));
     setChecked("editarPermRelatorios", permissoes.includes("acesso_relatorios"));
+
+    // =========================
+    // ✅ PERMISSÕES DETALHADAS
+    // =========================
+    let permissoesDetalhadas = null;
+
+    const { data, error: erroPerm } = await supabase
+      .from("permissoes_detalhadas")
+      .select("*")
+      .eq("usuario_id", usuario.id)
+      .maybeSingle(); // ← evita erro se não existir registro
+
+    if (erroPerm) {
+      console.error("Erro ao buscar permissões detalhadas:", erroPerm);
+    }
+
+    permissoesDetalhadas = data;
+
+    // =========================
+    // ✅ MENU MESAS
+    // =========================
+    setChecked(
+      "editarPermMesas",
+      permissoesDetalhadas?.acesso_mesas?.visualizar === true
+    );
+
   }
 
-  // ==============================
-  // FUNÇÃO PARA VISUALIZAR SENHA
-  // ==============================
+  // =========================
+  // VISUALIZAR SENHA
+  // =========================
   const toggleSenha = document.getElementById("toggleSenha");
   const inputSenha = document.getElementById("editarSenhaFuncionario");
   const iconOlho = document.getElementById("iconOlho");
 
-  // Remove event listener antigo para evitar duplicação
-  toggleSenha.replaceWith(toggleSenha.cloneNode(true));
-  const novoToggle = document.getElementById("toggleSenha");
+  if (toggleSenha && inputSenha && iconOlho) {
 
-  novoToggle.addEventListener("click", () => {
-    if (inputSenha.type === "password") {
-      inputSenha.type = "text";
-      // Olho fechado (substitui paths)
-      iconOlho.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.135-3.314M6.293 6.293l11.414 11.414"/>
-      `;
-    } else {
-      inputSenha.type = "password";
-      // Olho aberto
-      iconOlho.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-      `;
-    }
-  });
+    toggleSenha.replaceWith(toggleSenha.cloneNode(true));
+    const novoToggle = document.getElementById("toggleSenha");
+
+    novoToggle.addEventListener("click", () => {
+
+      if (inputSenha.type === "password") {
+
+        inputSenha.type = "text";
+
+        iconOlho.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.135-3.314M6.293 6.293l11.414 11.414"/>
+        `;
+
+      } else {
+
+        inputSenha.type = "password";
+
+        iconOlho.innerHTML = `
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        `;
+      }
+
+    });
+  }
+
 }
+
+
 
 // ==============================
 // FECHAR MODAL
@@ -2625,24 +2664,51 @@ document.getElementById("form-editar-funcionario").addEventListener("submit", as
   const password = document.getElementById("editarSenhaFuncionario").value.trim();
   const email = document.getElementById("editarEmailFuncionario").value.trim();
 
-  // Monta array de permissões
+  // ✅ Captura checkbox mesas
+  const permMesas = document.getElementById("editarPermMesas")?.checked || false;
+
+  // =============================
+  // MONTA ARRAY PERMISSÕES
+  // =============================
   const permissoes = [];
-  if (document.getElementById("editarPermAcessoTotal")?.checked) permissoes.push("Acesso Total");
-  if (document.getElementById("editarPermClientes")?.checked) permissoes.push("acesso_clientes");
-  if (document.getElementById("editarPermPedidos")?.checked) permissoes.push("acesso_pedidos");
-  if (document.getElementById("editarPermProdutos")?.checked) permissoes.push("acesso_produtos");
-  if (document.getElementById("editarPermFuncionarios")?.checked) permissoes.push("acesso_funcionarios");
-  if (document.getElementById("editarPermRelatorios")?.checked) permissoes.push("acesso_relatorios");
+
+  if (document.getElementById("editarPermAcessoTotal")?.checked) {
+    permissoes.push("Acesso Total");
+  }
+
+  if (document.getElementById("editarPermClientes")?.checked)
+    permissoes.push("acesso_clientes");
+
+  if (document.getElementById("editarPermPedidos")?.checked)
+    permissoes.push("acesso_pedidos");
+
+  if (document.getElementById("editarPermProdutos")?.checked)
+    permissoes.push("acesso_produtos");
+
+  if (document.getElementById("editarPermFuncionarios")?.checked)
+    permissoes.push("acesso_funcionarios");
+
+  if (document.getElementById("editarPermRelatorios")?.checked)
+    permissoes.push("acesso_relatorios");
+
+  if (permMesas)
+    permissoes.push("acesso_mesas");
 
   try {
+
+    // =============================
     // 1️⃣ Atualiza funcionário
+    // =============================
     const { error: errorFuncionario } = await supabase
       .from("funcionarios")
       .update({ nome_completo: nome })
       .eq("id", idFuncionario);
+
     if (errorFuncionario) throw errorFuncionario;
 
-    // 2️⃣ Busca usuário associado ao funcionário
+    // =============================
+    // 2️⃣ Busca usuário associado
+    // =============================
     const { data: usuarios, error: errorUsuarioFetch } = await supabase
       .from("usuarios")
       .select("*")
@@ -2653,7 +2719,9 @@ document.getElementById("form-editar-funcionario").addEventListener("submit", as
     const usuario = usuarios?.[0];
     if (!usuario) throw new Error("Usuário associado não encontrado");
 
+    // =============================
     // 3️⃣ Atualiza usuário
+    // =============================
     const { error: errorUsuario } = await supabase
       .from("usuarios")
       .update({
@@ -2663,16 +2731,39 @@ document.getElementById("form-editar-funcionario").addEventListener("submit", as
         permissoes
       })
       .eq("id", usuario.id);
+
     if (errorUsuario) throw errorUsuario;
 
-    alert("Funcionário e usuário atualizados com sucesso!");
+    // =============================
+    // 4️⃣ SALVA PERMISSÕES DETALHADAS
+    // =============================
+    await supabase
+      .from("permissoes_detalhadas")
+      .upsert({
+        usuario_id: usuario.id,
+        acesso_mesas: {
+          visualizar: permMesas,
+          editar: false,
+          excluir: false,
+          bloquear: false
+        }
+      });
+
+    // =============================
+    // SUCESSO
+    // =============================
+    alert("Funcionário e permissões atualizados com sucesso!");
+
     document.getElementById("modal-editar-funcionario").classList.add("hidden");
-    listarFuncionarios(); // atualiza tabela
+
+    listarFuncionarios();
+
   } catch (err) {
     console.error("Erro ao atualizar funcionário:", err);
     alert("Erro ao atualizar funcionário. Veja o console.");
   }
 });
+
 
 
 // ==============================
@@ -2903,7 +2994,8 @@ async function salvarUsuario() {
       { id: "permPedidos", valor: "acesso_pedidos" },
       { id: "permProdutos", valor: "acesso_produtos" },
       { id: "permFuncionarios", valor: "acesso_funcionarios" },
-      { id: "permRelatorios", valor: "acesso_relatorios" }
+      { id: "permRelatorios", valor: "acesso_relatorios" },
+      { id: "permMesas", valor: "acesso_mesas" }
     ];
 
     checkboxes.forEach(item => {

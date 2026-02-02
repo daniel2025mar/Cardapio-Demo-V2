@@ -2447,128 +2447,148 @@ input:not(:placeholder-shown) + .label-flutuante {
   <!-- Formulário de cadastro -->
   <div class="bg-white p-6 rounded-lg shadow-md mb-6">
     <h3 class="text-xl font-semibold mb-3">Cadastrar novo funcionário</h3>
+
     <form id="form-cadastro-funcionario" class="space-y-6">
 
-      <!-- 1️⃣ Informações do funcionário -->
+      <!-- ========================= -->
+      <!-- 1️⃣ Informações funcionário -->
+      <!-- ========================= -->
       <div class="border-b border-gray-200 pb-4">
         <h4 class="font-semibold mb-2">Informações do funcionário</h4>
 
         <div class="flex gap-4">
-          <!-- Nome completo -->
+
           <div class="flex-1">
-            <label class="block font-medium mb-1" for="nomeFuncionario">Nome completo</label>
+            <label class="block font-medium mb-1">Nome completo</label>
             <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
                    type="text" id="nomeFuncionario" required />
           </div>
 
-          <!-- CPF -->
           <div class="w-1/3">
-            <label class="block font-medium mb-1" for="cpfFuncionario">CPF</label>
+            <label class="block font-medium mb-1">CPF</label>
             <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
-                   type="text" id="cpfFuncionario" maxlength="14"
-                   placeholder="000.000.000-00" required />
+                   type="text" id="cpfFuncionario"
+                   maxlength="14"
+                   placeholder="000.000.000-00"
+                   required />
           </div>
+
         </div>
       </div>
 
-      <!-- 2️⃣ Login do funcionário -->
+      <!-- ========================= -->
+      <!-- 2️⃣ Login funcionário -->
+      <!-- ========================= -->
       <div class="border-b border-gray-200 pb-4">
         <h4 class="font-semibold mb-2">Login do funcionário</h4>
 
         <div class="flex gap-4">
+
           <div class="flex-1">
-            <label class="block font-medium mb-1" for="usuarioFuncionario">Usuário</label>
+            <label class="block font-medium mb-1">Usuário</label>
             <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
                    type="text" id="usuarioFuncionario" required />
           </div>
 
           <div class="flex-1">
-            <label class="block font-medium mb-1" for="senhaFuncionario">Senha</label>
+            <label class="block font-medium mb-1">Senha</label>
             <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
                    type="password" id="senhaFuncionario" required />
           </div>
+
         </div>
 
         <div class="mt-2">
-          <label class="block font-medium mb-1" for="emailFuncionario">E-mail</label>
+          <label class="block font-medium mb-1">E-mail</label>
           <input class="w-full border border-gray-300 rounded-lg px-3 py-2"
                  type="email" id="emailFuncionario" required />
         </div>
       </div>
 
-      <div class="mt-4">
-  <label class="block font-medium mb-1" for="cargoFuncionario">Cargo</label>
-  <select
-    id="cargoFuncionario"
-    class="w-full border border-gray-300 rounded-lg px-3 py-2"
-  >
-    <option value="">Carregando cargos...</option>
-  </select>
-</div>
+      <!-- ========================= -->
+      <!-- 3️⃣ Cargo -->
+      <!-- ========================= -->
+      <div>
+        <label class="block font-medium mb-1">Cargo</label>
+        <select id="cargoFuncionario"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2">
+          <option value="">Carregando cargos...</option>
+        </select>
+      </div>
 
-<form id="formFuncionario">
-  
+      <!-- ========================= -->
+      <!-- 4️⃣ Permissões -->
+      <!-- ========================= -->
+      <div>
+        <h4 class="font-semibold mb-2">Permissões do sistema</h4>
 
-  <!-- 2️⃣ Permissões do sistema -->
-  <div>
-  <h4 class="font-semibold mb-2">Permissões do sistema</h4>
-  <div class="flex flex-col gap-2">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
 
-      <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-        <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
-        <span class="font-medium text-gray-700">Acesso Total</span>
-      </label>
+          <!-- Acesso Total -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permAcessoTotal" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Acesso Total</span>
+          </label>
 
-      <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-        <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
-        <span class="font-medium text-gray-700">Menu de Clientes</span>
-      </label>
+          <!-- Clientes -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permClientes" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Menu de Clientes</span>
+          </label>
 
-      <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-        <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
-        <span class="font-medium text-gray-700">Menu de Pedidos</span>
-      </label>
+          <!-- Pedidos -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permPedidos" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Menu de Pedidos</span>
+          </label>
 
-      <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-        <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
-        <span class="font-medium text-gray-700">Menu de Produtos</span>
-      </label>
+          <!-- Produtos -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permProdutos" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Menu de Produtos</span>
+          </label>
 
-      <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-        <input type="checkbox" id="permFuncionarios" class="h-5 w-5 text-indigo-600" />
-        <span class="font-medium text-gray-700">Menu de Funcionários</span>
-      </label>
+          <!-- Funcionários -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permFuncionarios" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Menu de Funcionários</span>
+          </label>
 
-      <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
-        <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
-        <span class="font-medium text-gray-700">Acesso a relatórios</span>
-      </label>
+          <!-- Relatórios -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permRelatorios" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Acesso a relatórios</span>
+          </label>
 
-    </div>
-  </div>
-</div>
+          <!-- ✅ NOVO MENU MESAS -->
+          <label class="flex items-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" id="permMesas" class="h-5 w-5 text-indigo-600" />
+            <span class="font-medium text-gray-700">Menu Mesas</span>
+          </label>
 
+        </div>
+      </div>
 
-  <!-- 3️⃣ Botão de submit -->
-  <button type="submit"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">
-    Cadastrar funcionário
-  </button>
-</form>
-
+      <!-- ========================= -->
+      <!-- 5️⃣ Botão -->
+      <!-- ========================= -->
+      <button type="submit"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold">
+        Cadastrar funcionário
+      </button>
 
     </form>
   </div>
 
-  <!-- Lista de funcionários -->
+  <!-- ========================= -->
+  <!-- LISTA FUNCIONÁRIOS -->
+  <!-- ========================= -->
   <div class="bg-white p-6 rounded-lg shadow-md">
     <h3 class="text-xl font-semibold mb-3">Lista de funcionários</h3>
-    <div id="lista-funcionarios" class="space-y-2">
-      <!-- Funcionários cadastrados serão inseridos aqui via JS -->
-    </div>
+    <div id="lista-funcionarios" class="space-y-2"></div>
   </div>
 </section>
+
 
 
 <section id="configuracoes" class="content-section mb-10 flex justify-center">
@@ -2857,76 +2877,137 @@ input:not(:placeholder-shown) + .label-flutuante {
   </div>
  </div>
  <!-- Modal Editar Funcionário -->
- <div id="modal-editar-funcionario" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-  <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Editar Funcionário</h2>
+<div id="modal-editar-funcionario"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
 
-    <form id="form-editar-funcionario" class="space-y-5">
+  <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl flex flex-col max-h-[90vh]">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center p-5 border-b">
+      <h2 class="text-xl font-bold text-gray-800">
+        Editar Funcionário
+      </h2>
+
+      <button id="btnFecharModal"
+              class="text-gray-400 hover:text-gray-700 text-xl">
+        ✕
+      </button>
+    </div>
+
+    <!-- BODY COM SCROLL -->
+    <form id="form-editar-funcionario"
+          class="p-5 space-y-5 overflow-y-auto">
+
       <input type="hidden" id="editarIdFuncionario">
 
-      <!-- Nome completo -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Nome completo</label>
-        <input type="text" id="editarNomeFuncionario" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      <!-- ================= DADOS ================= -->
+      <div class="space-y-4">
+
+        <h3 class="font-semibold text-gray-700 border-b pb-1">
+          Dados do Funcionário
+        </h3>
+
+        <!-- Nome -->
+        <div>
+          <label class="label">Nome completo</label>
+          <input type="text" id="editarNomeFuncionario" class="inputPadrao">
+        </div>
+
+        <!-- Usuário -->
+        <div>
+          <label class="label">Usuário</label>
+          <input type="text" id="editarUsuarioFuncionario" class="inputPadrao">
+        </div>
+
+        <!-- Senha -->
+        <div class="relative">
+          <label class="label">Senha</label>
+
+          <input type="password"
+                 id="editarSenhaFuncionario"
+                 class="inputPadrao pr-12">
+
+          <button type="button"
+                  id="toggleSenha"
+                  class="absolute right-3 top-9 text-gray-500 hover:text-gray-700">
+            👁
+          </button>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="label">Email</label>
+          <input type="email" id="editarEmailFuncionario" class="inputPadrao">
+        </div>
+
       </div>
 
-      <!-- Usuário -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
-        <input type="text" id="editarUsuarioFuncionario" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      <!-- ================= PERMISSÕES ================= -->
+      <div class="space-y-3">
+
+        <h3 class="font-semibold text-gray-700 border-b pb-1">
+          Permissões do Sistema
+        </h3>
+
+        <div class="grid grid-cols-2 gap-3">
+
+          <!-- Card Permissão -->
+          <label class="cardPerm">
+            <input type="checkbox" id="editarPermAcessoTotal">
+            <span>Acesso Total</span>
+          </label>
+
+          <label class="cardPerm">
+            <input type="checkbox" id="editarPermClientes">
+            <span>Clientes</span>
+          </label>
+
+          <label class="cardPerm">
+            <input type="checkbox" id="editarPermPedidos">
+            <span>Pedidos</span>
+          </label>
+
+          <label class="cardPerm">
+            <input type="checkbox" id="editarPermProdutos">
+            <span>Produtos</span>
+          </label>
+
+          <label class="cardPerm">
+            <input type="checkbox" id="editarPermRelatorios">
+            <span>Relatórios</span>
+          </label>
+
+          <label class="cardPerm">
+            <input type="checkbox" id="editarPermMesas">
+            <span>Menu Mesas</span>
+          </label>
+
+        </div>
+
       </div>
 
-      <!-- Senha com ícone de olho centralizado -->
-      <div class="relative">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
-        <input type="password" id="editarSenhaFuncionario" class="w-full border border-gray-300 rounded-lg px-4 py-2 pr-12 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-        <button type="button" id="toggleSenha" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-          <svg id="iconOlho" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Email -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-        <input type="email" id="editarEmailFuncionario" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
-      </div>
-
-      <!-- Permissões -->
-      <div class="grid grid-cols-2 gap-3">
-        <label class="flex items-center space-x-2">
-          <input type="checkbox" id="editarPermAcessoTotal" class="h-4 w-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-400">
-          <span class="text-gray-700">Acesso Total</span>
-        </label>
-        <label class="flex items-center space-x-2">
-          <input type="checkbox" id="editarPermClientes" class="h-4 w-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-400">
-          <span class="text-gray-700">Clientes</span>
-        </label>
-        <label class="flex items-center space-x-2">
-          <input type="checkbox" id="editarPermPedidos" class="h-4 w-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-400">
-          <span class="text-gray-700">Pedidos</span>
-        </label>
-        <label class="flex items-center space-x-2">
-          <input type="checkbox" id="editarPermProdutos" class="h-4 w-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-400">
-          <span class="text-gray-700">Produtos</span>
-        </label>
-        <label class="flex items-center space-x-2">
-          <input type="checkbox" id="editarPermRelatorios" class="h-4 w-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-400">
-          <span class="text-gray-700">Relatórios</span>
-        </label>
-      </div>
-
-      <!-- Botões -->
-      <div class="flex justify-end gap-3 mt-6">
-        <button type="button" id="btnFecharModal" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg">Cancelar</button>
-        <button type="submit" id="btnsalvaracesso" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg">Salvar</button>
-      </div>
     </form>
+
+    <!-- FOOTER FIXO -->
+    <div class="flex justify-end gap-3 p-5 border-t">
+
+      <button id="btnCancelarEdicao"
+              class="px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+        Cancelar
+      </button>
+
+      <button type="submit"
+              form="form-editar-funcionario"
+              id="btnsalvaracesso"
+              class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+        Salvar
+      </button>
+
+    </div>
+
   </div>
- </div>
- <!--modal editar funcionarios fim-->
+</div>
+
 
  <!-- Modal HTML -->
  <!-- Modal de confirmação moderno -->

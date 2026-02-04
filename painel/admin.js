@@ -5366,13 +5366,13 @@ async function abrirComanda(mesaId) {
   // ===============================
   // BUSCA DADOS DA EMPRESA NO SUPABASE
   // ===============================
-  const { data: empresas, error } = await supabase
+  const { data: empresas, error: erroEmpresa } = await supabase
     .from('empresa')
     .select('*')
     .order('id', { ascending: true })
     .limit(1);
 
-  if (error || !empresas || empresas.length === 0) {
+  if (erroEmpresa || !empresas || empresas.length === 0) {
     alert('Erro ao carregar dados da empresa.');
     return;
   }
@@ -5486,12 +5486,10 @@ async function abrirComanda(mesaId) {
     padding: "4px 0"
   });
 
-  // Título COMANDA
   const titulo = document.createElement("div");
   titulo.textContent = "COMANDA";
   Object.assign(titulo.style, { fontWeight: "bold", fontSize: "16px", color: "#2f5fbf" });
 
-  // Número e data
   const numeroDataWrapper = document.createElement("div");
   Object.assign(numeroDataWrapper.style, {
     display: "flex",
@@ -5501,11 +5499,7 @@ async function abrirComanda(mesaId) {
   });
 
   const numeroWrapper = document.createElement("div");
-  Object.assign(numeroWrapper.style, {
-    display: "inline-flex",
-    gap: "4px",
-    alignItems: "center"
-  });
+  Object.assign(numeroWrapper.style, { display: "inline-flex", gap: "4px", alignItems: "center" });
 
   const labelNumero = document.createElement("span");
   labelNumero.textContent = "Nº";
@@ -5544,7 +5538,7 @@ async function abrirComanda(mesaId) {
   // ===============================
   const campoCliente = document.createElement("div");
   campoCliente.style.marginTop = "6px";
-  campoCliente.innerHTML = `Cliente: <strong>${mesa.cliente}</strong>`;
+  campoCliente.innerHTML = `Cliente: <strong>${mesa.cliente || "Não informado"}</strong>`;
   comanda.appendChild(campoCliente);
 
   const campoMesa = document.createElement("div");
@@ -5553,26 +5547,82 @@ async function abrirComanda(mesaId) {
   comanda.appendChild(campoMesa);
 
   // ===============================
-  // PRODUTOS
+  // PRODUTOS (COM CHECKBOX E VALOR NO CANTO DIREITO)
   // ===============================
-  mesa.itens.forEach(item => {
-    const bloco = document.createElement("div");
-    Object.assign(bloco.style, { border: "1px solid #ddd", borderRadius: "8px", marginTop: "12px", padding: "8px", background: "#fafafa" });
+  let produtosParaMostrar = [];
 
-    const tituloBloco = document.createElement("div");
-    tituloBloco.textContent = "Produto";
-    Object.assign(tituloBloco.style, { background: "#111", color: "#fff", textAlign: "center", padding: "4px", borderRadius: "4px", fontSize: "12px", marginBottom: "6px" });
+  if (mesa.atendida) {
+    const { data: todosProdutos, error: erroProdutos } = await supabase
+      .from('produtos')
+      .select('*')
+      .order('categoria', { ascending: true })
+      .order('descricao', { ascending: true });
 
-    const itemProduto = document.createElement("div");
-    itemProduto.textContent = `${item.quantidade}x ${item.nome} - R$ ${item.valor.toFixed(2)}`;
-    itemProduto.style.fontSize = "12px";
+    if (erroProdutos) console.error("Erro ao carregar produtos:", erroProdutos);
+    else produtosParaMostrar = todosProdutos;
+  } else if (mesa.itens && mesa.itens.length > 0) {
+    produtosParaMostrar = mesa.itens;
+  }
 
-    bloco.append(tituloBloco, itemProduto);
-    comanda.appendChild(bloco);
+  const produtosPorCategoria = {};
+  produtosParaMostrar.forEach(prod => {
+    const cat = prod.categoria || "Sem Categoria";
+    if (!produtosPorCategoria[cat]) produtosPorCategoria[cat] = [];
+    produtosPorCategoria[cat].push(prod);
   });
 
+  for (const [categoria, itens] of Object.entries(produtosPorCategoria)) {
+    const tituloCat = document.createElement("div");
+    tituloCat.textContent = categoria.toUpperCase();
+    Object.assign(tituloCat.style, {
+      fontWeight: "bold",
+      fontSize: "13px",
+      color: "#2f5fbf",
+      marginTop: "12px",
+      marginBottom: "6px",
+      borderBottom: "1px solid #ccc",
+      paddingBottom: "2px"
+    });
+    comanda.appendChild(tituloCat);
+
+    itens.forEach(item => {
+      const bloco = document.createElement("div");
+      Object.assign(bloco.style, {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "6px 8px",
+        marginBottom: "4px",
+        borderRadius: "6px",
+        background: "#f9f9f9",
+        border: "1px solid #eee"
+      });
+
+      const left = document.createElement("div");
+      Object.assign(left.style, { display: "flex", alignItems: "center", gap: "8px" });
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = "produto-" + item.id;
+
+      const label = document.createElement("label");
+      label.htmlFor = "produto-" + item.id;
+      label.textContent = item.descricao || item.nome;
+      label.style.fontSize = "12px";
+
+      left.append(checkbox, label);
+
+      const valor = document.createElement("div");
+      valor.textContent = `R$ ${(item.valor_sugerido ?? item.valor ?? 0).toFixed(2)}`;
+      Object.assign(valor.style, { fontSize: "12px", fontWeight: "bold", color: "#2f5fbf" });
+
+      bloco.append(left, valor);
+      comanda.appendChild(bloco);
+    });
+  }
+
   // ===============================
-  // AVISO + RODAPÉ ESTILIZADO
+  // RODAPÉ
   // ===============================
   const avisoRodapeWrapper = document.createElement("div");
   Object.assign(avisoRodapeWrapper.style, {
@@ -5583,35 +5633,39 @@ async function abrirComanda(mesaId) {
     gap: "6px"
   });
 
-  // Aviso centralizado
   const aviso = document.createElement("div");
   aviso.textContent = "Em caso de perda desta comanda, poderá ser cobrada uma taxa administrativa conforme política do estabelecimento. Agradecemos sua compreensão.";
-  Object.assign(aviso.style, {
-    fontSize: "10px",
-    color: "#555",
-    textAlign: "center",
-    fontStyle: "italic",
-    lineHeight: "1.3"
-  });
+  Object.assign(aviso.style, { fontSize: "10px", color: "#555", textAlign: "center", fontStyle: "italic", lineHeight: "1.3" });
 
-  // Linha separadora pontilhada
   const linhaSeparadora = document.createElement("div");
-  Object.assign(linhaSeparadora.style, {
-    borderTop: "1px dashed #999",
-    width: "100%",
-    margin: "4px 0"
-  });
+  Object.assign(linhaSeparadora.style, { borderTop: "1px dashed #999", width: "100%", margin: "4px 0" });
 
-  // Rodapé à direita
   const rodape = document.createElement("div");
   rodape.innerHTML = "Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>";
-  Object.assign(rodape.style, {
-    fontSize: "9px",
-    color: "#666",
-    textAlign: "right"
-  });
+  Object.assign(rodape.style, { fontSize: "9px", color: "#666", textAlign: "right" });
 
-  avisoRodapeWrapper.append(aviso, linhaSeparadora, rodape);
+  // TOTAL
+let totalComanda = 0;
+
+// Soma valores dos itens já existentes na mesa
+if (mesa.itens && mesa.itens.length > 0) {
+  mesa.itens.forEach(item => {
+    totalComanda += Number(item.valor_sugerido ?? item.valor ?? 0);
+  });
+}
+
+const total = document.createElement("div");
+total.textContent = `Total R$ ${totalComanda.toFixed(2)}`;
+Object.assign(total.style, {
+  fontSize: "13px",
+  fontWeight: "bold",
+  color: "#000",
+  textAlign: "right",
+  marginTop: "6px"
+});
+
+avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
+
   comanda.appendChild(avisoRodapeWrapper);
 
   // ===============================
@@ -5619,56 +5673,57 @@ async function abrirComanda(mesaId) {
   // ===============================
   const btnImprimir = document.createElement("button");
   btnImprimir.textContent = "🖨️ Imprimir Comanda";
-  Object.assign(btnImprimir.style, { marginTop: "12px", width: "100%", padding: "10px", border: "none", borderRadius: "8px", background: "#2f5fbf", color: "#fff", fontWeight: "bold", cursor: "pointer", fontSize: "13px" });
-
- btnImprimir.onclick = () => {
-  // Cria um div temporário só com o conteúdo da comanda que queremos imprimir
-  const conteudoParaImprimir = document.createElement("div");
-
-  // Adiciona apenas os filhos da comanda, exceto o botão
-  comanda.childNodes.forEach(child => {
-    if (child !== btnImprimir) {
-      conteudoParaImprimir.appendChild(child.cloneNode(true));
-    }
+  Object.assign(btnImprimir.style, {
+    marginTop: "12px",
+    width: "100%",
+    padding: "10px",
+    border: "none",
+    borderRadius: "8px",
+    background: "#2f5fbf",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer",
+    fontSize: "13px"
   });
 
-  // Cria iframe invisível
-  const iframe = document.createElement("iframe");
-  Object.assign(iframe.style, { position: "absolute", width: "0px", height: "0px", border: "0", left: "-9999px" });
-  document.body.appendChild(iframe);
+  btnImprimir.onclick = () => {
+    const conteudoParaImprimir = document.createElement("div");
+    comanda.childNodes.forEach(child => {
+      if (child !== btnImprimir) conteudoParaImprimir.appendChild(child.cloneNode(true));
+    });
 
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(`
-    <html>
-      <head>
-        <title>Comanda Mesa ${mesa.numero}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-          .comanda { width: 10cm; padding: 5mm; box-sizing: border-box; }
-        </style>
-      </head>
-      <body>
-        <div class="comanda">${conteudoParaImprimir.innerHTML}</div>
-      </body>
-    </html>
-  `);
-  doc.close();
+    const iframe = document.createElement("iframe");
+    Object.assign(iframe.style, { position: "absolute", width: "0px", height: "0px", border: "0", left: "-9999px" });
+    document.body.appendChild(iframe);
 
-  // Imprime e remove o iframe
-  iframe.contentWindow.focus();
-  iframe.contentWindow.print();
-  setTimeout(() => iframe.remove(), 1000);
-};
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <html>
+        <head>
+          <title>Comanda Mesa ${mesa.numero}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .comanda { width: 10cm; padding: 5mm; box-sizing: border-box; }
+          </style>
+        </head>
+        <body>
+          <div class="comanda">${conteudoParaImprimir.innerHTML}</div>
+        </body>
+      </html>
+    `);
+    doc.close();
 
-
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => iframe.remove(), 1000);
+  };
 
   comanda.appendChild(btnImprimir);
 
   // Adiciona overlay ao body
   document.body.appendChild(overlay);
 }
-
 
 // =========================
 // ATUALIZA STATUS VISUAL

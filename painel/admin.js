@@ -5225,13 +5225,38 @@ function horaSP() {
 }
 
 // =========================
+// FUNÇÃO PARA MOSTRAR MENSAGEM TEMPORÁRIA
+// =========================
+function mostrarMensagem(texto, duracao = 2000) {
+  let msg = document.createElement("div");
+  msg.textContent = texto;
+  msg.style.position = "fixed";
+  msg.style.top = "20px";
+  msg.style.left = "50%";
+  msg.style.transform = "translateX(-50%)";
+  msg.style.background = "#2f5fbf";
+  msg.style.color = "#fff";
+  msg.style.padding = "8px 16px";
+  msg.style.borderRadius = "6px";
+  msg.style.zIndex = 10000;
+  msg.style.fontSize = "13px";
+  msg.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
+  document.body.appendChild(msg);
+
+  setTimeout(() => msg.remove(), duracao);
+}
+
+// =========================
 // FUNÇÃO PARA RENDERIZAR MESA
 // =========================
 function renderizarMesa(mesa) {
   let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
-  const atendida = mesa.atendida === true; // Verifica se já foi atendida
+  const atendida = mesa.atendida === true; // Mesa com comanda ativa
+  const comandaAtiva = atendida;
+
+  mesa.itens = mesa.itens || []; // garante que sempre seja um array
 
   // =========================
   // CRIA MESA SE NÃO EXISTIR
@@ -5239,94 +5264,409 @@ function renderizarMesa(mesa) {
   if (!mesaDiv) {
     mesaDiv = document.createElement("div");
     mesaDiv.id = `mesa-${mesa.id}`;
-    mesaDiv.className = `
-      relative flex flex-col items-center justify-start
-      cursor-pointer transition-transform hover:scale-105
-    `;
+    mesaDiv.className = `relative flex flex-col items-center justify-start cursor-pointer transition-transform hover:scale-105`;
 
     mesaDiv.innerHTML = `
-      <!-- MONITOR -->
-      <div class="monitor 
-        w-full h-28 rounded-md 
-        flex flex-col items-center justify-between
-        border-2 border-black shadow-md
-      ">
+      <div class="monitor w-full h-28 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
         <div class="titulo w-full text-center text-xs font-bold bg-black text-white py-1">
           Mesa ${String(mesa.numero).padStart(3, "0")}
         </div>
-
         <div class="status-text text-sm font-bold mt-2">
           ${ocupada ? "OCUPADA" : "LIVRE"}
         </div>
-
         <div class="valor text-xs font-semibold mb-2">
           R$ ${valorConsumido}
         </div>
       </div>
-
-      <!-- SUPORTE -->
       <div class="base w-6 h-3 bg-black mt-1 rounded-sm"></div>
       <div class="haste w-1 h-3 bg-black"></div>
       <div class="base-final w-10 h-2 bg-black rounded-sm"></div>
     `;
 
     // =========================
-    // CLIQUE PARA ALTERAR STATUS
+    // CLIQUE PARA ALTERAR STATUS DA MESA
     // =========================
-    mesaDiv.addEventListener("click", async () => {
+    mesaDiv.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("badge-comanda")) return;
+
       const mesaAtual = mesasCache.get(mesa.id);
       const novoStatus = !mesaAtual.cliente_presente;
 
-      // Atualiza visual imediatamente
       atualizarStatusVisual(mesaDiv, novoStatus, mesaAtual.atendida);
 
-      // Atualiza cache local
       mesasCache.set(mesa.id, {
         ...mesaAtual,
         cliente_presente: novoStatus,
       });
 
-      // Define hora_ocupada: se ocupada → registra hora, se livre → apaga
       const horaAtual = novoStatus ? horaSP() : null;
 
       const { error } = await supabase
         .from("mesas")
-        .update({ 
-          cliente_presente: novoStatus,
-          hora_ocupada: horaAtual
-        })
+        .update({ cliente_presente: novoStatus, hora_ocupada: horaAtual })
         .eq("id", mesa.id);
 
       if (error) {
         console.error("Erro ao atualizar mesa:", error);
-        // Reverte visual se houver erro
         atualizarStatusVisual(mesaDiv, !novoStatus, mesaAtual.atendida);
       }
     });
 
     painelMesas.appendChild(mesaDiv);
-
-  } else {
-    // =========================
-    // ATUALIZA VALORES EXISTENTES
-    // =========================
-    mesaDiv.querySelector(".titulo").textContent =
-      `Mesa ${String(mesa.numero).padStart(3, "0")}`;
-    mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
-    atualizarStatusVisual(mesaDiv, ocupada, atendida);
-
-    // Atualiza hora_ocupada automaticamente só se mesa estiver ocupada e não tiver hora registrada
-    if (ocupada && !mesa.hora_ocupada) {
-      const horaAtual = horaSP();
-      supabase
-        .from("mesas")
-        .update({ hora_ocupada: horaAtual })
-        .eq("id", mesa.id)
-        .then(({ error }) => {
-          if (error) console.error("Erro ao atualizar hora_ocupada:", error);
-        });
-    }
   }
+
+  // =========================
+  // ATUALIZA VALORES EXISTENTES
+  // =========================
+  mesaDiv.querySelector(".titulo").textContent = `Mesa ${String(mesa.numero).padStart(3, "0")}`;
+  mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
+  atualizarStatusVisual(mesaDiv, ocupada, atendida);
+
+  // =========================
+  // BADGE COMANDA ATIVA
+  // =========================
+  let badge = mesaDiv.querySelector(".badge-comanda");
+
+  if (comandaAtiva) {
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.className = "badge-comanda text-xs font-bold text-white bg-red-600 px-2 py-1 rounded cursor-pointer absolute -top-8 z-10";
+      badge.textContent = "COMANDA ATIVA";
+      mesaDiv.appendChild(badge);
+    }
+
+    badge.onclick = (e) => {
+      e.stopPropagation(); // evita disparar clique da mesa
+      abrirComanda(mesa.id);
+      mostrarMensagem(`Abrindo comanda da Mesa ${mesa.numero}`, 2500);
+    };
+  } else if (badge) {
+    badge.remove();
+    badge = null;
+  }
+
+  // Atualiza hora_ocupada automaticamente
+  if (ocupada && !mesa.hora_ocupada) {
+    const horaAtual = horaSP();
+    supabase
+      .from("mesas")
+      .update({ hora_ocupada: horaAtual })
+      .eq("id", mesa.id)
+      .then(({ error }) => { if (error) console.error("Erro ao atualizar hora_ocupada:", error); });
+  }
+}
+
+// =========================
+// FUNÇÃO PARA ABRIR COMANDA
+// =========================
+async function abrirComanda(mesaId) {
+  const mesa = mesasCache.get(mesaId);
+  if (!mesa) return;
+
+  // ===============================
+  // BUSCA DADOS DA EMPRESA NO SUPABASE
+  // ===============================
+  const { data: empresas, error } = await supabase
+    .from('empresa')
+    .select('*')
+    .order('id', { ascending: true })
+    .limit(1);
+
+  if (error || !empresas || empresas.length === 0) {
+    alert('Erro ao carregar dados da empresa.');
+    return;
+  }
+
+  const empresa = empresas[0];
+
+  // ===============================
+  // REMOVE MODAL ANTIGO
+  // ===============================
+  const antigoModal = document.getElementById("modalComanda");
+  if (antigoModal) antigoModal.remove();
+
+  // Overlay escuro
+  const overlay = document.createElement("div");
+  overlay.id = "modalComanda";
+  Object.assign(overlay.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  });
+
+  // Container da comanda
+  const comanda = document.createElement("div");
+  Object.assign(comanda.style, {
+    width: "360px",
+    maxHeight: "80vh",
+    background: "#fff",
+    borderRadius: "14px",
+    padding: "16px",
+    overflowY: "auto",
+    position: "relative",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+  });
+  overlay.appendChild(comanda);
+
+  // Botão fechar
+  const btnFechar = document.createElement("button");
+  btnFechar.textContent = "X";
+  Object.assign(btnFechar.style, {
+    position: "absolute",
+    top: "8px",
+    right: "8px",
+    background: "red",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    width: "28px",
+    height: "28px"
+  });
+  btnFechar.onclick = () => overlay.remove();
+  comanda.appendChild(btnFechar);
+
+  // ===============================
+  // CABEÇALHO DA EMPRESA
+  // ===============================
+  const header = document.createElement("div");
+  Object.assign(header.style, {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    borderBottom: "2px solid #000",
+    paddingBottom: "8px",
+    marginBottom: "12px"
+  });
+
+  const logo = document.createElement("img");
+  logo.src = empresa.logotipo || "../dist/Imagem/LogoTipo.png";
+  Object.assign(logo.style, { width: "60px", height: "60px", objectFit: "contain" });
+
+  const info = document.createElement("div");
+  Object.assign(info.style, { display: "flex", flexDirection: "column" });
+
+  const nomeEmpresa = document.createElement("div");
+  nomeEmpresa.textContent = empresa.nome;
+  Object.assign(nomeEmpresa.style, { fontWeight: "bold", fontSize: "14px" });
+
+  const enderecoEmpresa = document.createElement("div");
+  enderecoEmpresa.textContent = empresa.endereco;
+  Object.assign(enderecoEmpresa.style, { fontSize: "12px", color: "#444" });
+
+  const telefoneEmpresa = document.createElement("div");
+  telefoneEmpresa.textContent = `Tel: ${empresa.telefone} | WhatsApp: ${empresa.whatsapp}`;
+  Object.assign(telefoneEmpresa.style, { fontSize: "12px", color: "#444" });
+
+  const cnpjEmpresa = document.createElement("div");
+  cnpjEmpresa.textContent = `CNPJ: ${empresa.cnpj}`;
+  Object.assign(cnpjEmpresa.style, { fontSize: "12px", color: "#444" });
+
+  info.append(nomeEmpresa, enderecoEmpresa, telefoneEmpresa, cnpjEmpresa);
+  header.append(logo, info);
+  comanda.appendChild(header);
+
+  // ===============================
+  // TOPO COM NÚMERO DA COMANDA E DATA
+  // ===============================
+  const topo = document.createElement("div");
+  Object.assign(topo.style, {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px",
+    padding: "4px 0"
+  });
+
+  // Título COMANDA
+  const titulo = document.createElement("div");
+  titulo.textContent = "COMANDA";
+  Object.assign(titulo.style, { fontWeight: "bold", fontSize: "16px", color: "#2f5fbf" });
+
+  // Número e data
+  const numeroDataWrapper = document.createElement("div");
+  Object.assign(numeroDataWrapper.style, {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    fontSize: "12px"
+  });
+
+  const numeroWrapper = document.createElement("div");
+  Object.assign(numeroWrapper.style, {
+    display: "inline-flex",
+    gap: "4px",
+    alignItems: "center"
+  });
+
+  const labelNumero = document.createElement("span");
+  labelNumero.textContent = "Nº";
+  Object.assign(labelNumero.style, {
+    background: "#2f5fbf",
+    color: "#fff",
+    padding: "2px 6px",
+    borderRadius: "4px",
+    fontWeight: "bold",
+    fontSize: "12px"
+  });
+
+  const numeroComanda = document.createElement("span");
+  numeroComanda.textContent = String(mesa.numero).padStart(4, "0");
+  Object.assign(numeroComanda.style, {
+    padding: "3px 8px",
+    borderRadius: "6px",
+    background: "#ffe5e5",
+    color: "red",
+    fontWeight: "bold",
+    fontSize: "12px"
+  });
+
+  numeroWrapper.append(labelNumero, numeroComanda);
+
+  const dataEmissao = document.createElement("div");
+  dataEmissao.textContent = "Emissão: " + new Date().toLocaleDateString("pt-BR");
+  Object.assign(dataEmissao.style, { marginTop: "2px", fontSize: "11px", color: "#333" });
+
+  numeroDataWrapper.append(numeroWrapper, dataEmissao);
+  topo.append(titulo, numeroDataWrapper);
+  comanda.appendChild(topo);
+
+  // ===============================
+  // CLIENTE E MESA
+  // ===============================
+  const campoCliente = document.createElement("div");
+  campoCliente.style.marginTop = "6px";
+  campoCliente.innerHTML = `Cliente: <strong>${mesa.cliente}</strong>`;
+  comanda.appendChild(campoCliente);
+
+  const campoMesa = document.createElement("div");
+  campoMesa.style.marginTop = "6px";
+  campoMesa.innerHTML = `Mesa: <strong>${mesa.numero}</strong>`;
+  comanda.appendChild(campoMesa);
+
+  // ===============================
+  // PRODUTOS
+  // ===============================
+  mesa.itens.forEach(item => {
+    const bloco = document.createElement("div");
+    Object.assign(bloco.style, { border: "1px solid #ddd", borderRadius: "8px", marginTop: "12px", padding: "8px", background: "#fafafa" });
+
+    const tituloBloco = document.createElement("div");
+    tituloBloco.textContent = "Produto";
+    Object.assign(tituloBloco.style, { background: "#111", color: "#fff", textAlign: "center", padding: "4px", borderRadius: "4px", fontSize: "12px", marginBottom: "6px" });
+
+    const itemProduto = document.createElement("div");
+    itemProduto.textContent = `${item.quantidade}x ${item.nome} - R$ ${item.valor.toFixed(2)}`;
+    itemProduto.style.fontSize = "12px";
+
+    bloco.append(tituloBloco, itemProduto);
+    comanda.appendChild(bloco);
+  });
+
+  // ===============================
+  // AVISO + RODAPÉ ESTILIZADO
+  // ===============================
+  const avisoRodapeWrapper = document.createElement("div");
+  Object.assign(avisoRodapeWrapper.style, {
+    marginTop: "12px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: "6px"
+  });
+
+  // Aviso centralizado
+  const aviso = document.createElement("div");
+  aviso.textContent = "Em caso de perda desta comanda, poderá ser cobrada uma taxa administrativa conforme política do estabelecimento. Agradecemos sua compreensão.";
+  Object.assign(aviso.style, {
+    fontSize: "10px",
+    color: "#555",
+    textAlign: "center",
+    fontStyle: "italic",
+    lineHeight: "1.3"
+  });
+
+  // Linha separadora pontilhada
+  const linhaSeparadora = document.createElement("div");
+  Object.assign(linhaSeparadora.style, {
+    borderTop: "1px dashed #999",
+    width: "100%",
+    margin: "4px 0"
+  });
+
+  // Rodapé à direita
+  const rodape = document.createElement("div");
+  rodape.innerHTML = "Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>";
+  Object.assign(rodape.style, {
+    fontSize: "9px",
+    color: "#666",
+    textAlign: "right"
+  });
+
+  avisoRodapeWrapper.append(aviso, linhaSeparadora, rodape);
+  comanda.appendChild(avisoRodapeWrapper);
+
+  // ===============================
+  // BOTÃO IMPRIMIR
+  // ===============================
+  const btnImprimir = document.createElement("button");
+  btnImprimir.textContent = "🖨️ Imprimir Comanda";
+  Object.assign(btnImprimir.style, { marginTop: "12px", width: "100%", padding: "10px", border: "none", borderRadius: "8px", background: "#2f5fbf", color: "#fff", fontWeight: "bold", cursor: "pointer", fontSize: "13px" });
+
+ btnImprimir.onclick = () => {
+  // Cria um div temporário só com o conteúdo da comanda que queremos imprimir
+  const conteudoParaImprimir = document.createElement("div");
+
+  // Adiciona apenas os filhos da comanda, exceto o botão
+  comanda.childNodes.forEach(child => {
+    if (child !== btnImprimir) {
+      conteudoParaImprimir.appendChild(child.cloneNode(true));
+    }
+  });
+
+  // Cria iframe invisível
+  const iframe = document.createElement("iframe");
+  Object.assign(iframe.style, { position: "absolute", width: "0px", height: "0px", border: "0", left: "-9999px" });
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`
+    <html>
+      <head>
+        <title>Comanda Mesa ${mesa.numero}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+          .comanda { width: 10cm; padding: 5mm; box-sizing: border-box; }
+        </style>
+      </head>
+      <body>
+        <div class="comanda">${conteudoParaImprimir.innerHTML}</div>
+      </body>
+    </html>
+  `);
+  doc.close();
+
+  // Imprime e remove o iframe
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+  setTimeout(() => iframe.remove(), 1000);
+};
+
+
+
+  comanda.appendChild(btnImprimir);
+
+  // Adiciona overlay ao body
+  document.body.appendChild(overlay);
 }
 
 

@@ -1364,11 +1364,31 @@
     <p class="text-gray-700">Aqui estão todas as mesas cadastradas no sistema.</p>
   </div>
 
-  <div id="painelMesas" class="grid grid-cols-7 gap-6 p-4 max-w-6xl mx-auto">
-  <!-- As mesas serão inseridas dinamicamente via JS -->
+  <div id="painelMesas"
+       class="grid grid-cols-7 gap-6 p-4 max-w-6xl mx-auto">
+  </div>
+</section>
+
+
+<!-- MODAL COMANDA -->
+<div id="modalComanda" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+  <div class="bg-white w-[350px] p-4 rounded shadow-lg">
+
+    <div id="conteudoComanda"></div>
+
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="imprimirComanda()" class="bg-green-600 text-white px-4 py-2 rounded">
+        Imprimir
+      </button>
+
+      <button onclick="fecharComanda()" class="bg-gray-500 text-white px-4 py-2 rounded">
+        Fechar
+      </button>
+    </div>
+
+  </div>
 </div>
 
-</section>
 
 
 <section id="produtos" class="content-section mb-8">
@@ -4421,6 +4441,24 @@ input:not(:placeholder-shown) + .label-flutuante {
   line-height: 1.3;
 }
 
+.modal-comanda {
+  transition: opacity 0.3s ease;
+}
+
+.comanda-container {
+  min-width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.item-comanda span {
+  font-size: 14px;
+}
+
+.comanda-buttons button {
+  transition: background-color 0.2s;
+}
+
 /* Texto */
 .modal-box p {
   font-size: 16px;
@@ -4429,6 +4467,43 @@ input:not(:placeholder-shown) + .label-flutuante {
 }
 </style>
 
+
+<!-- Modal da Comanda -->
+<div id="modalComanda" class="modal-comanda hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="comanda-container bg-white rounded-lg shadow-lg w-96 max-w-full p-4 relative">
+    <!-- Botão Fechar -->
+    <button id="fecharComanda" class="absolute top-2 right-2 text-gray-500 hover:text-black font-bold text-lg">&times;</button>
+
+    <!-- Cabeçalho -->
+    <div class="comanda-header border-b pb-2 mb-2">
+      <h2 class="text-lg font-bold">Comanda Mesa <span id="numeroMesa"></span></h2>
+      <p class="text-sm text-gray-600" id="horaComanda"></p>
+    </div>
+
+    <!-- Itens da Comanda -->
+    <div id="itensComanda" class="comanda-itens max-h-60 overflow-y-auto">
+      <!-- Cada item será adicionado dinamicamente via JS -->
+      <!-- Exemplo de item:
+      <div class="item-comanda flex justify-between py-1 border-b">
+        <span>Pizza Calabresa</span>
+        <span>R$ 25,00</span>
+      </div>
+      -->
+    </div>
+
+    <!-- Total -->
+    <div class="comanda-total border-t mt-2 pt-2 flex justify-between font-bold text-black text-lg">
+      <span>Total:</span>
+      <span id="totalComanda">R$ 0,00</span>
+    </div>
+
+    <!-- Botões -->
+    <div class="comanda-buttons flex justify-end mt-4 gap-2">
+      <button id="adicionarItem" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Adicionar Item</button>
+      <button id="finalizarComanda" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Finalizar</button>
+    </div>
+  </div>
+</div>
 
   <!-- FOOTER -->
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">

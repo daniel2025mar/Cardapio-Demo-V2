@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comanda Profissional</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+
+/* RESET */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:"Segoe UI", Arial, sans-serif;
+  background:#ececec;
+  padding:30px;
+}
+
+.container{
+  display:flex;
+  gap:30px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* COMANDA */
+.comanda{
+  width:350px;
+  background:white;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  border:1px solid #ddd;
+}
+
+/* HEADER EMPRESA - FLEX HORIZONTAL */
+.headerEmpresa{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  border-bottom:2px solid #000;
+  padding-bottom:8px;
+  margin-bottom:12px;
+  gap:10px; /* espaço entre logo e texto */
+}
+
+.logoEmpresa{
+  width:60px;
+  height:60px;
+  object-fit:contain;
+}
+
+.empresaInfo{
+  display:flex;
+  flex-direction:column;
+}
+
+.nomeEmpresa{
+  font-size:18px;
+  font-weight:bold;
+}
+
+.infoEmpresa{
+  font-size:11px;
+  color:#444;
+}
+
+/* TOPO - COMANDA E NÚMERO + DATA */
+.topo{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.titulo{
+  font-size:18px;
+  font-weight:bold;
+}
+
+.numeroDataWrapper{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  font-size:12px;
+}
+
+.numeroWrapper{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.labelNumero{
+  background:#2f5fbf;
+  color:white;
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.numeroComanda{
+  min-width:55px;
+  text-align:center;
+  padding:3px 8px;
+  border-radius:6px;
+  background:#ffe5e5;
+  color:red;
+  font-weight:bold;
+}
+
+.dataEmissao{
+  margin-top:2px;
+  font-size:11px;
+  color:#333;
+}
+
+/* CAMPOS */
+.campo{
+  margin-top:6px;
+  font-size:13px;
+}
+
+/* PRODUTOS */
+.bloco{
+  border:1px solid #ddd;
+  border-radius:8px;
+  margin-top:12px;
+  padding:8px;
+  background:#fafafa;
+}
+
+.bloco-titulo{
+  background:#111;
+  color:white;
+  font-size:12px;
+  text-align:center;
+  padding:4px;
+  border-radius:4px;
+  margin-bottom:6px;
+}
+
+.item{
+  font-size:12px;
+  display:flex;
+  justify-content:flex-start; /* alinha apenas o nome */
+  margin:4px 0;
+  gap:5px;
+}
+
+/* OBS */
+.obs{
+  font-size:12px;
+  margin-top:4px;
+}
+
+/* LINHA SEPARADORA */
+.linhaSeparadora {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 10px 0;
+}
+
+/* RODAPÉ */
+.marcaSistema{
+  margin-top:6px;
+  font-size:9px;
+  text-align:right;
+  color:#666;
+}
+
+.viaTitulo{
+  text-align:center;
+  font-size:12px;
+  margin-bottom:6px;
+  font-weight:bold;
+}
+
+/* IMPRESSÃO */
+@media print{
+  body{
+    background:white;
+  }
+
+  .comanda{
+    box-shadow:none;
+  }
+}
+
+.avisoComanda{
+  margin-top:10px;
+  font-size:10px;
+  color:#555;
+  text-align:center;
+  font-style:italic;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- COMANDA CLIENTE -->
+<div class="comanda" id="comandaCliente">
+
+  <!-- EMPRESA -->
+  <div class="headerEmpresa">
+
+    <img id="logoEmpresa" class="logoEmpresa" src="../dist/Imagem/LogoTipo.png" alt="Logo Empresa">
+
+    <div class="empresaInfo">
+      <div class="nomeEmpresa" id="nomeEmpresa">
+        Nome da Empresa
+      </div>
+
+      <div class="infoEmpresa" id="enderecoEmpresa">Endereço da empresa</div>
+      <div class="infoEmpresa" id="telefoneEmpresa">(00) 0000-0000</div>
+    </div>
+
+  </div>
+
+  <!-- TOPO -->
+  <div class="topo">
+
+    <div class="titulo">COMANDA</div>
+
+    <div class="numeroDataWrapper">
+      <div class="numeroWrapper">
+        <span class="labelNumero">Nº</span>
+        <span id="numeroComanda" class="numeroComanda">0000</span>
+      </div>
+      <div class="dataEmissao" id="dataEmissao">Emissão: 03/02/2026</div>
+    </div>
+
+  </div>
+
+  <!-- CLIENTE -->
+  <div class="campo">
+    Cliente: <strong id="cliente">---</strong>
+  </div>
+
+  <!-- MESA -->
+  <div class="campo">
+    Mesa: <strong id="mesa">---</strong>
+  </div>
+
+  <!-- PRODUTOS -->
+  <div id="blocosProdutos"></div>
+
+  <!-- OBS -->
+  <div class="avisoComanda">
+    Em caso de perda desta comanda, poderá ser cobrada uma taxa administrativa conforme política do estabelecimento. Agradecemos sua compreensão.
+  </div>
+
+  <!-- LINHA SEPARADORA -->
+  <hr class="linhaSeparadora">
+
+  <!-- RODAPÉ -->
+  <div class="marcaSistema">
+    Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>
+  </div>
+
+</div>
+
+<!-- VIA ESTABELECIMENTO -->
+<div class="comanda">
+
+  <div class="viaTitulo">
+    VIA ESTABELECIMENTO
+  </div>
+
+  <div id="copiaConteudo"></div>
+
+</div>
+
+</div>
+
+<script type="module" src="comanda.js"></script>
+
+</body>
+</html>

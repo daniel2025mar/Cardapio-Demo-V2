@@ -5774,19 +5774,56 @@ avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
   document.body.appendChild(overlay);
 }
 
-//fuçao de abrir e fechar menu relatorios 
+
+// ==============================
+// FUNÇÃO FECHAR SUBMENU RELATÓRIOS
+// ==============================
+function fecharSubmenuRelatorios() {
+
+  const submenu = document.getElementById("submenu-relatorios");
+  const seta = document.querySelector(".seta-relatorios");
+
+  submenu.classList.remove("aberto");
+  seta.classList.remove("aberta");
+}
+
+// ==============================
+// ABRIR / FECHAR RELATÓRIOS
+// ==============================
 document.querySelector('[data-menu="relatorios"]').addEventListener("click", () => {
 
   const submenu = document.getElementById("submenu-relatorios");
   const seta = document.querySelector(".seta-relatorios");
 
-  submenu.classList.toggle("hidden");
+  const estaAberto = submenu.classList.contains("aberto");
 
-  // gira seta quando abre
-  seta.classList.toggle("aberta");
+  // Fecha primeiro
+  fecharSubmenuRelatorios();
+
+  // Se estava fechado → abre
+  if (!estaAberto) {
+    submenu.classList.add("aberto");
+    seta.classList.add("aberta");
+  }
 
 });
 
+// ==============================
+// FECHAR AO CLICAR OUTROS MENUS
+// ==============================
+document.querySelectorAll(".menu-item").forEach(item => {
+
+  item.addEventListener("click", () => {
+
+    const menuAtual = item.getAttribute("data-menu");
+
+    if (menuAtual !== "relatorios") {
+      fecharSubmenuRelatorios();
+    }
+
+  });
+
+});
 
   const relatorioGarconsLabel = document.querySelector('[data-menu="relatorio-garcons"]');
   const relatorioGarconsSection = document.getElementById('relatorio-garcons-section');
@@ -5849,85 +5886,459 @@ function mostrarModalGarcom(mensagem) {
   // Chama a função quando a página carregar
   window.addEventListener('DOMContentLoaded', carregarGarconsUnicos);
   
+// Função para formatar a data do banco (YYYY-MM-DD) para dd/mm/yyyy
+function formatarDataBanco(dataString) {
+  const partes = dataString.split('-'); // ["2026","02","06"]
+  return `${partes[2]}/${partes[1]}/${partes[0]}`; // "06/02/2026"
+}
+
+// =============================
+// CONTROLE DE RELATÓRIO GERADO
+// =============================
+let relatorioGarconsGerado = false;
+
+
+// =============================
+// GERAR PDF
+// =============================
+document.getElementById('btnGerarPDF').addEventListener('click', async () => {
+
+  if (!relatorioGarconsGerado) {
+    mostrarModalGarcom("⚠️ É obrigatório gerar o relatório antes de exportar o PDF.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  try {
+
+    // ============================
+    // BUSCA EMPRESA
+    // ============================
+    const { data: empresas, error } = await supabase
+      .from('empresa')
+      .select('*')
+      .limit(1);
+
+    if (error) throw error;
+    if (!empresas || empresas.length === 0) {
+      alert("Empresa não encontrada.");
+      return;
+    }
+
+    const empresa = empresas[0];
+
+    // ============================
+    // FUNÇÃO CARREGAR IMAGEM
+    // ============================
+    async function carregarImagemBase64(path) {
+      return new Promise((resolve) => {
+
+        if (!path) return resolve(null);
+
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = path;
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          resolve(canvas.toDataURL('image/png'));
+        };
+
+        img.onerror = () => resolve(null);
+
+      });
+    }
+
+    const logoBase64 = await carregarImagemBase64(
+      empresa.logotipo || "dist/imagem/LogoTipo.png"
+    );
+
+    // ============================
+    // CABEÇALHO
+    // ============================
+
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+    }
+
+    doc.setTextColor(37, 99, 235); // 🔵 Azul título empresa
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(empresa.nome, 45, 18);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+
+    let infoY = 24;
+
+    if (empresa.cnpj) {
+      doc.text(`CNPJ: ${empresa.cnpj}`, 45, infoY);
+      infoY += 5;
+    }
+
+    if (empresa.endereco) {
+      doc.text(`Endereço: ${empresa.endereco}`, 45, infoY);
+      infoY += 5;
+    }
+
+    if (empresa.telefone) {
+      doc.text(`Telefone: ${empresa.telefone}`, 45, infoY);
+      infoY += 5;
+    }
+
+    if (empresa.whatsapp) {
+      doc.text(`WhatsApp: ${empresa.whatsapp}`, 45, infoY);
+      infoY += 5;
+    }
+
+    const lineY = Math.max(35, infoY);
+    doc.line(14, lineY, 196, lineY);
+
+    // ============================
+    // TITULO
+    // ============================
+
+    const hoje = new Date();
+
+    doc.setTextColor(37, 99, 235); // 🔵 Azul
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Garçons", 14, lineY + 10);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+
+    doc.text(
+      `Período: ${document.getElementById('dataInicialGarcom').value} até ${document.getElementById('dataFinalGarcom').value}`,
+      14,
+      lineY + 15
+    );
+
+    doc.text(
+      `Gerado em: ${hoje.toLocaleDateString('pt-BR')} ${hoje.toLocaleTimeString('pt-BR')}`,
+      14,
+      lineY + 20
+    );
+
+    // ============================
+    // PEGAR LINHAS DA TABELA
+    // ============================
+
+    const linhas = Array.from(
+      document.querySelectorAll('#tbodyRelatorioGarcons tr')
+    );
+
+    const rows = [];
+
+    linhas.forEach(tr => {
+
+      if (tr.innerText.includes("Total Vendido")) return;
+
+      const cols = Array.from(tr.querySelectorAll('td'))
+        .map(td => td.textContent.trim());
+
+      if (cols.length > 0) {
+        rows.push(cols);
+      }
+
+    });
+
+    // ============================
+    // TABELA PDF (AZUL)
+    // ============================
+
+    doc.autoTable({
+      startY: lineY + 25,
+      head: [['Garçom', 'Comandas', 'Total Vendido', 'Data', 'Pedidos']],
+      body: rows,
+      theme: 'grid',
+
+      headStyles: {
+        fillColor: [59, 130, 246], // 🔵 Azul Tailwind
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+
+      alternateRowStyles: {
+        fillColor: [243, 244, 246]
+      },
+
+      styles: {
+        fontSize: 10
+      }
+    });
+
+    // ============================
+    // TOTAL GERAL
+    // ============================
+
+    const totalVendido = rows.reduce((acc, row) => {
+
+      const valor = parseFloat(
+        row[2].replace("R$", "").replace(",", ".")
+      );
+
+      return acc + (isNaN(valor) ? 0 : valor);
+
+    }, 0);
+
+    const finalY = doc.lastAutoTable.finalY || 100;
+
+    doc.setTextColor(37, 99, 235); // 🔵 Azul
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Geral: R$ ${totalVendido.toFixed(2)}`, 14, finalY + 10);
+
+    // ============================
+    // RODAPÉ
+    // ============================
+
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+
+    doc.text(
+      "GestioMax Soluções de Cardápio e Delivery",
+      14,
+      finalY + 16
+    );
+
+    // ============================
+    // SALVAR
+    // ============================
+
+    doc.save("relatorio_garcons.pdf");
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao gerar PDF.");
+  }
+});
+
+
+// =============================
+// FILTRAR RELATÓRIO
+// =============================
 async function filtrarTotalVendido() {
+
   const selectGarcom = document.getElementById('selectGarcom');
-  const garcomSelecionado = selectGarcom.value; // ex: "DanielTeste"
+  const garcomSelecionado = selectGarcom.value;
 
   const dataInicial = document.getElementById('dataInicialGarcom').value;
   const dataFinal = document.getElementById('dataFinalGarcom').value;
 
-  if (!garcomSelecionado) {
-    mostrarModalGarcom('Selecione um garçom para filtrar.');
-    return;
-  }
-
   if (!dataInicial || !dataFinal) {
-    mostrarModalGarcom('Selecione o período inicial e final.');
+    mostrarModalGarcom("Selecione o período inicial e final.");
+    relatorioGarconsGerado = false;
     return;
   }
 
   try {
-    // Busca os registros do garçom no período selecionado
+
     let query = supabase
       .from('relatorio_garcom')
       .select('*')
-      .eq('nome_garcom', garcomSelecionado)
       .gte('data', dataInicial)
       .lte('data', dataFinal)
       .order('data', { ascending: true });
+
+    if (garcomSelecionado) {
+      query = query.eq('nome_garcom', garcomSelecionado);
+    }
 
     const { data, error } = await query;
     if (error) throw error;
 
     const tbody = document.getElementById('tbodyRelatorioGarcons');
-    tbody.innerHTML = ''; // limpa a tabela
+    tbody.innerHTML = '';
 
-    if (data.length === 0) {
-      // Nenhum registro encontrado
-      const trVazio = document.createElement('tr');
-      trVazio.innerHTML = `
-        <td colspan="4" class="px-4 py-4 text-center text-gray-500 font-medium">
-          Vendas não encontradas no sistema para esse garçom
-        </td>
+    // =============================
+    // SEM RESULTADO
+    // =============================
+    if (!data || data.length === 0) {
+
+      relatorioGarconsGerado = false;
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="py-10 text-center text-gray-400">
+            <div class="flex flex-col items-center gap-2">
+              <span class="text-lg">📊</span>
+              <span class="font-medium">Nenhum resultado encontrado</span>
+            </div>
+          </td>
+        </tr>
       `;
-      tbody.appendChild(trVazio);
-      return; // sai da função
+
+      return;
     }
 
-    // Calcula o total vendido no período
-    const totalVendido = data.reduce((acc, item) => acc + parseFloat(item.total_faturado), 0);
+    relatorioGarconsGerado = true;
 
-    // Preenche a tabela com os registros encontrados
+    const total = data.reduce(
+      (acc, item) => acc + parseFloat(item.total_faturado),
+      0
+    );
+
+    // =============================
+    // LINHAS DO RELATÓRIO
+    // =============================
     data.forEach((item, index) => {
+
       const tr = document.createElement('tr');
-      tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50'; // linhas alternadas
-      tr.innerHTML = `
-        <td class="px-4 py-2 font-medium text-gray-700">${item.nome_garcom}</td>
-        <td class="px-4 py-2 text-center text-gray-600">${item.mesas_atendidas}</td>
-        <td class="px-4 py-2 text-right text-green-600 font-semibold">R$ ${item.total_faturado.toFixed(2)}</td>
-        <td class="px-4 py-2 text-center text-gray-600">${item.total_pedidos}</td>
+
+      tr.className = `
+        border-b
+        hover:bg-indigo-50
+        transition
+        duration-200
+        ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
       `;
+
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-medium text-gray-700">
+          ${item.nome_garcom}
+        </td>
+
+        <td class="px-4 py-3 text-center text-gray-600">
+          ${item.mesas_atendidas}
+        </td>
+
+        <td class="px-4 py-3 text-right font-semibold text-blue-600">
+          R$ ${item.total_faturado.toFixed(2)}
+        </td>
+
+        <td class="px-4 py-3 text-center text-gray-600">
+          ${formatarDataBanco(item.data)}
+        </td>
+
+        <td class="px-4 py-3 text-center text-gray-600">
+          ${item.total_pedidos}
+        </td>
+      `;
+
       tbody.appendChild(tr);
     });
 
-    // Linha do total vendido em destaque
+    // =============================
+    // LINHA TOTAL
+    // =============================
     const trTotal = document.createElement('tr');
-    trTotal.className = 'bg-indigo-100';
-    trTotal.innerHTML = `
-      <td colspan="2" class="px-4 py-2 font-bold text-right text-gray-800">Total Vendido:</td>
-      <td class="px-4 py-2 font-bold text-right text-green-700">R$ ${totalVendido.toFixed(2)}</td>
-      <td></td>
+
+    trTotal.className = `
+      bg-indigo-100
+      border-t-2
+      border-indigo-400
+      font-bold
     `;
+
+    trTotal.innerHTML = `
+      <td colspan="2" class="px-4 py-3 text-right text-gray-800">
+        Total Vendido:
+      </td>
+
+      <td class="px-4 py-3 text-right text-indigo-700 text-lg">
+        R$ ${total.toFixed(2)}
+      </td>
+
+      <td colspan="2"></td>
+    `;
+
     tbody.appendChild(trTotal);
 
   } catch (err) {
-    console.error('Erro ao filtrar relatório:', err.message);
-    alert('Erro ao buscar dados do relatório.');
+
+    console.error(err);
+    relatorioGarconsGerado = false;
+    alert("Erro ao buscar relatório.");
+
   }
 }
 
-// Evento do botão Filtrar
-document.getElementById('btnFiltrarGarcons').addEventListener('click', filtrarTotalVendido);
+function limparRelatorioGarcons() {
+
+  const selectGarcom = document.getElementById('selectGarcom');
+  const dataInicial = document.getElementById('dataInicialGarcom');
+  const dataFinal = document.getElementById('dataFinalGarcom');
+  const tbody = document.getElementById('tbodyRelatorioGarcons');
+
+  // Limpa filtros
+  if (selectGarcom) selectGarcom.value = "";
+  if (dataInicial) dataInicial.value = "";
+  if (dataFinal) dataFinal.value = "";
+
+  // Limpa tabela
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="py-10 text-center text-gray-400">
+          Nenhum relatório carregado
+        </td>
+      </tr>
+    `;
+  }
+
+  // Reseta flag
+  relatorioGarconsGerado = false;
+
+}
+
+document.querySelectorAll('[data-menu]').forEach(menu => {
+  menu.addEventListener("click", function () {
+
+    const menuClicado = this.getAttribute("data-menu");
+
+    // ==========================
+    // FECHAR TODOS SUBMENUS
+    // ==========================
+    document.querySelectorAll('.submenu').forEach(sub => {
+      sub.classList.add('hidden');
+    });
+
+    document.querySelectorAll('.seta-relatorios').forEach(seta => {
+      seta.classList.remove('aberta');
+    });
+
+    // ==========================
+    // SE NÃO FOR RELATÓRIO → LIMPA
+    // ==========================
+    if (menuClicado !== "relatorios") {
+      limparRelatorioGarcons();
+    }
+
+    // ==========================
+    // ABRE RELATÓRIOS
+    // ==========================
+    if (menuClicado === "relatorios") {
+
+      const submenu = document.getElementById("submenu-relatorios");
+      const seta = document.querySelector(".seta-relatorios");
+
+      submenu.classList.remove("hidden");
+      seta.classList.add("aberta");
+    }
+
+  });
+});
+
+document.getElementById('btnFiltrarGarcons')
+  .addEventListener('click', filtrarTotalVendido);
+
+// =============================
+// RESETAR RELATÓRIO SE MUDAR FILTRO
+// =============================
+document.getElementById('dataInicialGarcom').addEventListener('change', () => relatorioGarconsGerado = false);
+document.getElementById('dataFinalGarcom').addEventListener('change', () => relatorioGarconsGerado = false);
+document.getElementById('selectGarcom').addEventListener('change', () => relatorioGarconsGerado = false);
+
 
 
 // =========================

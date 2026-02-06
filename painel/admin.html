@@ -9,6 +9,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- BIBLIOTECA QR CODE -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
 
   <style>
     
@@ -587,7 +590,8 @@
 </label>
 
 <!-- SUBMENU -->
-<div id="submenu-relatorios" class="hidden flex flex-col mt-1 ml-10 space-y-1 submenu">
+<div id="submenu-relatorios" class="flex flex-col mt-1 ml-10 space-y-1 submenu submenu-animado">
+
 
   <label
     data-menu="relatorio-vendas"
@@ -1451,27 +1455,50 @@
         <label class="text-sm font-medium text-gray-600 mb-1 block">Data Final</label>
         <input type="date" id="dataFinalGarcom" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" />
       </div>
-      <div class="flex items-end">
-        <button type="button" id="btnFiltrarGarcons" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition transform hover:scale-105">Filtrar</button>
-      </div>
+      <div class="flex items-end gap-4">
+  <button type="button" id="btnFiltrarGarcons" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition transform hover:scale-105">
+    Filtrar
+  </button>
+
+  <button type="button" id="btnGerarPDF" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition transform hover:scale-105">
+    Gerar PDF
+  </button>
+</div>
+
+<style>
+  .submenu-animado {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.35s ease;
+}
+
+.submenu-animado.aberto {
+  max-height: 500px; /* valor alto para caber o conteúdo */
+  opacity: 1;
+}
+
+</style>
     </div>
 
     <!-- Tabela -->
     <div class="overflow-x-auto mt-6">
-      <table class="min-w-full border border-gray-200 rounded-xl">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-4 py-2 text-left">Garçom</th>
-            <th class="px-4 py-2 text-left">Comandas</th>
-            <th class="px-4 py-2 text-left">Total Vendido</th>
-            <th class="px-4 py-2 text-left">Observações</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyRelatorioGarcons">
-          <!-- Linhas adicionadas via JS -->
-        </tbody>
-      </table>
-    </div>
+  <table class="min-w-full border border-gray-200 rounded-xl">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2 text-left">Garçom</th>
+        <th class="px-4 py-2 text-left">Comandas</th>
+        <th class="px-4 py-2 text-left">Total Vendido</th>
+        <th class="px-4 py-2 text-left">Data Finalização</th> <!-- Nova coluna -->
+        <th class="px-4 py-2 text-left">Observações</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyRelatorioGarcons">
+      <!-- Linhas adicionadas via JS -->
+    </tbody>
+  </table>
+</div>
+
   </form>
 </section>
 

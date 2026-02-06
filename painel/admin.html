@@ -558,6 +558,78 @@
   </svg>
   <span>Funcionários</span>
 </label>
+<!-- BOTÃO PRINCIPAL -->
+<label
+  data-menu="relatorios"
+  class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg"
+>
+
+  <!-- ÍCONE DE RELATÓRIOS -->
+  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+    viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M9 17v-6m4 6V7m4 10v-3M5 19V5a2 2 0 012-2h10a2 2 0 012 2v14" />
+  </svg>
+
+  <span>Relatórios</span>
+
+  <!-- SETA -->
+  <svg
+    class="ml-auto h-4 w-4 seta-relatorios transition-transform duration-300"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M19 9l-7 7-7-7" />
+  </svg>
+</label>
+
+<!-- SUBMENU -->
+<div id="submenu-relatorios" class="hidden flex flex-col mt-1 ml-10 space-y-1 submenu">
+
+  <label
+    data-menu="relatorio-vendas"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
+  >
+    Relatório de Vendas
+  </label>
+
+  <label
+    data-menu="relatorio-comandas"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
+  >
+    Relatório de Comandas
+  </label>
+
+  <label
+    data-menu="relatorio-produtos"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
+  >
+    Relatório de Produtos
+  </label>
+
+  <label
+    data-menu="relatorio-garcons"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
+  >
+    Relatório de Garçons
+  </label>
+
+</div>
+
+
+<style>
+  .seta-relatorios {
+  transition: transform 0.3s ease;
+}
+
+.seta-relatorios.aberta {
+  transform: rotate(180deg);
+}
+
+</style>
 
     <!-- CATEGORIAS -->
 <div class="w-full">
@@ -1350,6 +1422,69 @@
     </form>
   </div>
 </section>
+
+<!--menu relatorio garcom-->
+<!-- RELATÓRIO DE GARÇONS -->
+<section id="relatorio-garcons-section" class="content-section mb-10 p-6" style="display:none;">
+  <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Relatório de Garçons</h2>
+  <p class="text-gray-500 mb-6">Visualize a atividade de cada garçom.</p>
+
+  <!-- Filtros -->
+  <form id="formRelatorioGarcons" class="grid grid-cols-1 gap-4">
+
+    <!-- Seleção do Garçom -->
+    <div class="flex items-center gap-4 mb-4">
+  <label for="selectGarcom" class="text-sm font-medium text-gray-600">Garçom</label>
+  <select id="selectGarcom" class="border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+    <option value="">Todos os garçons</option>
+  </select>
+</div>
+
+
+    <!-- Datas -->
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <label class="text-sm font-medium text-gray-600 mb-1 block">Data Inicial</label>
+        <input type="date" id="dataInicialGarcom" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" />
+      </div>
+      <div class="flex-1">
+        <label class="text-sm font-medium text-gray-600 mb-1 block">Data Final</label>
+        <input type="date" id="dataFinalGarcom" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none" />
+      </div>
+      <div class="flex items-end">
+        <button type="button" id="btnFiltrarGarcons" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition transform hover:scale-105">Filtrar</button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="overflow-x-auto mt-6">
+      <table class="min-w-full border border-gray-200 rounded-xl">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left">Garçom</th>
+            <th class="px-4 py-2 text-left">Comandas</th>
+            <th class="px-4 py-2 text-left">Total Vendido</th>
+            <th class="px-4 py-2 text-left">Observações</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyRelatorioGarcons">
+          <!-- Linhas adicionadas via JS -->
+        </tbody>
+      </table>
+    </div>
+  </form>
+</section>
+
+<!-- Modal de alerta específico para relatório de garçons -->
+<div id="modalGarcom" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6">
+    <h3 class="text-lg font-bold text-gray-800 mb-4">Atenção</h3>
+    <p id="mensagemModalGarcom" class="text-gray-600 mb-6">Mensagem do alerta</p>
+    <div class="flex justify-end">
+      <button id="btnFecharModalGarcom" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl shadow transition">OK</button>
+    </div>
+  </div>
+</div>
 
 <!-- BIBLIOTECA QR CODE -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -4467,44 +4602,63 @@ input:not(:placeholder-shown) + .label-flutuante {
 }
 </style>
 
+<!-- MODAL STATUS SERVIDOR -->
+<div id="modalServidor" style="display:none;">
+  <div class="modal-servidor-box">
+    <h2 id="tituloServidor">⚠️ Problema no Sistema</h2>
+    <p id="mensagemServidor">
+      O sistema está temporariamente indisponível.
+    </p>
 
-<!-- Modal da Comanda -->
-<div id="modalComanda" class="modal-comanda hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="comanda-container bg-white rounded-lg shadow-lg w-96 max-w-full p-4 relative">
-    <!-- Botão Fechar -->
-    <button id="fecharComanda" class="absolute top-2 right-2 text-gray-500 hover:text-black font-bold text-lg">&times;</button>
-
-    <!-- Cabeçalho -->
-    <div class="comanda-header border-b pb-2 mb-2">
-      <h2 class="text-lg font-bold">Comanda Mesa <span id="numeroMesa"></span></h2>
-      <p class="text-sm text-gray-600" id="horaComanda"></p>
-    </div>
-
-    <!-- Itens da Comanda -->
-    <div id="itensComanda" class="comanda-itens max-h-60 overflow-y-auto">
-      <!-- Cada item será adicionado dinamicamente via JS -->
-      <!-- Exemplo de item:
-      <div class="item-comanda flex justify-between py-1 border-b">
-        <span>Pizza Calabresa</span>
-        <span>R$ 25,00</span>
-      </div>
-      -->
-    </div>
-
-    <!-- Total -->
-    <div class="comanda-total border-t mt-2 pt-2 flex justify-between font-bold text-black text-lg">
-      <span>Total:</span>
-      <span id="totalComanda">R$ 0,00</span>
-    </div>
-
-    <!-- Botões -->
-    <div class="comanda-buttons flex justify-end mt-4 gap-2">
-      <button id="adicionarItem" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Adicionar Item</button>
-      <button id="finalizarComanda" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">Finalizar</button>
-    </div>
+    <button onclick="tentarReconectar()">Tentar novamente</button>
   </div>
 </div>
 
+<style>
+  #modalServidor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-servidor-box {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 350px;
+  text-align: center;
+  font-family: Arial;
+  animation: aparecer 0.3s ease;
+}
+
+.modal-servidor-box h2 {
+  color: #d32f2f;
+  margin-bottom: 15px;
+}
+
+.modal-servidor-box button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+@keyframes aparecer {
+  from { transform: scale(0.7); opacity:0 }
+  to { transform: scale(1); opacity:1 }
+}
+
+</style>
   <!-- FOOTER -->
   <footer class="bg-gray-800 border-t border-gray-300 text-center text-gray-500 text-sm py-3">
     Desenvolvido por DM DESIGN GRAFICO

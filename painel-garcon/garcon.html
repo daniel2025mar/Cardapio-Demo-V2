@@ -59,6 +59,7 @@
         </div>
       </div>
 
+    
       <!-- PEDIDOS EM ANDAMENTO -->
       <div class="campo">
         <h3>Pedidos em Andamento</h3>
@@ -68,13 +69,82 @@
       </div>
 
       <!-- ESTATÍSTICAS RÁPIDAS -->
-      <div class="campo estatisticas">
-        <h3>Estatísticas</h3>
-        <p>Mesas atendidas: <span id="mesasAtendidas">0</span></p>
-        <p>Pedidos do dia: <span id="pedidosDia">0</span></p>
-        <p>Total faturado: <span id="totalFaturado">R$ 0,00</span></p>
-        <p>Pedidos pendentes: <span id="pedidosPendentes" style="color:red; font-weight:bold;">0</span></p>
-      </div>
+     <div class="campo estatisticas" id="campoEstatisticas">
+
+  <h3 class="titulo-estatisticas">
+    Estatísticas
+
+    <span id="iconeEstatisticas" class="icone-seta">
+      <!-- seta para baixo -->
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </span>
+  </h3>
+
+  <div id="conteudoEstatisticas" class="fechado">
+    <p>Mesas atendidas: <span id="mesasAtendidas">0</span></p>
+    <p>Pedidos do dia: <span id="pedidosDia">0</span></p>
+    <p>Total faturado: <span id="totalFaturado">R$ 0,00</span></p>
+    <p>Pedidos pendentes:
+      <span id="pedidosPendentes" style="color:red; font-weight:bold;">0</span>
+    </p>
+  </div>
+
+</div>
+
+
+
+<style>
+
+  .titulo-estatisticas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.icone-seta {
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+/* gira para cima quando abrir */
+.icone-seta.aberto {
+  transform: rotate(180deg);
+}
+
+#conteudoEstatisticas {
+  overflow: hidden;
+  max-height: 500px;
+  opacity: 1;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+#conteudoEstatisticas.fechado {
+  max-height: 0;
+  opacity: 0;
+}
+
+#campoEstatisticas {
+  cursor: pointer;
+}
+
+  #conteudoEstatisticas {
+  overflow: hidden;
+  max-height: 500px; /* altura suficiente para o conteúdo */
+  opacity: 1;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+/* quando estiver fechado */
+#conteudoEstatisticas.fechado {
+  max-height: 0;
+  opacity: 0;
+}
+
+</style>
 
     </div>
 

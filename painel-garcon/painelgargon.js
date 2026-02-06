@@ -148,6 +148,22 @@ function verificarViradaDoDia() {
   return false;
 }
 
+// funçao que oculta o conteudo
+function toggleEstatisticas() {
+
+  const conteudo = document.getElementById("conteudoEstatisticas");
+  const icone = document.getElementById("iconeEstatisticas");
+
+  if (!conteudo || !icone) return;
+
+  conteudo.classList.toggle("fechado");
+  icone.classList.toggle("aberto");
+}
+
+document.getElementById("campoEstatisticas")
+  .addEventListener("click", toggleEstatisticas);
+
+
 // 📊 CARREGAR RELATÓRIO DO GARÇOM
 async function carregarRelatorioGarcom() {
   const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
@@ -998,6 +1014,10 @@ function atualizarSelectMesas() {
 }
 
 // 3️⃣ Cria ou atualiza lista de prioridade (somente mesas não atendidas)
+// controla timers ativos
+let timersMesas = new Map();
+
+// 3️⃣ Cria ou atualiza lista de prioridade (somente mesas não atendidas)
 function atualizarListaPrioridade() {
   const listaPrioridade = document.getElementById("listaPrioridadeMesas");
   if (!listaPrioridade) return;
@@ -1017,18 +1037,30 @@ function atualizarListaPrioridade() {
   // Remove <li> de mesas que não estão mais na lista de prioridade
   liMesasMap.forEach((li, id) => {
     if (!mesasPrioridadeNaoAtendidas.some(m => m.id === id)) {
+
+      // 🔥 RESET TEMPO
+      resetarTempoMesa(id);
+
+      // 🔥 REMOVE TIMER
+      if (timersMesas.has(id)) {
+        clearInterval(timersMesas.get(id));
+        timersMesas.delete(id);
+      }
+
       li.remove();
       liMesasMap.delete(id);
-      localStorage.removeItem(`mesa_tempo_${id}`);
     }
   });
 }
 
-// 4️⃣ Atualiza tempo de cada <li> a cada segundo, persistindo no localStorage
+
+// 4️⃣ Atualiza tempo de cada <li> a cada segundo
 function atualizarLiTempo(li, mesa) {
+
   const key = `mesa_tempo_${mesa.id}`;
   let horaOcupada = localStorage.getItem(key);
 
+  // se não existir tempo salvo, salva novo
   if (!horaOcupada) {
     horaOcupada = mesa.hora_ocupada;
     localStorage.setItem(key, horaOcupada);
@@ -1036,9 +1068,12 @@ function atualizarLiTempo(li, mesa) {
     horaOcupada = new Date(horaOcupada);
   }
 
+  // 🔥 Evita criar múltiplos timers
+  if (timersMesas.has(mesa.id)) return;
+
   function atualizar() {
     const agora = new Date();
-    const tempo = Math.floor((agora - new Date(horaOcupada)) / 60000); // em minutos
+    const tempo = Math.floor((agora - new Date(horaOcupada)) / 60000);
 
     li.textContent = `${mesa.descricao} - ${tempo} min sem pedido`;
 
@@ -1048,8 +1083,17 @@ function atualizarLiTempo(li, mesa) {
   }
 
   atualizar();
-  setInterval(atualizar, 1000);
+
+  const timer = setInterval(atualizar, 1000);
+  timersMesas.set(mesa.id, timer);
 }
+
+
+// 🔥 Função resetar tempo
+function resetarTempoMesa(mesaId) {
+  localStorage.removeItem(`mesa_tempo_${mesaId}`);
+}
+
 
 // 5️⃣ Atualiza notificação geral
 function atualizarNotificacao() {

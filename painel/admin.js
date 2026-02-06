@@ -5686,44 +5686,249 @@ avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
     fontSize: "13px"
   });
 
-  btnImprimir.onclick = () => {
-    const conteudoParaImprimir = document.createElement("div");
-    comanda.childNodes.forEach(child => {
-      if (child !== btnImprimir) conteudoParaImprimir.appendChild(child.cloneNode(true));
-    });
+   btnImprimir.onclick = () => {
 
-    const iframe = document.createElement("iframe");
-    Object.assign(iframe.style, { position: "absolute", width: "0px", height: "0px", border: "0", left: "-9999px" });
-    document.body.appendChild(iframe);
+  const conteudoParaImprimir = document.createElement("div");
 
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(`
-      <html>
-        <head>
-          <title>Comanda Mesa ${mesa.numero}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-            .comanda { width: 10cm; padding: 5mm; box-sizing: border-box; }
-          </style>
-        </head>
-        <body>
-          <div class="comanda">${conteudoParaImprimir.innerHTML}</div>
-        </body>
-      </html>
-    `);
-    doc.close();
+  comanda.childNodes.forEach(child => {
+    if (child !== btnImprimir && child !== btnFechar) {
+      conteudoParaImprimir.appendChild(child.cloneNode(true));
+    }
+  });
 
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    setTimeout(() => iframe.remove(), 1000);
-  };
+  // ============================
+  // REMOVE SOMENTE VALORES DOS PRODUTOS
+  // ============================
+
+  conteudoParaImprimir.querySelectorAll("div").forEach(bloco => {
+
+    const valor = bloco.querySelector("div:last-child");
+
+    if (valor && valor.textContent.trim().startsWith("R$")) {
+      valor.remove();
+    }
+
+  });
+
+  const iframe = document.createElement("iframe");
+
+  Object.assign(iframe.style, {
+    position: "absolute",
+    width: "0",
+    height: "0",
+    border: "0",
+    left: "-9999px"
+  });
+
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+
+  doc.open();
+  doc.write(`
+    <html>
+      <head>
+
+        <style>
+          @page { margin: 0; }
+
+          body {
+            font-family: Arial, sans-serif;
+            margin: 5mm;
+            font-size: 12px; /* ✅ DIMINUIU O TAMANHO GERAL */
+          }
+
+          .comanda {
+            width: 10cm;
+            font-size: 12px;
+          }
+
+          /* Diminui textos internos */
+          .comanda * {
+            font-size: 12px;
+          }
+
+        </style>
+
+      </head>
+
+      <body>
+        <div class="comanda">
+          ${conteudoParaImprimir.innerHTML}
+        </div>
+      </body>
+    </html>
+  `);
+
+  doc.close();
+
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+
+  setTimeout(() => iframe.remove(), 1000);
+};
 
   comanda.appendChild(btnImprimir);
 
   // Adiciona overlay ao body
   document.body.appendChild(overlay);
 }
+
+//fuçao de abrir e fechar menu relatorios 
+document.querySelector('[data-menu="relatorios"]').addEventListener("click", () => {
+
+  const submenu = document.getElementById("submenu-relatorios");
+  const seta = document.querySelector(".seta-relatorios");
+
+  submenu.classList.toggle("hidden");
+
+  // gira seta quando abre
+  seta.classList.toggle("aberta");
+
+});
+
+
+  const relatorioGarconsLabel = document.querySelector('[data-menu="relatorio-garcons"]');
+  const relatorioGarconsSection = document.getElementById('relatorio-garcons-section');
+
+  relatorioGarconsLabel.addEventListener('click', () => {
+    // Esconde todas as outras seções de conteúdo
+    document.querySelectorAll('.content-section').forEach(sec => {
+      sec.style.display = 'none';
+    });
+
+    // Mostra a seção de relatório do garçom
+    relatorioGarconsSection.style.display = 'block';
+  });
+
+function mostrarModalGarcom(mensagem) {
+  const modal = document.getElementById('modalGarcom');
+  const mensagemModal = document.getElementById('mensagemModalGarcom');
+  
+  mensagemModal.textContent = mensagem; // atualiza a mensagem
+  modal.classList.remove('hidden'); // mostra o modal
+
+  // Botão para fechar
+  document.getElementById('btnFecharModalGarcom').onclick = () => {
+    modal.classList.add('hidden'); // esconde o modal
+  };
+}
+
+
+  async function carregarGarconsUnicos() {
+    try {
+      // Busca todos os registros da tabela relatorio_garcom
+      const { data, error } = await supabase
+        .from('relatorio_garcom')
+        .select('nome_garcom');
+
+      if (error) throw error;
+
+      const select = document.getElementById('selectGarcom');
+
+      // Cria um Set para nomes únicos
+      const nomesUnicos = new Set();
+
+      data.forEach(registro => {
+        if (!nomesUnicos.has(registro.nome_garcom)) {
+          nomesUnicos.add(registro.nome_garcom);
+
+          const option = document.createElement('option');
+          option.value = registro.nome_garcom; // o value pode ser o nome mesmo
+          option.textContent = registro.nome_garcom;
+          select.appendChild(option);
+        }
+      });
+
+    } catch (err) {
+      console.error('Erro ao carregar garçons:', err.message);
+      alert('Não foi possível carregar os garçons do banco.');
+    }
+  }
+
+  // Chama a função quando a página carregar
+  window.addEventListener('DOMContentLoaded', carregarGarconsUnicos);
+  
+async function filtrarTotalVendido() {
+  const selectGarcom = document.getElementById('selectGarcom');
+  const garcomSelecionado = selectGarcom.value; // ex: "DanielTeste"
+
+  const dataInicial = document.getElementById('dataInicialGarcom').value;
+  const dataFinal = document.getElementById('dataFinalGarcom').value;
+
+  if (!garcomSelecionado) {
+    mostrarModalGarcom('Selecione um garçom para filtrar.');
+    return;
+  }
+
+  if (!dataInicial || !dataFinal) {
+    mostrarModalGarcom('Selecione o período inicial e final.');
+    return;
+  }
+
+  try {
+    // Busca os registros do garçom no período selecionado
+    let query = supabase
+      .from('relatorio_garcom')
+      .select('*')
+      .eq('nome_garcom', garcomSelecionado)
+      .gte('data', dataInicial)
+      .lte('data', dataFinal)
+      .order('data', { ascending: true });
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const tbody = document.getElementById('tbodyRelatorioGarcons');
+    tbody.innerHTML = ''; // limpa a tabela
+
+    if (data.length === 0) {
+      // Nenhum registro encontrado
+      const trVazio = document.createElement('tr');
+      trVazio.innerHTML = `
+        <td colspan="4" class="px-4 py-4 text-center text-gray-500 font-medium">
+          Vendas não encontradas no sistema para esse garçom
+        </td>
+      `;
+      tbody.appendChild(trVazio);
+      return; // sai da função
+    }
+
+    // Calcula o total vendido no período
+    const totalVendido = data.reduce((acc, item) => acc + parseFloat(item.total_faturado), 0);
+
+    // Preenche a tabela com os registros encontrados
+    data.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50'; // linhas alternadas
+      tr.innerHTML = `
+        <td class="px-4 py-2 font-medium text-gray-700">${item.nome_garcom}</td>
+        <td class="px-4 py-2 text-center text-gray-600">${item.mesas_atendidas}</td>
+        <td class="px-4 py-2 text-right text-green-600 font-semibold">R$ ${item.total_faturado.toFixed(2)}</td>
+        <td class="px-4 py-2 text-center text-gray-600">${item.total_pedidos}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Linha do total vendido em destaque
+    const trTotal = document.createElement('tr');
+    trTotal.className = 'bg-indigo-100';
+    trTotal.innerHTML = `
+      <td colspan="2" class="px-4 py-2 font-bold text-right text-gray-800">Total Vendido:</td>
+      <td class="px-4 py-2 font-bold text-right text-green-700">R$ ${totalVendido.toFixed(2)}</td>
+      <td></td>
+    `;
+    tbody.appendChild(trTotal);
+
+  } catch (err) {
+    console.error('Erro ao filtrar relatório:', err.message);
+    alert('Erro ao buscar dados do relatório.');
+  }
+}
+
+// Evento do botão Filtrar
+document.getElementById('btnFiltrarGarcons').addEventListener('click', filtrarTotalVendido);
+
 
 // =========================
 // ATUALIZA STATUS VISUAL

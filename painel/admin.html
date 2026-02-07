@@ -442,7 +442,9 @@
   </label>
 
   <!-- SUBMENU -->
-  <div id="submenu-produtos" class="flex flex-col mt-1 ml-10 space-y-1 submenu">
+  <div id="submenu-produtos" class="submenu-animado flex flex-col mt-1 ml-10 space-y-1">
+
+
 
     <label
       data-menu="cadastro-produtos"
@@ -533,15 +535,15 @@
 
 
    <!-- SUBMENU MESAS -->
-<div id="submenu-mesas" class="flex flex-col mt-1 ml-10 space-y-1 submenu">
-  
-<label data-submenu="cadastro-mesas" class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis" >
-  
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-  </svg>
-  <span>Cadastro de Mesas</span>
-</label>
+<div id="submenu-mesas"
+     class="submenu-animado flex flex-col mt-1 ml-10 space-y-1">
 
+  <label
+    data-menu="cadastro-mesas"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
+  >
+    Cadastro de Mesas
+  </label>
 
   <label
     data-menu="lista-mesas"
@@ -551,6 +553,7 @@
   </label>
 
 </div>
+
 </div>
 
         <label data-menu="funcionarios" class="menu-item flex items-center gap-3 px-4 py-3 cursor-pointer rounded-lg">

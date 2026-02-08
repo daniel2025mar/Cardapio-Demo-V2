@@ -5253,7 +5253,7 @@ function renderizarMesa(mesa) {
   let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
-  const atendida = mesa.atendida === true; // Mesa com comanda ativa
+  let atendida = mesa.atendida === true; // Mesa com comanda ativa
   const comandaAtiva = atendida;
 
   mesa.itens = mesa.itens || []; // garante que sempre seja um array
@@ -5267,14 +5267,14 @@ function renderizarMesa(mesa) {
     mesaDiv.className = `relative flex flex-col items-center justify-start cursor-pointer transition-transform hover:scale-105`;
 
     mesaDiv.innerHTML = `
-      <div class="monitor w-full h-28 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
+      <div class="monitor w-full h-32 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
         <div class="titulo w-full text-center text-xs font-bold bg-black text-white py-1">
           Mesa ${String(mesa.numero).padStart(3, "0")}
         </div>
         <div class="status-text text-sm font-bold mt-2">
           ${ocupada ? "OCUPADA" : "LIVRE"}
         </div>
-        <div class="valor text-xs font-semibold mb-2">
+        <div class="valor text-xs font-semibold mb-1">
           R$ ${valorConsumido}
         </div>
       </div>
@@ -5345,7 +5345,9 @@ function renderizarMesa(mesa) {
     badge = null;
   }
 
+  // =========================
   // Atualiza hora_ocupada automaticamente
+  // =========================
   if (ocupada && !mesa.hora_ocupada) {
     const horaAtual = horaSP();
     supabase
@@ -5353,6 +5355,52 @@ function renderizarMesa(mesa) {
       .update({ hora_ocupada: horaAtual })
       .eq("id", mesa.id)
       .then(({ error }) => { if (error) console.error("Erro ao atualizar hora_ocupada:", error); });
+  }
+
+  // =========================
+  // PISCAR + ATUALIZAR ATENDIDA AUTOMATICAMENTE
+  // =========================
+  if (ocupada && mesa.hora_ocupada) {
+    function verificarAtendimento() {
+      const agora = new Date();
+      const horaOcupada = new Date(mesa.hora_ocupada);
+      const diffSeg = Math.floor((agora - horaOcupada) / 1000);
+
+      // 10 minutos = 600 segundos
+      if (diffSeg >= 600 && atendida) {
+        atendida = false;
+
+        // Atualiza visual
+        atualizarStatusVisual(mesaDiv, true, false);
+
+        // Atualiza supabase
+        supabase
+          .from("mesas")
+          .update({ atendida: false })
+          .eq("id", mesa.id)
+          .then(({ error }) => {
+            if (error) console.error("Erro ao atualizar atendida para false:", error);
+          });
+      }
+
+      // Adiciona efeito de piscar se não atendida
+      if (!atendida) {
+        mesaDiv.classList.add("blink");
+      } else {
+        mesaDiv.classList.remove("blink");
+      }
+    }
+
+    verificarAtendimento();
+    if (!mesaDiv.intervalAtendimento) {
+      mesaDiv.intervalAtendimento = setInterval(verificarAtendimento, 1000);
+    }
+  } else {
+    if (mesaDiv.intervalAtendimento) {
+      clearInterval(mesaDiv.intervalAtendimento);
+      mesaDiv.intervalAtendimento = null;
+      mesaDiv.classList.remove("blink");
+    }
   }
 }
 

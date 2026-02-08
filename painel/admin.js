@@ -5253,7 +5253,7 @@ function renderizarMesa(mesa) {
   let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
-  let atendida = mesa.atendida === true; // Mesa com comanda ativa
+  const atendida = mesa.atendida === true; // Mesa com comanda ativa
   const comandaAtiva = atendida;
 
   mesa.itens = mesa.itens || []; // garante que sempre seja um array
@@ -5267,14 +5267,14 @@ function renderizarMesa(mesa) {
     mesaDiv.className = `relative flex flex-col items-center justify-start cursor-pointer transition-transform hover:scale-105`;
 
     mesaDiv.innerHTML = `
-      <div class="monitor w-full h-32 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
+      <div class="monitor w-full h-28 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
         <div class="titulo w-full text-center text-xs font-bold bg-black text-white py-1">
           Mesa ${String(mesa.numero).padStart(3, "0")}
         </div>
         <div class="status-text text-sm font-bold mt-2">
           ${ocupada ? "OCUPADA" : "LIVRE"}
         </div>
-        <div class="valor text-xs font-semibold mb-1">
+        <div class="valor text-xs font-semibold mb-2">
           R$ ${valorConsumido}
         </div>
       </div>
@@ -5345,9 +5345,7 @@ function renderizarMesa(mesa) {
     badge = null;
   }
 
-  // =========================
   // Atualiza hora_ocupada automaticamente
-  // =========================
   if (ocupada && !mesa.hora_ocupada) {
     const horaAtual = horaSP();
     supabase
@@ -5356,53 +5354,8 @@ function renderizarMesa(mesa) {
       .eq("id", mesa.id)
       .then(({ error }) => { if (error) console.error("Erro ao atualizar hora_ocupada:", error); });
   }
-
-  // =========================
-  // PISCAR + ATUALIZAR ATENDIDA AUTOMATICAMENTE
-  // =========================
-  if (ocupada && mesa.hora_ocupada) {
-    function verificarAtendimento() {
-      const agora = new Date();
-      const horaOcupada = new Date(mesa.hora_ocupada);
-      const diffSeg = Math.floor((agora - horaOcupada) / 1000);
-
-      // 10 minutos = 600 segundos
-      if (diffSeg >= 600 && atendida) {
-        atendida = false;
-
-        // Atualiza visual
-        atualizarStatusVisual(mesaDiv, true, false);
-
-        // Atualiza supabase
-        supabase
-          .from("mesas")
-          .update({ atendida: false })
-          .eq("id", mesa.id)
-          .then(({ error }) => {
-            if (error) console.error("Erro ao atualizar atendida para false:", error);
-          });
-      }
-
-      // Adiciona efeito de piscar se não atendida
-      if (!atendida) {
-        mesaDiv.classList.add("blink");
-      } else {
-        mesaDiv.classList.remove("blink");
-      }
-    }
-
-    verificarAtendimento();
-    if (!mesaDiv.intervalAtendimento) {
-      mesaDiv.intervalAtendimento = setInterval(verificarAtendimento, 1000);
-    }
-  } else {
-    if (mesaDiv.intervalAtendimento) {
-      clearInterval(mesaDiv.intervalAtendimento);
-      mesaDiv.intervalAtendimento = null;
-      mesaDiv.classList.remove("blink");
-    }
-  }
 }
+
 
 // =========================
 // FUNÇÃO PARA ABRIR COMANDA
@@ -5427,7 +5380,6 @@ async function abrirComanda(mesaId) {
 
   const empresa = empresas[0];
 
-  
   // ===============================
   // REMOVE MODAL ANTIGO
   // ===============================
@@ -5586,93 +5538,71 @@ async function abrirComanda(mesaId) {
   // CLIENTE E MESA
   // ===============================
   const campoCliente = document.createElement("div");
-campoCliente.style.marginTop = "6px";
+  campoCliente.style.marginTop = "6px";
 
-const labelCliente = document.createElement("span");
-labelCliente.textContent = "Cliente: ";
+  const labelCliente = document.createElement("span");
+  labelCliente.textContent = "Cliente: ";
 
-// ============================
-// SELECT CLIENTE
-// ============================
-const selectCliente = document.createElement("select");
+  const selectCliente = document.createElement("select");
+  Object.assign(selectCliente.style, {
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    padding: "2px 6px",
+    fontSize: "12px",
+    marginLeft: "4px"
+  });
 
-Object.assign(selectCliente.style, {
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  padding: "2px 6px",
-  fontSize: "12px",
-  marginLeft: "4px"
-});
-
-// ===============================
-// BUSCAR CLIENTE NA COMANDA
-// ===============================
-async function carregarClienteComanda() {
-
-  const { data, error } = await supabase
-    .from("comandas")
-    .select("cliente_nome")
-    .eq("mesa_id", mesa.id)
-    .eq("status", "aberta")
-    .limit(1);
-
-  if (error) {
-    console.error("Erro ao buscar cliente da comanda:", error);
-    return;
-  }
-
-  selectCliente.innerHTML = "";
-
-  // 👉 NÃO EXISTE COMANDA ABERTA
-  if (!data || data.length === 0) {
-
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "Sem cliente";
-
-    selectCliente.appendChild(option);
-    return;
-  }
-
-  // 👉 EXISTE COMANDA ABERTA
-  const clienteNome = data[0].cliente_nome || "";
-
-  const option = document.createElement("option");
-  option.value = clienteNome;
-  option.textContent = clienteNome || "Sem cliente";
-
-  selectCliente.appendChild(option);
-}
-
-await carregarClienteComanda();
-
-
-// ===============================
-// ALTERAR CLIENTE NA COMANDA
-// ===============================
-selectCliente.addEventListener("change", async () => {
-
-  const nomeCliente = selectCliente.value || null;
-
-  try {
-
-    await supabase
+  // ===============================
+  // BUSCAR CLIENTE NA COMANDA
+  // ===============================
+  async function carregarClienteComanda() {
+    const { data, error } = await supabase
       .from("comandas")
-      .update({ cliente_nome: nomeCliente })
+      .select("cliente_nome")
       .eq("mesa_id", mesa.id)
-      .eq("status", "aberta");
+      .eq("status", "aberta")
+      .limit(1);
 
-  } catch (e) {
-    console.error("Erro ao salvar cliente:", e);
+    if (error) {
+      console.error("Erro ao buscar cliente da comanda:", error);
+      return;
+    }
+
+    selectCliente.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "Sem cliente";
+      selectCliente.appendChild(option);
+      return;
+    }
+
+    const clienteNome = data[0].cliente_nome || "";
+    const option = document.createElement("option");
+    option.value = clienteNome;
+    option.textContent = clienteNome || "Sem cliente";
+    selectCliente.appendChild(option);
   }
 
-  abrirComanda(mesa.id);
-});
+  await carregarClienteComanda();
 
+  selectCliente.addEventListener("change", async () => {
+    const nomeCliente = selectCliente.value || null;
+    try {
+      await supabase
+        .from("comandas")
+        .update({ cliente_nome: nomeCliente })
+        .eq("mesa_id", mesa.id)
+        .eq("status", "aberta");
+    } catch (e) {
+      console.error("Erro ao salvar cliente:", e);
+    }
+    abrirComanda(mesa.id);
+  });
 
-campoCliente.append(labelCliente, selectCliente);
-comanda.appendChild(campoCliente);
-
+  campoCliente.append(labelCliente, selectCliente);
+  comanda.appendChild(campoCliente);
 
   const campoMesa = document.createElement("div");
   campoMesa.style.marginTop = "6px";
@@ -5680,9 +5610,47 @@ comanda.appendChild(campoCliente);
   comanda.appendChild(campoMesa);
 
   // ===============================
-  // PRODUTOS (COM CHECKBOX E VALOR NO CANTO DIREITO)
+  // PRODUTOS (COM CHECKBOX MARCADO PELO PEDIDO)
   // ===============================
+
   let produtosParaMostrar = [];
+
+  // Buscar cliente da comanda atual
+  let clienteNome = mesa.cliente_nome || "";
+  if (!clienteNome) {
+    const { data: comandaData } = await supabase
+      .from("comandas")
+      .select("cliente_nome")
+      .eq("mesa_id", mesa.id)
+      .eq("status", "aberta")
+      .limit(1)
+      .maybeSingle();
+    if (comandaData) clienteNome = comandaData.cliente_nome;
+  }
+
+  // Buscar pedidos abertos do cliente
+  let pedidosCliente = [];
+  if (clienteNome) {
+    const { data: pedidosData, error: erroPedidos } = await supabase
+      .from("pedidos")
+      .select("itens, cliente")
+      .eq("cliente", clienteNome)
+      .eq("status", "aberto");
+
+    if (erroPedidos) console.error("Erro ao buscar pedidos do cliente:", erroPedidos);
+    else if (pedidosData) pedidosCliente = pedidosData;
+  }
+
+  // Criar set de produtos já pedidos
+  const produtosMarcados = new Set();
+  pedidosCliente.forEach(pedido => {
+    try {
+      const itens = JSON.parse(pedido.itens);
+      itens.forEach(i => produtosMarcados.add(i.id));
+    } catch (e) {
+      console.error("Erro ao ler itens do pedido:", e);
+    }
+  });
 
   if (mesa.atendida) {
     const { data: todosProdutos, error: erroProdutos } = await supabase
@@ -5738,6 +5706,9 @@ comanda.appendChild(campoCliente);
       checkbox.type = "checkbox";
       checkbox.id = "produto-" + item.id;
 
+      // ✅ Marcar se já pedido
+      if (produtosMarcados.has(item.id)) checkbox.checked = true;
+
       const label = document.createElement("label");
       label.htmlFor = "produto-" + item.id;
       label.textContent = item.descricao || item.nome;
@@ -5755,7 +5726,7 @@ comanda.appendChild(campoCliente);
   }
 
   // ===============================
-  // RODAPÉ
+  // RODAPÉ E TOTAL
   // ===============================
   const avisoRodapeWrapper = document.createElement("div");
   Object.assign(avisoRodapeWrapper.style, {
@@ -5777,28 +5748,25 @@ comanda.appendChild(campoCliente);
   rodape.innerHTML = "Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>";
   Object.assign(rodape.style, { fontSize: "9px", color: "#666", textAlign: "right" });
 
-  // TOTAL
-let totalComanda = 0;
+  let totalComanda = 0;
+  if (mesa.itens && mesa.itens.length > 0) {
+    mesa.itens.forEach(item => {
+      totalComanda += Number(item.valor_sugerido ?? item.valor ?? 0);
+    });
+  }
 
-// Soma valores dos itens já existentes na mesa
-if (mesa.itens && mesa.itens.length > 0) {
-  mesa.itens.forEach(item => {
-    totalComanda += Number(item.valor_sugerido ?? item.valor ?? 0);
+  
+  const total = document.createElement("div");
+  total.textContent = `Total R$ ${totalComanda.toFixed(2)}`;
+  Object.assign(total.style, {
+    fontSize: "13px",
+    fontWeight: "bold",
+    color: "#000",
+    textAlign: "right",
+    marginTop: "6px"
   });
-}
 
-const total = document.createElement("div");
-total.textContent = `Total R$ ${totalComanda.toFixed(2)}`;
-Object.assign(total.style, {
-  fontSize: "13px",
-  fontWeight: "bold",
-  color: "#000",
-  textAlign: "right",
-  marginTop: "6px"
-});
-
-avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
-
+  avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
   comanda.appendChild(avisoRodapeWrapper);
 
   // ===============================
@@ -5819,91 +5787,49 @@ avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
     fontSize: "13px"
   });
 
-   btnImprimir.onclick = () => {
+  btnImprimir.onclick = () => {
+    const conteudoParaImprimir = document.createElement("div");
+    comanda.childNodes.forEach(child => {
+      if (child !== btnImprimir && child !== btnFechar) {
+        conteudoParaImprimir.appendChild(child.cloneNode(true));
+      }
+    });
 
-  const conteudoParaImprimir = document.createElement("div");
+    const iframe = document.createElement("iframe");
+    Object.assign(iframe.style, {
+      position: "absolute",
+      width: "0",
+      height: "0",
+      border: "0",
+      left: "-9999px"
+    });
 
-  comanda.childNodes.forEach(child => {
-    if (child !== btnImprimir && child !== btnFechar) {
-      conteudoParaImprimir.appendChild(child.cloneNode(true));
-    }
-  });
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
 
-  // ============================
-  // REMOVE SOMENTE VALORES DOS PRODUTOS
-  // ============================
-
-  conteudoParaImprimir.querySelectorAll("div").forEach(bloco => {
-
-    const valor = bloco.querySelector("div:last-child");
-
-    if (valor && valor.textContent.trim().startsWith("R$")) {
-      valor.remove();
-    }
-
-  });
-
-  const iframe = document.createElement("iframe");
-
-  Object.assign(iframe.style, {
-    position: "absolute",
-    width: "0",
-    height: "0",
-    border: "0",
-    left: "-9999px"
-  });
-
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentWindow.document;
-
-  doc.open();
-  doc.write(`
-    <html>
-      <head>
-
-        <style>
-          @page { margin: 0; }
-
-          body {
-            font-family: Arial, sans-serif;
-            margin: 5mm;
-            font-size: 12px; /* ✅ DIMINUIU O TAMANHO GERAL */
-          }
-
-          .comanda {
-            width: 10cm;
-            font-size: 12px;
-          }
-
-          /* Diminui textos internos */
-          .comanda * {
-            font-size: 12px;
-          }
-
-        </style>
-
-      </head>
-
-      <body>
-        <div class="comanda">
-          ${conteudoParaImprimir.innerHTML}
-        </div>
-      </body>
-    </html>
-  `);
-
-  doc.close();
-
-  iframe.contentWindow.focus();
-  iframe.contentWindow.print();
-
-  setTimeout(() => iframe.remove(), 1000);
-};
+    doc.open();
+    doc.write(`
+      <html>
+        <head>
+          <style>
+            @page { margin: 0; }
+            body { font-family: Arial, sans-serif; margin: 5mm; font-size: 12px; }
+            .comanda { width: 10cm; font-size: 12px; }
+            .comanda * { font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="comanda">${conteudoParaImprimir.innerHTML}</div>
+        </body>
+      </html>
+    `);
+    doc.close();
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => iframe.remove(), 1000);
+  };
 
   comanda.appendChild(btnImprimir);
-
-  // Adiciona overlay ao body
   document.body.appendChild(overlay);
 }
 

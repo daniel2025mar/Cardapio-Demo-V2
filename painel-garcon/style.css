@@ -1185,10 +1185,455 @@ MODAL GERAR COMANDA - AZUL ESCURO (SEM CONFLITOS)
   word-wrap: break-word;
 }
 
+
 /* Texto */
 .modal-box p {
   font-size: 16px;
   color: #4b5563;
   line-height: 1.5;
   word-wrap: break-word;
+}
+
+/* =========================
+   MENU LATERAL MODERNO
+========================= */
+.menu-lateral {
+  position: fixed;
+  top: 70px;
+  left: -240px;
+  width: 240px;
+  height: calc(100% - 70px);
+  background-color: #f9f9f9;
+  color: #333;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+  transition: left 0.3s ease;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* evita que a versão fique escondida */
+  font-family: 'Inter', sans-serif;
+}
+
+.menu-lateral.aberto {
+  left: 0;
+}
+
+/* CABEÇALHO DO MENU */
+.menu-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.menu-topo h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.btn-fechar {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.btn-fechar:hover {
+  color: #584cff;
+  transform: rotate(90deg);
+}
+
+
+/* =========================
+   BOTÃO HAMBURGUER
+========================= */
+.btn-hamburguer {
+  position: absolute; /* acompanha rolagem */
+  top: 80px;
+  left: 16px;
+  width: 42px;
+  height: 42px;
+  background-color: #07026b;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.35);
+  z-index: 1000;
+  transition: all 0.25s ease;
+}
+
+.btn-hamburguer:hover {
+  background-color: #4338ca;
+}
+
+/* ITENS DO MENU */
+.menu-itens {
+  list-style: none;
+  padding: 12px 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 12px 20px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+  border-radius: 12px;
+}
+
+.menu-item:hover {
+  background-color: #eef2ff;
+  transform: translateX(4px);
+}
+
+/* Ícones dos itens */
+.menu-item .icon {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+/* SUBMENU */
+.submenu {
+  list-style: none;
+  padding-left: 28px;
+  margin: 6px 0 12px 0;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-item.expandivel.active + .submenu {
+  display: flex;
+}
+
+.submenu-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submenu-item:hover {
+  background-color: #e0e7ff;
+  color: #1f2937;
+}
+
+/* SETA */
+.seta {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.menu-item.expandivel.active .seta {
+  transform: rotate(180deg);
+}
+
+/* =========================
+   VERSÃO NO FINAL
+========================= */
+.menu-versao {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #000; /* preto */
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVO */
+@media (max-width: 480px) {
+  .menu-lateral {
+    width: 200px;
+    top: 60px;
+    height: calc(100% - 60px);
+  }
+
+  .btn-hamburguer {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+
+  .menu-item {
+    padding: 10px 16px;
+  }
+}
+
+/* ============================
+   MODAIS GERAIS
+============================ */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+  display: none; /* padrão escondido */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  width: 450px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  font-family: Arial, sans-serif;
+}
+
+/* Botão fechar (X) */
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-modal:hover {
+  color: #ff0000;
+}
+
+/* Títulos */
+.modal-content h2 {
+  margin-top: 0;
+  font-size: 22px;
+  color: #333;
+}
+
+/* Input e botão de busca */
+.modal-busca {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.modal-busca input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.modal-busca button {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal-busca button:hover {
+  background-color: #0056b3;
+}
+
+/* Resultado das comandas */
+.resultado-comanda p,
+.resultado-comanda button {
+  margin: 6px 0;
+  font-size: 16px;
+}
+
+.resultado-comanda button {
+  padding: 6px 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.resultado-comanda button:hover {
+  background-color: #218838;
+}
+
+/* Scroll caso tenha muitas comandas */
+.resultado-comanda {
+  max-height: 250px;
+  overflow-y: auto;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+/* ==============================
+   OVERLAY DO MODAL
+============================== */
+#modalAdicionarProdutos {
+  display: none; /* escondido por padrão */
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  background-color: rgba(0,0,0,0.5); /* fundo preto semi-transparente */
+  justify-content: center; /* centraliza horizontalmente */
+  align-items: center; /* centraliza verticalmente */
+  z-index: 10000; /* acima de todos os elementos */
+}
+
+/* ==============================
+   CAIXA DO MODAL
+============================== */
+#modalAdicionarProdutos .modal-box {
+  background-color: #fff;
+  padding: 25px 30px;
+  border-radius: 16px;
+  width: 360px;
+  max-width: 90%;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  opacity: 1;
+  transform: translateY(0);
+  animation: modalEntrada 0.3s ease-out; /* animação de entrada */
+}
+
+/* ==============================
+   TÍTULO DO MODAL
+============================== */
+#modalAdicionarProdutos h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #111;
+  text-align: center;
+}
+
+/* ==============================
+   LISTA DE PRODUTOS
+============================== */
+#modalAdicionarProdutos #listaProdutos {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+/* ITEM DA LISTA */
+#modalAdicionarProdutos #listaProdutos .produtoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background-color: #fff;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 14px;
+}
+
+/* ==============================
+   INPUT DE NOVO PRODUTO
+============================== */
+#modalAdicionarProdutos input[type="text"] {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+#modalAdicionarProdutos input[type="text"]:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 10px rgba(37,99,235,0.3);
+}
+
+/* ==============================
+   BOTÕES DO MODAL
+============================== */
+#modalAdicionarProdutos button {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: 10px;
+}
+
+/* BOTÃO ADICIONAR */
+#modalAdicionarProdutos #btnAdicionarProduto {
+  background-color: #2563eb; /* azul */
+  color: #fff;
+}
+
+#modalAdicionarProdutos #btnAdicionarProduto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(37,99,235,0.4);
+}
+
+/* BOTÃO FECHAR */
+#modalAdicionarProdutos .close-modal,
+#modalAdicionarProdutos #btnFecharProdutos {
+  background-color: transparent; /* sem fundo */
+  color: #888; /* cinza suave */
+  font-size: 18px; /* tamanho menor */
+  padding: 5px 10px; /* pequeno */
+  border-radius: 8px;
+  border: 1px solid #ccc; /* borda discreta */
+  margin-top: 0; /* sem margem extra */
+  float: right; /* posiciona no canto direito */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#modalAdicionarProdutos .close-modal:hover,
+#modalAdicionarProdutos #btnFecharProdutos:hover {
+  background-color: #ddd;
+}
+
+/* ==============================
+   ANIMAÇÃO DE ENTRADA
+============================== */
+@keyframes modalEntrada {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }

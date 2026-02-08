@@ -30,6 +30,52 @@ function mostrarModalErro(mensagem) {
   btn.onclick = () => modal.classList.add("hidden");
 }
 
+// Função para abrir o modal e mostrar a rota
+export function mostrarRota(entregadorLat, entregadorLng, clienteLat, clienteLng) {
+  const modal = document.getElementById('modal-mapa');
+  const btnFechar = document.getElementById('btn-fechar-mapa');
+
+  modal.classList.remove('hidden');
+
+  // Inicializa o mapa
+  const map = L.map('mapa').setView([entregadorLat, entregadorLng], 13);
+
+  // Camada de mapa
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Adiciona a rota real usando Leaflet Routing Machine
+  const rota = L.Routing.control({
+    waypoints: [
+      L.latLng(entregadorLat, entregadorLng),
+      L.latLng(clienteLat, clienteLng)
+    ],
+    routeWhileDragging: false,
+    show: false,
+    addWaypoints: false,
+    draggableWaypoints: false,
+    createMarker: function(i, wp, nWps) {
+      if (i === 0) return L.marker(wp.latLng).bindPopup('Você (Entregador)').openPopup();
+      if (i === nWps - 1) return L.marker(wp.latLng).bindPopup('Cliente');
+      return null;
+    }
+  }).addTo(map);
+
+  // Ajusta o zoom para mostrar toda a rota
+  rota.on('routesfound', function(e) {
+    map.fitBounds(e.routes[0].bounds, {padding: [50, 50]});
+  });
+
+  // Botão para fechar modal
+  btnFechar.onclick = () => {
+    modal.classList.add('hidden');
+    map.remove();
+  };
+}
+
+
+
 // =============================
 // SALVAR USERNAME DO ENTREGADOR
 // =============================
@@ -180,14 +226,51 @@ function criarCardEntrega(entrega) {
         class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full shadow-md">
         Finalizar Pedido
       </button>
+
+      <!-- Botão para ver rota -->
+      <button id="btn-rota-${entrega.id}"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-full shadow-md">
+        Ver Rota
+      </button>
     </div>
   `;
 
+  // Botão Finalizar Pedido
   card.querySelector(`#btn-${entrega.id}`).onclick = () =>
     entregarPedidoDOM(entrega.id, null, entrega.numero_pedido);
 
+  // 🔹 Botão Ver Rota atualizado para usar coordenadas reais
+  card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
+    const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
+
+    if (!entregador || !entregador.lat || !entregador.lng) {
+      alert("Coordenadas do entregador não encontradas!");
+      return;
+    }
+
+    mostrarRota(
+      entregador.lat,           // lat do entregador
+      entregador.lng,           // lng do entregador
+      entrega.lat_cliente,      // lat do cliente
+      entrega.lng_cliente       // lng do cliente
+    );
+  };
+
   return card;
 }
+
+// Exemplo de salvar entregador logado com coordenadas
+const entregador = {
+  id: 1,
+  nome: "Carlos Silva",
+  username: "carlos",
+  lat: -19.8375,   // Latitude do entregador (Matutina)
+  lng: -46.2970    // Longitude do entregador (Matutina)
+};
+
+localStorage.setItem("entregadorLogado", JSON.stringify(entregador));
+
+
 
 // =============================
 // CARREGAR ENTREGAS

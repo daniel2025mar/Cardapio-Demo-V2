@@ -1262,23 +1262,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // =============================
-      // 5️⃣ CALCULAR TOTAIS
+      // 5️⃣ CALCULAR TOTAIS E MONTAR ITENS
       // =============================
       let totalPedido = 0;
       let totalItens = 0;
 
-      for (const checkbox of checkboxes) {
+      const itensPedido = Array.from(checkboxes).map(checkbox => {
         const idProduto = checkbox.getAttribute("data-id");
-        const inputQtd = document.querySelector(`.quantidadeProduto[data-id="${idProduto}"]`);
-        const quantidade = Number(inputQtd.value);
-
         const produto = produtosDados.find(p => String(p.id) === idProduto);
-        if (!produto) continue;
+        if (!produto) return null;
+
+        const inputQtd = document.querySelector(`.quantidadeProduto[data-id="${idProduto}"]`);
+        const quantidade = inputQtd ? Number(inputQtd.value) : 1;
 
         const subtotal = produto.valor_sugerido * quantidade;
         totalPedido += subtotal;
         totalItens += quantidade;
-      }
+
+        return {
+          id: produto.id,
+          nome: produto.nome,
+          quantidade: quantidade,
+          valor_unitario: produto.valor_sugerido,
+          subtotal: subtotal
+        };
+      }).filter(item => item !== null);
 
       // =============================
       // 6️⃣ ATUALIZAR RELATÓRIO GARÇOM
@@ -1313,7 +1321,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const { error } = await supabase
           .from("relatorio_garcom")
           .insert({
-            id: uuidv4(),
+            id: Date.now(),
             garcom_id: usuarioLogado.id,
             nome_garcom: usuarioLogado.username,
             data: hoje,
@@ -1332,19 +1340,122 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // =============================
-      // 7️⃣ ATUALIZAR MESA
+      // 7️⃣ ABRIR MODAL GERAR COMANDA PARA INSERIR NOME
       // =============================
-      await supabase
-        .from("mesas")
-        .update({
-          atendida: true,
-          ativo: true,
-          ultimo_atendimento: horaSP
-        })
-        .eq("id", mesa.id);
+      const modalGerarComanda = document.getElementById("modalGerarComanda");
+      if (!modalGerarComanda) {
+        abrirModalErro("Modal de comanda não encontrado.");
+        return;
+      }
+
+      await window.abrirModalGerarComandaAsync();
+
+      const inputNomeCliente = document.querySelector("#modalGerarComanda input[name='nomeCliente']") || 
+                               document.querySelector("#nomeClienteInput");
+      const nomeCliente = inputNomeCliente ? inputNomeCliente.value.trim() : "";
+
+      if (!nomeCliente) {
+        abrirModalErro("Informe o nome do cliente para gerar o pedido.");
+        return;
+      }
 
       // =============================
-      // 8️⃣ LIMPAR TELA
+      // 8️⃣ ENVIAR PEDIDO PARA TABELA "pedidos"
+      // =============================
+      const novoPedido = {
+        id: Date.now(),
+        subtotal: totalPedido,
+        total: totalPedido,
+        criado_em: horaSP,
+        itens: JSON.stringify(itensPedido),
+        cliente: nomeCliente,
+        status: "aberto",
+        pagamento: "não informado",
+        tipo_entrega: "não informado",
+        horario_recebido: horaSP,
+        horario_recebido_status: "registrado",
+        horario_preparo_status: null,
+        horario_entrega_status: null
+      };
+
+      const { data: pedidoSalvo, error: erroPedido } = await supabase
+        .from("pedidos")
+        .insert([novoPedido]);
+
+      if (erroPedido) {
+        console.error("Erro ao enviar pedido:", erroPedido);
+        abrirModalErro("Erro ao salvar pedido.");
+        return;
+      }
+
+      console.log("✅ Pedido salvo com sucesso:", pedidoSalvo);
+
+      // =============================
+      // 9️⃣ ATUALIZAR MESA PARA ATENDIDA POR 10 MINUTOS
+      // =============================
+      // =============================
+// 9️⃣ ATUALIZAR MESA PARA ATENDIDA POR 10 MINUTOS
+// =============================
+console.log("Atualizando mesa para atendida, ID:", mesa.id);
+
+const { data: mesaAtualizada, error: erroMesa } = await supabase
+  .from("mesas")
+  .update({
+    atendida: true,
+    ativo: true,
+    ultimo_atendimento: horaSP // registra o momento exato do atendimento
+  })
+  .eq("id", mesa.id)
+  .select();
+
+if (erroMesa) {
+  console.error("Erro ao atualizar mesa:", erroMesa);
+} else {
+  console.log("Mesa atualizada:", mesaAtualizada);
+}
+
+// =============================
+// FUNÇÃO PARA RESETAR MESA APÓS 10 MINUTOS
+// =============================
+async function resetarMesa(mesaId) {
+  const { data: mesaReset, error: erroReset } = await supabase
+    .from("mesas")
+    .update({ atendida: false, ativo: false })
+    .eq("id", mesaId)
+    .select();
+
+  if (erroReset) console.error("Erro ao resetar mesa:", erroReset);
+  else console.log("Mesa resetada automaticamente após 10 min:", mesaReset);
+}
+
+// =============================
+// DESATIVA AUTOMATICAMENTE APÓS 10 MINUTOS
+// =============================
+setTimeout(() => resetarMesa(mesa.id), 10 * 60 * 1000); // 10 minutos
+
+
+      // =============================
+      // 🔟 ADICIONAR COMANDA NA TABELA "comandas"
+      // =============================
+      const { data: comandaSalva, error: erroComanda } = await supabase
+        .from("comandas")
+        .insert([{
+          id: crypto.randomUUID(),
+          cliente_nome: nomeCliente,
+          mesa_id: mesa.id,
+          cadeira: 1, // ajuste conforme seu sistema de cadeiras
+          data_abertura: horaSP,
+          status: "aberta"
+        }]);
+
+      if (erroComanda) {
+        console.error("Erro ao criar comanda:", erroComanda);
+      } else {
+        console.log("Comanda criada:", comandaSalva);
+      }
+
+      // =============================
+      // 1️⃣1️⃣ LIMPAR TELA
       // =============================
       document.querySelectorAll(".checkboxProduto").forEach(c => c.checked = false);
       document.querySelectorAll(".quantidadeProduto").forEach(q => {
@@ -1355,30 +1466,9 @@ document.addEventListener("DOMContentLoaded", () => {
       calcularTotal();
 
       // =============================
-      // 9️⃣ ABRIR MODAL GERAR COMANDA ANTES DO SUCESSO
+      // 1️⃣2️⃣ MENSAGEM DE SUCESSO
       // =============================
-      const modalGerarComanda = document.getElementById("modalGerarComanda");
-      if (modalGerarComanda) {
-        modalGerarComanda.classList.remove("hidden");
-
-        await new Promise((resolve) => {
-          const btnFecharComanda = modalGerarComanda.querySelector(".btn-fechar-comanda");
-          if (!btnFecharComanda) {
-            resolve();
-            return;
-          }
-
-          btnFecharComanda.addEventListener("click", () => {
-            modalGerarComanda.classList.add("hidden");
-            resolve();
-          }, { once: true });
-        });
-      }
-
-      // =============================
-      // 🔟 MOSTRAR MENSAGEM DE SUCESSO
-      // =============================
-      abrirModalErro("✅ Pedido enviado com sucesso!");
+      abrirModalErro("✅ Pedido enviado e comanda aberta com sucesso!");
       carregarRelatorioGarcom();
 
     } catch (erro) {
@@ -1460,3 +1550,288 @@ document.addEventListener("DOMContentLoaded", () => {
   verificarServidorGarcom();
   setInterval(verificarServidorGarcom, 5000);
 });
+
+function inicializarMenuLateral() {
+  const menuLateral = document.getElementById("menuLateral");
+  const btnAbrirMenu = document.getElementById("btnAbrirMenu");
+  const btnFecharMenu = document.getElementById("btnFecharMenu");
+  const body = document.body;
+
+  // Abrir menu
+  btnAbrirMenu.addEventListener("click", () => {
+    menuLateral.style.left = "0";
+    body.classList.add("menu-aberto");
+  });
+
+  // Fechar menu
+  btnFecharMenu.addEventListener("click", () => {
+    menuLateral.style.left = "-260px";
+    body.classList.remove("menu-aberto");
+  });
+
+  // Submenus expansíveis
+  document.querySelectorAll(".menu-item.expandivel").forEach(item => {
+    item.addEventListener("click", () => {
+      const submenu = item.nextElementSibling;
+      const seta = item.querySelector(".seta");
+
+      if (submenu.style.display === "block") {
+        submenu.style.display = "none";
+        seta.textContent = "▾";
+      } else {
+        submenu.style.display = "block";
+        seta.textContent = "▴";
+      }
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  inicializarMenuLateral();
+});
+
+// modal abrir comandas
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("modalComandas");
+  const btnFechar = modal.querySelector(".close-modal");
+  const menuLateral = document.getElementById("menuLateral"); // menu lateral
+
+  // Função para abrir o modal
+  function abrirModal() {
+    modal.classList.add("aberto"); // adiciona classe para mostrar modal
+    modal.style.display = "flex";  // garante visibilidade
+    document.getElementById("inputCliente").focus();
+  }
+
+  // Função para fechar o modal
+  function fecharModal() {
+    modal.classList.remove("aberto");
+    modal.style.display = "none";
+    document.getElementById("inputCliente").value = "";
+    document.getElementById("resultadoComanda").innerHTML = "";
+  }
+
+  // Função para fechar o menu lateral
+  function fecharMenuLateral() {
+    menuLateral.classList.remove("aberto");
+    menuLateral.style.left = "-240px"; // força o fechamento
+  }
+
+  // Abrir modal ao clicar em "Ver Comandas"
+  document.querySelectorAll(".submenu-item").forEach(item => {
+    if (item.textContent.trim() === "Ver Comandas") {
+      item.addEventListener("click", () => {
+        fecharMenuLateral(); // fecha o menu lateral
+        abrirModal();        // abre o modal
+      });
+    }
+  });
+
+  // Fechar modal ao clicar no X
+  btnFechar.addEventListener("click", fecharModal);
+
+  // Fechar modal ao clicar fora do conteúdo
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      fecharModal();
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ==========================
+  // ELEMENTOS DO MODAL PRODUTOS
+  // ==========================
+  const modalProdutos = document.getElementById("modalAdicionarProdutos");
+  const btnFecharProdutos = document.getElementById("btnFecharProdutos");
+
+  if (!modalProdutos || !btnFecharProdutos) {
+    console.error("❌ Elementos do modalAdicionarProdutos não encontrados!");
+    return;
+  }
+
+  // ==========================
+  // FUNÇÕES DO MODAL PRODUTOS
+  // ==========================
+  function abrirModalProdutos() {
+    modalProdutos.style.display = "flex";   // exibe o modal
+    modalProdutos.style.zIndex = 9999;       // garante que fique acima de tudo
+  }
+
+  function fecharModalProdutos() {
+    modalProdutos.style.display = "none";   // esconde o modal
+  }
+
+  // ==========================
+  // EVENTOS DE FECHAMENTO
+  // ==========================
+  btnFecharProdutos.addEventListener("click", fecharModalProdutos);
+
+  // fechar ao clicar fora da caixa do modal
+  window.addEventListener("click", (e) => {
+    if (e.target === modalProdutos) fecharModalProdutos();
+  });
+
+  // fechar com Esc
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") fecharModalProdutos();
+  });
+
+  // ==========================
+  // EXEMPLO: ABRIR MODAL AO CLICAR EM QUALQUER BOTÃO DE COMANDA
+  // ==========================
+  document.querySelectorAll(".btn-comanda-aberta").forEach(btn => {
+    btn.addEventListener("click", abrirModalProdutos);
+  });
+
+});
+
+
+
+// ===============================
+// MODAL ABRIR COMANDAS COM ADICIONAR PRODUTOS
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ==========================
+  // ELEMENTOS MODAIS
+  // ==========================
+  const modal = document.getElementById("modalComandas");
+  const btnFechar = modal?.querySelector(".close-modal");
+  const menuLateral = document.getElementById("menuLateral");
+  const inputCliente = document.getElementById("inputCliente");
+  const resultadoComanda = document.getElementById("resultadoComanda");
+
+  const modalProdutos = document.getElementById("modalAdicionarProdutos");
+  const btnFecharProdutos = document.getElementById("btnFecharProdutos");
+
+  if (!modal || !btnFechar || !menuLateral || !inputCliente || !resultadoComanda || !modalProdutos) {
+    console.error("❌ Elementos do modal não encontrados!");
+    return;
+  }
+
+  // ==========================
+  // FUNÇÕES DE MODAL
+  // ==========================
+  function abrirModal(modalEl) {
+    modalEl.style.display = "flex";
+  }
+
+  function fecharModal(modalEl) {
+    modalEl.style.display = "none";
+  }
+
+  function fecharMenuLateral() {
+    menuLateral.classList.remove("aberto");
+    menuLateral.style.left = "-240px";
+  }
+
+  // ==========================
+  // MODAL PRODUTOS (APENAS ABRIR)
+  // ==========================
+  function abrirModalProdutos() {
+    abrirModal(modalProdutos);
+  }
+
+  // ==========================
+  // EVENTOS MODAIS
+  // ==========================
+  // Abrir modal comandas pelo menu
+  document.querySelectorAll(".submenu-item").forEach(item => {
+    if (item.textContent.trim() === "Ver Comandas") {
+      item.addEventListener("click", () => {
+        fecharMenuLateral();
+        abrirModal(modal);
+        inputCliente.focus();
+      });
+    }
+  });
+
+  // Fechar modais
+  btnFechar.addEventListener("click", () => fecharModal(modal));
+  btnFecharProdutos.addEventListener("click", () => fecharModal(modalProdutos));
+
+  // Fechar qualquer modal ao clicar fora
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) fecharModal(modal);
+    if (e.target === modalProdutos) fecharModal(modalProdutos);
+  });
+
+  // Fechar com Esc
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      fecharModal(modal);
+      fecharModal(modalProdutos);
+    }
+  });
+
+  // ==========================
+  // BUSCAR COMANDAS PELO NOME
+  // ==========================
+  inputCliente.addEventListener("input", async () => {
+    const nome = inputCliente.value.trim();
+    resultadoComanda.innerHTML = "";
+
+    if (!nome) return;
+
+    try {
+      const { data: comandas, error } = await supabase
+        .from('comandas')
+        .select(`*, mesas!inner(numero)`)
+        .ilike('cliente_nome', `%${nome}%`);
+
+      if (error) throw error;
+
+      if (!comandas || comandas.length === 0) {
+        resultadoComanda.innerHTML = `<p>Não há comandas para este cliente.</p>`;
+        return;
+      }
+
+      const abertas = comandas.filter(c => c.status.toLowerCase() === 'aberta');
+      const finalizadas = comandas.filter(c => c.status.toLowerCase() !== 'aberta');
+
+      // Comandas abertas
+      if (abertas.length > 0) {
+        const tituloAbertas = document.createElement("p");
+        tituloAbertas.innerHTML = `<strong>${nome}</strong> possui ${abertas.length} comanda(s) aberta(s):`;
+        tituloAbertas.style.cursor = "pointer";
+        resultadoComanda.appendChild(tituloAbertas);
+
+        tituloAbertas.addEventListener("click", () => abrirModalProdutos()); // ← aqui
+
+        abertas.forEach(c => {
+          const btnComanda = document.createElement("button");
+          btnComanda.textContent = `Mesa: ${c.mesa_id}, Abertura: ${new Date(c.data_abertura).toLocaleString()}`;
+          btnComanda.classList.add("btn-comanda-aberta");
+          btnComanda.addEventListener("click", () => abrirModalProdutos());
+          resultadoComanda.appendChild(btnComanda);
+        });
+      }
+
+      // Comandas finalizadas
+      if (finalizadas.length > 0) {
+        const tituloFinalizadas = document.createElement("p");
+        tituloFinalizadas.innerHTML = `<strong>${nome}</strong> já finalizou ${finalizadas.length} comanda(s):`;
+        resultadoComanda.appendChild(tituloFinalizadas);
+
+        finalizadas.forEach(c => {
+          const fechamento = c.data_fechamento ? new Date(c.data_fechamento).toLocaleString() : "Sem data";
+          const p = document.createElement("p");
+          p.textContent = `Mesa: ${c.mesa_id} - Abertura: ${new Date(c.data_abertura).toLocaleString()}, Fechamento: ${fechamento} (Cliente finalizou a comanda)`;
+          p.style.color = "#888";
+          p.style.fontStyle = "italic";
+          resultadoComanda.appendChild(p);
+        });
+      }
+
+    } catch (err) {
+      console.error("Erro ao buscar comandas:", err);
+      resultadoComanda.innerHTML = `<p>Erro ao buscar comandas. Tente novamente.</p>`;
+    }
+  });
+
+});
+
+

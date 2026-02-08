@@ -148,6 +148,43 @@
 
     </div>
 
+  <!-- MENU LATERAL -->
+<aside id="menuLateral" class="menu-lateral">
+  <div class="menu-topo">
+    <h2>GestioMax</h2>
+    <button id="btnFecharMenu" class="btn-fechar">&times;</button>
+  </div>
+
+  <ul class="menu-itens">
+    <li>
+      <button class="menu-item expandivel">
+        <span class="icon">🪑</span> Mesas
+        <span class="seta">▾</span>
+      </button>
+      <ul class="submenu">
+        <li><button class="submenu-item">Adicionar Pedido</button></li>
+        <li><button class="submenu-item">Ver Comandas</button></li>
+      </ul>
+    </li>
+    <li>
+      <button class="menu-item"><span class="icon">📊</span> Relatórios</button>
+    </li>
+    <li>
+      <button class="menu-item"><span class="icon">⚙️</span> Configurações</button>
+    </li>
+  </ul>
+
+  <!-- VERSÃO NO FINAL -->
+  <div class="menu-versao">Version 1.1</div>
+</aside>
+
+
+<!-- BOTÃO HAMBURGUER -->
+<button id="btnAbrirMenu" class="btn-hamburguer">☰</button>
+
+
+
+
     <div class="painel-central">
 
       <!-- CAMPO DE PESQUISA -->
@@ -187,7 +224,7 @@
       <!-- BOTÕES DE AÇÃO -->
       <div class="campo botoes">
       <button class="btn-enviar">Enviar Pedido 🚀</button>
-
+  
       </div>
 
       <!-- PROMOÇÕES / SUGESTÕES DO DIA -->
@@ -285,6 +322,43 @@
     <span id="btnFecharModalCliente" class="comanda-close">&times;</span>
   </div>
 </div>
+
+<!-- MODAL COMANDAS -->
+<div id="modalComandas" class="modal">
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <h2>Comandas</h2>
+    <p>Digite o nome do cliente para buscar a comanda:</p>
+
+    <div class="modal-busca">
+      <input type="text" id="inputCliente" placeholder="Nome do cliente">
+      <button id="btnPesquisarCliente">Pesquisar</button>
+    </div>
+
+    <div id="resultadoComanda" class="resultado-comanda">
+      <!-- Aqui será exibida a comanda encontrada -->
+    </div>
+  </div>
+</div>
+
+<!-- ===============================
+MODAL ADICIONAR PRODUTOS
+=============================== -->
+<div id="modalAdicionarProdutos" style="display:none;">
+  <div class="modal-box">
+    <button class="close-modal" id="btnFecharProdutos">&times;</button>
+
+    <h2>Adicionar Produtos</h2>
+    <div id="listaProdutos"></div>
+    <input type="text" id="inputNovoProduto" placeholder="Digite o nome do produto" />
+    <button id="btnAdicionarProduto">Adicionar Produto</button>
+  </div>
+</div>
+
+
+
+
+
 
 <!-- MODAL GARÇOM / CONEXÃO -->
 <div id="modalGarcomMaintenance" class="modal-manutencao">

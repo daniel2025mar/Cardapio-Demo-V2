@@ -5379,6 +5379,7 @@ async function abrirComanda(mesaId) {
 
   const empresa = empresas[0];
 
+  
   // ===============================
   // REMOVE MODAL ANTIGO
   // ===============================
@@ -5537,9 +5538,93 @@ async function abrirComanda(mesaId) {
   // CLIENTE E MESA
   // ===============================
   const campoCliente = document.createElement("div");
-  campoCliente.style.marginTop = "6px";
-  campoCliente.innerHTML = `Cliente: <strong>${mesa.cliente || "Não informado"}</strong>`;
-  comanda.appendChild(campoCliente);
+campoCliente.style.marginTop = "6px";
+
+const labelCliente = document.createElement("span");
+labelCliente.textContent = "Cliente: ";
+
+// ============================
+// SELECT CLIENTE
+// ============================
+const selectCliente = document.createElement("select");
+
+Object.assign(selectCliente.style, {
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  padding: "2px 6px",
+  fontSize: "12px",
+  marginLeft: "4px"
+});
+
+// ===============================
+// BUSCAR CLIENTE NA COMANDA
+// ===============================
+async function carregarClienteComanda() {
+
+  const { data, error } = await supabase
+    .from("comandas")
+    .select("cliente_nome")
+    .eq("mesa_id", mesa.id)
+    .eq("status", "aberta")
+    .limit(1);
+
+  if (error) {
+    console.error("Erro ao buscar cliente da comanda:", error);
+    return;
+  }
+
+  selectCliente.innerHTML = "";
+
+  // 👉 NÃO EXISTE COMANDA ABERTA
+  if (!data || data.length === 0) {
+
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Sem cliente";
+
+    selectCliente.appendChild(option);
+    return;
+  }
+
+  // 👉 EXISTE COMANDA ABERTA
+  const clienteNome = data[0].cliente_nome || "";
+
+  const option = document.createElement("option");
+  option.value = clienteNome;
+  option.textContent = clienteNome || "Sem cliente";
+
+  selectCliente.appendChild(option);
+}
+
+await carregarClienteComanda();
+
+
+// ===============================
+// ALTERAR CLIENTE NA COMANDA
+// ===============================
+selectCliente.addEventListener("change", async () => {
+
+  const nomeCliente = selectCliente.value || null;
+
+  try {
+
+    await supabase
+      .from("comandas")
+      .update({ cliente_nome: nomeCliente })
+      .eq("mesa_id", mesa.id)
+      .eq("status", "aberta");
+
+  } catch (e) {
+    console.error("Erro ao salvar cliente:", e);
+  }
+
+  abrirComanda(mesa.id);
+});
+
+
+campoCliente.append(labelCliente, selectCliente);
+comanda.appendChild(campoCliente);
+
 
   const campoMesa = document.createElement("div");
   campoMesa.style.marginTop = "6px";

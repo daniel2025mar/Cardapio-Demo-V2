@@ -4489,6 +4489,81 @@ input:not(:placeholder-shown) + .label-flutuante {
   }
 </style>
 
+<!-- MODAL VISUALIZADOR PDF -->
+<div id="modalPreviewPDF"
+  class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-[99999] transition-all duration-300">
+
+  <div class="bg-white w-[96%] h-[94%] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-center px-6 py-4 bg-gray-800 text-white shadow">
+
+      <!-- TITULO -->
+      <div class="flex items-center gap-3">
+
+        <div class="bg-gray-700 p-2 rounded-lg text-xl">
+          📄
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold">Visualizar Relatório</h2>
+          <p class="text-sm text-gray-300">Pré-visualização do PDF</p>
+        </div>
+
+      </div>
+
+      <!-- AÇÕES -->
+      <div class="flex items-center gap-3">
+
+        <!-- DOWNLOAD -->
+        <button id="btnDownloadPDF"
+          class="flex items-center gap-2 bg-white text-gray-800 font-semibold px-4 py-2 
+                 rounded-lg shadow hover:bg-gray-200 transition">
+
+          ⬇️ Baixar PDF
+        </button>
+
+        <!-- FECHAR -->
+        <button id="btnFecharPreviewPDF"
+  class="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg 
+         hover:bg-red-600 shadow transition">
+
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+       viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M6 18L18 6M6 6l12 12" />
+  </svg>
+
+  Fechar
+</button>
+
+
+      </div>
+    </div>
+
+    <!-- AREA PDF -->
+    <div class="flex-1 bg-gray-200 p-4">
+
+      <div class="w-full h-full bg-white rounded-xl shadow-inner overflow-hidden">
+
+        <iframe id="iframePreviewPDF"
+          class="w-full h-full border-0">
+        </iframe>
+
+      </div>
+
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="text-center text-sm text-gray-500 py-3 border-t bg-gray-50">
+      GestioMax Soluções de Cardápio e Delivery
+    </div>
+
+  </div>
+</div>
+
+
+
 <!--fedback-->
 
 <div id="modalFeedback" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">

@@ -5884,10 +5884,92 @@ function formatarDataBanco(dataString) {
 // =============================
 let relatorioGarconsGerado = false;
 
+const modalPreviewPDF = document.getElementById("modalPreviewPDF");
+const iframePreviewPDF = document.getElementById("iframePreviewPDF");
+const btnFecharPreviewPDF = document.getElementById("btnFecharPreviewPDF");
+const btnDownloadPDF = document.getElementById("btnDownloadPDF");
+
+let pdfUrlGlobal = null;
+
+// ========================
+// ABRIR MODAL
+// ========================
+function abrirPreviewPDF(url) {
+
+  pdfUrlGlobal = url;
+
+  iframePreviewPDF.src = url;
+
+  // força ficar acima de tudo
+  modalPreviewPDF.style.zIndex = "999999";
+
+  modalPreviewPDF.classList.remove("hidden");
+  modalPreviewPDF.classList.add("flex");
+
+  // trava scroll do fundo
+  document.body.style.overflow = "hidden";
+}
+
+// ========================
+// FECHAR MODAL
+// ========================
+function fecharPreviewPDF() {
+
+  modalPreviewPDF.classList.add("hidden");
+  iframePreviewPDF.src = "";
+
+  // libera scroll
+  document.body.style.overflow = "auto";
+
+  // limpa URL blob (boa prática)
+  if (pdfUrlGlobal) {
+    URL.revokeObjectURL(pdfUrlGlobal);
+    pdfUrlGlobal = null;
+  }
+}
+
+btnFecharPreviewPDF.onclick = fecharPreviewPDF;
+
+// ========================
+// FECHAR CLICANDO FORA
+// ========================
+modalPreviewPDF.addEventListener("click", (e) => {
+  if (e.target === modalPreviewPDF) {
+    fecharPreviewPDF();
+  }
+});
+
+// ========================
+// FECHAR COM ESC
+// ========================
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !modalPreviewPDF.classList.contains("hidden")) {
+    fecharPreviewPDF();
+  }
+});
+
+// ========================
+// DOWNLOAD PDF
+// ========================
+btnDownloadPDF.onclick = () => {
+
+  if (!pdfUrlGlobal) return;
+
+  const link = document.createElement("a");
+  link.href = pdfUrlGlobal;
+  link.download = "relatorio_garcons.pdf";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+};
+
+
 
 // =============================
 // GERAR PDF
 // =============================
+
 document.getElementById('btnGerarPDF').addEventListener('click', async () => {
 
   if (!relatorioGarconsGerado) {
@@ -5900,30 +5982,19 @@ document.getElementById('btnGerarPDF').addEventListener('click', async () => {
 
   try {
 
-    // ============================
-    // BUSCA EMPRESA
-    // ============================
     const { data: empresas, error } = await supabase
       .from('empresa')
       .select('*')
       .limit(1);
 
     if (error) throw error;
-    if (!empresas || empresas.length === 0) {
-      alert("Empresa não encontrada.");
-      return;
-    }
+    if (!empresas?.length) return;
 
     const empresa = empresas[0];
 
-    // ============================
-    // FUNÇÃO CARREGAR IMAGEM
-    // ============================
     async function carregarImagemBase64(path) {
-      return new Promise((resolve) => {
-
+      return new Promise(resolve => {
         if (!path) return resolve(null);
-
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = path;
@@ -5932,15 +6003,11 @@ document.getElementById('btnGerarPDF').addEventListener('click', async () => {
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
-
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-
+          canvas.getContext('2d').drawImage(img, 0, 0);
           resolve(canvas.toDataURL('image/png'));
         };
 
         img.onerror = () => resolve(null);
-
       });
     }
 
@@ -5948,166 +6015,109 @@ document.getElementById('btnGerarPDF').addEventListener('click', async () => {
       empresa.logotipo || "dist/imagem/LogoTipo.png"
     );
 
-    // ============================
-    // CABEÇALHO
-    // ============================
-
     if (logoBase64) {
       doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
     }
 
-    doc.setTextColor(37, 99, 235); // 🔵 Azul título empresa
+    // ======================
+    // DADOS DA EMPRESA
+    // ======================
+    doc.setTextColor(37, 99, 235);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text(empresa.nome, 45, 18);
+    doc.text(empresa.nome || "", 45, 18);
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
 
     let infoY = 24;
-
-    if (empresa.cnpj) {
-      doc.text(`CNPJ: ${empresa.cnpj}`, 45, infoY);
-      infoY += 5;
-    }
-
-    if (empresa.endereco) {
-      doc.text(`Endereço: ${empresa.endereco}`, 45, infoY);
-      infoY += 5;
-    }
-
-    if (empresa.telefone) {
-      doc.text(`Telefone: ${empresa.telefone}`, 45, infoY);
-      infoY += 5;
-    }
-
-    if (empresa.whatsapp) {
-      doc.text(`WhatsApp: ${empresa.whatsapp}`, 45, infoY);
-      infoY += 5;
-    }
+    if (empresa.cnpj) { doc.text(`CNPJ: ${empresa.cnpj}`, 45, infoY); infoY += 5; }
+    if (empresa.endereco) { doc.text(`Endereço: ${empresa.endereco}`, 45, infoY); infoY += 5; }
+    if (empresa.telefone) { doc.text(`Telefone: ${empresa.telefone}`, 45, infoY); infoY += 5; }
+    if (empresa.whatsapp) { doc.text(`WhatsApp: ${empresa.whatsapp}`, 45, infoY); infoY += 5; }
 
     const lineY = Math.max(35, infoY);
     doc.line(14, lineY, 196, lineY);
 
-    // ============================
-    // TITULO
-    // ============================
-
+    // ======================
+    // TÍTULO RELATÓRIO
+    // ======================
     const hoje = new Date();
-
-    doc.setTextColor(37, 99, 235); // 🔵 Azul
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text("Relatório de Garçons", 14, lineY + 10);
 
-    doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
 
-    doc.text(
-      `Período: ${document.getElementById('dataInicialGarcom').value} até ${document.getElementById('dataFinalGarcom').value}`,
-      14,
-      lineY + 15
-    );
+    const dataInicial = document.getElementById('dataInicialGarcom')?.value || "";
+    const dataFinal = document.getElementById('dataFinalGarcom')?.value || "";
+    doc.text(`Período: ${dataInicial} até ${dataFinal}`, 14, lineY + 15);
+    doc.text(`Gerado em: ${hoje.toLocaleDateString('pt-BR')} ${hoje.toLocaleTimeString('pt-BR')}`, 14, lineY + 20);
 
-    doc.text(
-      `Gerado em: ${hoje.toLocaleDateString('pt-BR')} ${hoje.toLocaleTimeString('pt-BR')}`,
-      14,
-      lineY + 20
-    );
-
-    // ============================
-    // PEGAR LINHAS DA TABELA
-    // ============================
-
-    const linhas = Array.from(
-      document.querySelectorAll('#tbodyRelatorioGarcons tr')
-    );
-
+    // ======================
+    // DADOS TABELA
+    // ======================
+    const linhas = Array.from(document.querySelectorAll('#tbodyRelatorioGarcons tr'));
     const rows = [];
 
     linhas.forEach(tr => {
-
       if (tr.innerText.includes("Total Vendido")) return;
-
-      const cols = Array.from(tr.querySelectorAll('td'))
-        .map(td => td.textContent.trim());
-
-      if (cols.length > 0) {
-        rows.push(cols);
-      }
-
+      const cols = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim());
+      if (cols.length) rows.push(cols);
     });
 
-    // ============================
-    // TABELA PDF (AZUL)
-    // ============================
-
+    // ======================
+    // TABELA COM autoTable
+    // ======================
     doc.autoTable({
       startY: lineY + 25,
       head: [['Garçom', 'Comandas', 'Total Vendido', 'Data', 'Pedidos']],
       body: rows,
       theme: 'grid',
-
       headStyles: {
-        fillColor: [59, 130, 246], // 🔵 Azul Tailwind
+        fillColor: [37, 99, 235],
         textColor: 255,
         fontStyle: 'bold'
-      },
-
-      alternateRowStyles: {
-        fillColor: [243, 244, 246]
-      },
-
-      styles: {
-        fontSize: 10
       }
     });
 
-    // ============================
+    // ======================
     // TOTAL GERAL
-    // ============================
-
+    // ======================
     const totalVendido = rows.reduce((acc, row) => {
-
-      const valor = parseFloat(
-        row[2].replace("R$", "").replace(",", ".")
-      );
-
+      const valor = parseFloat(row[2].replace("R$", "").replace(",", "."));
       return acc + (isNaN(valor) ? 0 : valor);
-
     }, 0);
 
     const finalY = doc.lastAutoTable.finalY || 100;
-
-    doc.setTextColor(37, 99, 235); // 🔵 Azul
     doc.setFont("helvetica", "bold");
-    doc.text(`Total Geral: R$ ${totalVendido.toFixed(2)}`, 14, finalY + 10);
+    // FORMATA COM PONTO COMO MILHAR E VÍRGULA COMO DECIMAL
+    const totalFormatado = totalVendido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.text(`Total Geral: R$ ${totalFormatado}`, 14, finalY + 10);
 
-    // ============================
+    // ======================
     // RODAPÉ
-    // ============================
-
+    // ======================
     doc.setFontSize(9);
-    doc.setTextColor(120);
+    doc.setFont("helvetica", "normal"); // sem negrito
+    doc.setTextColor(128, 128, 128); // cinza
+    doc.text("GestioMax Soluções de Cardápio e Delivery", 14, finalY + 16);
 
-    doc.text(
-      "GestioMax Soluções de Cardápio e Delivery",
-      14,
-      finalY + 16
-    );
+    // ======================
+    // PREVIEW PDF
+    // ======================
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
 
-    // ============================
-    // SALVAR
-    // ============================
-
-    doc.save("relatorio_garcons.pdf");
+    abrirPreviewPDF(pdfUrl);
 
   } catch (err) {
     console.error(err);
     alert("Erro ao gerar PDF.");
   }
+
 });
 
 

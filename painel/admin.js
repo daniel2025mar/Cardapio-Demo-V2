@@ -5361,34 +5361,35 @@ function renderizarMesa(mesa) {
 // FUNÇÃO PARA ABRIR COMANDA
 // =========================
 async function abrirComanda(mesaId) {
+
   const mesa = mesasCache.get(mesaId);
   if (!mesa) return;
 
   // ===============================
-  // BUSCA DADOS DA EMPRESA NO SUPABASE
+  // BUSCA EMPRESA
   // ===============================
-  const { data: empresas, error: erroEmpresa } = await supabase
-    .from('empresa')
-    .select('*')
-    .order('id', { ascending: true })
-    .limit(1);
+  const { data: empresa, error: erroEmpresa } = await supabase
+    .from("empresa")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
 
-  if (erroEmpresa || !empresas || empresas.length === 0) {
-    alert('Erro ao carregar dados da empresa.');
+  if (erroEmpresa || !empresa) {
+    alert("Erro ao carregar dados da empresa.");
     return;
   }
-
-  const empresa = empresas[0];
 
   // ===============================
   // REMOVE MODAL ANTIGO
   // ===============================
-  const antigoModal = document.getElementById("modalComanda");
-  if (antigoModal) antigoModal.remove();
+  document.getElementById("modalComanda")?.remove();
 
-  // Overlay escuro
+  // ===============================
+  // OVERLAY
+  // ===============================
   const overlay = document.createElement("div");
   overlay.id = "modalComanda";
+
   Object.assign(overlay.style, {
     position: "fixed",
     top: "0",
@@ -5402,8 +5403,11 @@ async function abrirComanda(mesaId) {
     zIndex: 9999
   });
 
-  // Container da comanda
+  // ===============================
+  // CONTAINER COMANDA
+  // ===============================
   const comanda = document.createElement("div");
+
   Object.assign(comanda.style, {
     width: "360px",
     maxHeight: "80vh",
@@ -5414,11 +5418,15 @@ async function abrirComanda(mesaId) {
     position: "relative",
     boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
   });
+
   overlay.appendChild(comanda);
 
-  // Botão fechar
+  // ===============================
+  // BOTÃO FECHAR
+  // ===============================
   const btnFechar = document.createElement("button");
   btnFechar.textContent = "X";
+
   Object.assign(btnFechar.style, {
     position: "absolute",
     top: "8px",
@@ -5432,13 +5440,15 @@ async function abrirComanda(mesaId) {
     width: "28px",
     height: "28px"
   });
+
   btnFechar.onclick = () => overlay.remove();
   comanda.appendChild(btnFechar);
 
   // ===============================
-  // CABEÇALHO DA EMPRESA
+  // CABEÇALHO EMPRESA
   // ===============================
   const header = document.createElement("div");
+
   Object.assign(header.style, {
     display: "flex",
     alignItems: "center",
@@ -5450,158 +5460,75 @@ async function abrirComanda(mesaId) {
 
   const logo = document.createElement("img");
   logo.src = empresa.logotipo || "../dist/Imagem/LogoTipo.png";
-  Object.assign(logo.style, { width: "60px", height: "60px", objectFit: "contain" });
+
+  Object.assign(logo.style, {
+    width: "60px",
+    height: "60px",
+    objectFit: "contain"
+  });
 
   const info = document.createElement("div");
-  Object.assign(info.style, { display: "flex", flexDirection: "column" });
+  info.style.display = "flex";
+  info.style.flexDirection = "column";
 
-  const nomeEmpresa = document.createElement("div");
-  nomeEmpresa.textContent = empresa.nome;
-  Object.assign(nomeEmpresa.style, { fontWeight: "bold", fontSize: "14px" });
+  info.innerHTML = `
+    <div style="font-weight:bold;font-size:14px">${empresa.nome || ""}</div>
+    <div style="font-size:12px;color:#444">${empresa.endereco || ""}</div>
+    <div style="font-size:12px;color:#444">Tel: ${empresa.telefone || ""} | WhatsApp: ${empresa.whatsapp || ""}</div>
+    <div style="font-size:12px;color:#444">CNPJ: ${empresa.cnpj || ""}</div>
+  `;
 
-  const enderecoEmpresa = document.createElement("div");
-  enderecoEmpresa.textContent = empresa.endereco;
-  Object.assign(enderecoEmpresa.style, { fontSize: "12px", color: "#444" });
-
-  const telefoneEmpresa = document.createElement("div");
-  telefoneEmpresa.textContent = `Tel: ${empresa.telefone} | WhatsApp: ${empresa.whatsapp}`;
-  Object.assign(telefoneEmpresa.style, { fontSize: "12px", color: "#444" });
-
-  const cnpjEmpresa = document.createElement("div");
-  cnpjEmpresa.textContent = `CNPJ: ${empresa.cnpj}`;
-  Object.assign(cnpjEmpresa.style, { fontSize: "12px", color: "#444" });
-
-  info.append(nomeEmpresa, enderecoEmpresa, telefoneEmpresa, cnpjEmpresa);
   header.append(logo, info);
   comanda.appendChild(header);
 
   // ===============================
-  // TOPO COM NÚMERO DA COMANDA E DATA
+  // TOPO COMANDA
   // ===============================
   const topo = document.createElement("div");
+
   Object.assign(topo.style, {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "10px",
-    padding: "4px 0"
+    marginBottom: "10px"
   });
 
-  const titulo = document.createElement("div");
-  titulo.textContent = "COMANDA";
-  Object.assign(titulo.style, { fontWeight: "bold", fontSize: "16px", color: "#2f5fbf" });
+  topo.innerHTML = `
+    <div style="font-weight:bold;font-size:16px;color:#2f5fbf">COMANDA</div>
+    <div style="font-size:12px;text-align:right">
+      <div>
+        <span style="background:#2f5fbf;color:#fff;padding:2px 6px;border-radius:4px;font-weight:bold">Nº</span>
+        <span style="background:#ffe5e5;color:red;padding:3px 8px;border-radius:6px;font-weight:bold">
+          ${String(mesa.numero).padStart(4, "0")}
+        </span>
+      </div>
+      <div style="font-size:11px">Emissão: ${new Date().toLocaleDateString("pt-BR")}</div>
+    </div>
+  `;
 
-  const numeroDataWrapper = document.createElement("div");
-  Object.assign(numeroDataWrapper.style, {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    fontSize: "12px"
-  });
-
-  const numeroWrapper = document.createElement("div");
-  Object.assign(numeroWrapper.style, { display: "inline-flex", gap: "4px", alignItems: "center" });
-
-  const labelNumero = document.createElement("span");
-  labelNumero.textContent = "Nº";
-  Object.assign(labelNumero.style, {
-    background: "#2f5fbf",
-    color: "#fff",
-    padding: "2px 6px",
-    borderRadius: "4px",
-    fontWeight: "bold",
-    fontSize: "12px"
-  });
-
-  const numeroComanda = document.createElement("span");
-  numeroComanda.textContent = String(mesa.numero).padStart(4, "0");
-  Object.assign(numeroComanda.style, {
-    padding: "3px 8px",
-    borderRadius: "6px",
-    background: "#ffe5e5",
-    color: "red",
-    fontWeight: "bold",
-    fontSize: "12px"
-  });
-
-  numeroWrapper.append(labelNumero, numeroComanda);
-
-  const dataEmissao = document.createElement("div");
-  dataEmissao.textContent = "Emissão: " + new Date().toLocaleDateString("pt-BR");
-  Object.assign(dataEmissao.style, { marginTop: "2px", fontSize: "11px", color: "#333" });
-
-  numeroDataWrapper.append(numeroWrapper, dataEmissao);
-  topo.append(titulo, numeroDataWrapper);
   comanda.appendChild(topo);
 
   // ===============================
-  // CLIENTE E MESA
+  // CLIENTE DA COMANDA
   // ===============================
+  const { data: comandaAtual } = await supabase
+    .from("comandas")
+    .select("cliente_nome")
+    .eq("mesa_id", mesa.id)
+    .eq("status", "aberta")
+    .maybeSingle();
+
+  const clienteNome = comandaAtual?.cliente_nome || "";
+
   const campoCliente = document.createElement("div");
   campoCliente.style.marginTop = "6px";
 
-  const labelCliente = document.createElement("span");
-  labelCliente.textContent = "Cliente: ";
+  campoCliente.innerHTML = `
+    Cliente:
+    <select style="border:1px solid #ccc;border-radius:4px;padding:2px 6px;font-size:12px;margin-left:4px">
+      <option>${clienteNome || "Sem cliente"}</option>
+    </select>
+  `;
 
-  const selectCliente = document.createElement("select");
-  Object.assign(selectCliente.style, {
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-    padding: "2px 6px",
-    fontSize: "12px",
-    marginLeft: "4px"
-  });
-
-  // ===============================
-  // BUSCAR CLIENTE NA COMANDA
-  // ===============================
-  async function carregarClienteComanda() {
-    const { data, error } = await supabase
-      .from("comandas")
-      .select("cliente_nome")
-      .eq("mesa_id", mesa.id)
-      .eq("status", "aberta")
-      .limit(1);
-
-    if (error) {
-      console.error("Erro ao buscar cliente da comanda:", error);
-      return;
-    }
-
-    selectCliente.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      const option = document.createElement("option");
-      option.value = "";
-      option.textContent = "Sem cliente";
-      selectCliente.appendChild(option);
-      return;
-    }
-
-    const clienteNome = data[0].cliente_nome || "";
-    const option = document.createElement("option");
-    option.value = clienteNome;
-    option.textContent = clienteNome || "Sem cliente";
-    selectCliente.appendChild(option);
-  }
-
-  await carregarClienteComanda();
-
-  selectCliente.addEventListener("change", async () => {
-    const nomeCliente = selectCliente.value || null;
-    try {
-      await supabase
-        .from("comandas")
-        .update({ cliente_nome: nomeCliente })
-        .eq("mesa_id", mesa.id)
-        .eq("status", "aberta");
-    } catch (e) {
-      console.error("Erro ao salvar cliente:", e);
-    }
-    abrirComanda(mesa.id);
-  });
-
-  campoCliente.append(labelCliente, selectCliente);
   comanda.appendChild(campoCliente);
 
   const campoMesa = document.createElement("div");
@@ -5610,170 +5537,169 @@ async function abrirComanda(mesaId) {
   comanda.appendChild(campoMesa);
 
   // ===============================
-  // PRODUTOS (COM CHECKBOX MARCADO PELO PEDIDO)
+  // BUSCAR PEDIDOS DO CLIENTE
   // ===============================
-
-  let produtosParaMostrar = [];
-
-  // Buscar cliente da comanda atual
-  let clienteNome = mesa.cliente_nome || "";
-  if (!clienteNome) {
-    const { data: comandaData } = await supabase
-      .from("comandas")
-      .select("cliente_nome")
-      .eq("mesa_id", mesa.id)
-      .eq("status", "aberta")
-      .limit(1)
-      .maybeSingle();
-    if (comandaData) clienteNome = comandaData.cliente_nome;
-  }
-
-  // Buscar pedidos abertos do cliente
   let pedidosCliente = [];
+
   if (clienteNome) {
-    const { data: pedidosData, error: erroPedidos } = await supabase
+    const { data } = await supabase
       .from("pedidos")
-      .select("itens, cliente")
+      .select("itens")
       .eq("cliente", clienteNome)
       .eq("status", "aberto");
 
-    if (erroPedidos) console.error("Erro ao buscar pedidos do cliente:", erroPedidos);
-    else if (pedidosData) pedidosCliente = pedidosData;
+    pedidosCliente = data || [];
   }
 
-  // Criar set de produtos já pedidos
   const produtosMarcados = new Set();
-  pedidosCliente.forEach(pedido => {
-    try {
-      const itens = JSON.parse(pedido.itens);
-      itens.forEach(i => produtosMarcados.add(i.id));
-    } catch (e) {
-      console.error("Erro ao ler itens do pedido:", e);
-    }
+
+  pedidosCliente.forEach(p => {
+    const itens = p.itens || [];
+    itens.forEach(i => produtosMarcados.add(i.id));
   });
 
-  if (mesa.atendida) {
-    const { data: todosProdutos, error: erroProdutos } = await supabase
-      .from('produtos')
-      .select('*')
-      .order('categoria', { ascending: true })
-      .order('descricao', { ascending: true });
-
-    if (erroProdutos) console.error("Erro ao carregar produtos:", erroProdutos);
-    else produtosParaMostrar = todosProdutos;
-  } else if (mesa.itens && mesa.itens.length > 0) {
-    produtosParaMostrar = mesa.itens;
-  }
+  // ===============================
+  // BUSCAR PRODUTOS
+  // ===============================
+  const { data: produtos } = await supabase
+    .from("produtos")
+    .select("*")
+    .order("categoria")
+    .order("descricao");
 
   const produtosPorCategoria = {};
-  produtosParaMostrar.forEach(prod => {
+
+  (produtos || []).forEach(prod => {
     const cat = prod.categoria || "Sem Categoria";
-    if (!produtosPorCategoria[cat]) produtosPorCategoria[cat] = [];
+
+    if (!produtosPorCategoria[cat])
+      produtosPorCategoria[cat] = [];
+
     produtosPorCategoria[cat].push(prod);
   });
 
   for (const [categoria, itens] of Object.entries(produtosPorCategoria)) {
-    const tituloCat = document.createElement("div");
-    tituloCat.textContent = categoria.toUpperCase();
-    Object.assign(tituloCat.style, {
+
+    const titulo = document.createElement("div");
+    titulo.textContent = categoria.toUpperCase();
+
+    Object.assign(titulo.style, {
       fontWeight: "bold",
       fontSize: "13px",
       color: "#2f5fbf",
       marginTop: "12px",
-      marginBottom: "6px",
-      borderBottom: "1px solid #ccc",
-      paddingBottom: "2px"
+      borderBottom: "1px solid #ccc"
     });
-    comanda.appendChild(tituloCat);
+
+    comanda.appendChild(titulo);
 
     itens.forEach(item => {
+
       const bloco = document.createElement("div");
+
       Object.assign(bloco.style, {
         display: "flex",
-        alignItems: "center",
         justifyContent: "space-between",
-        padding: "6px 8px",
-        marginBottom: "4px",
-        borderRadius: "6px",
+        padding: "6px",
         background: "#f9f9f9",
-        border: "1px solid #eee"
+        marginBottom: "4px",
+        borderRadius: "6px"
       });
 
-      const left = document.createElement("div");
-      Object.assign(left.style, { display: "flex", alignItems: "center", gap: "8px" });
+      bloco.innerHTML = `
+        <div>
+          <input type="checkbox" ${produtosMarcados.has(item.id) ? "checked" : ""}>
+          <label style="font-size:12px">${item.descricao || item.nome}</label>
+        </div>
+        <div style="font-size:12px;font-weight:bold;color:#2f5fbf">
+          R$ ${(item.valor_sugerido ?? item.valor ?? 0).toFixed(2)}
+        </div>
+      `;
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.id = "produto-" + item.id;
-
-      // ✅ Marcar se já pedido
-      if (produtosMarcados.has(item.id)) checkbox.checked = true;
-
-      const label = document.createElement("label");
-      label.htmlFor = "produto-" + item.id;
-      label.textContent = item.descricao || item.nome;
-      label.style.fontSize = "12px";
-
-      left.append(checkbox, label);
-
-      const valor = document.createElement("div");
-      valor.textContent = `R$ ${(item.valor_sugerido ?? item.valor ?? 0).toFixed(2)}`;
-      Object.assign(valor.style, { fontSize: "12px", fontWeight: "bold", color: "#2f5fbf" });
-
-      bloco.append(left, valor);
       comanda.appendChild(bloco);
     });
+
   }
 
   // ===============================
-  // RODAPÉ E TOTAL
+  // TOTAL
   // ===============================
-  const avisoRodapeWrapper = document.createElement("div");
-  Object.assign(avisoRodapeWrapper.style, {
-    marginTop: "12px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "stretch",
-    gap: "6px"
+  let totalComanda = 0;
+
+  pedidosCliente.forEach(p => {
+    const itens = p.itens || [];
+    itens.forEach(i => totalComanda += i.subtotal || 0);
   });
 
-  const aviso = document.createElement("div");
-  aviso.textContent = "Em caso de perda desta comanda, poderá ser cobrada uma taxa administrativa conforme política do estabelecimento. Agradecemos sua compreensão.";
-  Object.assign(aviso.style, { fontSize: "10px", color: "#555", textAlign: "center", fontStyle: "italic", lineHeight: "1.3" });
-
-  const linhaSeparadora = document.createElement("div");
-  Object.assign(linhaSeparadora.style, { borderTop: "1px dashed #999", width: "100%", margin: "4px 0" });
-
-  const rodape = document.createElement("div");
-  rodape.innerHTML = "Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>";
-  Object.assign(rodape.style, { fontSize: "9px", color: "#666", textAlign: "right" });
-
-  let totalComanda = 0;
-  if (mesa.itens && mesa.itens.length > 0) {
-    mesa.itens.forEach(item => {
-      totalComanda += Number(item.valor_sugerido ?? item.valor ?? 0);
-    });
-  }
-
-  
   const total = document.createElement("div");
+
   total.textContent = `Total R$ ${totalComanda.toFixed(2)}`;
+
   Object.assign(total.style, {
     fontSize: "13px",
     fontWeight: "bold",
-    color: "#000",
     textAlign: "right",
-    marginTop: "6px"
+    marginTop: "8px"
   });
 
-  avisoRodapeWrapper.append(aviso, total, linhaSeparadora, rodape);
-  comanda.appendChild(avisoRodapeWrapper);
+  comanda.appendChild(total);
+
+  // ===============================
+// RODAPÉ
+// ===============================
+const rodape = document.createElement("div");
+
+// Aviso
+const aviso = document.createElement("div");
+aviso.textContent =
+  "Em caso de perda desta comanda poderá ser cobrada taxa administrativa.";
+
+Object.assign(aviso.style, {
+  fontSize: "10px",
+  textAlign: "center",
+  color: "#555",
+  marginTop: "10px"
+});
+
+
+// ✅ LINHA TRACEJADA (A QUE ESTAVA FALTANDO)
+const linhaSeparadora = document.createElement("div");
+
+Object.assign(linhaSeparadora.style, {
+  borderTop: "1px dashed #999",
+  width: "100%",
+  marginTop: "6px",
+  marginBottom: "6px"
+});
+
+
+// Texto final
+const desenvolvido = document.createElement("div");
+desenvolvido.innerHTML =
+  'Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>';
+
+Object.assign(desenvolvido.style, {
+  fontSize: "9px",
+  textAlign: "right",
+  color: "#666"
+});
+
+rodape.append(
+  aviso,
+  linhaSeparadora,
+  desenvolvido
+);
+
+comanda.appendChild(rodape);
+
 
   // ===============================
   // BOTÃO IMPRIMIR
   // ===============================
   const btnImprimir = document.createElement("button");
+
   btnImprimir.textContent = "🖨️ Imprimir Comanda";
+
   Object.assign(btnImprimir.style, {
     marginTop: "12px",
     width: "100%",
@@ -5829,7 +5755,9 @@ async function abrirComanda(mesaId) {
     setTimeout(() => iframe.remove(), 1000);
   };
 
+
   comanda.appendChild(btnImprimir);
+
   document.body.appendChild(overlay);
 }
 

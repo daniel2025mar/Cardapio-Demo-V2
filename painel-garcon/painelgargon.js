@@ -1201,31 +1201,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnEnviar = document.querySelector(".btn-enviar");
   if (!btnEnviar) return;
 
-  // Função para pegar o horário de SP
-  function agoraSP() {
-    const agora = new Date();
-    const offsetSP = -3 * 60; // SP é UTC-3
-    const timeSP = new Date(agora.getTime() + offsetSP * 60 * 1000);
-    return timeSP.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:MM:SS"
-  }
-
   btnEnviar.addEventListener("click", async () => {
 
     try {
       console.log("🚀 Iniciando envio pedido");
 
-      // =============================
-      // 1️⃣ VALIDAR HORÁRIO
-      // =============================
       const permitido = await verificarHorarioPedido();
       if (!permitido) {
         abrirModalErro("🚫 Fora do horário de atendimento.");
         return;
       }
 
-      // =============================
-      // 2️⃣ VALIDAR MESA
-      // =============================
       const mesaSelecionada = selectMesa.value;
       if (!mesaSelecionada) {
         abrirModalErro("Selecione uma mesa.");
@@ -1239,225 +1225,134 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (mesa.atendida) {
-        abrirModalErro(`⚠️ ${mesa.descricao} já foi atendida. Não é possível fazer pedido no momento.`);
+        abrirModalErro(`⚠️ ${mesa.descricao} já foi atendida.`);
         return;
       }
 
-      // =============================
-      // 3️⃣ VALIDAR PRODUTOS
-      // =============================
       const checkboxes = document.querySelectorAll(".checkboxProduto:checked");
       if (checkboxes.length === 0) {
         abrirModalErro("Selecione pelo menos um produto.");
         return;
       }
 
-      // =============================
-      // 4️⃣ PEGAR GARÇOM
-      // =============================
       const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
       if (!usuarioLogado) {
         abrirModalErro("Garçom não identificado.");
         return;
       }
 
-      // =============================
-      // 5️⃣ CALCULAR TOTAIS E MONTAR ITENS
-      // =============================
+      // ================================
+      // CALCULAR ITENS
+      // ================================
       let totalPedido = 0;
       let totalItens = 0;
 
       const itensPedido = Array.from(checkboxes).map(checkbox => {
-        const idProduto = checkbox.getAttribute("data-id");
+
+        const idProduto = checkbox.dataset.id;
         const produto = produtosDados.find(p => String(p.id) === idProduto);
-        if (!produto) return null;
 
         const inputQtd = document.querySelector(`.quantidadeProduto[data-id="${idProduto}"]`);
         const quantidade = inputQtd ? Number(inputQtd.value) : 1;
 
         const subtotal = produto.valor_sugerido * quantidade;
+
         totalPedido += subtotal;
         totalItens += quantidade;
 
         return {
           id: produto.id,
           nome: produto.nome,
-          quantidade: quantidade,
+          quantidade,
           valor_unitario: produto.valor_sugerido,
-          subtotal: subtotal
+          subtotal
         };
-      }).filter(item => item !== null);
 
-      // =============================
-      // 6️⃣ ATUALIZAR RELATÓRIO GARÇOM
-      // =============================
-      const hoje = dataHojeBrasil();
-      const horaSP = agoraSP();
+      });
 
-      const { data: relatorio } = await supabase
-        .from("relatorio_garcom")
-        .select("*")
-        .eq("garcom_id", usuarioLogado.id)
-        .eq("data", hoje)
-        .maybeSingle();
-
-      if (relatorio) {
-        const { error } = await supabase
-          .from("relatorio_garcom")
-          .update({
-            total_pedidos: relatorio.total_pedidos + totalItens,
-            total_faturado: Number(relatorio.total_faturado) + totalPedido,
-            mesas_atendidas: relatorio.mesas_atendidas + 1,
-            updated_at: horaSP
-          })
-          .eq("id", relatorio.id);
-
-        if (error) {
-          console.error(error);
-          abrirModalErro("Erro ao atualizar relatório.");
-          return;
-        }
-      } else {
-        const { error } = await supabase
-          .from("relatorio_garcom")
-          .insert({
-            id: Date.now(),
-            garcom_id: usuarioLogado.id,
-            nome_garcom: usuarioLogado.username,
-            data: hoje,
-            mesas_atendidas: 1,
-            total_pedidos: totalItens,
-            total_faturado: totalPedido,
-            created_at: horaSP,
-            updated_at: horaSP
-          });
-
-        if (error) {
-          console.error(error);
-          abrirModalErro("Erro ao salvar relatório.");
-          return;
-        }
-      }
-
-      // =============================
-      // 7️⃣ ABRIR MODAL GERAR COMANDA PARA INSERIR NOME
-      // =============================
-      const modalGerarComanda = document.getElementById("modalGerarComanda");
-      if (!modalGerarComanda) {
-        abrirModalErro("Modal de comanda não encontrado.");
-        return;
-      }
-
+      // ================================
+      // PEGAR NOME CLIENTE
+      // ================================
       await window.abrirModalGerarComandaAsync();
 
-      const inputNomeCliente = document.querySelector("#modalGerarComanda input[name='nomeCliente']") || 
-                               document.querySelector("#nomeClienteInput");
-      const nomeCliente = inputNomeCliente ? inputNomeCliente.value.trim() : "";
+      const inputNomeCliente =
+        document.querySelector("#modalGerarComanda input[name='nomeCliente']") ||
+        document.querySelector("#nomeClienteInput");
+
+      const nomeCliente = inputNomeCliente?.value.trim();
 
       if (!nomeCliente) {
-        abrirModalErro("Informe o nome do cliente para gerar o pedido.");
+        abrirModalErro("Informe o nome do cliente.");
         return;
       }
 
-      // =============================
-      // 8️⃣ ENVIAR PEDIDO PARA TABELA "pedidos"
-      // =============================
-      const novoPedido = {
-        id: Date.now(),
-        subtotal: totalPedido,
-        total: totalPedido,
-        criado_em: horaSP,
-        itens: JSON.stringify(itensPedido),
-        cliente: nomeCliente,
-        status: "aberto",
-        pagamento: "não informado",
-        tipo_entrega: "não informado",
-        horario_recebido: horaSP,
-        horario_recebido_status: "registrado",
-        horario_preparo_status: null,
-        horario_entrega_status: null
-      };
+      // ================================
+      // 1️⃣ CRIAR COMANDA
+      // ================================
+      const { data: comandaSalva, error: erroComanda } = await supabase
+        .from("comandas")
+        .insert([{
+          cliente_nome: nomeCliente,
+          mesa_id: mesa.id,
+          cadeira: 1,
+          data_abertura: new Date(),
+          status: "aberta"
+        }])
+        .select()
+        .single();
 
+      if (erroComanda) {
+        console.error(erroComanda);
+        abrirModalErro("Erro ao criar comanda.");
+        return;
+      }
+
+      console.log("✅ Comanda criada:", comandaSalva);
+
+      // ================================
+      // 2️⃣ CRIAR PEDIDO
+      // ================================
       const { data: pedidoSalvo, error: erroPedido } = await supabase
         .from("pedidos")
-        .insert([novoPedido]);
+        .insert([{
+          subtotal: totalPedido,
+          total: totalPedido,
+          criado_em: new Date(),
+          itens: itensPedido,
+          cliente: nomeCliente,
+          status: "aberto",
+          pagamento: "não informado",
+          tipo_entrega: "mesa",
+          horario_recebido: new Date().toISOString()
+        }])
+        .select()
+        .single();
 
       if (erroPedido) {
-        console.error("Erro ao enviar pedido:", erroPedido);
+        console.error(erroPedido);
         abrirModalErro("Erro ao salvar pedido.");
         return;
       }
 
-      console.log("✅ Pedido salvo com sucesso:", pedidoSalvo);
+      console.log("✅ Pedido salvo:", pedidoSalvo);
 
-      // =============================
-      // 9️⃣ ATUALIZAR MESA PARA ATENDIDA POR 10 MINUTOS
-      // =============================
-      // =============================
-// 9️⃣ ATUALIZAR MESA PARA ATENDIDA POR 10 MINUTOS
-// =============================
-console.log("Atualizando mesa para atendida, ID:", mesa.id);
+      // ================================
+      // 3️⃣ ATUALIZAR MESA
+      // ================================
+      await supabase
+        .from("mesas")
+        .update({
+          atendida: true,
+          ativo: true,
+          ultimo_atendimento: new Date()
+        })
+        .eq("id", mesa.id);
 
-const { data: mesaAtualizada, error: erroMesa } = await supabase
-  .from("mesas")
-  .update({
-    atendida: true,
-    ativo: true,
-    ultimo_atendimento: horaSP // registra o momento exato do atendimento
-  })
-  .eq("id", mesa.id)
-  .select();
-
-if (erroMesa) {
-  console.error("Erro ao atualizar mesa:", erroMesa);
-} else {
-  console.log("Mesa atualizada:", mesaAtualizada);
-}
-
-// =============================
-// FUNÇÃO PARA RESETAR MESA APÓS 10 MINUTOS
-// =============================
-async function resetarMesa(mesaId) {
-  const { data: mesaReset, error: erroReset } = await supabase
-    .from("mesas")
-    .update({ atendida: false, ativo: false })
-    .eq("id", mesaId)
-    .select();
-
-  if (erroReset) console.error("Erro ao resetar mesa:", erroReset);
-  else console.log("Mesa resetada automaticamente após 10 min:", mesaReset);
-}
-
-// =============================
-// DESATIVA AUTOMATICAMENTE APÓS 10 MINUTOS
-// =============================
-setTimeout(() => resetarMesa(mesa.id), 10 * 60 * 1000); // 10 minutos
-
-
-      // =============================
-      // 🔟 ADICIONAR COMANDA NA TABELA "comandas"
-      // =============================
-      const { data: comandaSalva, error: erroComanda } = await supabase
-        .from("comandas")
-        .insert([{
-          id: crypto.randomUUID(),
-          cliente_nome: nomeCliente,
-          mesa_id: mesa.id,
-          cadeira: 1, // ajuste conforme seu sistema de cadeiras
-          data_abertura: horaSP,
-          status: "aberta"
-        }]);
-
-      if (erroComanda) {
-        console.error("Erro ao criar comanda:", erroComanda);
-      } else {
-        console.log("Comanda criada:", comandaSalva);
-      }
-
-      // =============================
-      // 1️⃣1️⃣ LIMPAR TELA
-      // =============================
+      // ================================
+      // LIMPAR TELA
+      // ================================
       document.querySelectorAll(".checkboxProduto").forEach(c => c.checked = false);
+
       document.querySelectorAll(".quantidadeProduto").forEach(q => {
         q.disabled = true;
         q.value = 1;
@@ -1465,20 +1360,17 @@ setTimeout(() => resetarMesa(mesa.id), 10 * 60 * 1000); // 10 minutos
 
       calcularTotal();
 
-      // =============================
-      // 1️⃣2️⃣ MENSAGEM DE SUCESSO
-      // =============================
-      abrirModalErro("✅ Pedido enviado e comanda aberta com sucesso!");
-      carregarRelatorioGarcom();
+      abrirModalErro("✅ Pedido enviado com sucesso!");
 
     } catch (erro) {
-      console.error("Erro geral envio:", erro);
+      console.error("Erro geral:", erro);
       abrirModalErro("Erro ao enviar pedido.");
     }
 
   });
 
 });
+
 
 // ==============================
 // CONEXÃO GARÇOM - CORRIGIDO

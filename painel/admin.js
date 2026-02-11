@@ -5508,17 +5508,20 @@ async function abrirComanda(mesaId) {
   comanda.appendChild(topo);
 
   // ===============================
-  // CLIENTE DA COMANDA
+  // BUSCAR CLIENTE NA TABELA COMANDAS
   // ===============================
-  const { data: comandaAtual } = await supabase
+  const { data: comandas } = await supabase
     .from("comandas")
     .select("cliente_nome")
-    .eq("mesa_id", mesa.id)
+    .eq("mesa_id", mesa.numero)
     .eq("status", "aberta")
-    .maybeSingle();
+    .limit(1);
 
-  const clienteNome = comandaAtual?.cliente_nome || "";
+  const clienteNome = comandas?.[0]?.cliente_nome || "";
 
+  // ===============================
+  // CAMPO CLIENTE
+  // ===============================
   const campoCliente = document.createElement("div");
   campoCliente.style.marginTop = "6px";
 
@@ -5554,8 +5557,7 @@ async function abrirComanda(mesaId) {
   const produtosMarcados = new Set();
 
   pedidosCliente.forEach(p => {
-    const itens = p.itens || [];
-    itens.forEach(i => produtosMarcados.add(i.id));
+    (p.itens || []).forEach(i => produtosMarcados.add(i.id));
   });
 
   // ===============================
@@ -5627,8 +5629,7 @@ async function abrirComanda(mesaId) {
   let totalComanda = 0;
 
   pedidosCliente.forEach(p => {
-    const itens = p.itens || [];
-    itens.forEach(i => totalComanda += i.subtotal || 0);
+    (p.itens || []).forEach(i => totalComanda += i.subtotal || 0);
   });
 
   const total = document.createElement("div");
@@ -5645,53 +5646,42 @@ async function abrirComanda(mesaId) {
   comanda.appendChild(total);
 
   // ===============================
-// RODAPÉ
-// ===============================
-const rodape = document.createElement("div");
+  // RODAPÉ
+  // ===============================
+  const rodape = document.createElement("div");
 
-// Aviso
-const aviso = document.createElement("div");
-aviso.textContent =
-  "Em caso de perda desta comanda poderá ser cobrada taxa administrativa.";
+  const aviso = document.createElement("div");
+  aviso.textContent =
+    "Em caso de perda desta comanda poderá ser cobrada taxa administrativa.";
 
-Object.assign(aviso.style, {
-  fontSize: "10px",
-  textAlign: "center",
-  color: "#555",
-  marginTop: "10px"
-});
+  Object.assign(aviso.style, {
+    fontSize: "10px",
+    textAlign: "center",
+    color: "#555",
+    marginTop: "10px"
+  });
 
+  const linhaSeparadora = document.createElement("div");
 
-// ✅ LINHA TRACEJADA (A QUE ESTAVA FALTANDO)
-const linhaSeparadora = document.createElement("div");
+  Object.assign(linhaSeparadora.style, {
+    borderTop: "1px dashed #999",
+    width: "100%",
+    marginTop: "6px",
+    marginBottom: "6px"
+  });
 
-Object.assign(linhaSeparadora.style, {
-  borderTop: "1px dashed #999",
-  width: "100%",
-  marginTop: "6px",
-  marginBottom: "6px"
-});
+  const desenvolvido = document.createElement("div");
+  desenvolvido.innerHTML =
+    'Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>';
 
+  Object.assign(desenvolvido.style, {
+    fontSize: "9px",
+    textAlign: "right",
+    color: "#666"
+  });
 
-// Texto final
-const desenvolvido = document.createElement("div");
-desenvolvido.innerHTML =
-  'Desenvolvido por <strong>DM DESIGN GRÁFICO</strong>';
-
-Object.assign(desenvolvido.style, {
-  fontSize: "9px",
-  textAlign: "right",
-  color: "#666"
-});
-
-rodape.append(
-  aviso,
-  linhaSeparadora,
-  desenvolvido
-);
-
-comanda.appendChild(rodape);
-
+  rodape.append(aviso, linhaSeparadora, desenvolvido);
+  comanda.appendChild(rodape);
 
   // ===============================
   // BOTÃO IMPRIMIR
@@ -5715,6 +5705,7 @@ comanda.appendChild(rodape);
 
   btnImprimir.onclick = () => {
     const conteudoParaImprimir = document.createElement("div");
+
     comanda.childNodes.forEach(child => {
       if (child !== btnImprimir && child !== btnFechar) {
         conteudoParaImprimir.appendChild(child.cloneNode(true));
@@ -5722,6 +5713,7 @@ comanda.appendChild(rodape);
     });
 
     const iframe = document.createElement("iframe");
+
     Object.assign(iframe.style, {
       position: "absolute",
       width: "0",
@@ -5749,17 +5741,17 @@ comanda.appendChild(rodape);
         </body>
       </html>
     `);
+
     doc.close();
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
     setTimeout(() => iframe.remove(), 1000);
   };
 
-
   comanda.appendChild(btnImprimir);
-
   document.body.appendChild(overlay);
 }
+
 
 
 // ==============================

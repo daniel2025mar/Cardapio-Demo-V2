@@ -111,43 +111,6 @@ function iniciarLogout(mensagem) {
   }, 10000); // ⏱️ 10 segundos
 }
 
-// 🚀 Inicialização
-document.addEventListener("DOMContentLoaded", () => {
-  verificarAcessoGarcom();
-});
-
-// 🔄 Revalida acesso a cada 15 segundos
-setInterval(verificarAcessoGarcom, 15000);
-
-
-// 🔄 VERIFICA VIRADA DO DIA (SÓ TELA)
-function verificarViradaDoDia() {
-  const hoje = dataHojeBrasil();
-  const ultimoDia = localStorage.getItem("ultimoDiaRelatorio");
-
-  // se nunca foi salvo, salva o dia atual
-  if (!ultimoDia) {
-    localStorage.setItem("ultimoDiaRelatorio", hoje);
-    return false;
-  }
-
-  if (ultimoDia !== hoje) {
-    // ⚠️ proteção contra elementos inexistentes
-    const mesas = document.getElementById("mesasAtendidas");
-    const pedidos = document.getElementById("pedidosDia");
-    const faturado = document.getElementById("totalFaturado");
-
-    if (mesas) mesas.textContent = 0;
-    if (pedidos) pedidos.textContent = 0;
-    if (faturado) faturado.textContent = "R$ 0,00";
-
-    localStorage.setItem("ultimoDiaRelatorio", hoje);
-    return true;
-  }
-
-  return false;
-}
-
 // funçao que oculta o conteudo
 function toggleEstatisticas() {
 
@@ -162,56 +125,6 @@ function toggleEstatisticas() {
 
 document.getElementById("campoEstatisticas")
   .addEventListener("click", toggleEstatisticas);
-
-
-// 📊 CARREGAR RELATÓRIO DO GARÇOM
-async function carregarRelatorioGarcom() {
-  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-
-  if (!usuarioLogado || !usuarioLogado.username) {
-    return;
-  }
-
-  // 🔄 se virou o dia, não busca relatório antigo
-  const virouDia = verificarViradaDoDia();
-  if (virouDia) return;
-
-  const hoje = dataHojeBrasil();
-
-  const { data, error } = await supabase
-    .from("relatorio_garcom")
-    .select("mesas_atendidas, total_pedidos, total_faturado")
-    .eq("nome_garcom", usuarioLogado.username)
-    .eq("data", hoje)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Erro ao carregar relatório:", error);
-    return;
-  }
-
-  const mesas = document.getElementById("mesasAtendidas");
-  const pedidos = document.getElementById("pedidosDia");
-  const faturado = document.getElementById("totalFaturado");
-
-  if (!data) {
-    if (mesas) mesas.textContent = 0;
-    if (pedidos) pedidos.textContent = 0;
-    if (faturado) faturado.textContent = "R$ 0,00";
-    return;
-  }
-
-  if (mesas) mesas.textContent = data.mesas_atendidas;
-  if (pedidos) pedidos.textContent = data.total_pedidos;
-  if (faturado) {
-    faturado.textContent = Number(data.total_faturado).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-  }
-}
-
-
 
 /* =====================================================
    RELATÓRIO PDF DO GARÇOM (COM LOGO E EMPRESA)
@@ -656,13 +569,7 @@ selectMesa.addEventListener("change", () => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  carregarMesas();
-  carregarProdutos();
-  carregarRelatorioGarcom();
-   // 🔔 verifica logo ao abrir a tela
-  verificarMesasNaoAtendidas();
-});
+
 
 
 // Função para gerar UUID (se ainda não tiver)
@@ -679,8 +586,6 @@ let canalMesasRealtime = null;
 document.addEventListener("DOMContentLoaded", () => {
   carregarMesas();
   carregarProdutos();
-  carregarRelatorioGarcom();
-
 
 });
 
@@ -1193,14 +1098,127 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 });
 
+
+
+// Exemplo de uso ao atualizar dashboard
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await carregarMesas();
+  await carregarProdutos();
+
+
+  // Atualiza Supabase com os valores carregados
+  await atualizarDashboard();
+
+  // 🔔 verifica logo ao abrir a tela
+  verificarMesasNaoAtendidas();
+});
+
+// ================================
+// FUNÇÃO PARA CARREGAR RELATÓRIO DO DIA
+// ================================
+async function carregarRelatorioDiario() {
+  try {
+    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+    if (!usuarioLogado) return;
+
+    const hoje = new Date().toISOString().split("T")[0]; // formato YYYY-MM-DD
+
+    const { data, error } = await supabase
+      .from("relatorio_diario_garcom")
+      .select("*")
+      .eq("garcom_id", usuarioLogado.id)
+      .eq("data", hoje);
+
+    if (error) {
+      console.error("Erro ao buscar relatório:", error);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      // Se não tiver registro ainda
+      document.getElementById("mesasAtendidas").textContent = 0;
+      document.getElementById("pedidosDia").textContent = 0;
+      document.getElementById("totalFaturado").textContent = "R$ 0,00";
+      return;
+    }
+
+    // Se tiver registro (ou vários)
+    let totalMesas = 0;
+    let totalPedidos = 0;
+    let totalFaturado = 0;
+
+    data.forEach(item => {
+      totalMesas += item.mesas_atendidas || 0;
+      totalPedidos += item.total_pedidos || 0;
+      totalFaturado += Number(item.total_faturado) || 0;
+    });
+
+    document.getElementById("mesasAtendidas").textContent = totalMesas;
+    document.getElementById("pedidosDia").textContent = totalPedidos;
+    document.getElementById("totalFaturado").textContent =
+      totalFaturado.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+
+  } catch (err) {
+    console.error("Erro geral ao carregar relatório:", err);
+  }
+}
+
+carregarRelatorioDiario();
+
 // =============================
-// ✅ BOTÃO ENVIAR COMPLETO (RELATORIO_GARCOM)
+// ✅ BOTÃO ENVIAR COMPLETO (RELATORIO_DIARIO_GARCOM)
 // =============================
+
 document.addEventListener("DOMContentLoaded", () => {
 
   const btnEnviar = document.querySelector(".btn-enviar");
   if (!btnEnviar) return;
 
+  // ================================
+  // FUNÇÃO PARA SALVAR NO RELATÓRIO DIÁRIO
+  // ================================
+  async function salvarRelatorioDiario(usuarioLogado, totalPedido, totalItens) {
+    try {
+      const hoje = new Date();
+      const dataFormatada = hoje.toLocaleDateString("pt-BR");
+
+      console.log("Usuário logado:", usuarioLogado); // 👈 ajuda a conferir
+
+      const { data, error } = await supabase
+        .from("relatorio_diario_garcom")
+        .insert([{
+          garcom_id: usuarioLogado.id || null,
+          nome_garcom: usuarioLogado.username || null, // ✅ CORRETO AQUI
+          data: hoje,
+          mesas_atendidas: 1,
+          total_pedidos: 1,
+          total_faturado: totalPedido || 0,
+          created_at: new Date(),
+          updated_at: new Date()
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Erro ao salvar relatório diário:", error);
+        return;
+      }
+
+      console.log(`✅ Relatório diário atualizado para ${dataFormatada}:`, data);
+
+    } catch (err) {
+      console.error("Erro geral ao salvar relatório diário:", err);
+    }
+  }
+
+  // ================================
+  // EVENTO BOTÃO ENVIAR
+  // ================================
   btnEnviar.addEventListener("click", async () => {
 
     try {
@@ -1248,7 +1266,6 @@ document.addEventListener("DOMContentLoaded", () => {
       let totalItens = 0;
 
       const itensPedido = Array.from(checkboxes).map(checkbox => {
-
         const idProduto = checkbox.dataset.id;
         const produto = produtosDados.find(p => String(p.id) === idProduto);
 
@@ -1256,7 +1273,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const quantidade = inputQtd ? Number(inputQtd.value) : 1;
 
         const subtotal = produto.valor_sugerido * quantidade;
-
         totalPedido += subtotal;
         totalItens += quantidade;
 
@@ -1267,7 +1283,6 @@ document.addEventListener("DOMContentLoaded", () => {
           valor_unitario: produto.valor_sugerido,
           subtotal
         };
-
       });
 
       // ================================
@@ -1280,7 +1295,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#nomeClienteInput");
 
       const nomeCliente = inputNomeCliente?.value.trim();
-
       if (!nomeCliente) {
         abrirModalErro("Informe o nome do cliente.");
         return;
@@ -1289,7 +1303,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // ================================
       // 1️⃣ CRIAR COMANDA
       // ================================
-      const { data: comandaSalva, error: erroComanda } = await supabase
+      const { error: erroComanda } = await supabase
         .from("comandas")
         .insert([{
           cliente_nome: nomeCliente,
@@ -1297,22 +1311,18 @@ document.addEventListener("DOMContentLoaded", () => {
           cadeira: 1,
           data_abertura: new Date(),
           status: "aberta"
-        }])
-        .select()
-        .single();
+        }]);
 
       if (erroComanda) {
-        console.error(erroComanda);
+        console.error("Erro ao criar comanda:", erroComanda);
         abrirModalErro("Erro ao criar comanda.");
         return;
       }
 
-      console.log("✅ Comanda criada:", comandaSalva);
-
       // ================================
       // 2️⃣ CRIAR PEDIDO
       // ================================
-      const { data: pedidoSalvo, error: erroPedido } = await supabase
+      const { error: erroPedido } = await supabase
         .from("pedidos")
         .insert([{
           subtotal: totalPedido,
@@ -1324,17 +1334,13 @@ document.addEventListener("DOMContentLoaded", () => {
           pagamento: "não informado",
           tipo_entrega: "mesa",
           horario_recebido: new Date().toISOString()
-        }])
-        .select()
-        .single();
+        }]);
 
       if (erroPedido) {
-        console.error(erroPedido);
+        console.error("Erro ao salvar pedido:", erroPedido);
         abrirModalErro("Erro ao salvar pedido.");
         return;
       }
-
-      console.log("✅ Pedido salvo:", pedidoSalvo);
 
       // ================================
       // 3️⃣ ATUALIZAR MESA
@@ -1349,10 +1355,14 @@ document.addEventListener("DOMContentLoaded", () => {
         .eq("id", mesa.id);
 
       // ================================
+      // 4️⃣ SALVAR RELATÓRIO DIÁRIO
+      // ================================
+      await salvarRelatorioDiario(usuarioLogado, totalPedido, totalItens);
+
+      // ================================
       // LIMPAR TELA
       // ================================
       document.querySelectorAll(".checkboxProduto").forEach(c => c.checked = false);
-
       document.querySelectorAll(".quantidadeProduto").forEach(q => {
         q.disabled = true;
         q.value = 1;

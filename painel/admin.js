@@ -3754,10 +3754,383 @@ document.getElementById("btnConfirmarExcluir").addEventListener("click", async (
   modal.classList.remove('flex')
 })
 
-// Função de editar produto
-function editarProduto(id) {
-  alert('Editar produto ' + id)
+function mostrarAviso(mensagem) {
+  const modalAviso = document.getElementById("modalAviso");
+  const modalMensagem = document.getElementById("modalMensagem");
+  const btnFechar = modalAviso.querySelector("#btnFecharModal");
+
+  // Define a mensagem
+  modalMensagem.textContent = mensagem;
+
+  // Mostra o modal
+  modalAviso.classList.remove("hidden");
+
+  // Adiciona animação de entrada (opcional)
+  setTimeout(() => {
+    modalAviso.querySelector("div").classList.add("scale-100");
+  }, 10);
+
+  // Fecha ao clicar no botão OK
+  btnFechar.onclick = () => {
+    fecharModalAviso();
+  };
+
+  // Fecha ao clicar fora do conteúdo
+  modalAviso.addEventListener("click", (e) => {
+    if (e.target === modalAviso) {
+      fecharModalAviso();
+    }
+  });
+
+  function fecharModalAviso() {
+    modalAviso.querySelector("div").classList.remove("scale-100");
+    setTimeout(() => {
+      modalAviso.classList.add("hidden");
+    }, 200);
+  }
 }
+
+// ===============================
+// ELEMENTOS
+// ===============================
+const selectRelatorio = document.getElementById("selectTipoRelatorioProduto");
+const resumoQuantidade = document.getElementById("resumoQuantidadeProdutos");
+const resumoSemVenda = document.getElementById("resumoSemVenda"); // card produtos sem venda
+const tbodyProdutos = document.getElementById("tbodyRelatorioProdutos"); // tabela produtos
+
+// ===============================
+// EVENTO DO SELECT
+// ===============================
+if (selectRelatorio) {
+  selectRelatorio.addEventListener("change", verificarRelatorioSelecionado);
+}
+
+// ===============================
+// FUNÇÃO QUE VERIFICA O TIPO
+// ===============================
+async function verificarRelatorioSelecionado() {
+  const tipo = selectRelatorio.value;
+
+  if (tipo === "todos") {
+    await calcularTotalEstoque();
+    await preencherTabelaProdutos();
+    await atualizarCardSemVenda(); // atualiza card
+  } else if (tipo === "estoque-baixo") {
+    resumoQuantidade.textContent = 0;
+    await preencherTabelaEstoqueBaixo();
+    await atualizarCardSemVenda(); // ainda podemos atualizar o card
+  } else {
+    resumoQuantidade.textContent = 0;
+    tbodyProdutos.innerHTML = ""; // limpa a tabela se não for todos ou estoque baixo
+    await atualizarCardSemVenda();
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA ATUALIZAR O CARD "PRODUTOS SEM VENDA"
+// ===============================
+async function atualizarCardSemVenda() {
+  try {
+    const { data, error } = await supabase
+      .from("produtos")
+      .select("descricao, ultima_venda");
+
+    if (error) {
+      console.error("Erro ao buscar produtos:", error);
+      resumoSemVenda.textContent = 0;
+      return;
+    }
+
+    // filtra produtos que ainda não tiveram venda
+    const semVenda = (data || []).filter(p => p.ultima_venda === "0001-01-01");
+    resumoSemVenda.textContent = semVenda.length;
+  } catch (err) {
+    console.error("Erro ao atualizar card Produtos sem Venda:", err);
+    resumoSemVenda.textContent = 0;
+  }
+}
+
+// ===============================
+// FUNÇÃO QUE CALCULA O ESTOQUE
+// ===============================
+async function calcularTotalEstoque() {
+  try {
+    const { data, error } = await supabase
+      .from("produtos")
+      .select("estoque");
+
+    if (error) {
+      console.error("Erro ao buscar estoque:", error);
+      resumoQuantidade.textContent = 0;
+      return;
+    }
+
+    const totalEstoque = (data || []).reduce((total, item) => {
+      const estoqueNum = parseInt(item.estoque, 10);
+      return total + (isNaN(estoqueNum) ? 0 : estoqueNum);
+    }, 0);
+
+    resumoQuantidade.textContent = totalEstoque;
+  } catch (err) {
+    console.error("Erro geral:", err);
+    resumoQuantidade.textContent = 0;
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA PREENCHER A TABELA "TODOS OS PRODUTOS"
+// ===============================
+async function preencherTabelaProdutos() {
+  try {
+    const { data, error } = await supabase
+      .from("produtos")
+      .select("descricao, estoque, valor_sugerido, ultima_venda");
+
+    if (error) {
+      console.error("Erro ao buscar produtos:", error);
+      tbodyProdutos.innerHTML = "";
+      return;
+    }
+
+    tbodyProdutos.innerHTML = "";
+
+    (data || []).forEach(produto => {
+      const tr = document.createElement("tr");
+
+      const estoqueNum = parseInt(produto.estoque, 10) || 0;
+      let estoqueClasse = "";
+      if (estoqueNum === 0) estoqueClasse = "text-red-600 font-bold";
+      else if (estoqueNum >= 1 && estoqueNum <= 4) estoqueClasse = "text-orange-500 font-semibold";
+      else if (estoqueNum >= 5 && estoqueNum < 10) estoqueClasse = "text-blue-600 font-semibold";
+
+      const ultimaVendaExibicao = produto.ultima_venda === "0001-01-01" ? "00/00/0000" : produto.ultima_venda;
+
+      tr.innerHTML = `
+        <td class="px-4 py-2 ${estoqueClasse}">${produto.descricao}</td>
+        <td class="px-4 py-2 ${estoqueClasse}">${estoqueNum}</td>
+        <td class="px-4 py-2">R$ ${Number(produto.valor_sugerido || 0).toFixed(2)}</td>
+        <td class="px-4 py-2">R$ 0,00</td>
+        <td class="px-4 py-2 ${estoqueClasse}">${ultimaVendaExibicao}</td>
+      `;
+
+      tbodyProdutos.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error("Erro geral ao preencher tabela:", err);
+    tbodyProdutos.innerHTML = "";
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA PREENCHER A TABELA "ESTOQUE BAIXO"
+// ===============================
+async function preencherTabelaEstoqueBaixo() {
+  try {
+    const { data, error } = await supabase
+      .from("produtos")
+      .select("descricao, estoque, valor_sugerido, ultima_venda");
+
+    if (error) {
+      console.error("Erro ao buscar produtos:", error);
+      tbodyProdutos.innerHTML = "";
+      return;
+    }
+
+    tbodyProdutos.innerHTML = "";
+
+    (data || []).filter(produto => parseInt(produto.estoque, 10) <= 5)
+      .forEach(produto => {
+        const tr = document.createElement("tr");
+        const estoqueNum = parseInt(produto.estoque, 10) || 0;
+        let estoqueClasse = estoqueNum === 0 ? "text-red-600 font-bold" : "text-orange-500 font-semibold";
+
+        const ultimaVendaExibicao = produto.ultima_venda === "0001-01-01" ? "00/00/0000" : produto.ultima_venda;
+
+        tr.innerHTML = `
+          <td class="px-4 py-2 ${estoqueClasse}">${produto.descricao}</td>
+          <td class="px-4 py-2 ${estoqueClasse}">${estoqueNum}</td>
+          <td class="px-4 py-2">R$ ${Number(produto.valor_sugerido || 0).toFixed(2)}</td>
+          <td class="px-4 py-2">R$ 0,00</td>
+          <td class="px-4 py-2 ${estoqueClasse}">${ultimaVendaExibicao}</td>
+        `;
+        tbodyProdutos.appendChild(tr);
+      });
+
+  } catch (err) {
+    console.error("Erro ao preencher tabela estoque baixo:", err);
+    tbodyProdutos.innerHTML = "";
+  }
+}
+
+// ===============================
+// CONTROLE DE MENU (ABRIR SECTION)
+// ===============================
+document.querySelectorAll("[data-menu]").forEach(item => {
+  item.addEventListener("click", async () => {
+    const menu = item.getAttribute("data-menu");
+
+    document.querySelectorAll(".content-section").forEach(section => {
+      section.style.display = "none";
+    });
+
+    const sectionAtiva = document.getElementById(menu + "-section");
+
+    if (sectionAtiva) {
+      sectionAtiva.style.display = "block";
+
+      if (menu === "relatorio-produtos") {
+        selectRelatorio.value = "todos";
+        await verificarRelatorioSelecionado();
+      }
+    }
+  });
+});
+
+
+
+// --------------------
+// Função para abrir e preencher modal
+// --------------------
+async function editarProduto(id) {
+  const modalEditarProduto = document.getElementById("modalEditarProduto");
+
+  // 1) Buscar produto no Supabase pelo ID
+  const { data: produto, error } = await supabase
+    .from("produtos")
+    .select("descricao, estoque, valor_sugerido, situacao")
+    .eq("id", id)
+    .single();
+
+  if (error || !produto) {
+    console.error("Erro ao buscar produto:", error);
+    alert("Produto não encontrado ou erro ao carregar.");
+    return;
+  }
+
+  // 2) Preencher campos do modal
+  document.getElementById("produtoId").value = id;
+  document.getElementById("produtoNome").value = produto.descricao;
+  document.getElementById("produtoEstoque").value = produto.estoque;
+  document.getElementById("produtoPreco").value = produto.valor_sugerido ?? "";
+  document.getElementById("produtoAtivo").checked = produto.situacao === "ativo";
+
+  // 3) Abrir modal centralizado
+  modalEditarProduto.classList.remove("hidden");
+  setTimeout(() => {
+    modalEditarProduto.querySelector("div").classList.add("scale-100");
+  }, 10);
+
+  // Fechar modal ao clicar fora
+  modalEditarProduto.addEventListener("click", (e) => {
+    if (e.target === modalEditarProduto) fecharModal();
+  });
+
+  document.getElementById("btnFecharModal").onclick = fecharModal;
+  document.getElementById("btnCancelarEdicao").onclick = fecharModal;
+
+  function fecharModal() {
+    modalEditarProduto.querySelector("div").classList.remove("scale-100");
+    setTimeout(() => {
+      modalEditarProduto.classList.add("hidden");
+    }, 200);
+  }
+
+  // 4) Adicionar evento de salvar no formulário
+  const formEditarProduto = document.getElementById("formEditarProduto");
+
+  // Remove qualquer listener antigo para evitar duplicação
+  formEditarProduto.onsubmit = null;
+
+  formEditarProduto.onsubmit = async (e) => {
+    e.preventDefault();
+
+    // Pegar valores atualizados
+    const descricao = document.getElementById("produtoNome").value;
+    const estoque = parseInt(document.getElementById("produtoEstoque").value);
+    const valor_sugerido = parseFloat(
+      document.getElementById("produtoPreco").value.replace(",", ".")
+    );
+    const situacao = document.getElementById("produtoAtivo").checked
+      ? "ativo"
+      : "inativo";
+
+    // Atualizar no Supabase
+    const { data, error } = await supabase
+      .from("produtos")
+      .update({
+        descricao,
+        estoque,
+        valor_sugerido,
+        situacao,
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao atualizar produto:", error);
+      mostrarAviso("Erro ao atualizar produto. Verifique o console.");
+      return;
+    }
+
+    // Fecha modal de edição
+    fecharModal();
+
+    // Mostra modal de aviso
+    mostrarAviso("Produto atualizado com sucesso!");
+
+    // Opcional: atualizar a lista de produtos na tela
+    // atualizarTabelaProdutos();
+  };
+}
+
+
+// --------------------
+// Evento de salvar alterações no Supabase
+// --------------------
+const formEditarProduto = document.getElementById("formEditarProduto");
+
+formEditarProduto.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  // Pega os valores do modal
+  const id = document.getElementById("produtoId").value;
+  const descricao = document.getElementById("produtoNome").value;
+  const estoque = parseInt(document.getElementById("produtoEstoque").value);
+  const valor_sugerido = parseFloat(document.getElementById("produtoPreco").value.replace(",", "."));
+  const situacao = document.getElementById("produtoAtivo").checked ? "ativo" : "inativo";
+
+  // Atualiza o produto no Supabase
+  const { data, error } = await supabase
+    .from("produtos")
+    .update({
+      descricao: descricao,
+      estoque: estoque,
+      valor_sugerido: valor_sugerido,
+      situacao: situacao
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao atualizar produto:", error);
+    alert("Erro ao atualizar produto. Verifique o console.");
+    return;
+  }
+
+  modalAviso("Produto atualizado com sucesso!");
+
+  // Fecha o modal
+  const modalEditarProduto = document.getElementById("modalEditarProduto");
+  modalEditarProduto.querySelector("div").classList.remove("scale-100");
+  setTimeout(() => {
+    modalEditarProduto.classList.add("hidden");
+  }, 200);
+
+  // Opcional: atualizar tabela/lista de produtos na tela
+  // atualizarTabelaProdutos();
+});
+
+
+
 
 document.addEventListener('DOMContentLoaded', carregarProdutos)
 
@@ -5345,7 +5718,9 @@ function renderizarMesa(mesa) {
     badge = null;
   }
 
-  // Atualiza hora_ocupada automaticamente
+  // =========================
+  // ATUALIZA HORA_OCUPADA AUTOMATICAMENTE
+  // =========================
   if (ocupada && !mesa.hora_ocupada) {
     const horaAtual = horaSP();
     supabase
@@ -5835,7 +6210,7 @@ function mostrarModalGarcom(mensagem) {
     try {
       // Busca todos os registros da tabela relatorio_garcom
       const { data, error } = await supabase
-        .from('relatorio_garcom')
+        .from('relatorio_diario_garcom')
         .select('nome_garcom');
 
       if (error) throw error;
@@ -5882,6 +6257,7 @@ const btnFecharPreviewPDF = document.getElementById("btnFecharPreviewPDF");
 const btnDownloadPDF = document.getElementById("btnDownloadPDF");
 
 let pdfUrlGlobal = null;
+let pdfUrlProdutosGlobal = null;   
 
 // ========================
 // ABRIR MODAL
@@ -5906,19 +6282,24 @@ function abrirPreviewPDF(url) {
 // FECHAR MODAL
 // ========================
 function fecharPreviewPDF() {
-
   modalPreviewPDF.classList.add("hidden");
   iframePreviewPDF.src = "";
 
   // libera scroll
   document.body.style.overflow = "auto";
 
-  // limpa URL blob (boa prática)
+  // limpa URLs blob (boa prática)
   if (pdfUrlGlobal) {
     URL.revokeObjectURL(pdfUrlGlobal);
     pdfUrlGlobal = null;
   }
+
+  if (pdfUrlProdutosGlobal) {
+    URL.revokeObjectURL(pdfUrlProdutosGlobal);
+    pdfUrlProdutosGlobal = null;
+  }
 }
+
 
 btnFecharPreviewPDF.onclick = fecharPreviewPDF;
 
@@ -5955,6 +6336,7 @@ btnDownloadPDF.onclick = () => {
   document.body.removeChild(link);
 
 };
+
 
 
 
@@ -6112,12 +6494,133 @@ document.getElementById('btnGerarPDF').addEventListener('click', async () => {
 
 });
 
+// ========================
+// VARIÁVEL GLOBAL PARA PDF
+// ========================
+document.getElementById('btnGerarPDFProdutos').addEventListener('click', async () => {
+  const linhasTabela = document.querySelectorAll('#tbodyRelatorioProdutos tr');
+  if (!linhasTabela.length) { alert("⚠️ Nenhum produto para gerar PDF."); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  try {
+    const { data: empresas } = await supabase.from('empresa').select('*').limit(1);
+    if (!empresas?.length) return;
+    const empresa = empresas[0];
+
+    async function carregarImagemBase64(path) {
+      return new Promise(resolve => {
+        if (!path) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = path;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          canvas.getContext('2d').drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = () => resolve(null);
+      });
+    }
+
+    const logoBase64 = await carregarImagemBase64(empresa.logotipo || "dist/imagem/LogoTipo.png");
+    if (logoBase64) doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
+
+    // Dados da empresa
+    doc.setTextColor(37, 99, 235);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(empresa.nome || "", 45, 18);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    let infoY = 24;
+    if (empresa.cnpj) { doc.text(`CNPJ: ${empresa.cnpj}`, 45, infoY); infoY += 5; }
+    if (empresa.endereco) { doc.text(`Endereço: ${empresa.endereco}`, 45, infoY); infoY += 5; }
+    if (empresa.telefone) { doc.text(`Telefone: ${empresa.telefone}`, 45, infoY); infoY += 5; }
+    if (empresa.whatsapp) { doc.text(`WhatsApp: ${empresa.whatsapp}`, 45, infoY); infoY += 5; }
+
+    const lineY = Math.max(35, infoY);
+    doc.line(14, lineY, 196, lineY);
+
+    // Título e data
+    const hoje = new Date();
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Produtos", 14, lineY + 10);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Gerado em: ${hoje.toLocaleDateString('pt-BR')} ${hoje.toLocaleTimeString('pt-BR')}`, 14, lineY + 15);
+
+    // Montar tabela
+    const rows = [];
+    let totalGeral = 0;
+    linhasTabela.forEach(tr => {
+      const cols = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim());
+      if (cols.length) {
+        const quantidade = parseFloat(cols[1].replace(',', '.') || 0);
+        const valorUnitario = parseFloat(cols[2].replace('R$', '').replace(',', '.') || 0);
+        const totalProduto = quantidade * valorUnitario;
+        totalGeral += totalProduto;
+        cols[3] = `R$ ${totalProduto.toFixed(2)}`;
+        rows.push(cols);
+      }
+    });
+
+    doc.autoTable({
+      startY: lineY + 20,
+      head: [['Produto', 'Quantidade', 'Valor Unitário', 'Total Vendido', 'Última Venda']],
+      body: rows,
+      theme: 'grid',
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' }
+    });
+
+    const finalY = doc.lastAutoTable.finalY || 100;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text(`TOTAL GERAL: R$ ${totalGeral.toFixed(2)}`, 14, finalY + 10);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(128, 128, 128);
+    doc.text("GestioMax Soluções de Cardápio e Delivery", 14, finalY + 20);
+
+    // Salva URL na variável global correta
+    const pdfBlob = doc.output('blob');
+    pdfUrlProdutosGlobal = URL.createObjectURL(pdfBlob);
+    abrirPreviewPDF(pdfUrlProdutosGlobal);
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao gerar PDF do relatório de produtos.");
+  }
+
+});
+
+const btnDownloadPDFProdutos = document.getElementById("btnDownloadPDFProdutos");
+if (btnDownloadPDFProdutos) {
+  btnDownloadPDFProdutos.onclick = () => {
+    if (!pdfUrlProdutosGlobal) return;
+
+    const link = document.createElement("a");
+    link.href = pdfUrlProdutosGlobal;
+    link.download = "relatorio_produtos.pdf"; // 👈 NOME CORRETO
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+};
+
+
 
 // =============================
 // FILTRAR RELATÓRIO
 // =============================
 async function filtrarTotalVendido() {
-
   const selectGarcom = document.getElementById('selectGarcom');
   const garcomSelecionado = selectGarcom.value;
 
@@ -6131,9 +6634,8 @@ async function filtrarTotalVendido() {
   }
 
   try {
-
     let query = supabase
-      .from('relatorio_garcom')
+      .from('relatorio_diario_garcom')
       .select('*')
       .gte('data', dataInicial)
       .lte('data', dataFinal)
@@ -6149,13 +6651,8 @@ async function filtrarTotalVendido() {
     const tbody = document.getElementById('tbodyRelatorioGarcons');
     tbody.innerHTML = '';
 
-    // =============================
-    // SEM RESULTADO
-    // =============================
     if (!data || data.length === 0) {
-
       relatorioGarconsGerado = false;
-
       tbody.innerHTML = `
         <tr>
           <td colspan="5" class="py-10 text-center text-gray-400">
@@ -6166,24 +6663,44 @@ async function filtrarTotalVendido() {
           </td>
         </tr>
       `;
-
       return;
     }
 
     relatorioGarconsGerado = true;
 
-    const total = data.reduce(
-      (acc, item) => acc + parseFloat(item.total_faturado),
-      0
-    );
+    // =============================
+    // AGRUPAR POR GARÇOM E DATA
+    // =============================
+    const agrupados = {};
+
+    data.forEach(item => {
+      const key = `${item.nome_garcom}_${item.data}`;
+      if (!agrupados[key]) {
+        agrupados[key] = {
+          nome_garcom: item.nome_garcom,
+          data: item.data,
+          mesas_atendidas: item.mesas_atendidas || 0,
+          total_faturado: parseFloat(item.total_faturado || 0),
+          total_pedidos: item.total_pedidos || 0
+        };
+      } else {
+        agrupados[key].mesas_atendidas += item.mesas_atendidas || 0;
+        agrupados[key].total_faturado += parseFloat(item.total_faturado || 0);
+        agrupados[key].total_pedidos += item.total_pedidos || 0;
+      }
+    });
+
+    const resultado = Object.values(agrupados);
 
     // =============================
-    // LINHAS DO RELATÓRIO
+    // POPULAR TABELA
     // =============================
-    data.forEach((item, index) => {
+    let total = 0;
+
+    resultado.forEach((item, index) => {
+      total += item.total_faturado;
 
       const tr = document.createElement('tr');
-
       tr.className = `
         border-b
         hover:bg-indigo-50
@@ -6191,29 +6708,15 @@ async function filtrarTotalVendido() {
         duration-200
         ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
       `;
-
       tr.innerHTML = `
-        <td class="px-4 py-3 font-medium text-gray-700">
-          ${item.nome_garcom}
-        </td>
-
-        <td class="px-4 py-3 text-center text-gray-600">
-          ${item.mesas_atendidas}
-        </td>
-
+        <td class="px-4 py-3 font-medium text-gray-700">${item.nome_garcom}</td>
+        <td class="px-4 py-3 text-center text-gray-600">${item.mesas_atendidas}</td>
         <td class="px-4 py-3 text-right font-semibold text-blue-600">
           R$ ${item.total_faturado.toFixed(2)}
         </td>
-
-        <td class="px-4 py-3 text-center text-gray-600">
-          ${formatarDataBanco(item.data)}
-        </td>
-
-        <td class="px-4 py-3 text-center text-gray-600">
-          ${item.total_pedidos}
-        </td>
+        <td class="px-4 py-3 text-center text-gray-600">${formatarDataBanco(item.data)}</td>
+        <td class="px-4 py-3 text-center text-gray-600">${item.total_pedidos}</td>
       `;
-
       tbody.appendChild(tr);
     });
 
@@ -6221,36 +6724,21 @@ async function filtrarTotalVendido() {
     // LINHA TOTAL
     // =============================
     const trTotal = document.createElement('tr');
-
-    trTotal.className = `
-      bg-indigo-100
-      border-t-2
-      border-indigo-400
-      font-bold
-    `;
-
+    trTotal.className = `bg-indigo-100 border-t-2 border-indigo-400 font-bold`;
     trTotal.innerHTML = `
-      <td colspan="2" class="px-4 py-3 text-right text-gray-800">
-        Total Vendido:
-      </td>
-
-      <td class="px-4 py-3 text-right text-indigo-700 text-lg">
-        R$ ${total.toFixed(2)}
-      </td>
-
+      <td colspan="2" class="px-4 py-3 text-right text-gray-800">Total Vendido:</td>
+      <td class="px-4 py-3 text-right text-indigo-700 text-lg">R$ ${total.toFixed(2)}</td>
       <td colspan="2"></td>
     `;
-
     tbody.appendChild(trTotal);
 
   } catch (err) {
-
     console.error(err);
     relatorioGarconsGerado = false;
-    alert("Erro ao buscar relatório.");
-
+    mostrarModalGarcom("Erro ao buscar relatório.");
   }
 }
+
 
 function limparRelatorioGarcons() {
 

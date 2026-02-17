@@ -1092,21 +1092,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   // 🔒 VALIDAÇÃO AO FINALIZAR (COM BLOQUEIO)
   // ===============================
-btnFinalizar.addEventListener("click", async (e) => {
+  
+  btnFinalizar.addEventListener("click", async (e) => {
   e.preventDefault();
 
   // ===============================
   // 🔐 VERIFICA LOGIN GOOGLE
   // ===============================
   const { data: userData, error: userError } = await supabase.auth.getUser();
-
   if (userError || !userData?.user) {
     abrirModalLoginNecessario();
     return;
   }
 
   const user = userData.user;
-
   if (!user.app_metadata?.provider || user.app_metadata.provider !== "google") {
     mostrarToast("Login necessário", "Faça login com sua conta Google para enviar pedidos.");
     return;
@@ -1123,40 +1122,97 @@ btnFinalizar.addEventListener("click", async (e) => {
     .eq("email", emailLogado)
     .single();
 
-  if (errCliente && errCliente.code !== "PGRST116") { // "PGRST116" = não encontrado
+  if (errCliente && errCliente.code !== "PGRST116") {
     mostrarToast("Erro", "Erro ao verificar cliente.");
     return;
   }
 
   // ===============================
-  // 🆕 CRIA CLIENTE SE NÃO EXISTIR
+  // ⚠️ SE CLIENTE NÃO EXISTIR, ABRE MODAL PARA PEGAR NOME
   // ===============================
   if (!cliente) {
-    const { data: novoCliente, error: insertClienteError } = await supabase
-      .from("clientes")
-      .insert([
-        {
-          nome: user.user_metadata?.full_name || "Sem Nome",
-          email: emailLogado,
-          criado_em: new Date().toISOString(),
-          status: "ativo",
-          bloqueado: false,
-          saldo_cashback: 0
-        }
-      ])
-      .select()
-      .single();
-
-    if (insertClienteError) {
-      mostrarToast("Erro", "Não foi possível criar cliente.");
-      console.error(insertClienteError);
+    const modalNome = document.getElementById("modalNome");
+    if (!modalNome) {
+      mostrarToast("Erro", "Modal de nome não encontrado.");
       return;
     }
 
-    cliente = novoCliente;
-    console.log("Novo cliente criado:", cliente);
+    modalNome.classList.remove("hidden");
+
+    const btnSalvarNome = modalNome.querySelector("#btnSalvarNome");
+    const inputNome = modalNome.querySelector("#inputNome");
+    const erroNome = modalNome.querySelector("#erroNome");
+
+    if (!btnSalvarNome || !inputNome) {
+      mostrarToast("Erro", "Elementos do modal não encontrados.");
+      return;
+    }
+
+    // Espera o usuário digitar o nome e clicar no botão
+    cliente = await new Promise((resolve) => {
+      btnSalvarNome.onclick = async () => {
+        const nomeCliente = inputNome.value.trim();
+
+        // Validação básica: não vazio e sem números
+        if (!nomeCliente || /\d/.test(nomeCliente)) {
+          erroNome?.classList.remove("hidden");
+          return;
+        }
+        erroNome?.classList.add("hidden");
+
+        // ===============================
+        // 🆕 CRIA CLIENTE NO SUPABASE
+        // ===============================
+        const { data: novoCliente, error: insertClienteError } = await supabase
+          .from("clientes")
+          .insert([
+            {
+              nome: nomeCliente,      // salva o nome do modal
+              email: emailLogado,
+              celular: inputCelular.value, // salva o telefone
+              criado_em: new Date().toISOString(),
+              status: "ativo",
+              bloqueado: false,
+              saldo_cashback: 0
+            }
+          ])
+          .select()
+          .single();
+
+        if (insertClienteError) {
+          mostrarToast("Erro", "Não foi possível criar cliente.");
+          console.error(insertClienteError);
+          return;
+        }
+
+        modalNome.classList.add("hidden");
+        resolve(novoCliente); // retorna o cliente criado
+      };
+    });
+  } else {
+    // ===============================
+    // 🔄 ATUALIZA CELULAR SE CLIENTE EXISTIR
+    // ===============================
+    if (inputCelular.value && inputCelular.value !== cliente.celular) {
+      const { error: updateError } = await supabase
+        .from("clientes")
+        .update({ celular: inputCelular.value })
+        .eq("id", cliente.id);
+
+      if (updateError) {
+        mostrarToast("Erro", "Não foi possível atualizar o celular do cliente.");
+        console.error(updateError);
+        return;
+      }
+
+      cliente.celular = inputCelular.value;
+      console.log("Celular do cliente atualizado:", cliente.celular);
+    }
   }
 
+  // ===============================
+  // 🔒 VERIFICA BLOQUEIO
+  // ===============================
   if (cliente.bloqueado === true) {
     mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
     return;
@@ -1174,7 +1230,6 @@ btnFinalizar.addEventListener("click", async (e) => {
   // 📞 VALIDA CAMPOS
   // ===============================
   let erro = false;
-
   inputCelular.classList.remove("border-red-500");
   inputEndereco.classList.remove("border-red-500");
 
@@ -1256,9 +1311,6 @@ btnFinalizar.addEventListener("click", async (e) => {
   atualizarCarrinhoUI();
   modal.classList.add("hidden");
 });
-
-
-
 
   // Carrega taxa
   carregarTaxaEntrega();

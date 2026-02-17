@@ -312,11 +312,6 @@ function mostrarLoaderProdutos() {
 }
 
 
-function esconderLoaderProdutos() {
-  const container = document.getElementById("produtosContainer");
-  container.innerHTML = "";
-}
-
 // =============================
 // CARREGAR PRODUTOS NO CARDÁPIO
 // =============================

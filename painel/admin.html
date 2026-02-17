@@ -2360,7 +2360,7 @@
         </div>
 
       </section>
-
+<!--menu clientes-->
     <section id="clientes" class="content-section mb-8">
   <div class="flex items-start justify-between mb-6 gap-4">
     <div class="flex-1">
@@ -2409,24 +2409,27 @@
   </div>
 
   <div class="overflow-x-auto bg-white rounded-2xl shadow-md border border-gray-200">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cidade</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UP</th>
-          <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-        </tr>
-      </thead>
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Celular</th> <!-- Nova coluna -->
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cidade</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UP</th>
+        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+      </tr>
+    </thead>
 
-      <tbody class="bg-white divide-y divide-gray-200" id="lista-clientes">
-        <!-- Clientes serão adicionados dinamicamente via JS -->
-      </tbody>
-    </table>
-  </div>
-</section>
+    <tbody class="bg-white divide-y divide-gray-200" id="lista-clientes">
+      <!-- Clientes serão adicionados dinamicamente via JS -->
+    </tbody>
+  </table>
+</div>
+
+     </section>
+<!--fim do menu clientes-->
 
 <!-- Modal Editar Produto -->
 <div id="modalEditarProduto" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 hidden z-50 backdrop-blur-sm">

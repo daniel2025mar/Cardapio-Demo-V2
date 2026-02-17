@@ -1376,12 +1376,13 @@ async function carregarClientes() {
   const lista = document.getElementById("lista-clientes");
   if (!lista) return;
 
-  lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Carregando clientes...</td></tr>`;
+  // Atualizado colspan para 7
+  lista.innerHTML = `<tr><td colspan="7" class="text-gray-400 text-center py-4">Carregando clientes...</td></tr>`;
 
   try {
     const { data: clientes, error } = await supabase
       .from("clientes")
-      .select("id, nome, telefone, cidade, up, bloqueado")
+      .select("id, nome, telefone, celular, cidade, up, bloqueado") // Adicionei 'celular'
       .order("nome", { ascending: true });
 
     if (error) throw error;
@@ -1391,9 +1392,10 @@ async function carregarClientes() {
 
   } catch (err) {
     console.error("Erro ao carregar clientes:", err);
-    lista.innerHTML = `<tr><td colspan="6" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
+    lista.innerHTML = `<tr><td colspan="7" class="text-red-500 text-center py-4">Erro ao carregar clientes.</td></tr>`;
   }
 }
+
 
 // =============================
 //   FILTRAR CLIENTES
@@ -1426,7 +1428,7 @@ function renderizarClientes(clientes) {
   lista.innerHTML = "";
 
   if (!clientes || clientes.length === 0) {
-    lista.innerHTML = `<tr><td colspan="6" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
+    lista.innerHTML = `<tr><td colspan="7" class="text-gray-400 text-center py-4">Nenhum cliente encontrado.</td></tr>`;
     return;
   }
 
@@ -1447,6 +1449,7 @@ function renderizarClientes(clientes) {
         ${cliente.bloqueado ? '<span class="ml-2 px-2 py-0.5 bg-red-200 text-red-800 text-xs rounded-full">Bloqueado</span>' : ''}
       </td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.telefone || "—"}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 celular">${cliente.celular || "—"}</td> <!-- Nova coluna -->
       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${cliente.cidade || "—"}</td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${upFormatado}</td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center space-x-2">
@@ -1457,6 +1460,19 @@ function renderizarClientes(clientes) {
         </button>
       </td>
     `;
+
+    // Evento de clique no celular
+    const tdCelular = tr.querySelector(".celular");
+    if (tdCelular && cliente.celular) {
+      tdCelular.style.cursor = "pointer";
+      tdCelular.classList.add("text-blue-600", "hover:underline");
+      tdCelular.addEventListener("click", () => {
+        // Abre discagem no celular
+        window.location.href = `tel:${cliente.celular}`;
+        // Ou, se quiser copiar o número: 
+        // navigator.clipboard.writeText(cliente.celular).then(() => mostrarToast("Número copiado!", "bg-green-600"));
+      });
+    }
 
     const btnEditar = tr.querySelector(".btn-editar");
     const btnExcluir = tr.querySelector(".btn-excluir");
@@ -1503,6 +1519,7 @@ function renderizarClientes(clientes) {
     lista.appendChild(tr);
   });
 }
+
 
 // =============================
 //   EVENTOS

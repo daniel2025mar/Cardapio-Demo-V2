@@ -162,7 +162,7 @@
         <span class="seta">▾</span>
       </button>
       <ul class="submenu">
-        <li><button class="submenu-item">Adicionar Pedido</button></li>
+        <li><button id="btnAbrirAdicionarPedido" class="submenu-item">Adicionar Pedido</button></li>
         <li><button class="submenu-item">Ver Comandas</button></li>
       </ul>
     </li>
@@ -267,6 +267,78 @@
 
     </div>
   </div>
+
+ <div id="modalAdicionarPedidoModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <span class="close-modal" id="fecharModalAdicionarPedidoModal">&times;</span>
+    <h2>Adicionar Pedido</h2>
+    <p>Digite o nome do cliente:</p>
+    <input type="text" id="inputNomeClienteModal" placeholder="Nome do cliente">
+    <button id="btnConfirmarClienteModal">Confirmar</button>
+
+    <!-- NOVO: Área de adicionar pedidos quando houver comanda aberta -->
+    <div id="adicionarPedidosContainer" style="display:none; margin-top: 20px;">
+  <h3>Comanda Aberta - Adicionar Novos Pedidos</h3>
+  <p>Insira os produtos que o cliente deseja adicionar à comanda já existente.</p>
+  
+  <input type="text" id="inputNovoPedido" placeholder="Nome do produto">
+  <input type="number" id="inputQuantidadePedido" placeholder="Quantidade" min="1" value="1">
+  <button id="btnAdicionarPedido">Adicionar</button>
+
+  <ul id="listaPedidos"></ul>
+</div>
+
+  </div>
+</div>
+
+<!-- Modal de mensagem -->
+
+  <!-- Modal de mensagem -->
+<div id="modalMensagem" style="
+      display: none; /* não aparece inicialmente */
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+  ">
+  <div class="modal-box" style="
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        padding: 20px;
+        position: relative;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  ">
+    <span class="close-modal" id="fecharModalMensagem" style="
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        background: transparent;
+        border: none;
+    ">&times;</span>
+
+    <p id="textoModalMensagem" style="
+        font-size: 16px;
+        margin-bottom: 20px;
+    "></p>
+
+    <button id="btnOkModalMensagem" style="
+        padding: 8px 16px;
+        background-color: #004691;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    ">OK</button>
+  </div>
+</div>
+
 
   <!-- =============================
  MODAL MESA JÁ ATENDIDA

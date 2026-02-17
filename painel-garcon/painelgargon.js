@@ -1179,21 +1179,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnEnviar = document.querySelector(".btn-enviar");
   if (!btnEnviar) return;
 
-  // ================================
-  // FUNÇÃO PARA SALVAR NO RELATÓRIO DIÁRIO
-  // ================================
+  // =========================
+  // MODAL DE MENSAGEM
+  // =========================
+  const modalMensagem = document.getElementById("modalMensagem");
+  const textoModalMensagem = document.getElementById("textoModalMensagem");
+  const btnFecharModalMensagem = document.getElementById("fecharModalMensagem");
+  const btnOkModalMensagem = document.getElementById("btnOkModalMensagem");
+
+  function abrirModalMensagem(mensagem) {
+    textoModalMensagem.textContent = mensagem;
+    modalMensagem.style.display = "flex";
+  }
+
+  function fecharModalMensagem() {
+    modalMensagem.style.display = "none";
+  }
+
+  btnFecharModalMensagem.addEventListener("click", fecharModalMensagem);
+  btnOkModalMensagem.addEventListener("click", fecharModalMensagem);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalMensagem.style.display === "flex") {
+      fecharModalMensagem();
+    }
+  });
+
+  // =========================
+  // FUNÇÃO PARA SALVAR RELATÓRIO DIÁRIO
+  // =========================
   async function salvarRelatorioDiario(usuarioLogado, totalPedido, totalItens) {
     try {
       const hoje = new Date();
-      const dataFormatada = hoje.toLocaleDateString("pt-BR");
-
-      console.log("Usuário logado:", usuarioLogado); // 👈 ajuda a conferir
-
       const { data, error } = await supabase
         .from("relatorio_diario_garcom")
         .insert([{
           garcom_id: usuarioLogado.id || null,
-          nome_garcom: usuarioLogado.username || null, // ✅ CORRETO AQUI
+          nome_garcom: usuarioLogado.username || null,
           data: hoje,
           mesas_atendidas: 1,
           total_pedidos: 1,
@@ -1202,23 +1223,23 @@ document.addEventListener("DOMContentLoaded", () => {
           updated_at: new Date()
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Erro ao salvar relatório diário:", error);
         return;
       }
 
-      console.log(`✅ Relatório diário atualizado para ${dataFormatada}:`, data);
+      console.log("✅ Relatório diário atualizado:", data);
 
     } catch (err) {
       console.error("Erro geral ao salvar relatório diário:", err);
     }
   }
 
-  // ================================
+  // =========================
   // EVENTO BOTÃO ENVIAR
-  // ================================
+  // =========================
   btnEnviar.addEventListener("click", async () => {
 
     try {
@@ -1226,42 +1247,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const permitido = await verificarHorarioPedido();
       if (!permitido) {
-        abrirModalErro("🚫 Fora do horário de atendimento.");
+        abrirModalMensagem("🚫 Fora do horário de atendimento.");
         return;
       }
 
       const mesaSelecionada = selectMesa.value;
       if (!mesaSelecionada) {
-        abrirModalErro("Selecione uma mesa.");
+        abrirModalMensagem("Selecione uma mesa.");
         return;
       }
 
       const mesa = mesasDados.find(m => String(m.id) === mesaSelecionada);
       if (!mesa) {
-        abrirModalErro("Mesa inválida.");
+        abrirModalMensagem("Mesa inválida.");
         return;
       }
 
       if (mesa.atendida) {
-        abrirModalErro(`⚠️ ${mesa.descricao} já foi atendida.`);
+        abrirModalMensagem(`⚠️ ${mesa.descricao} já foi atendida.`);
         return;
       }
 
       const checkboxes = document.querySelectorAll(".checkboxProduto:checked");
       if (checkboxes.length === 0) {
-        abrirModalErro("Selecione pelo menos um produto.");
+        abrirModalMensagem("Selecione pelo menos um produto.");
         return;
       }
 
       const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
       if (!usuarioLogado) {
-        abrirModalErro("Garçom não identificado.");
+        abrirModalMensagem("Garçom não identificado.");
         return;
       }
 
-      // ================================
+      // =========================
       // CALCULAR ITENS
-      // ================================
+      // =========================
       let totalPedido = 0;
       let totalItens = 0;
 
@@ -1285,9 +1306,9 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       });
 
-      // ================================
+      // =========================
       // PEGAR NOME CLIENTE
-      // ================================
+      // =========================
       await window.abrirModalGerarComandaAsync();
 
       const inputNomeCliente =
@@ -1296,13 +1317,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const nomeCliente = inputNomeCliente?.value.trim();
       if (!nomeCliente) {
-        abrirModalErro("Informe o nome do cliente.");
+        abrirModalMensagem("Informe o nome do cliente.");
         return;
       }
 
-      // ================================
+      // =========================
+      // 0️⃣ VERIFICAR SE JÁ EXISTE COMANDA ABERTA
+      // =========================
+      const { data: comandaAberta, error: erroBuscaComanda } = await supabase
+        .from("comandas")
+        .select("*")
+        .eq("cliente_nome", nomeCliente)
+        .eq("status", "aberta")
+        .maybeSingle(); // retorna null se não existir
+
+      if (erroBuscaComanda) {
+        console.error("Erro ao verificar comanda aberta:", erroBuscaComanda);
+        abrirModalMensagem("Erro ao verificar comanda aberta.");
+        return;
+      }
+
+      if (comandaAberta) {
+        abrirModalMensagem(`⚠️ Existe uma comanda aberta para o cliente "${nomeCliente}". Não é possível fazer novos pedidos.`);
+        return;
+      }
+
+      // =========================
       // 1️⃣ CRIAR COMANDA
-      // ================================
+      // =========================
       const { error: erroComanda } = await supabase
         .from("comandas")
         .insert([{
@@ -1315,13 +1357,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (erroComanda) {
         console.error("Erro ao criar comanda:", erroComanda);
-        abrirModalErro("Erro ao criar comanda.");
+        abrirModalMensagem("Erro ao criar comanda.");
         return;
       }
 
-      // ================================
+      // =========================
       // 2️⃣ CRIAR PEDIDO
-      // ================================
+      // =========================
       const { error: erroPedido } = await supabase
         .from("pedidos")
         .insert([{
@@ -1338,13 +1380,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (erroPedido) {
         console.error("Erro ao salvar pedido:", erroPedido);
-        abrirModalErro("Erro ao salvar pedido.");
+        abrirModalMensagem("Erro ao salvar pedido.");
         return;
       }
 
-      // ================================
+      // =========================
       // 3️⃣ ATUALIZAR MESA
-      // ================================
+      // =========================
       await supabase
         .from("mesas")
         .update({
@@ -1354,14 +1396,14 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .eq("id", mesa.id);
 
-      // ================================
+      // =========================
       // 4️⃣ SALVAR RELATÓRIO DIÁRIO
-      // ================================
+      // =========================
       await salvarRelatorioDiario(usuarioLogado, totalPedido, totalItens);
 
-      // ================================
+      // =========================
       // LIMPAR TELA
-      // ================================
+      // =========================
       document.querySelectorAll(".checkboxProduto").forEach(c => c.checked = false);
       document.querySelectorAll(".quantidadeProduto").forEach(q => {
         q.disabled = true;
@@ -1370,16 +1412,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       calcularTotal();
 
-      abrirModalErro("✅ Pedido enviado com sucesso!");
+      abrirModalErro("Pedido enviado com sucesso!");
 
     } catch (erro) {
       console.error("Erro geral:", erro);
-      abrirModalErro("Erro ao enviar pedido.");
+      abrirModalMensagem("Erro ao enviar pedido.");
     }
 
   });
 
 });
+
 
 
 // ==============================
@@ -1541,199 +1584,401 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-document.addEventListener("DOMContentLoaded", () => {
+// ===============================
+// EVENTO DO BOTÃO PESQUISAR
+// ===============================
+document
+  .getElementById("btnPesquisarCliente")
+  .addEventListener("click", buscarComandaPorCliente);
 
-  // ==========================
-  // ELEMENTOS DO MODAL PRODUTOS
-  // ==========================
-  const modalProdutos = document.getElementById("modalAdicionarProdutos");
-  const btnFecharProdutos = document.getElementById("btnFecharProdutos");
+// ===============================
+// BUSCAR COMANDA PELO NOME (TABELA: comandas)
+// ===============================
+async function buscarComandaPorCliente() {
+  const nomeCliente = document.getElementById("inputCliente").value.trim();
+  const resultadoDiv = document.getElementById("resultadoComanda");
 
-  if (!modalProdutos || !btnFecharProdutos) {
-    console.error("❌ Elementos do modalAdicionarProdutos não encontrados!");
+  if (!nomeCliente) {
+    resultadoDiv.innerHTML = "<p style='color:red;'>Digite um nome para pesquisar.</p>";
     return;
   }
 
-  // ==========================
-  // FUNÇÕES DO MODAL PRODUTOS
-  // ==========================
-  function abrirModalProdutos() {
-    modalProdutos.style.display = "flex";   // exibe o modal
-    modalProdutos.style.zIndex = 9999;       // garante que fique acima de tudo
-  }
+  resultadoDiv.innerHTML = "<p>🔎 Buscando...</p>";
 
-  function fecharModalProdutos() {
-    modalProdutos.style.display = "none";   // esconde o modal
-  }
+  try {
+    const { data, error } = await supabase
+      .from("comandas")
+      .select("*")
+      .ilike("cliente_nome", `%${nomeCliente}%`)
+      .eq("status", "aberta")
+      .order("data_abertura", { ascending: false });
 
-  // ==========================
-  // EVENTOS DE FECHAMENTO
-  // ==========================
-  btnFecharProdutos.addEventListener("click", fecharModalProdutos);
+    console.log("🔹 Resultado da busca de comandas:", data, error);
 
-  // fechar ao clicar fora da caixa do modal
-  window.addEventListener("click", (e) => {
-    if (e.target === modalProdutos) fecharModalProdutos();
-  });
+    if (error) throw error;
 
-  // fechar com Esc
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") fecharModalProdutos();
-  });
+    if (!data || data.length === 0) {
+      resultadoDiv.innerHTML = "<p>Nenhuma comanda aberta encontrada.</p>";
+      return;
+    }
 
-  // ==========================
-  // EXEMPLO: ABRIR MODAL AO CLICAR EM QUALQUER BOTÃO DE COMANDA
-  // ==========================
-  document.querySelectorAll(".btn-comanda-aberta").forEach(btn => {
-    btn.addEventListener("click", abrirModalProdutos);
-  });
+    // Monta HTML das comandas encontradas
+    resultadoDiv.innerHTML = data.map(comanda => `
+      <div class="card-comanda">
+        <p><strong>Cliente:</strong> ${comanda.cliente_nome}</p>
+        <p><strong>Mesa:</strong> ${comanda.mesa_id}</p>
+        <p><strong>Cadeira:</strong> ${comanda.cadeira}</p>
+        <p><strong>Aberta em:</strong> ${new Date(comanda.data_abertura).toLocaleString()}</p>
+        <button class="btn-abrir-comanda" data-id="${comanda.id}" data-cliente="${comanda.cliente_nome}">
+          Abrir Comanda
+        </button>
+      </div>
+    `).join("");
 
-});
-
-
-
-// ===============================
-// MODAL ABRIR COMANDAS COM ADICIONAR PRODUTOS
-// ===============================
-document.addEventListener("DOMContentLoaded", () => {
-
-  // ==========================
-  // ELEMENTOS MODAIS
-  // ==========================
-  const modal = document.getElementById("modalComandas");
-  const btnFechar = modal?.querySelector(".close-modal");
-  const menuLateral = document.getElementById("menuLateral");
-  const inputCliente = document.getElementById("inputCliente");
-  const resultadoComanda = document.getElementById("resultadoComanda");
-
-  const modalProdutos = document.getElementById("modalAdicionarProdutos");
-  const btnFecharProdutos = document.getElementById("btnFecharProdutos");
-
-  if (!modal || !btnFechar || !menuLateral || !inputCliente || !resultadoComanda || !modalProdutos) {
-    console.error("❌ Elementos do modal não encontrados!");
-    return;
-  }
-
-  // ==========================
-  // FUNÇÕES DE MODAL
-  // ==========================
-  function abrirModal(modalEl) {
-    modalEl.style.display = "flex";
-  }
-
-  function fecharModal(modalEl) {
-    modalEl.style.display = "none";
-  }
-
-  function fecharMenuLateral() {
-    menuLateral.classList.remove("aberto");
-    menuLateral.style.left = "-240px";
-  }
-
-  // ==========================
-  // MODAL PRODUTOS (APENAS ABRIR)
-  // ==========================
-  function abrirModalProdutos() {
-    abrirModal(modalProdutos);
-  }
-
-  // ==========================
-  // EVENTOS MODAIS
-  // ==========================
-  // Abrir modal comandas pelo menu
-  document.querySelectorAll(".submenu-item").forEach(item => {
-    if (item.textContent.trim() === "Ver Comandas") {
-      item.addEventListener("click", () => {
-        fecharMenuLateral();
-        abrirModal(modal);
-        inputCliente.focus();
+    // Evento botão abrir
+    document.querySelectorAll(".btn-abrir-comanda").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const comandaId = btn.getAttribute("data-id");
+        const nomeCliente = btn.getAttribute("data-cliente");
+        console.log("🔹 Abrindo comanda ID:", comandaId, "Cliente:", nomeCliente);
+        abrirComanda(comandaId, nomeCliente);
       });
+    });
+
+  } catch (err) {
+    console.error("❌ Erro ao buscar comandas:", err);
+    resultadoDiv.innerHTML = "<p style='color:red;'>Erro ao buscar comandas.</p>";
+  }
+}
+
+// ===============================
+// ABRIR COMANDA (TABELA: pedidos)
+// Mostra os itens bonitinhos
+// ===============================
+// ===============================
+// ABRIR COMANDA (TABELA: pedidos)
+// ===============================
+async function abrirComanda(comandaId, nomeCliente) {
+  const resultadoDiv = document.getElementById("resultadoComanda");
+  resultadoDiv.innerHTML = "<p>🔄 Carregando pedidos...</p>";
+
+  try {
+    // Busca pedidos do cliente com status aberto
+    const { data: pedidos, error: pedidosError } = await supabase
+      .from("pedidos")
+      .select("itens, total")
+      .eq("cliente", nomeCliente)
+      .eq("status", "aberto");
+
+    console.log("🔹 Resultado da busca de pedidos:", pedidos, pedidosError);
+
+    if (pedidosError) throw pedidosError;
+    if (!pedidos || pedidos.length === 0) {
+      resultadoDiv.innerHTML = "<p>Essa comanda ainda não possui pedidos.</p>";
+      return;
+    }
+
+    let totalGeral = 0;
+
+    const htmlPedidos = await Promise.all(
+      pedidos.map(async (pedido, index) => {
+        totalGeral += Number(pedido.total || 0);
+
+        // Para cada item do pedido, buscamos o nome do produto na tabela 'produtos'
+        const itensHTML = await Promise.all(
+          pedido.itens.map(async item => {
+            const { data: produtoData, error: produtoError } = await supabase
+              .from("produtos")
+              .select("descricao")
+              .eq("id", item.id)
+              .single();
+
+            let nomeProduto = item.id; // default caso não encontre
+            if (produtoError) {
+              console.warn(`Produto não encontrado para id ${item.id}:`, produtoError);
+            } else if (produtoData && produtoData.descricao) {
+              nomeProduto = produtoData.descricao;
+            }
+
+            const qtd = Number(item.quantidade);
+            const preco = Number(item.valor_unitario);
+            const subtotal = Number(item.subtotal || qtd * preco);
+
+            return `
+              <div class="item-pedido" style="padding:5px 0; border-bottom:1px solid #ddd;">
+                <p><strong>${nomeProduto}</strong></p>
+                <p>Qtd: ${qtd} | Preço Unitário: R$ ${preco.toFixed(2)} | Subtotal: R$ ${subtotal.toFixed(2)}</p>
+              </div>
+            `;
+          })
+        );
+
+        return `
+          <div class="pedido-comanda" style="margin-bottom:15px; padding:10px; background:#f9f9f9; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <p><strong>Pedido ${index + 1}</strong></p>
+            ${itensHTML.join("")}
+            <p style="text-align:right; font-weight:bold; margin-top:5px;">Total do Pedido: R$ ${Number(pedido.total).toFixed(2)}</p>
+          </div>
+        `;
+      })
+    );
+
+    resultadoDiv.innerHTML = `
+      <h3>Pedidos da Comanda</h3>
+      ${htmlPedidos.join("")}
+      <h3>Total Geral: R$ ${totalGeral.toFixed(2)}</h3>
+      <br>
+      <button id="btnVoltar">⬅ Voltar</button>
+    `;
+
+    // Botão voltar
+    document.getElementById("btnVoltar")
+      .addEventListener("click", buscarComandaPorCliente);
+
+  } catch (err) {
+    console.error("❌ Erro ao buscar pedidos:", err);
+    resultadoDiv.innerHTML = "<p style='color:red;'>Erro ao carregar pedidos.</p>";
+  }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  // =========================
+  // MODAIS
+  // =========================
+  const modalAdicionarPedido = document.getElementById("modalAdicionarPedidoModal");
+  const btnFecharModalAdicionarPedido = document.getElementById("fecharModalAdicionarPedidoModal");
+  const btnConfirmarCliente = document.getElementById("btnConfirmarClienteModal");
+  const inputNomeCliente = document.getElementById("inputNomeClienteModal");
+  const btnAbrirModalAdicionarPedido = document.getElementById("btnAbrirAdicionarPedido");
+
+  const adicionarPedidosContainer = document.getElementById("adicionarPedidosContainer");
+  const inputNovoPedido = document.getElementById("inputNovoPedido");
+  const inputQuantidadePedido = document.getElementById("inputQuantidadePedido");
+  const btnAdicionarPedido = document.getElementById("btnAdicionarPedido");
+  const listaPedidos = document.getElementById("listaPedidos");
+
+  // =========================
+  // MODAL DE MENSAGEM
+  // =========================
+  const modalMensagem = document.getElementById("modalMensagem");
+  const textoModalMensagem = document.getElementById("textoModalMensagem");
+  const btnFecharModalMensagem = document.getElementById("fecharModalMensagem");
+  const btnOkModalMensagem = document.getElementById("btnOkModalMensagem");
+
+  function abrirModalMensagem(mensagem) {
+    textoModalMensagem.textContent = mensagem;
+    modalMensagem.style.display = "flex";     // flex para centralizar
+    modalMensagem.style.zIndex = "99999";     // garantir acima de tudo
+  }
+
+  function fecharModalMensagem() {
+    modalMensagem.style.display = "none";
+  }
+
+  btnFecharModalMensagem.addEventListener("click", fecharModalMensagem);
+  btnOkModalMensagem.addEventListener("click", fecharModalMensagem);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalMensagem.style.display === "flex") {
+      fecharModalMensagem();
     }
   });
 
-  // Fechar modais
-  btnFechar.addEventListener("click", () => fecharModal(modal));
-  btnFecharProdutos.addEventListener("click", () => fecharModal(modalProdutos));
+  // =========================
+  // MENSAGEM DE ERRO PRODUTO
+  // =========================
+  let msgErroProduto = document.createElement("p");
+  msgErroProduto.style.color = "red";
+  msgErroProduto.style.fontSize = "13px";
+  msgErroProduto.style.marginTop = "4px";
+  inputNovoPedido.insertAdjacentElement("afterend", msgErroProduto);
 
-  // Fechar qualquer modal ao clicar fora
-  window.addEventListener("click", (e) => {
-    if (e.target === modal) fecharModal(modal);
-    if (e.target === modalProdutos) fecharModal(modalProdutos);
+  // =========================
+  // CONTAINER PARA INPUT + LISTA DE SUGESTÕES
+  // =========================
+  const containerInputProduto = document.createElement("div");
+  containerInputProduto.style.position = "relative";
+  inputNovoPedido.parentNode.insertBefore(containerInputProduto, inputNovoPedido);
+  containerInputProduto.appendChild(inputNovoPedido);
+
+  let listaSugestoes = document.createElement("ul");
+  listaSugestoes.style.border = "1px solid #ccc";
+  listaSugestoes.style.borderRadius = "6px";
+  listaSugestoes.style.boxShadow = "0 2px 6px rgba(0,0,0,0.15)";
+  listaSugestoes.style.maxHeight = "150px";
+  listaSugestoes.style.overflowY = "auto";
+  listaSugestoes.style.padding = "5px 0";
+  listaSugestoes.style.background = "#fff";
+  listaSugestoes.style.position = "absolute";
+  listaSugestoes.style.top = inputNovoPedido.offsetHeight + "px";
+  listaSugestoes.style.left = "0";
+  listaSugestoes.style.width = "100%";
+  listaSugestoes.style.zIndex = 1000;
+  listaSugestoes.style.display = "none";
+  containerInputProduto.appendChild(listaSugestoes);
+
+  let comandaAtualId = null;
+
+  // =========================
+  // FUNÇÕES MODAL ADICIONAR PEDIDO
+  // =========================
+  function abrirModalAdicionarPedido() {
+    modalAdicionarPedido.classList.add("show");
+    inputNomeCliente.value = "";
+    inputNomeCliente.focus();
+    adicionarPedidosContainer.style.display = "none";
+    listaPedidos.innerHTML = "";
+    comandaAtualId = null;
+    msgErroProduto.textContent = "";
+    listaSugestoes.style.display = "none";
+  }
+
+  function fecharModalAdicionarPedido() {
+    modalAdicionarPedido.classList.remove("show");
+    msgErroProduto.textContent = "";
+    listaSugestoes.style.display = "none";
+  }
+
+  btnAbrirModalAdicionarPedido.addEventListener("click", (e) => {
+    e.preventDefault();
+    abrirModalAdicionarPedido();
   });
 
-  // Fechar com Esc
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      fecharModal(modal);
-      fecharModal(modalProdutos);
+  btnFecharModalAdicionarPedido.addEventListener("click", fecharModalAdicionarPedido);
+  modalAdicionarPedido.addEventListener("click", (e) => {
+    if (e.target === modalAdicionarPedido) fecharModalAdicionarPedido();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalAdicionarPedido.classList.contains("show")) {
+      fecharModalAdicionarPedido();
     }
   });
 
-  // ==========================
-  // BUSCAR COMANDAS PELO NOME
-  // ==========================
-  inputCliente.addEventListener("input", async () => {
-    const nome = inputCliente.value.trim();
-    resultadoComanda.innerHTML = "";
+  // =========================
+  // CONFIRMAR CLIENTE
+  // =========================
+  btnConfirmarCliente.addEventListener("click", async () => {
+    const nomeCliente = inputNomeCliente.value.trim();
+    if (!nomeCliente) {
+      abrirModalMensagem("Informe o nome do cliente!");
+      inputNomeCliente.focus();
+      return;
+    }
+    await verificarComandaAberta(nomeCliente);
+  });
 
-    if (!nome) return;
+  async function verificarComandaAberta(nomeCliente) {
+    const { data, error } = await supabase
+      .from("comandas")
+      .select("*")
+      .eq("cliente_nome", nomeCliente)
+      .eq("status", "aberta");
 
-    try {
-      const { data: comandas, error } = await supabase
-        .from('comandas')
-        .select(`*, mesas!inner(numero)`)
-        .ilike('cliente_nome', `%${nome}%`);
+    if (error) {
+      console.error("Erro ao verificar comanda:", error);
+      return;
+    }
 
-      if (error) throw error;
+    if (data && data.length > 0) {
+      abrirModalMensagem(`⚠️ O cliente "${nomeCliente}" já possui uma comanda aberta.`);
+      comandaAtualId = data[0].id;
+      adicionarPedidosContainer.style.display = "block";
+      inputNovoPedido.focus();
+      listaPedidos.innerHTML = "";
 
-      if (!comandas || comandas.length === 0) {
-        resultadoComanda.innerHTML = `<p>Não há comandas para este cliente.</p>`;
-        return;
-      }
+      // Sugestões de produtos
+      inputNovoPedido.addEventListener("input", async () => {
+        const termo = inputNovoPedido.value.trim();
+        if (!termo) {
+          listaSugestoes.style.display = "none";
+          msgErroProduto.textContent = "";
+          return;
+        }
 
-      const abertas = comandas.filter(c => c.status.toLowerCase() === 'aberta');
-      const finalizadas = comandas.filter(c => c.status.toLowerCase() !== 'aberta');
+        const { data: produtosData, error: produtosError } = await supabase
+          .from("produtos")
+          .select("descricao")
+          .ilike("descricao", `%${termo}%`)
+          .eq("situacao", "ativo")
+          .limit(10);
 
-      // Comandas abertas
-      if (abertas.length > 0) {
-        const tituloAbertas = document.createElement("p");
-        tituloAbertas.innerHTML = `<strong>${nome}</strong> possui ${abertas.length} comanda(s) aberta(s):`;
-        tituloAbertas.style.cursor = "pointer";
-        resultadoComanda.appendChild(tituloAbertas);
+        if (produtosError || !produtosData || produtosData.length === 0) {
+          msgErroProduto.textContent = `❌ Produto "${termo}" não existe no sistema.`;
+          listaSugestoes.style.display = "none";
+          return;
+        }
 
-        tituloAbertas.addEventListener("click", () => abrirModalProdutos()); // ← aqui
-
-        abertas.forEach(c => {
-          const btnComanda = document.createElement("button");
-          btnComanda.textContent = `Mesa: ${c.mesa_id}, Abertura: ${new Date(c.data_abertura).toLocaleString()}`;
-          btnComanda.classList.add("btn-comanda-aberta");
-          btnComanda.addEventListener("click", () => abrirModalProdutos());
-          resultadoComanda.appendChild(btnComanda);
+        msgErroProduto.textContent = "";
+        listaSugestoes.innerHTML = "";
+        produtosData.forEach(p => {
+          const li = document.createElement("li");
+          li.textContent = p.descricao;
+          li.style.cursor = "pointer";
+          li.style.padding = "6px 10px";
+          li.style.transition = "background 0.2s";
+          li.addEventListener("mouseover", () => li.style.backgroundColor = "#f0f0f0");
+          li.addEventListener("mouseout", () => li.style.backgroundColor = "#fff");
+          li.addEventListener("click", () => {
+            inputNovoPedido.value = p.descricao;
+            listaSugestoes.style.display = "none";
+            inputQuantidadePedido.focus();
+          });
+          listaSugestoes.appendChild(li);
         });
-      }
+        listaSugestoes.style.display = "block";
+      });
 
-      // Comandas finalizadas
-      if (finalizadas.length > 0) {
-        const tituloFinalizadas = document.createElement("p");
-        tituloFinalizadas.innerHTML = `<strong>${nome}</strong> já finalizou ${finalizadas.length} comanda(s):`;
-        resultadoComanda.appendChild(tituloFinalizadas);
+      // Adicionar pedido
+      btnAdicionarPedido.onclick = async () => {
+        const produto = inputNovoPedido.value.trim();
+        const quantidade = parseInt(inputQuantidadePedido.value);
 
-        finalizadas.forEach(c => {
-          const fechamento = c.data_fechamento ? new Date(c.data_fechamento).toLocaleString() : "Sem data";
-          const p = document.createElement("p");
-          p.textContent = `Mesa: ${c.mesa_id} - Abertura: ${new Date(c.data_abertura).toLocaleString()}, Fechamento: ${fechamento} (Cliente finalizou a comanda)`;
-          p.style.color = "#888";
-          p.style.fontStyle = "italic";
-          resultadoComanda.appendChild(p);
-        });
-      }
+        if (!produto || quantidade < 1) {
+          msgErroProduto.textContent = "Informe o produto e a quantidade!";
+          return;
+        }
 
-    } catch (err) {
-      console.error("Erro ao buscar comandas:", err);
-      resultadoComanda.innerHTML = `<p>Erro ao buscar comandas. Tente novamente.</p>`;
+        const { data: produtoData, error: produtoError } = await supabase
+          .from("produtos")
+          .select("descricao")
+          .ilike("descricao", `%${produto}%`)
+          .eq("situacao", "ativo")
+          .limit(1)
+          .single();
+
+        if (produtoError || !produtoData) {
+          msgErroProduto.textContent = `❌ Produto "${produto}" não existe no sistema.`;
+          return;
+        }
+
+        msgErroProduto.textContent = "";
+
+        const { data: pedidoData, error: pedidoError } = await supabase
+          .from("pedidos")
+          .insert([{ comanda_id: comandaAtualId, produto: produtoData.descricao, quantidade }]);
+
+        if (pedidoError) {
+          console.error("Erro ao adicionar pedido:", pedidoError);
+          abrirModalMensagem("Erro ao adicionar pedido.");
+          return;
+        }
+
+        const li = document.createElement("li");
+        li.textContent = `${produtoData.descricao} - ${quantidade}`;
+        li.style.padding = "5px 8px";
+        li.style.borderBottom = "1px solid #eee";
+        listaPedidos.appendChild(li);
+
+        inputNovoPedido.value = "";
+        inputQuantidadePedido.value = 1;
+        inputNovoPedido.focus();
+      };
+
+    } else {
+      abrirModalMensagem(`✅ Cliente "${nomeCliente}" não possui comanda aberta. Pode prosseguir.`);
+      adicionarPedidosContainer.style.display = "none";
+      comandaAtualId = null;
     }
-  });
-
+  }
 });
-
-

@@ -5620,36 +5620,50 @@ function mostrarMensagem(texto, duracao = 2000) {
 }
 
 // =========================
+// FORMATAR DATA PARA BRASIL
+// =========================
+function formatarDataHoraBrasil(dataUTC) {
+  if (!dataUTC) return "-";
+
+  const data = new Date(dataUTC);
+
+  return data.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+// =========================
 // FUNÇÃO PARA RENDERIZAR MESA
 // =========================
 function renderizarMesa(mesa) {
   let mesaDiv = document.getElementById(`mesa-${mesa.id}`);
   const valorConsumido = mesa.valor ? mesa.valor.toFixed(2) : "0,00";
   const ocupada = mesa.cliente_presente === true;
-  const atendida = mesa.atendida === true; // Mesa com comanda ativa
+  const atendida = mesa.atendida === true;
   const comandaAtiva = atendida;
 
-  mesa.itens = mesa.itens || []; // garante que sempre seja um array
+  mesa.itens = mesa.itens || [];
 
-  // =========================
-  // CRIA MESA SE NÃO EXISTIR
-  // =========================
   if (!mesaDiv) {
     mesaDiv = document.createElement("div");
     mesaDiv.id = `mesa-${mesa.id}`;
-    mesaDiv.className = `relative flex flex-col items-center justify-start cursor-pointer transition-transform hover:scale-105`;
+    mesaDiv.className =
+      "relative flex flex-col items-center justify-start cursor-pointer transition-transform hover:scale-105";
 
     mesaDiv.innerHTML = `
-      <div class="monitor w-full h-28 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
+      <div class="monitor w-full h-32 rounded-md flex flex-col items-center justify-between border-2 border-black shadow-md relative">
         <div class="titulo w-full text-center text-xs font-bold bg-black text-white py-1">
           Mesa ${String(mesa.numero).padStart(3, "0")}
         </div>
-        <div class="status-text text-sm font-bold mt-2">
-          ${ocupada ? "OCUPADA" : "LIVRE"}
-        </div>
-        <div class="valor text-xs font-semibold mb-2">
-          R$ ${valorConsumido}
-        </div>
+        <div class="status-text text-sm font-bold mt-1"></div>
+        <div class="valor text-xs font-semibold"></div>
+        <div class="hora text-[10px] text-gray-700 mb-1"></div>
       </div>
       <div class="base w-6 h-3 bg-black mt-1 rounded-sm"></div>
       <div class="haste w-1 h-3 bg-black"></div>
@@ -5657,7 +5671,7 @@ function renderizarMesa(mesa) {
     `;
 
     // =========================
-    // CLIQUE PARA ALTERAR STATUS DA MESA
+    // CLIQUE PARA ALTERAR STATUS
     // =========================
     mesaDiv.addEventListener("click", async (e) => {
       if (e.target.classList.contains("badge-comanda")) return;
@@ -5672,11 +5686,19 @@ function renderizarMesa(mesa) {
         cliente_presente: novoStatus,
       });
 
-      const horaAtual = novoStatus ? horaSP() : null;
+      const updateData = novoStatus
+        ? {
+            cliente_presente: true,
+            hora_ocupada: new Date().toISOString()
+          }
+        : {
+            cliente_presente: false,
+            hora_ocupada: null
+          };
 
       const { error } = await supabase
         .from("mesas")
-        .update({ cliente_presente: novoStatus, hora_ocupada: horaAtual })
+        .update(updateData)
         .eq("id", mesa.id);
 
       if (error) {
@@ -5689,10 +5711,23 @@ function renderizarMesa(mesa) {
   }
 
   // =========================
-  // ATUALIZA VALORES EXISTENTES
+  // ATUALIZA INFORMAÇÕES
   // =========================
-  mesaDiv.querySelector(".titulo").textContent = `Mesa ${String(mesa.numero).padStart(3, "0")}`;
-  mesaDiv.querySelector(".valor").textContent = `R$ ${valorConsumido}`;
+  mesaDiv.querySelector(".titulo").textContent =
+    `Mesa ${String(mesa.numero).padStart(3, "0")}`;
+
+  mesaDiv.querySelector(".valor").textContent =
+    `R$ ${valorConsumido}`;
+
+  mesaDiv.querySelector(".status-text").textContent =
+    ocupada ? "OCUPADA" : "LIVRE";
+
+  // 🔥 AQUI ESTÁ A CORREÇÃO DA EXIBIÇÃO
+  mesaDiv.querySelector(".hora").textContent =
+    ocupada && mesa.hora_ocupada
+      ? formatarDataHoraBrasil(mesa.hora_ocupada)
+      : "";
+
   atualizarStatusVisual(mesaDiv, ocupada, atendida);
 
   // =========================
@@ -5703,33 +5738,22 @@ function renderizarMesa(mesa) {
   if (comandaAtiva) {
     if (!badge) {
       badge = document.createElement("div");
-      badge.className = "badge-comanda text-xs font-bold text-white bg-red-600 px-2 py-1 rounded cursor-pointer absolute -top-8 z-10";
+      badge.className =
+        "badge-comanda text-xs font-bold text-white bg-red-600 px-2 py-1 rounded cursor-pointer absolute -top-8 z-10";
       badge.textContent = "COMANDA ATIVA";
       mesaDiv.appendChild(badge);
     }
 
     badge.onclick = (e) => {
-      e.stopPropagation(); // evita disparar clique da mesa
+      e.stopPropagation();
       abrirComanda(mesa.id);
       mostrarMensagem(`Abrindo comanda da Mesa ${mesa.numero}`, 2500);
     };
   } else if (badge) {
     badge.remove();
-    badge = null;
-  }
-
-  // =========================
-  // ATUALIZA HORA_OCUPADA AUTOMATICAMENTE
-  // =========================
-  if (ocupada && !mesa.hora_ocupada) {
-    const horaAtual = horaSP();
-    supabase
-      .from("mesas")
-      .update({ hora_ocupada: horaAtual })
-      .eq("id", mesa.id)
-      .then(({ error }) => { if (error) console.error("Erro ao atualizar hora_ocupada:", error); });
   }
 }
+
 
 
 // =========================
@@ -6495,16 +6519,22 @@ document.getElementById('btnGerarPDF').addEventListener('click', async () => {
 });
 
 // ========================
-// VARIÁVEL GLOBAL PARA PDF
+//  GERAR PDF PRODUTOS
 // ========================
 document.getElementById('btnGerarPDFProdutos').addEventListener('click', async () => {
   const linhasTabela = document.querySelectorAll('#tbodyRelatorioProdutos tr');
-  if (!linhasTabela.length) { alert("⚠️ Nenhum produto para gerar PDF."); return; }
+  if (!linhasTabela.length) { 
+    alert("⚠️ Nenhum produto para gerar PDF."); 
+    return; 
+  }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   try {
+    // =========================
+    // Buscar dados da empresa
+    // =========================
     const { data: empresas } = await supabase.from('empresa').select('*').limit(1);
     if (!empresas?.length) return;
     const empresa = empresas[0];
@@ -6529,7 +6559,9 @@ document.getElementById('btnGerarPDFProdutos').addEventListener('click', async (
     const logoBase64 = await carregarImagemBase64(empresa.logotipo || "dist/imagem/LogoTipo.png");
     if (logoBase64) doc.addImage(logoBase64, 'PNG', 14, 10, 25, 25);
 
-    // Dados da empresa
+    // =========================
+    // Informações da empresa
+    // =========================
     doc.setTextColor(37, 99, 235);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
@@ -6547,7 +6579,9 @@ document.getElementById('btnGerarPDFProdutos').addEventListener('click', async (
     const lineY = Math.max(35, infoY);
     doc.line(14, lineY, 196, lineY);
 
-    // Título e data
+    // =========================
+    // Título do relatório
+    // =========================
     const hoje = new Date();
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
@@ -6556,19 +6590,35 @@ document.getElementById('btnGerarPDFProdutos').addEventListener('click', async (
     doc.setFont("helvetica", "normal");
     doc.text(`Gerado em: ${hoje.toLocaleDateString('pt-BR')} ${hoje.toLocaleTimeString('pt-BR')}`, 14, lineY + 15);
 
+    // =========================
     // Montar tabela
+    // =========================
     const rows = [];
     let totalGeral = 0;
+
     linhasTabela.forEach(tr => {
-      const cols = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim());
-      if (cols.length) {
-        const quantidade = parseFloat(cols[1].replace(',', '.') || 0);
-        const valorUnitario = parseFloat(cols[2].replace('R$', '').replace(',', '.') || 0);
-        const totalProduto = quantidade * valorUnitario;
-        totalGeral += totalProduto;
-        cols[3] = `R$ ${totalProduto.toFixed(2)}`;
-        rows.push(cols);
-      }
+      const tds = tr.querySelectorAll('td');
+      if (!tds.length) return;
+
+      const nomeProduto = tds[0].textContent.trim();
+      const quantidade = parseFloat(tds[1].textContent.replace(',', '.') || 0);
+      const valorUnitario = parseFloat(tds[2].textContent.replace('R$', '').replace(',', '.') || 0);
+
+      // =========================
+      // SOMENTE SOMA VALOR UNITÁRIO
+      // =========================
+      totalGeral += valorUnitario;
+
+      // Mantém a coluna Total Vendido como estava (não mexe)
+      const totalProduto = tds[3] ? tds[3].textContent.trim() : '0,00';
+
+      rows.push([
+        nomeProduto,
+        quantidade,
+        `R$ ${valorUnitario.toFixed(2)}`,
+        totalProduto,
+        tds[4] ? tds[4].textContent.trim() : '-'
+      ]);
     });
 
     doc.autoTable({
@@ -6576,20 +6626,30 @@ document.getElementById('btnGerarPDFProdutos').addEventListener('click', async (
       head: [['Produto', 'Quantidade', 'Valor Unitário', 'Total Vendido', 'Última Venda']],
       body: rows,
       theme: 'grid',
-      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' }
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 10 }
     });
 
-    const finalY = doc.lastAutoTable.finalY || 100;
+    // =========================
+    // Total geral (soma apenas valor unitário)
+    // =========================
+    const finalY = doc.lastAutoTable.finalY || (lineY + 60);
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL GERAL: R$ ${totalGeral.toFixed(2)}`, 14, finalY + 10);
+    const totalGeralFormatado = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    doc.text(`TOTAL GERAL: ${totalGeralFormatado}`, 14, finalY + 10);
 
+    // =========================
+    // Rodapé
+    // =========================
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(128, 128, 128);
     doc.text("GestioMax Soluções de Cardápio e Delivery", 14, finalY + 20);
 
-    // Salva URL na variável global correta
+    // =========================
+    // Salvar e abrir PDF
+    // =========================
     const pdfBlob = doc.output('blob');
     pdfUrlProdutosGlobal = URL.createObjectURL(pdfBlob);
     abrirPreviewPDF(pdfUrlProdutosGlobal);
@@ -6598,8 +6658,10 @@ document.getElementById('btnGerarPDFProdutos').addEventListener('click', async (
     console.error(err);
     alert("Erro ao gerar PDF do relatório de produtos.");
   }
-
 });
+
+
+
 
 const btnDownloadPDFProdutos = document.getElementById("btnDownloadPDFProdutos");
 if (btnDownloadPDFProdutos) {

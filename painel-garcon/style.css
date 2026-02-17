@@ -269,16 +269,19 @@ textarea {
 
 /* Overlay fundo */
 .modal-overlay {
+  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.65);
-  display: none;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(3px);
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(3px);
   z-index: 9999;
 }
 
+.modal-overlay.show {
+  display: flex;
+}
 /* Caixa modal */
 .modal-conteudo {
   background: linear-gradient(180deg, #ffffff, #f8f9fa);
@@ -1138,21 +1141,17 @@ MODAL GERAR COMANDA - AZUL ESCURO (SEM CONFLITOS)
 }
 
 /* Card Central */
+/* Caixa do modal */
 .modal-box {
-  background: #ffffff;
-  padding: 25px 30px;
-  border-radius: 16px;
-  text-align: center;
-  color: #111827;
-  width: 360px;
-  max-width: 90%;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  border-top: 6px solid #0b1120; /* azul escuro quase preto */
-  font-family: 'Inter', sans-serif;
-  transform: translateY(-20px);
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  opacity: 0;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
 }
+
 
 .modal-manutencao.show .modal-box {
   transform: translateY(0);
@@ -1417,15 +1416,13 @@ MODAL GERAR COMANDA - AZUL ESCURO (SEM CONFLITOS)
 }
 
 /* Botão fechar (X) */
+/* Botão fechar */
 .close-modal {
   position: absolute;
   top: 10px;
   right: 15px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+  font-size: 1.5rem;
   cursor: pointer;
-  transition: color 0.2s ease;
 }
 
 .close-modal:hover {
@@ -1624,6 +1621,29 @@ MODAL GERAR COMANDA - AZUL ESCURO (SEM CONFLITOS)
   background-color: #ddd;
 }
 
+.card-comanda {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.card-comanda button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.item-comanda {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: #f4f4f4;
+}
+
+
 /* ==============================
    ANIMAÇÃO DE ENTRADA
 ============================== */
@@ -1636,4 +1656,128 @@ MODAL GERAR COMANDA - AZUL ESCURO (SEM CONFLITOS)
     transform: translateY(0) scale(1);
     opacity: 1;
   }
+}
+
+/* =========================
+   MODAL ADICIONAR PEDIDO
+   CSS ISOLADO E CORRIGIDO
+========================= */
+
+/* Overlay do modal */
+#modalAdicionarPedidoModal {
+  position: fixed !important; /* fixa na tela, acima do conteúdo */
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  background: rgba(0, 0, 0, 0.6) !important; /* fundo semi-transparente */
+  display: none !important; /* escondido por padrão */
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important; /* força o modal ficar acima de tudo */
+  transition: opacity 0.3s ease !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Quando estiver ativo */
+#modalAdicionarPedidoModal.show {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Caixa do modal */
+#modalAdicionarPedidoModal .modal-box {
+  position: relative !important; /* garante que o botão fechar fique dentro */
+  background: #fff !important;
+  padding: 25px 30px !important;
+  border-radius: 16px !important;
+  width: 360px !important;
+  max-width: 90% !important;
+  text-align: center !important;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25) !important;
+  transform: translateY(-20px) !important;
+  opacity: 0 !important;
+  transition: transform 0.3s ease, opacity 0.3s ease !important;
+  z-index: 100000 !important; /* garante que a caixa fique acima do overlay */
+}
+
+/* Animação ao abrir */
+#modalAdicionarPedidoModal.show .modal-box {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Botão fechar */
+#modalAdicionarPedidoModal .close-modal {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  color: #555 !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+  z-index: 100001 !important; /* garante que fique acima da caixa */
+}
+
+#modalAdicionarPedidoModal .close-modal:hover {
+  color: #ff3b3b !important;
+}
+
+/* Título do modal */
+#modalAdicionarPedidoModal h2 {
+  margin: 10px 0 8px !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+
+/* Texto explicativo */
+#modalAdicionarPedidoModal p {
+  font-size: 14px !important;
+  color: #555 !important;
+  margin-bottom: 15px !important;
+}
+
+/* Input do modal */
+#modalAdicionarPedidoModal input {
+  width: 100% !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  border: 1px solid #ccc !important;
+  font-size: 15px !important;
+  margin-bottom: 20px !important;
+  outline: none !important;
+  transition: border 0.2s, box-shadow 0.2s !important;
+}
+
+#modalAdicionarPedidoModal input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Botão confirmar */
+#modalAdicionarPedidoModal button {
+  width: 100% !important;
+  padding: 12px !important;
+  background: #2563eb !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+#modalAdicionarPedidoModal button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4) !important;
+}
+
+#modalAdicionarPedidoModal button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 3px 6px rgba(37, 99, 235, 0.3) !important;
 }

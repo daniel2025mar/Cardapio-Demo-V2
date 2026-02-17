@@ -191,10 +191,11 @@ async function carregarMesas() {
 
 
 // Carrega os produtos
+// Carrega todos os produtos
 async function carregarProdutos() {
   const { data, error } = await supabase
     .from("produtos")
-    .select("id, descricao, estoque, valor_sugerido, categoria")
+    .select("id, descricao, estoque, valor_sugerido, categoria, situacao")
     .order("descricao", { ascending: true });
 
   if (error) {
@@ -203,16 +204,17 @@ async function carregarProdutos() {
     return;
   }
 
-  produtosDados = data;
+  // Filtra apenas produtos ativos
+  produtosDados = data.filter(p => p.situacao?.trim().toLowerCase() !== "inativo");
+
   renderizarProdutos(produtosDados);
 }
 
-
-
+// Carrega produtos por categoria
 async function carregarProdutosPorCategoria(nomeCategoria) {
   const { data, error } = await supabase
     .from("produtos")
-    .select("id, descricao, estoque, valor_sugerido, categoria")
+    .select("id, descricao, estoque, valor_sugerido, categoria, situacao")
     .eq("categoria", nomeCategoria)
     .order("descricao", { ascending: true });
 
@@ -226,21 +228,20 @@ async function carregarProdutosPorCategoria(nomeCategoria) {
     return;
   }
 
-  // ✅ CATEGORIA EXISTE, MAS SEM PRODUTOS
-  if (!data || data.length === 0) {
+  // Filtra apenas produtos ativos
+  produtosDados = (data || []).filter(p => p.situacao?.trim().toLowerCase() !== "inativo");
+
+  // Categoria existe, mas sem produtos ativos
+  if (!produtosDados || produtosDados.length === 0) {
     listaProdutos.innerHTML = `
       <div class="produtoItem">
-        <p>
-          🕒 Ainda não temos produtos nesta categoria.<br>
-          <strong>Em breve serão adicionados!</strong>
-        </p>
+        <p>🕒 Ainda não temos produtos ativos nesta categoria.<br>
+        <strong>Em breve serão adicionados!</strong></p>
       </div>
     `;
-    produtosDados = [];
     return;
   }
 
-  produtosDados = data;
   renderizarProdutos(produtosDados);
 }
 
@@ -1170,6 +1171,7 @@ async function carregarRelatorioDiario() {
 
 carregarRelatorioDiario();
 
+
 // =============================
 // ✅ BOTÃO ENVIAR COMPLETO (RELATORIO_DIARIO_GARCOM)
 // =============================
@@ -1651,10 +1653,7 @@ async function buscarComandaPorCliente() {
   }
 }
 
-// ===============================
-// ABRIR COMANDA (TABELA: pedidos)
-// Mostra os itens bonitinhos
-// ===============================
+
 // ===============================
 // ABRIR COMANDA (TABELA: pedidos)
 // ===============================
@@ -1666,7 +1665,7 @@ async function abrirComanda(comandaId, nomeCliente) {
     // Busca pedidos do cliente com status aberto
     const { data: pedidos, error: pedidosError } = await supabase
       .from("pedidos")
-      .select("itens, total")
+      .select("id,itens, total")
       .eq("cliente", nomeCliente)
       .eq("status", "aberto");
 
@@ -1693,7 +1692,7 @@ async function abrirComanda(comandaId, nomeCliente) {
               .eq("id", item.id)
               .single();
 
-            let nomeProduto = item.id; // default caso não encontre
+            let nomeProduto = item.id;
             if (produtoError) {
               console.warn(`Produto não encontrado para id ${item.id}:`, produtoError);
             } else if (produtoData && produtoData.descricao) {
@@ -1724,22 +1723,64 @@ async function abrirComanda(comandaId, nomeCliente) {
     );
 
     resultadoDiv.innerHTML = `
-      <h3>Pedidos da Comanda</h3>
-      ${htmlPedidos.join("")}
-      <h3>Total Geral: R$ ${totalGeral.toFixed(2)}</h3>
-      <br>
-      <button id="btnVoltar">⬅ Voltar</button>
-    `;
+  <h3>Pedidos da Comanda</h3>
+  ${htmlPedidos.join("")}
+  <h3>Total Geral: R$ ${totalGeral.toFixed(2)}</h3>
+  <br>
+  <div style="display:flex; gap:10px;">
+    <button id="btnVoltar">Voltar</button>
+    <button id="btnFinalizar" style="
+      background-color: black;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    ">Finalizar</button>
+  </div>
+`;
+
 
     // Botão voltar
     document.getElementById("btnVoltar")
       .addEventListener("click", buscarComandaPorCliente);
+
+    // Botão finalizar comanda
+    document.getElementById("btnFinalizar")
+      .addEventListener("click", async () => {
+        try {
+          // 1️⃣ Atualiza status de todos os pedidos para 'fechado'
+          const { data: pedidosAtualizados, error: pedidosError } = await supabase
+            .from("pedidos")
+            .update({ status: "fechado" })
+            .eq("cliente", nomeCliente)
+            .eq("status", "aberto");
+
+          if (pedidosError) throw pedidosError;
+
+          // 2️⃣ Atualiza o status da comanda para 'fechada' e registra data_fechamento
+          const { data: comandaAtualizada, error: comandaError } = await supabase
+            .from("comandas")
+            .update({ status: "fechada", data_fechamento: new Date().toISOString() })
+            .eq("id", comandaId);
+
+          if (comandaError) throw comandaError;
+
+          alert("✅ Comanda finalizada com sucesso!");
+          buscarComandaPorCliente(); // volta para a busca ou lista de comandas
+
+        } catch (err) {
+          console.error("❌ Erro ao finalizar comanda:", err);
+          alert("Erro ao finalizar comanda.");
+        }
+      });
 
   } catch (err) {
     console.error("❌ Erro ao buscar pedidos:", err);
     resultadoDiv.innerHTML = "<p style='color:red;'>Erro ao carregar pedidos.</p>";
   }
 }
+
 
 
 document.addEventListener("DOMContentLoaded", () => {

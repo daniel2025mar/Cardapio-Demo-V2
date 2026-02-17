@@ -375,9 +375,11 @@ export async function carregarProdutosNoCardapio() {
     const nomeCategoria = categoria.nome?.trim().toLowerCase();
 
     const produtosCategoria = produtos.filter(p =>
-      p.categoria &&
-      p.categoria.trim().toLowerCase() === nomeCategoria
-    );
+  p.categoria &&
+  p.categoria.trim().toLowerCase() === nomeCategoria &&
+  p.situacao?.trim().toLowerCase() !== "inativo"
+);
+
 
     if (produtosCategoria.length === 0) return;
 
@@ -955,6 +957,38 @@ async function mostrarModalErro(mensagem) {
   });
 }
 
+// ===============================
+// 🔹 FUNÇÃO PARA FORMATAR DATA
+// ===============================
+function formatarDataHora(date) {
+  const d = new Date(date);
+
+  const dia = String(d.getDate()).padStart(2, "0");
+  const mes = String(d.getMonth() + 1).padStart(2, "0"); // Janeiro é 0
+  const ano = d.getFullYear();
+
+  const hora = String(d.getHours()).padStart(2, "0");
+  const minutos = String(d.getMinutes()).padStart(2, "0");
+  const segundos = String(d.getSeconds()).padStart(2, "0");
+
+  return `${dia}/${mes}/${ano} ${hora}:${minutos}:${segundos}`;
+}
+
+function formatarDataHoraParaDB(date) {
+  const d = new Date(date);
+
+  const dia = String(d.getDate()).padStart(2, "0");
+  const mes = String(d.getMonth() + 1).padStart(2, "0"); // Janeiro é 0
+  const ano = d.getFullYear();
+
+  const hora = String(d.getHours()).padStart(2, "0");
+  const minutos = String(d.getMinutes()).padStart(2, "0");
+  const segundos = String(d.getSeconds()).padStart(2, "0");
+
+  // Formato aceito pelo PostgreSQL: "YYYY-MM-DD HH:MM:SS"
+  return `${ano}-${mes}-${dia} ${hora}:${minutos}:${segundos}`;
+}
+
 
 // aqui e a funçao de enviar pedidos
 document.addEventListener("DOMContentLoaded", () => {
@@ -1058,72 +1092,173 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   // 🔒 VALIDAÇÃO AO FINALIZAR (COM BLOQUEIO)
   // ===============================
-  btnFinalizar.addEventListener("click", async (e) => {
-    e.preventDefault(); // evita enviar o form automaticamente
+btnFinalizar.addEventListener("click", async (e) => {
+  e.preventDefault();
 
-    // 1️⃣ Verifica usuário logado
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    const usuarioLogado = !userError && !!userData.user;
+  // ===============================
+  // 🔐 VERIFICA LOGIN GOOGLE
+  // ===============================
+  const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (!usuarioLogado) {
-      abrirModalLoginNecessario();
-      return;
-    }
+  if (userError || !userData?.user) {
+    abrirModalLoginNecessario();
+    return;
+  }
 
-    const emailLogado = userData.user.email;
+  const user = userData.user;
 
-    // 2️⃣ Consulta na tabela clientes
-    const { data: cliente, error: errCliente } = await supabase
+  if (!user.app_metadata?.provider || user.app_metadata.provider !== "google") {
+    mostrarToast("Login necessário", "Faça login com sua conta Google para enviar pedidos.");
+    return;
+  }
+
+  const emailLogado = user.email;
+
+  // ===============================
+  // 🔎 BUSCA CLIENTE EXISTENTE
+  // ===============================
+  let { data: cliente, error: errCliente } = await supabase
+    .from("clientes")
+    .select("*")
+    .eq("email", emailLogado)
+    .single();
+
+  if (errCliente && errCliente.code !== "PGRST116") { // "PGRST116" = não encontrado
+    mostrarToast("Erro", "Erro ao verificar cliente.");
+    return;
+  }
+
+  // ===============================
+  // 🆕 CRIA CLIENTE SE NÃO EXISTIR
+  // ===============================
+  if (!cliente) {
+    const { data: novoCliente, error: insertClienteError } = await supabase
       .from("clientes")
-      .select("id, nome, email, bloqueado")
-      .eq("email", emailLogado)
+      .insert([
+        {
+          nome: user.user_metadata?.full_name || "Sem Nome",
+          email: emailLogado,
+          criado_em: new Date().toISOString(),
+          status: "ativo",
+          bloqueado: false,
+          saldo_cashback: 0
+        }
+      ])
+      .select()
       .single();
 
-    if (errCliente) {
-      mostrarToast("Erro", "Ocorreu um erro ao verificar seu cadastro. Por favor, tente novamente.");
+    if (insertClienteError) {
+      mostrarToast("Erro", "Não foi possível criar cliente.");
+      console.error(insertClienteError);
       return;
     }
 
-    // 3️⃣ Se estiver bloqueado
-    if (cliente?.bloqueado === true) {
-      mostrarToast(
-        "Acesso bloqueado",
-        `Seu acesso ao cardápio está bloqueado. Por favor, entre em contato com a ${nomeEmpresa} para mais informações.`
-      );
-      return;
+    cliente = novoCliente;
+    console.log("Novo cliente criado:", cliente);
+  }
+
+  if (cliente.bloqueado === true) {
+    mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
+    return;
+  }
+
+  // ===============================
+  // 🛒 VERIFICA CARRINHO
+  // ===============================
+  if (!carrinho || carrinho.length === 0) {
+    mostrarToast("Carrinho vazio", "Adicione produtos antes de enviar.");
+    return;
+  }
+
+  // ===============================
+  // 📞 VALIDA CAMPOS
+  // ===============================
+  let erro = false;
+
+  inputCelular.classList.remove("border-red-500");
+  inputEndereco.classList.remove("border-red-500");
+
+  if (inputCelular.value.trim().length < 16) {
+    erro = true;
+    inputCelular.classList.add("border-red-500");
+  }
+
+  if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
+    erro = true;
+    inputEndereco.classList.add("border-red-500");
+  }
+
+  if (erro) {
+    mostrarToast("Erro", "Preencha corretamente os dados.");
+    return;
+  }
+
+  // ===============================
+  // 💰 CALCULA SUBTOTAL
+  // ===============================
+  let subtotal = carrinho.reduce((acc, item) => {
+    const qtd = Number(item.quantidade) || 0;
+    const valor = Number(item.valor_unitario) || 0;
+    return acc + (qtd * valor);
+  }, 0);
+  subtotal = Number(subtotal.toFixed(2));
+
+  // ===============================
+  // 💵 PEGA TOTAL DO #totalPedido
+  // ===============================
+  const totalPedidoElemento = document.getElementById("totalPedido");
+  if (!totalPedidoElemento) {
+    mostrarToast("Erro", "Elemento totalPedido não encontrado.");
+    return;
+  }
+
+  let totalTexto = totalPedidoElemento.innerText.replace("R$", "").replace(/\s/g, "").replace(",", ".");
+  let total = parseFloat(totalTexto);
+  if (isNaN(total)) {
+    mostrarToast("Erro", "Valor total inválido.");
+    return;
+  }
+  total = Number(total.toFixed(2));
+
+  // ===============================
+  // 🗄 INSERE PEDIDO NO SUPABASE
+  // ===============================
+  const { error: insertError } = await supabase.from("pedidos").insert([
+    {
+      numero_pedido: null,
+      tipo_entrega: "delivery",
+      horario_recebido: new Date().toISOString(),
+      status: "Recebido",
+      subtotal: subtotal,
+      total: total,
+      cliente: cliente.nome,
+      telefone: inputCelular.value,
+      endereco: checkboxRetirarLocal.checked ? null : inputEndereco.value,
+      referencia: null,
+      pagamento: "não informado",
+      observacoes: null,
+      criado_em: new Date().toISOString(),
+      itens: carrinho
     }
+  ]);
 
-    // ===============================
-    // 🧾 VALIDAÇÃO DO PEDIDO
-    // ===============================
-    let erro = false;
+  if (insertError) {
+    mostrarToast("Erro", insertError.message);
+    console.error("ERRO SUPABASE:", insertError);
+    return;
+  }
 
-    inputEndereco.classList.remove("border-red-500");
-    inputCelular.classList.remove("border-red-500");
-
-    // celular obrigatório
-    if (inputCelular.value.trim().length < 16) {
-      erro = true;
-      inputCelular.classList.add("border-red-500");
-    }
-
-    // endereço obrigatório se entrega
-    if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
-      erro = true;
-      inputEndereco.classList.add("border-red-500");
-    }
-
-    if (erro) {
-  mostrarModalErro("⚠️ Por favor, preencha corretamente os campos de telefone e endereço para prosseguir com o pedido.");
-  return;
-}
+  // ===============================
+  // ✅ SUCESSO
+  // ===============================
+  mostrarToast("Pedido enviado 🎉", "Seu pedido foi recebido com sucesso!");
+  limparCarrinhoStorage();
+  atualizarCarrinhoUI();
+  modal.classList.add("hidden");
+});
 
 
-    console.log("Pedido validado com sucesso!");
 
-    // Aqui você pode chamar sua função finalizarPedido()
-    // finalizarPedido();
-  });
 
   // Carrega taxa
   carregarTaxaEntrega();

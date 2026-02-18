@@ -1091,9 +1091,7 @@ document.addEventListener("DOMContentLoaded", () => {
   btnFinalizar.addEventListener("click", async (e) => {
   e.preventDefault();
 
-  // ===============================
   // 🔐 VERIFICA LOGIN GOOGLE
-  // ===============================
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) {
     abrirModalLoginNecessario();
@@ -1108,9 +1106,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const emailLogado = user.email;
 
-  // ===============================
   // 🔎 BUSCA CLIENTE EXISTENTE
-  // ===============================
   let { data: cliente, error: errCliente } = await supabase
     .from("clientes")
     .select("*")
@@ -1122,165 +1118,139 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // ===============================
   // ⚠️ SE CLIENTE NÃO EXISTIR, ABRE MODAL PARA PEGAR NOME
-  // ===============================
   if (!cliente) {
     const modalNome = document.getElementById("modalNome");
-    if (!modalNome) {
-      mostrarToast("Erro", "Modal de nome não encontrado.");
-      return;
-    }
+    if (!modalNome) return mostrarToast("Erro", "Modal de nome não encontrado.");
 
     modalNome.classList.remove("hidden");
-
     const btnSalvarNome = modalNome.querySelector("#btnSalvarNome");
     const inputNome = modalNome.querySelector("#inputNome");
     const erroNome = modalNome.querySelector("#erroNome");
 
-    if (!btnSalvarNome || !inputNome) {
-      mostrarToast("Erro", "Elementos do modal não encontrados.");
-      return;
-    }
-
-    // Espera o usuário digitar o nome e clicar no botão
     cliente = await new Promise((resolve) => {
       btnSalvarNome.onclick = async () => {
         const nomeCliente = inputNome.value.trim();
-
-        // Validação básica: não vazio e sem números
         if (!nomeCliente || /\d/.test(nomeCliente)) {
           erroNome?.classList.remove("hidden");
           return;
         }
         erroNome?.classList.add("hidden");
 
-        // ===============================
-        // 🆕 CRIA CLIENTE NO SUPABASE
-        // ===============================
         const { data: novoCliente, error: insertClienteError } = await supabase
           .from("clientes")
-          .insert([
-            {
-              nome: nomeCliente,      // salva o nome do modal
-              email: emailLogado,
-              celular: inputCelular.value, // salva o telefone
-              criado_em: new Date().toISOString(),
-              status: "ativo",
-              bloqueado: false,
-              saldo_cashback: 0
-            }
-          ])
+          .insert([{
+            nome: nomeCliente,
+            email: emailLogado,
+            celular: inputCelular.value,
+            criado_em: new Date().toISOString(),
+            status: "ativo",
+            bloqueado: false,
+            saldo_cashback: 0
+          }])
           .select()
           .single();
 
         if (insertClienteError) {
           mostrarToast("Erro", "Não foi possível criar cliente.");
-          console.error(insertClienteError);
           return;
         }
 
         modalNome.classList.add("hidden");
-        resolve(novoCliente); // retorna o cliente criado
+        resolve(novoCliente);
       };
     });
   } else {
-    // ===============================
-    // 🔄 ATUALIZA CELULAR SE CLIENTE EXISTIR
-    // ===============================
     if (inputCelular.value && inputCelular.value !== cliente.celular) {
       const { error: updateError } = await supabase
         .from("clientes")
         .update({ celular: inputCelular.value })
         .eq("id", cliente.id);
 
-      if (updateError) {
-        mostrarToast("Erro", "Não foi possível atualizar o celular do cliente.");
-        console.error(updateError);
-        return;
-      }
-
+      if (updateError) return mostrarToast("Erro", "Não foi possível atualizar o celular do cliente.");
       cliente.celular = inputCelular.value;
-      console.log("Celular do cliente atualizado:", cliente.celular);
     }
   }
 
-  // ===============================
-  // 🔒 VERIFICA BLOQUEIO
-  // ===============================
   if (cliente.bloqueado === true) {
     mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
     return;
   }
 
-  // ===============================
-  // 🛒 VERIFICA CARRINHO
-  // ===============================
   if (!carrinho || carrinho.length === 0) {
     mostrarToast("Carrinho vazio", "Adicione produtos antes de enviar.");
     return;
   }
 
-  // ===============================
-  // 📞 VALIDA CAMPOS
-  // ===============================
+  // Valida campos
   let erro = false;
   inputCelular.classList.remove("border-red-500");
   inputEndereco.classList.remove("border-red-500");
-
   if (inputCelular.value.trim().length < 16) {
     erro = true;
     inputCelular.classList.add("border-red-500");
   }
-
   if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
     erro = true;
     inputEndereco.classList.add("border-red-500");
   }
+  if (erro) return mostrarToast("Erro", "Preencha corretamente os dados.");
 
-  if (erro) {
-    mostrarToast("Erro", "Preencha corretamente os dados.");
-    return;
+  // 🔢 GERA NUMERO_PEDIDO
+  let numeroPedido = "0001";
+  try {
+    const { data: ultimosPedidos, error: erroPedidos } = await supabase
+      .from("pedidos")
+      .select("numero_pedido")
+      .order("id", { ascending: false })
+      .limit(1);
+
+    if (!erroPedidos && ultimosPedidos.length > 0) {
+      const ultimo = ultimosPedidos[0].numero_pedido || "0000";
+      numeroPedido = (parseInt(ultimo, 10) + 1).toString().padStart(4, "0");
+    }
+  } catch (err) {
+    console.error("Erro ao gerar numero_pedido:", err);
   }
 
   // ===============================
-  // 💰 CALCULA SUBTOTAL
+  // 🔎 BUSCA VALORES UNITARIOS DOS PRODUTOS
   // ===============================
-  let subtotal = carrinho.reduce((acc, item) => {
-    const qtd = Number(item.quantidade) || 0;
-    const valor = Number(item.valor_unitario) || 0;
-    return acc + (qtd * valor);
-  }, 0);
-  subtotal = Number(subtotal.toFixed(2));
+  const itensComValores = [];
+  for (const item of carrinho) {
+    const { data: produto, error: errProduto } = await supabase
+      .from("produtos")
+      .select("valor_sugerido")
+      .eq("descricao", item.descricao)
+      .single();
 
-  // ===============================
-  // 💵 PEGA TOTAL DO #totalPedido
-  // ===============================
-  const totalPedidoElemento = document.getElementById("totalPedido");
-  if (!totalPedidoElemento) {
-    mostrarToast("Erro", "Elemento totalPedido não encontrado.");
-    return;
+    if (errProduto || !produto) {
+      mostrarToast("Erro", `Produto não encontrado: ${item.descricao}`);
+      return;
+    }
+
+    const valorUnitario = Number(produto.valor_sugerido);
+    itensComValores.push({
+      descricao: item.descricao,
+      quantidade: item.quantidade,
+      subtotal: valorUnitario,              // valor unitário
+      total: valorUnitario * item.quantidade // multiplica pela quantidade
+    });
   }
 
-  let totalTexto = totalPedidoElemento.innerText.replace("R$", "").replace(/\s/g, "").replace(",", ".");
-  let total = parseFloat(totalTexto);
-  if (isNaN(total)) {
-    mostrarToast("Erro", "Valor total inválido.");
-    return;
-  }
-  total = Number(total.toFixed(2));
+  // Calcula subtotal do pedido
+  const subtotal = itensComValores.reduce((acc, i) => acc + i.subtotal, 0).toFixed(2);
+  const total = itensComValores.reduce((acc, i) => acc + i.total, 0).toFixed(2);
 
-  // ===============================
   // 🗄 INSERE PEDIDO NO SUPABASE
-  // ===============================
   const { error: insertError } = await supabase.from("pedidos").insert([
     {
-      numero_pedido: null,
-      tipo_entrega: "delivery",
+      numero_pedido: numeroPedido,
+      tipo_entrega: checkboxRetirarLocal.checked ? "retirada" : "delivery",
       horario_recebido: new Date().toISOString(),
       status: "Recebido",
-      subtotal: subtotal,
-      total: total,
+      subtotal: Number(subtotal),
+      total: Number(total),
       cliente: cliente.nome,
       telefone: inputCelular.value,
       endereco: checkboxRetirarLocal.checked ? null : inputEndereco.value,
@@ -1288,7 +1258,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pagamento: "não informado",
       observacoes: null,
       criado_em: new Date().toISOString(),
-      itens: carrinho
+      itens: itensComValores
     }
   ]);
 
@@ -1298,14 +1268,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // ===============================
-  // ✅ SUCESSO
-  // ===============================
   mostrarToast("Pedido enviado 🎉", "Seu pedido foi recebido com sucesso!");
   limparCarrinhoStorage();
   atualizarCarrinhoUI();
   modal.classList.add("hidden");
 });
+
 
   // Carrega taxa
   carregarTaxaEntrega();

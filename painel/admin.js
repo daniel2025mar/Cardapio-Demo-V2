@@ -942,45 +942,43 @@ async function abrirDetalhesPedido(idPedido) {
     return;
   }
 
-  // 🔍 DEBUG — ver o formato real dos itens
   console.log("ITENS NO BANCO (bruto):", pedido.itens);
 
   // ===========================================================
-  //   CORREÇÃO DA LÓGICA — aceitar JSON string OU array/objeto
+  // ACEITAR JSON string OU array/objeto
   // ===========================================================
   let itens = [];
-
   try {
     if (typeof pedido.itens === "string") {
-      console.log("Itens vieram como STRING JSON 😎");
       itens = JSON.parse(pedido.itens);
     } else if (Array.isArray(pedido.itens)) {
-      console.log("Itens vieram como ARRAY 😎");
       itens = pedido.itens;
     } else if (typeof pedido.itens === "object" && pedido.itens !== null) {
-      console.log("Itens vieram como OBJETO ÚNICO 😮");
       itens = [pedido.itens];
     }
   } catch (e) {
     console.error("Erro ao interpretar itens:", e);
   }
 
-  console.log("ITENS INTERPRETADOS (prontos para exibir):", itens);
-
-  // ======================================
-  //   MOSTRAR ITENS NO CARD
-  // ======================================
   mostrarItensPedido(itens);
 
   // ======================================
-  //   CAMPOS DO TOPO
+  // CAMPOS DO TOPO
   // ======================================
-  document.getElementById("pedido-numero").textContent = pedido.id;
+  const pedidoNumeroEl = document.getElementById("pedido-numero");
+  pedidoNumeroEl.textContent = String(pedido.id).padStart(4, "0");
+  pedidoNumeroEl.dataset.pedidoId = pedido.id; // ⚡ Importante para btn-em-entrega
 
-  // ⏰ MOSTRAR HORÁRIO CORRETO DO PEDIDO
+  // ⏰ MOSTRAR HORÁRIO CORRETO (formato BR)
   if (pedido.horario_recebido) {
-    const [hora, minuto] = pedido.horario_recebido.split(":");
-    document.getElementById("pedido-hora").textContent = `${hora}:${minuto}`;
+    const data = new Date(pedido.horario_recebido);
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const ano = data.getFullYear();
+    const hora = String(data.getHours()).padStart(2, "0");
+    const minuto = String(data.getMinutes()).padStart(2, "0");
+
+    document.getElementById("pedido-hora").textContent = `${dia}/${mes}/${ano} ${hora}:${minuto}`;
   } else {
     document.getElementById("pedido-hora").textContent = "—";
   }
@@ -992,7 +990,7 @@ async function abrirDetalhesPedido(idPedido) {
     `R$ ${Number(pedido.total).toFixed(2)}`;
 
   // ======================================
-  //   DADOS DO CLIENTE
+  // DADOS DO CLIENTE
   // ======================================
   document.getElementById("cliente-nome").textContent = pedido.cliente || "—";
   document.getElementById("cliente-telefone").textContent = pedido.telefone || "—";
@@ -1001,36 +999,35 @@ async function abrirDetalhesPedido(idPedido) {
   document.getElementById("tipo-pagamento").textContent = pedido.pagamento || "—";
 
   // ======================================
-  //   SUBTOTAL
+  // SUBTOTAL
   // ======================================
   document.getElementById("subtotal-pedido").textContent =
     `R$ ${Number(pedido.total).toFixed(2)}`;
 
   // ======================================
-  //   OBS
+  // OBSERVAÇÕES
   // ======================================
   document.getElementById("obs-pedido").textContent =
     pedido.observacoes || "Nenhuma observação.";
 }
 
 
+
 function mostrarItensPedido(itens) {
   const lista = document.getElementById("lista-itens");
+  if (!lista) return;
+
   lista.innerHTML = ""; // LIMPAR
 
   itens.forEach(item => {
-    const nome = item.name || item.nome || "Item";
-    const qtd = item.quantity || item.qtd || 1;
-    const preco = Number(item.price || item.preco || 0);
-
-    const totalItem = item.total
-      ? parseFloat(item.total)
-      : preco * qtd;
+    const nome = item.descricao || "Produto";
+    const qtd = item.quantidade || 1;
+    const totalItem = item.total ? parseFloat(item.total) : 0;
 
     const li = document.createElement("li");
     li.classList.add(
       "flex", "justify-between", "items-start",
-      "bg-gray-50", "p-3", "rounded-lg", "border"
+      "bg-gray-50", "p-3", "rounded-lg", "border", "mb-2"
     );
 
     li.innerHTML = `
@@ -1038,7 +1035,6 @@ function mostrarItensPedido(itens) {
         <p class="font-medium text-gray-800">${nome}</p>
         <p class="text-xs text-gray-500">Quantidade: ${qtd}</p>
       </div>
-
       <span class="font-semibold text-gray-700">
         R$ ${totalItem.toFixed(2)}
       </span>
@@ -1047,6 +1043,8 @@ function mostrarItensPedido(itens) {
     lista.appendChild(li);
   });
 }
+
+
 
 // =============================
 // LIMPA DETALHES DO PEDIDO
@@ -1217,7 +1215,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     
 
-console.error("Debug pedido selecionado:", {
+    console.error("Debug pedido selecionado:", {
     idPedido: idPedido,
     numeroPedido: numeroPedido,
     dataset: pedidoNumeroEl.dataset

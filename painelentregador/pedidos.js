@@ -129,7 +129,7 @@ async function finalizarPedido(numeroPedido) {
 // =============================
 // ENTREGAR PEDIDO
 // =============================
-async function entregarPedidoDOM(id, file, numeroPedido) {
+async function entregarPedidoDOM(id, file, numeroPedido, entregador) {
   const statusEl = document.getElementById(`status-${id}`);
   const btnEl = document.getElementById(`btn-${id}`);
   const cardEl = btnEl?.closest("div");
@@ -142,12 +142,12 @@ async function entregarPedidoDOM(id, file, numeroPedido) {
   let fotoUrl = null;
 
   try {
+    // Se houver foto
     if (file) {
       const fileName = `entrega_${id}_${Date.now()}.jpg`;
       const { error } = await supabase.storage
         .from("fotos-entregas")
         .upload(fileName, file);
-
       if (error) throw error;
 
       fotoUrl = supabase.storage
@@ -155,30 +155,23 @@ async function entregarPedidoDOM(id, file, numeroPedido) {
         .getPublicUrl(fileName).data.publicUrl;
     }
 
-    await salvarEntregadorNaEntrega(id);
-
-    const { error: entregaError } = await supabase
+    // 🔹 Salva entregador logado
+    await supabase
       .from("entregas")
-      .update({
-        status: "Entregue",
-        horario_entrega: new Date().toLocaleTimeString(),
-        foto_entrega: fotoUrl
-      })
+      .update({ entregador_nome: entregador.username, status: "Entregue", horario_entrega: new Date().toLocaleTimeString(), foto_entrega: fotoUrl })
       .eq("id", id);
 
-    if (entregaError) throw entregaError;
-
-    // 🔴 SE FALHAR AQUI → MODAL
+    // Atualiza status na tabela pedidos
     await finalizarPedido(numeroPedido);
 
     cardEl.remove();
-
   } catch (err) {
     btnEl.disabled = false;
     btnEl.textContent = "Finalizar Pedido";
     mostrarModalErro(err.message || "Erro inesperado ao finalizar.");
   }
 }
+
 
 // =============================
 // CRIAR CARD (COM ITENS)
@@ -190,16 +183,16 @@ function criarCardEntrega(entrega) {
     flex flex-col justify-between
   `;
 
+  // Itens do pedido
   let itensHtml = "<p class='text-gray-400 italic'>Não informado</p>";
-
   if (entrega.itens && entrega.itens.length > 0) {
     itensHtml = "<ul class='list-disc list-inside space-y-1'>";
     entrega.itens.forEach(item => {
       itensHtml += `
         <li class="text-gray-700">
-          <span class="font-semibold">${item.name}</span>
-          — Qtd: ${item.quantity}
-          — R$ ${item.price.toFixed(2)}
+          <span class="font-semibold">${item.descricao}</span>
+          — Qtd: ${item.quantidade}
+          — R$ ${item.total.toFixed(2)}
         </li>`;
     });
     itensHtml += "</ul>";
@@ -227,7 +220,6 @@ function criarCardEntrega(entrega) {
         Finalizar Pedido
       </button>
 
-      <!-- Botão para ver rota -->
       <button id="btn-rota-${entrega.id}"
         class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-full shadow-md">
         Ver Rota
@@ -235,41 +227,28 @@ function criarCardEntrega(entrega) {
     </div>
   `;
 
-  // Botão Finalizar Pedido
+  const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
+
+  // Finalizar pedido
   card.querySelector(`#btn-${entrega.id}`).onclick = () =>
-    entregarPedidoDOM(entrega.id, null, entrega.numero_pedido);
+    entregarPedidoDOM(entrega.id, null, entrega.numero_pedido, entregador);
 
-  // 🔹 Botão Ver Rota atualizado para usar coordenadas reais
+  // Ver rota
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
-    const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
-
     if (!entregador || !entregador.lat || !entregador.lng) {
       alert("Coordenadas do entregador não encontradas!");
       return;
     }
-
     mostrarRota(
-      entregador.lat,           // lat do entregador
-      entregador.lng,           // lng do entregador
-      entrega.lat_cliente,      // lat do cliente
-      entrega.lng_cliente       // lng do cliente
+      entregador.lat,
+      entregador.lng,
+      entrega.lat_cliente,
+      entrega.lng_cliente
     );
   };
 
   return card;
 }
-
-// Exemplo de salvar entregador logado com coordenadas
-const entregador = {
-  id: 1,
-  nome: "Carlos Silva",
-  username: "carlos",
-  lat: -19.8375,   // Latitude do entregador (Matutina)
-  lng: -46.2970    // Longitude do entregador (Matutina)
-};
-
-localStorage.setItem("entregadorLogado", JSON.stringify(entregador));
-
 
 
 // =============================
@@ -279,27 +258,35 @@ async function carregarEntregas() {
   const container = document.getElementById("pedidos-container");
   container.innerHTML = "";
 
-  const { data, error } = await supabase
-    .from("entregas")
-    .select("*")
-    .ilike("status", "%aguardando%")
-    .order("id");
+  // Entregador logado
+  const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
+  if (!entregador) return window.location.href = "loginentregador.html";
 
-  if (error) {
+  try {
+    // Buscar pedidos aguardando
+    const { data, error } = await supabase
+      .from("entregas")
+      .select("*")
+      .eq("status", "Aguardando")  // 🔹 só os aguardando
+      .order("id");
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML =
+        "<p class='text-center text-gray-500 mt-10'>Nenhuma entrega aguardando.</p>";
+      return;
+    }
+
+    // Criar card para cada pedido
+    data.forEach(entrega => container.appendChild(criarCardEntrega(entrega)));
+
+  } catch (err) {
+    console.error(err);
     mostrarModalErro("Erro ao carregar entregas.");
-    return;
   }
-
-  if (!data || data.length === 0) {
-    container.innerHTML =
-      "<p class='text-center text-gray-500 mt-10'>Nenhuma entrega aguardando.</p>";
-    return;
-  }
-
-  data.forEach(entrega =>
-    container.appendChild(criarCardEntrega(entrega))
-  );
 }
+
 
 // =============================
 // INIT

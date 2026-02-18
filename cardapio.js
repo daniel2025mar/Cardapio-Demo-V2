@@ -89,6 +89,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const btnContinuar = document.getElementById("btnContinuarPedido");
+  const modalCarrinhoExistente = document.getElementById("modalCarrinhoExistente");
+
+  if (btnContinuar) {
+    btnContinuar.addEventListener("click", () => {
+      // 🔹 Fecha o modal de carrinho existente
+      modalCarrinhoExistente.classList.add("hidden");
+
+      // 🔹 Abre o modal do pedido
+      abrirModalPedido();
+    });
+  }
+});
 
 async function abrirModalPedidosSeLogado() {
   const logado = await usuarioEstaLogado();

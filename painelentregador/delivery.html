@@ -22,6 +22,22 @@
 
   <!-- Leaflet Routing Machine JS -->
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.25s ease-out;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen relative">
 
@@ -43,6 +59,64 @@
       </div>
     </div>
   </header>
+
+  <!-- MODAL CÂMERA PRO -->
+<!-- MODAL CÂMERA PROFISSIONAL -->
+<div id="modal-camera"
+  class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 transition-all duration-300">
+
+  <div
+    class="relative bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 shadow-2xl rounded-3xl w-[95%] max-w-md p-5 animate-fadeIn text-white">
+
+    <!-- BOTÃO FECHAR -->
+    <button id="btn-fechar-camera"
+      class="absolute top-3 right-3 bg-gray-700 hover:bg-red-500 w-9 h-9 rounded-full flex items-center justify-center text-sm transition">
+      ✕
+    </button>
+
+    <!-- LOGO / TÍTULO -->
+    <div class="text-center mb-4">
+      <h2 class="text-lg font-bold tracking-wide">
+        📸 Registrar Entrega
+      </h2>
+      <p class="text-xs text-gray-400 mt-1">
+        Tire uma foto como comprovante
+      </p>
+    </div>
+
+    <!-- VIDEO -->
+    <div class="relative rounded-2xl overflow-hidden shadow-lg border border-gray-700">
+      <video id="camera-video"
+        autoplay
+        playsinline
+        class="w-full h-72 object-cover bg-black">
+      </video>
+      <!-- Moldura guia -->
+      <div class="absolute inset-4 border-2 border-white/30 rounded-xl pointer-events-none"></div>
+    </div>
+
+    <canvas id="camera-canvas" class="hidden"></canvas>
+
+    <!-- NOME DO SISTEMA -->
+    <div class="text-center mt-5">
+      <p class="text-sm font-semibold text-gray-300 tracking-wide">
+        GestioMax Soluções de Cardápio e Delivery
+      </p>
+    </div>
+
+    <!-- BOTÃO TIRAR FOTO -->
+    <div class="flex justify-center mt-4">
+      <button id="btn-tirar-foto"
+        class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition transform">
+        Tirar Foto
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+
 
   <!-- MODAL DE ALERTA -->
 <div id="modal-alerta" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">

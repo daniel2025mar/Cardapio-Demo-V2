@@ -172,6 +172,69 @@ async function entregarPedidoDOM(id, file, numeroPedido, entregador) {
   }
 }
 
+let streamAtual = null;
+let entregaAtual = null;
+
+async function abrirCameraModal(id, numeroPedido, entregador) {
+  entregaAtual = { id, numeroPedido, entregador };
+
+  const modal = document.getElementById("modal-camera");
+  const video = document.getElementById("camera-video");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  try {
+    streamAtual = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false
+    });
+
+    video.srcObject = streamAtual;
+
+  } catch (err) {
+    console.error(err);
+    mostrarModalErro("Não foi possível acessar a câmera.");
+  }
+}
+document.getElementById("btn-tirar-foto").onclick = async () => {
+  const video = document.getElementById("camera-video");
+  const canvas = document.getElementById("camera-canvas");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0);
+
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+
+    await entregarPedidoDOM(
+      entregaAtual.id,
+      blob,
+      entregaAtual.numeroPedido,
+      entregaAtual.entregador
+    );
+
+    fecharModalCamera();
+  }, "image/jpeg", 0.8);
+};
+function fecharModalCamera() {
+  const modal = document.getElementById("modal-camera");
+  const video = document.getElementById("camera-video");
+
+  if (streamAtual) {
+    streamAtual.getTracks().forEach(track => track.stop());
+  }
+
+  video.srcObject = null;
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+document.getElementById("btn-fechar-camera").onclick = fecharModalCamera;
+
 function mostrarModalAlerta(mensagem) {
   const modal = document.getElementById("modal-alerta");
   const msg = document.getElementById("modal-alerta-msg");
@@ -291,7 +354,7 @@ function criarCardEntrega(entrega) {
 
   // Finalizar pedido
   card.querySelector(`#btn-${entrega.id}`).onclick = () => {
-  abrirCamera(entrega.id, entrega.numero_pedido, entregador);
+  abrirCameraModal(entrega.id, entrega.numero_pedido, entregador);
 };
 
 

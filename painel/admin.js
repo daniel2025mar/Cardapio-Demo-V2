@@ -476,77 +476,147 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   
   // ================================
-  // CARREGA FILA DE PEDIDOS (APENAS STATUS "RECEBIDO")
+  // CARREGA FILA DE PEDIDOS (APENAS STATUS "RECEBIDO OS CARDS")
   // ================================
   async function carregarFilaPedidos() {
-    const { data: pedidos, error } = await supabase
-      .from("pedidos")
-      .select("*")
-      .eq("status", "Recebido")
-      .order("id", { ascending: true });
+  // 🔹 1. Buscar pedidos
+  const { data: pedidos, error } = await supabase
+    .from("pedidos")
+    .select("*")
+    .eq("status", "Recebido")
+    .order("id", { ascending: true });
 
-    if (error) {
-      console.error("Erro ao carregar pedidos:", error);
-      return;
+  if (error) {
+    console.error("Erro ao carregar pedidos:", error);
+    return;
+  }
+
+  // 🔹 2. Buscar entregas com status Aguardando
+  const { data: entregasAguardando, error: erroEntrega } = await supabase
+    .from("entregas")
+    .select("numero_pedido")
+    .eq("status", "Aguardando");
+
+  if (erroEntrega) {
+    console.error("Erro ao buscar entregas:", erroEntrega);
+    return;
+  }
+
+  // Criar array apenas com números dos pedidos que estão aguardando
+  const pedidosAguardando = entregasAguardando.map(e => e.numero_pedido);
+
+  const listaPedidos = document.querySelector(".fila-pedidos-list");
+  if (!listaPedidos) return;
+  listaPedidos.innerHTML = "";
+
+  const contador = document.getElementById("contador-pedidos");
+  if (contador) contador.textContent = pedidos.length;
+
+  pedidos.forEach((pedido) => {
+    const item = document.createElement("div");
+
+    const numeroFormatado = pedido.id.toString().padStart(4, "0");
+
+    const isRetirada = pedido.tipo_entrega === "retirada";
+
+    // 🔥 VERIFICA SE EXISTE NA TABELA ENTREGAS
+    const estaAguardandoEntrega =
+      pedido.tipo_entrega === "delivery" &&
+      pedidosAguardando.includes(numeroFormatado);
+
+    // 🎨 DEFINIÇÃO DE CORES
+    let corBorda = "border-yellow-400";
+    let bgLeve = "bg-yellow-50";
+
+    if (isRetirada) {
+      corBorda = "border-blue-900";
+      bgLeve = "bg-blue-50";
     }
 
-    const listaPedidos = document.querySelector(".fila-pedidos-list");
-    if (!listaPedidos) return;
-    listaPedidos.innerHTML = "";
+    // ✅ SE ESTIVER AGUARDANDO ENTREGA → VERDE
+    if (estaAguardandoEntrega) {
+      corBorda = "border-green-600";
+      bgLeve = "bg-green-50";
+    }
 
-    // Atualiza contador de pedidos recebidos
-    const contador = document.getElementById("contador-pedidos");
-    if (contador) contador.textContent = pedidos.length;
+    const badgeEntrega = isRetirada
+      ? `<span class="text-xs font-semibold bg-blue-100 text-blue-900 px-3 py-1 rounded-full">🏪 RETIRADA</span>`
+      : `<span class="text-xs font-semibold bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">🚚 ENTREGA</span>`;
 
-    pedidos.forEach(pedido => {
-      const item = document.createElement("div");
-      item.classList.add(
-        "order-list-item",
-        "bg-gray-50",
-        "p-3",
-        "rounded-lg",
-        "border-l-4",
-        "border-yellow-400",
-        "cursor-pointer",
-        "hover:bg-gray-100"
-      );
-      item.dataset.id = pedido.id;
+    item.className = `
+      order-list-item
+      ${bgLeve}
+      p-4
+      rounded-xl
+      border-l-4
+      ${corBorda}
+      shadow-sm
+      hover:shadow-md
+      hover:scale-[1.01]
+      transition-all
+      duration-200
+      cursor-pointer
+    `;
 
-      // Formata horário corretamente (HH:MM)
-      let horario = "";
-      if (pedido.horario_recebido) {
-        try {
-          const date = new Date(pedido.horario_recebido);
-          if (!isNaN(date.getTime())) {
-            const h = date.getHours().toString().padStart(2, "0");
-            const m = date.getMinutes().toString().padStart(2, "0");
-            horario = `${h}:${m}`;
-          }
-        } catch (e) {
-          console.warn("Erro ao formatar horário:", e);
-          horario = "";
-        }
+    item.dataset.id = pedido.id;
+
+    // ⏰ Formatar horário
+    let horario = "";
+    if (pedido.horario_recebido) {
+      const date = new Date(pedido.horario_recebido);
+      if (!isNaN(date.getTime())) {
+        const h = date.getHours().toString().padStart(2, "0");
+        const m = date.getMinutes().toString().padStart(2, "0");
+        horario = `${h}:${m}`;
       }
+    }
 
-      item.innerHTML = `
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="font-semibold">#${pedido.id} — ${pedido.cliente}</p>
-            <p class="text-sm text-gray-500">${pedido.endereco || "Endereço não informado"} • ${pedido.pagamento || "Pagar na entrega"}</p>
-            <p class="text-xs text-gray-400 mt-1">${pedido.observacoes || ""}</p>
+    item.innerHTML = `
+      <div class="flex justify-between items-start w-full">
+        <div class="flex flex-col gap-2 w-full">
+
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-gray-800 text-base">
+              Pedido #${numeroFormatado}
+            </h3>
+
+            <span class="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm">
+              🕒 ${horario}
+            </span>
           </div>
-          <div class="text-right">
-            <p class="text-sm text-gray-500">${horario}</p>
-          </div>
+
+          <p class="text-sm text-gray-700 font-medium">
+            ${pedido.cliente}
+          </p>
+
+          <div>${badgeEntrega}</div>
+
+          <p class="text-xs text-gray-500">
+            ${pedido.endereco || "Endereço não informado"}
+          </p>
+
+          ${
+            pedido.observacoes
+              ? `<p class="text-xs text-gray-400 italic">
+                  Obs: ${pedido.observacoes}
+                </p>`
+              : ""
+          }
+
         </div>
-      `;
+      </div>
+    `;
 
-      // Evento para abrir detalhes do pedido
-      item.addEventListener("click", () => abrirDetalhesPedido(pedido.id));
-
-      listaPedidos.appendChild(item);
+    item.addEventListener("click", () => {
+      abrirDetalhesPedido(pedido.id);
     });
-  }
+
+    listaPedidos.appendChild(item);
+  });
+}
+
+
+
 
   // ================================
   // FUNÇÃO PARA FINALIZAR PEDIDO

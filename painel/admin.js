@@ -1209,75 +1209,93 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarTotalEntrega();
 
   btnEntrega.addEventListener("click", async () => {
-    try {
-      const idPedido = Number(pedidoNumeroEl.dataset.pedidoId);
-      const numeroPedido = pedidoNumeroEl.textContent.trim();
-
-    
+  try {
+    const idPedido = Number(pedidoNumeroEl.dataset.pedidoId);
+    const numeroPedido = pedidoNumeroEl.textContent.trim();
 
     console.error("Debug pedido selecionado:", {
-    idPedido: idPedido,
-    numeroPedido: numeroPedido,
-    dataset: pedidoNumeroEl.dataset
+      idPedido: idPedido,
+      numeroPedido: numeroPedido,
+      dataset: pedidoNumeroEl.dataset
+    });
+
+    if (!idPedido || numeroPedido === "0000") {
+      mostrarModalErro("Nenhum pedido selecionado.");
+      return;
+    }
+
+    // 🔹 Busca o pedido na tabela 'pedidos'
+    const { data: pedido, error } = await supabase
+      .from("pedidos")
+      .select("*")
+      .eq("id", idPedido)
+      .single();
+
+    if (error || !pedido) {
+      mostrarModalErro("Pedido não encontrado.");
+      return;
+    }
+
+    const itens = Array.isArray(pedido.itens)
+      ? pedido.itens
+      : JSON.parse(pedido.itens || "[]");
+
+    // 🔹 VERIFICA SE O PEDIDO JÁ EXISTE NA TABELA 'entregas'
+    const { data: entregaExistente, error: checkError } = await supabase
+      .from("entregas")
+      .select("*")
+      .eq("numero_pedido", numeroPedido)
+      .single();
+
+    if (checkError && checkError.code !== "PGRST116") { // PGRST116 = Not Found
+      mostrarModalErro("Erro ao verificar entregas existentes: " + checkError.message);
+      return;
+    }
+
+    if (entregaExistente) {
+      mostrarModalErro(
+        "Este pedido já consta como enviado para entrega e não pode ser processado novamente."
+      );
+      limparDetalhesPedido();
+      return;
+    }
+
+    // 🔹 CRIA O PAYLOAD PARA INSERÇÃO
+    const payload = {
+      numero_pedido: pedido.numero_pedido,
+      status: "Aguardando",
+      itens,
+      nome_cliente: pedido.cliente,
+      endereco: pedido.endereco,
+      entregador_nome: null,
+      horario_entrega: null,
+      foto_entrega: null
+    };
+
+    // 🔹 INSERE NA TABELA 'entregas'
+    const { error: insertError } = await supabase
+      .from("entregas")
+      .insert([payload]);
+
+    if (insertError) {
+      mostrarModalErro(
+        "Erro ao enviar pedido para entrega: " + insertError.message
+      );
+      limparDetalhesPedido();
+      return;
+    }
+
+    console.log("✅ Pedido enviado para entrega:", numeroPedido);
+
+    limparDetalhesPedido();
+    await atualizarPedidos();
+    carregarTotalEntrega();
+
+  } catch (err) {
+    mostrarModalErro("Erro inesperado: " + err.message);
+  }
 });
 
-if (!idPedido || numeroPedido === "0000") {
-    mostrarModalErro("Nenhum pedido selecionado.");
-    return;
-}
-
-
-      const { data: pedido, error } = await supabase
-        .from("pedidos")
-        .select("*")
-        .eq("id", idPedido)
-        .single();
-
-      if (error || !pedido) {
-        mostrarModalErro("Pedido não encontrado.");
-        return;
-      }
-
-      const itens = Array.isArray(pedido.itens)
-        ? pedido.itens
-        : JSON.parse(pedido.itens || "[]");
-
-      const payload = {
-        numero_pedido: pedido.numero_pedido,
-        status: "Aguardando",
-        itens,
-        nome_cliente: pedido.cliente,
-        endereco: pedido.endereco,
-        entregador_nome: null,
-        horario_entrega: null,
-        foto_entrega: null
-      };
-
-      const { error: insertError } = await supabase
-        .from("entregas")
-        .insert([payload]);
-
-      if (insertError) {
-        if (insertError.code === "23505") {
-          mostrarModalErro(
-            "Este pedido já consta como enviado para entrega e não pode ser processado novamente."
-          );
-        } else {
-          mostrarModalErro("Erro ao enviar pedido para entrega: " + insertError.message);
-        }
-        limparDetalhesPedido();
-        return;
-      }
-
-      console.log("✅ Pedido enviado para entrega:", numeroPedido);
-
-      limparDetalhesPedido();
-      await atualizarPedidos();
-      carregarTotalEntrega();
-    } catch (err) {
-      mostrarModalErro("Erro inesperado: " + err.message);
-    }
-  });
 });
 
 

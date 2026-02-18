@@ -129,29 +129,17 @@ async function preencherNomeUsuarioCarrinho() {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+  const btnAbrirModal = document.getElementById("btnAbrirModalPedido");
+  const modalPedidos = document.getElementById("modalPedidos");
 
-  const modalAviso = document.getElementById("modalCarrinhoExistente");
-  const modalPedido = document.getElementById("modalPedido");
+  if (!btnAbrirModal || !modalPedidos) return;
 
-  const btnFecharAviso = document.getElementById("btnFecharAviso");
-  const btnContinuarPedido = document.getElementById("btnContinuarPedido");
-
-  // 🔘 BOTÃO: AGORA NÃO
-  if (btnFecharAviso) {
-    btnFecharAviso.addEventListener("click", () => {
-      modalAviso.classList.add("hidden");
-    });
-  }
-
-  // 🔘 BOTÃO: CONTINUAR
-  if (btnContinuarPedido) {
-    btnContinuarPedido.addEventListener("click", () => {
-      modalAviso.classList.add("hidden");
-      modalPedido.classList.remove("hidden");
-    });
-  }
-
+  btnAbrirModal.addEventListener("click", async () => {
+    modalPedidos.classList.remove("hidden");
+    await carregarUltimoPedido(); // carrega o próximo número
+  });
 });
+
 
 
 
@@ -247,22 +235,32 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // ✅ FUNÇÃO PARA BUSCAR O ÚLTIMO PEDIDO
 async function carregarUltimoPedido() {
-  const { data, error } = await supabase
-    .from("pedidos")
-    .select("id")
-    .order("id", { ascending: false })
-    .limit(1);
+  try {
+    const { data, error } = await supabase
+      .from("pedidos")
+      .select("id")
+      .order("id", { ascending: false })
+      .limit(1);
 
-  if (error) {
-    console.error("Erro ao buscar o último pedido:", error);
-    return;
+    if (error) {
+      console.error("Erro ao buscar o último pedido:", error);
+      return;
+    }
+
+    // Garante que data é array e pega o último id, senão 0
+    const ultimoId = Array.isArray(data) && data.length > 0 ? data[0].id : 0;
+    const proximo = ultimoId + 1;
+
+    // Atualiza o elemento do DOM somente se existir
+    const elNumeroPedido = document.getElementById("pedidoNumero");
+    if (elNumeroPedido) {
+      elNumeroPedido.innerText = String(proximo).padStart(4, "0");
+    }
+  } catch (err) {
+    console.error("Erro inesperado ao carregar último pedido:", err);
   }
-
-  const ultimoId = data[0]?.id ?? 0;
-  const proximo = ultimoId + 1;
-  document.getElementById("pedidoNumero").innerText =
-    String(proximo).padStart(4, "0");
 }
+
 
 function atualizarStatusPedido(carrinho) {
   const statusEl = document.getElementById("pedidoStatus");

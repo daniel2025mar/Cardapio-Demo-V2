@@ -172,56 +172,116 @@ async function entregarPedidoDOM(id, file, numeroPedido, entregador) {
   }
 }
 
+function mostrarModalAlerta(mensagem) {
+  const modal = document.getElementById("modal-alerta");
+  const msg = document.getElementById("modal-alerta-msg");
+  const btn = document.getElementById("btn-fechar-alerta");
+
+  if (!modal || !msg || !btn) {
+    alert(mensagem); // fallback se o modal não existir
+    return;
+  }
+
+  msg.textContent = mensagem;
+  modal.classList.remove("hidden");
+  modal.classList.add("flex"); // mostra como flex
+
+  btn.onclick = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  };
+}
 
 // =============================
 // CRIAR CARD (COM ITENS)
 // =============================
 function criarCardEntrega(entrega) {
   const card = document.createElement("div");
+
   card.className = `
-    bg-white rounded-3xl shadow-lg p-4 sm:p-6 mb-6
-    flex flex-col justify-between
+    bg-gradient-to-br from-white to-gray-50
+    rounded-2xl shadow-xl border border-gray-100
+    p-5 mb-6
+    hover:shadow-2xl transition duration-300
   `;
 
-  // Itens do pedido
-  let itensHtml = "<p class='text-gray-400 italic'>Não informado</p>";
+  // Calcular total do pedido
+  let totalPedido = 0;
+
+  let itensHtml = `
+    <div class="mt-3 space-y-2">
+  `;
+
   if (entrega.itens && entrega.itens.length > 0) {
-    itensHtml = "<ul class='list-disc list-inside space-y-1'>";
     entrega.itens.forEach(item => {
+      totalPedido += item.total;
+
       itensHtml += `
-        <li class="text-gray-700">
-          <span class="font-semibold">${item.descricao}</span>
-          — Qtd: ${item.quantidade}
-          — R$ ${item.total.toFixed(2)}
-        </li>`;
+        <div class="flex justify-between text-sm text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
+          <div>
+            <span class="font-semibold">${item.descricao}</span>
+            <span class="text-gray-500"> x${item.quantidade}</span>
+          </div>
+          <div class="font-semibold text-gray-800">
+            R$ ${item.total.toFixed(2)}
+          </div>
+        </div>
+      `;
     });
-    itensHtml += "</ul>";
+  } else {
+    itensHtml += `
+      <p class="text-gray-400 italic">Nenhum item informado</p>
+    `;
   }
 
+  itensHtml += `</div>`;
+
   card.innerHTML = `
-    <h2 class="text-2xl font-bold text-gray-900 mb-2">
-      Pedido ${entrega.numero_pedido}
-    </h2>
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-3">
+      
+      <h2 class="text-lg font-semibold tracking-wide">
+        <span class="text-gray-400 uppercase">Pedido</span>
+        <span class="text-gray-600 font-bold">
+          #${entrega.numero_pedido}
+        </span>
+      </h2>
 
-    <p class="text-gray-600"><b>Cliente:</b> ${entrega.nome_cliente}</p>
-    <p class="text-gray-600"><b>Endereço:</b> ${entrega.endereco}</p>
-
-    <p class="text-gray-700 font-semibold mt-3">Itens:</p>
-    ${itensHtml}
-
-    <div class="flex flex-col gap-3 mt-4">
       <span id="status-${entrega.id}"
-        class="px-4 py-2 rounded-full bg-yellow-400 text-gray-800 font-semibold text-center">
+        class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700 font-semibold">
         ${entrega.status}
       </span>
+    </div>
 
+    <!-- CLIENTE -->
+    <div class="text-sm text-gray-600 mb-2">
+      <p><strong>Cliente:</strong> ${entrega.nome_cliente}</p>
+      <p><strong>Endereço:</strong> ${entrega.endereco}</p>
+    </div>
+
+    <!-- ITENS -->
+    <div class="border-t pt-3">
+      <p class="font-semibold text-gray-800 mb-2">Itens do Pedido</p>
+      ${itensHtml}
+    </div>
+
+    <!-- TOTAL -->
+    <div class="flex justify-between items-center mt-4 pt-3 border-t">
+      <span class="text-gray-600 font-medium">Total</span>
+      <span class="text-xl font-bold text-green-600">
+        R$ ${totalPedido.toFixed(2)}
+      </span>
+    </div>
+
+    <!-- BOTÕES -->
+    <div class="flex gap-3 mt-4">
       <button id="btn-${entrega.id}"
-        class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-full shadow-md">
-        Finalizar Pedido
+        class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-semibold shadow-md transition">
+        Finalizar
       </button>
 
       <button id="btn-rota-${entrega.id}"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-full shadow-md">
+        class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-xl font-semibold shadow-md transition">
         Ver Rota
       </button>
     </div>
@@ -236,9 +296,10 @@ function criarCardEntrega(entrega) {
   // Ver rota
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
     if (!entregador || !entregador.lat || !entregador.lng) {
-      alert("Coordenadas do entregador não encontradas!");
+      mostrarModalAlerta("Coordenadas do entregador não encontradas!");
       return;
     }
+
     mostrarRota(
       entregador.lat,
       entregador.lng,
@@ -249,6 +310,7 @@ function criarCardEntrega(entrega) {
 
   return card;
 }
+
 
 
 // =============================

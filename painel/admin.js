@@ -1208,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", () => {
   atualizarPedidos();
   carregarTotalEntrega();
 
-  btnEntrega.addEventListener("click", async () => {
+ btnEntrega.addEventListener("click", async () => {
   try {
     const idPedido = Number(pedidoNumeroEl.dataset.pedidoId);
     const numeroPedido = pedidoNumeroEl.textContent.trim();
@@ -1236,6 +1236,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // 🔴 BLOQUEIA SE FOR RETIRADA
+    if (pedido.tipo_entrega?.toLowerCase() === "retirada") {
+      mostrarModalErro(
+        "Este pedido é do tipo RETIRADA e não pode ser enviado para entrega."
+      );
+      limparDetalhesPedido();
+      return;
+    }
+
     const itens = Array.isArray(pedido.itens)
       ? pedido.itens
       : JSON.parse(pedido.itens || "[]");
@@ -1245,10 +1254,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .from("entregas")
       .select("*")
       .eq("numero_pedido", numeroPedido)
-      .single();
+      .maybeSingle();
 
-    if (checkError && checkError.code !== "PGRST116") { // PGRST116 = Not Found
-      mostrarModalErro("Erro ao verificar entregas existentes: " + checkError.message);
+    if (checkError) {
+      mostrarModalErro(
+        "Erro ao verificar entregas existentes: " + checkError.message
+      );
       return;
     }
 
@@ -1295,6 +1306,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mostrarModalErro("Erro inesperado: " + err.message);
   }
 });
+
 
 });
 

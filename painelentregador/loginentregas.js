@@ -53,7 +53,7 @@ form.addEventListener("submit", async (e) => {
       .eq("password", password)
       .single();
 
-    // ❌ NÃO ENCONTROU USUÁRIO
+    // ❌ NÃO ENCONTROU
     if (error || !usuario) {
       mostrarErro("Usuário ou senha incorretos.");
       return;
@@ -65,7 +65,13 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
-    // ✅ LOGIN CORRETO → ABRE DELIVERY
+    // ❌ NÃO É ENTREGADOR
+    if (usuario.cargo !== "Entregador") {
+      mostrarErro("Você não tem permissão para acessar este sistema.");
+      return;
+    }
+
+    // ✅ LOGIN CORRETO
     localStorage.setItem("entregadorLogado", JSON.stringify(usuario));
     window.location.href = "delivery.html";
 
@@ -74,6 +80,7 @@ form.addEventListener("submit", async (e) => {
     mostrarErro("Erro ao tentar fazer login.");
   }
 });
+
 
 // =============================
 // FUNÇÃO DE ERRO COM TEMPO

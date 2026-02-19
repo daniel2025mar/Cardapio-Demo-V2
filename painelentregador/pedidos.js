@@ -195,6 +195,10 @@ function mostrarModalAlerta(mensagem) {
 // =============================
 // CRIAR CARD (COM ITENS)
 // =============================
+// Variáveis globais para saber qual entrega está sendo finalizada
+let entregaAtualId = null;
+let entregaAtualCard = null;
+
 function criarCardEntrega(entrega) {
   const card = document.createElement("div");
 
@@ -207,15 +211,11 @@ function criarCardEntrega(entrega) {
 
   // Calcular total do pedido
   let totalPedido = 0;
-
-  let itensHtml = `
-    <div class="mt-3 space-y-2">
-  `;
+  let itensHtml = `<div class="mt-3 space-y-2">`;
 
   if (entrega.itens && entrega.itens.length > 0) {
     entrega.itens.forEach(item => {
       totalPedido += item.total;
-
       itensHtml += `
         <div class="flex justify-between text-sm text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
           <div>
@@ -229,17 +229,13 @@ function criarCardEntrega(entrega) {
       `;
     });
   } else {
-    itensHtml += `
-      <p class="text-gray-400 italic">Nenhum item informado</p>
-    `;
+    itensHtml += `<p class="text-gray-400 italic">Nenhum item informado</p>`;
   }
-
   itensHtml += `</div>`;
 
   card.innerHTML = `
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-3">
-      
       <h2 class="text-lg font-semibold tracking-wide">
         <span class="text-gray-400 uppercase">Pedido</span>
         <span class="text-gray-600 font-bold">
@@ -289,11 +285,14 @@ function criarCardEntrega(entrega) {
 
   const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
 
-  // Finalizar pedido
-  card.querySelector(`#btn-${entrega.id}`).onclick = () =>
-    entregarPedidoDOM(entrega.id, null, entrega.numero_pedido, entregador);
+  // 🔥 FINALIZAR: abre câmera e guarda referência da entrega
+  card.querySelector(`#btn-${entrega.id}`).onclick = () => {
+    entregaAtualId = entrega.id;
+    entregaAtualCard = card;
+    abrirCamera();
+  };
 
-  // Ver rota
+  // Ver rota (mantido original)
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
     if (!entregador || !entregador.lat || !entregador.lng) {
       mostrarModalAlerta("Coordenadas do entregador não encontradas!");
@@ -311,6 +310,109 @@ function criarCardEntrega(entrega) {
   return card;
 }
 
+// 🔹 FUNÇÃO tirarFoto() ATUALIZADA
+async function tirarFoto() {
+  try {
+    const context = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imagemBase64 = canvas.toDataURL("image/jpeg", 0.8);
+
+    if (!entregaAtualId || !entregaAtualCard) {
+      alert("Entrega não identificada.");
+      return;
+    }
+
+    // Atualiza SOMENTE a coluna foto_entrega + status
+    const { error } = await supabase
+      .from("entregas")
+      .update({ foto_entrega: imagemBase64, status: "Entregue" })
+      .eq("id", entregaAtualId);
+
+    if (error) {
+      console.error("Erro ao salvar foto:", error);
+      alert("Erro ao salvar foto da entrega.");
+      return;
+    }
+
+    // Atualiza visual do card
+    const statusBadge = entregaAtualCard.querySelector(`#status-${entregaAtualId}`);
+    statusBadge.textContent = "Entregue";
+    statusBadge.classList.remove("bg-yellow-100", "text-yellow-700");
+    statusBadge.classList.add("bg-green-100", "text-green-700");
+
+    const botao = entregaAtualCard.querySelector(`#btn-${entregaAtualId}`);
+    botao.textContent = "Entregue";
+    botao.disabled = true;
+    botao.classList.remove("bg-green-500", "hover:bg-green-600");
+    botao.classList.add("bg-gray-400", "cursor-not-allowed");
+
+    // Fecha a câmera
+    fecharCamera();
+
+    // Limpa variáveis globais
+    entregaAtualId = null;
+    entregaAtualCard = null;
+
+  } catch (err) {
+    console.error("Erro inesperado:", err);
+    alert("Erro inesperado ao finalizar entrega.");
+  }
+}
+
+
+
+
+const modalCamera = document.getElementById("modal-camera");
+const video = document.getElementById("camera-video");
+const canvas = document.getElementById("camera-canvas");
+const btnFecharCamera = document.getElementById("btn-fechar-camera");
+const btnTirarFoto = document.getElementById("btn-tirar-foto");
+
+let stream = null;
+
+// 🔵 FUNÇÃO PARA ABRIR A CÂMERA
+async function abrirCamera() {
+  try {
+    modalCamera.classList.remove("hidden");
+    modalCamera.classList.add("flex");
+
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "environment" // câmera traseira no celular
+      },
+      audio: false
+    });
+
+    video.srcObject = stream;
+
+  } catch (error) {
+    console.error("Erro ao acessar câmera:", error);
+    alert("Não foi possível acessar a câmera.");
+  }
+}
+
+// 🔴 FUNÇÃO PARA FECHAR A CÂMERA
+function fecharCamera() {
+  modalCamera.classList.add("hidden");
+  modalCamera.classList.remove("flex");
+
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+
+  video.srcObject = null;
+}
+
+// 📸 FUNÇÃO PARA TIRAR FOTO
+
+
+
+btnFecharCamera.addEventListener("click", fecharCamera);
+btnTirarFoto.addEventListener("click", tirarFoto);
 
 
 // =============================

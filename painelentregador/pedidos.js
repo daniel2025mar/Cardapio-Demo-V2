@@ -158,7 +158,7 @@ async function entregarPedidoDOM(id, file, numeroPedido, entregador) {
     // 🔹 Salva entregador logado
     await supabase
       .from("entregas")
-      .update({ entregador_nome: entregador.username, status: "Entregue", horario_entrega: new Date().toISOString(), foto_entrega: fotoUrl })
+      .update({ entregador_nome: entregador.username, status: "Entregue", horario_entrega: new Date().toLocaleTimeString(), foto_entrega: fotoUrl })
       .eq("id", id);
 
     // Atualiza status na tabela pedidos
@@ -171,69 +171,6 @@ async function entregarPedidoDOM(id, file, numeroPedido, entregador) {
     mostrarModalErro(err.message || "Erro inesperado ao finalizar.");
   }
 }
-
-let streamAtual = null;
-let entregaAtual = null;
-
-async function abrirCameraModal(id, numeroPedido, entregador) {
-  entregaAtual = { id, numeroPedido, entregador };
-
-  const modal = document.getElementById("modal-camera");
-  const video = document.getElementById("camera-video");
-
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-
-  try {
-    streamAtual = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-      audio: false
-    });
-
-    video.srcObject = streamAtual;
-
-  } catch (err) {
-    console.error(err);
-    mostrarModalErro("Não foi possível acessar a câmera.");
-  }
-}
-document.getElementById("btn-tirar-foto").onclick = async () => {
-  const video = document.getElementById("camera-video");
-  const canvas = document.getElementById("camera-canvas");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0);
-
-  canvas.toBlob(async (blob) => {
-    if (!blob) return;
-
-    await entregarPedidoDOM(
-      entregaAtual.id,
-      blob,
-      entregaAtual.numeroPedido,
-      entregaAtual.entregador
-    );
-
-    fecharModalCamera();
-  }, "image/jpeg", 0.8);
-};
-function fecharModalCamera() {
-  const modal = document.getElementById("modal-camera");
-  const video = document.getElementById("camera-video");
-
-  if (streamAtual) {
-    streamAtual.getTracks().forEach(track => track.stop());
-  }
-
-  video.srcObject = null;
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-}
-
-document.getElementById("btn-fechar-camera").onclick = fecharModalCamera;
 
 function mostrarModalAlerta(mensagem) {
   const modal = document.getElementById("modal-alerta");
@@ -353,10 +290,8 @@ function criarCardEntrega(entrega) {
   const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
 
   // Finalizar pedido
-  card.querySelector(`#btn-${entrega.id}`).onclick = () => {
-  abrirCameraModal(entrega.id, entrega.numero_pedido, entregador);
-};
-
+  card.querySelector(`#btn-${entrega.id}`).onclick = () =>
+    entregarPedidoDOM(entrega.id, null, entrega.numero_pedido, entregador);
 
   // Ver rota
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
@@ -376,25 +311,6 @@ function criarCardEntrega(entrega) {
   return card;
 }
 
-function abrirCamera(id, numeroPedido, entregador) {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.capture = "environment"; // abre câmera traseira no celular
-
-  input.onchange = async (event) => {
-    const file = event.target.files[0];
-
-    if (!file) {
-      mostrarModalAlerta("É necessário tirar uma foto para finalizar a entrega.");
-      return;
-    }
-
-    await entregarPedidoDOM(id, file, numeroPedido, entregador);
-  };
-
-  input.click();
-}
 
 
 // =============================

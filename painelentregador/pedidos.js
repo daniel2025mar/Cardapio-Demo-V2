@@ -335,8 +335,14 @@ function pegarLocalizacao() {
   });
 }
 // 🔹 FUNÇÃO tirarFoto() ATUALIZADA
+// 🔹 FUNÇÃO tirarFoto() COMPLETA
 async function tirarFoto() {
   try {
+    if (!entregaAtualId || !entregaAtualCard) {
+      alert("Entrega não identificada.");
+      return;
+    }
+
     const context = canvas.getContext("2d");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -344,43 +350,59 @@ async function tirarFoto() {
 
     const imagemBase64 = canvas.toDataURL("image/jpeg", 0.8);
 
-    if (!entregaAtualId || !entregaAtualCard) {
-      alert("Entrega não identificada.");
-      return;
-    }
-
     // 🔹 Pega entregador logado
     const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
-
     if (!entregador || !entregador.username) {
       alert("Entregador não identificado. Faça login novamente.");
       return;
     }
 
-    // 🔹 Pegar localização atual
-    let latitude;
-    let longitude;
-
+    // 🔹 Pega localização do entregador
+    let latitude, longitude;
     try {
       const localizacao = await pegarLocalizacao();
       latitude = localizacao.latitude;
       longitude = localizacao.longitude;
-
       console.log("📍 Latitude:", latitude);
       console.log("📍 Longitude:", longitude);
-
     } catch (erroLocalizacao) {
       alert("Não foi possível obter localização. Ative o GPS.");
+      return;
+    }
+
+    // 🔹 Pega a entrega completa para validar distância
+    const { data: entregaInfo, error: entregaFetchError } = await supabase
+      .from("entregas")
+      .select("lat_cliente, lng_cliente, numero_pedido")
+      .eq("id", entregaAtualId)
+      .single();
+
+    if (entregaFetchError || !entregaInfo) {
+      console.error("Erro ao buscar dados do cliente:", entregaFetchError);
+      alert("Erro ao obter dados do cliente.");
+      return;
+    }
+
+    // 🔹 Opcional: valida distância entre entregador e cliente
+    const distancia = calcularDistancia(
+      latitude,
+      longitude,
+      entregaInfo.lat_cliente,
+      entregaInfo.lng_cliente
+    );
+
+    if (distancia > 100) { // 100 metros de tolerância
+      alert("Você não está próximo do endereço do cliente!");
       return;
     }
 
     // 🔹 Formato correto TIME
     const horaAtual = new Date().toISOString().split("T")[1].split(".")[0];
 
-    // 🔹 1️⃣ Atualiza tabela ENTREGAS
+    // 🔹 Atualiza tabela ENTREGAS
     const { data: entregaData, error: entregaError } = await supabase
       .from("entregas")
-      .update({ 
+      .update({
         foto_entrega: imagemBase64,
         status: "Entregue",
         entregador_nome: entregador.username,
@@ -400,14 +422,12 @@ async function tirarFoto() {
 
     const numeroPedido = entregaData.numero_pedido;
 
-    // 🔹 2️⃣ Atualiza tabela PEDIDOS
+    // 🔹 Atualiza tabela PEDIDOS
     const { error: pedidoError } = await supabase
       .from("pedidos")
-      .update({ 
-        status: "Finalizado"
-      })
+      .update({ status: "Finalizado" })
       .eq("numero_pedido", numeroPedido)
-      .eq("status", "Recebido");
+      .eq("status", "Recebido"); // só altera se estiver Recebido
 
     if (pedidoError) {
       console.error("Erro ao atualizar pedido:", pedidoError);
@@ -437,6 +457,21 @@ async function tirarFoto() {
     console.error("Erro inesperado:", err);
     alert("Erro inesperado ao finalizar entrega.");
   }
+}
+
+// 🔹 FUNÇÃO PARA CALCULAR DISTÂNCIA ENTRE DOIS PONTOS (em metros)
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+  const R = 6371e3; // raio da Terra em metros
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lng2-lng1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2)**2 +
+            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // distância em metros
 }
 
 const modalCamera = document.getElementById("modal-camera");

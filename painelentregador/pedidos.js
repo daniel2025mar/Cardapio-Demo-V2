@@ -308,6 +308,32 @@ function criarCardEntrega(entrega) {
   return card;
 }
 
+
+function pegarLocalizacao() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject("Geolocalização não suportada.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+      },
+      (error) => {
+        reject("Erro ao obter localização.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  });
+}
 // 🔹 FUNÇÃO tirarFoto() ATUALIZADA
 async function tirarFoto() {
   try {
@@ -331,6 +357,23 @@ async function tirarFoto() {
       return;
     }
 
+    // 🔹 Pegar localização atual
+    let latitude;
+    let longitude;
+
+    try {
+      const localizacao = await pegarLocalizacao();
+      latitude = localizacao.latitude;
+      longitude = localizacao.longitude;
+
+      console.log("📍 Latitude:", latitude);
+      console.log("📍 Longitude:", longitude);
+
+    } catch (erroLocalizacao) {
+      alert("Não foi possível obter localização. Ative o GPS.");
+      return;
+    }
+
     // 🔹 Formato correto TIME
     const horaAtual = new Date().toISOString().split("T")[1].split(".")[0];
 
@@ -341,7 +384,9 @@ async function tirarFoto() {
         foto_entrega: imagemBase64,
         status: "Entregue",
         entregador_nome: entregador.username,
-        horario_entrega: horaAtual
+        horario_entrega: horaAtual,
+        lat_entrega: latitude,
+        lng_entrega: longitude
       })
       .eq("id", entregaAtualId)
       .select("numero_pedido")
@@ -362,7 +407,7 @@ async function tirarFoto() {
         status: "Finalizado"
       })
       .eq("numero_pedido", numeroPedido)
-      .eq("status", "Recebido"); // garante que só altera se estiver Recebido
+      .eq("status", "Recebido");
 
     if (pedidoError) {
       console.error("Erro ao atualizar pedido:", pedidoError);
@@ -393,7 +438,6 @@ async function tirarFoto() {
     alert("Erro inesperado ao finalizar entrega.");
   }
 }
-
 
 const modalCamera = document.getElementById("modal-camera");
 const video = document.getElementById("camera-video");

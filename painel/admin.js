@@ -478,141 +478,145 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ================================
   // CARREGA FILA DE PEDIDOS (APENAS STATUS "RECEBIDO OS CARDS")
   // ================================
-  async function carregarFilaPedidos() {
-  // 🔹 1. Buscar pedidos
-  const { data: pedidos, error } = await supabase
-    .from("pedidos")
-    .select("*")
-    .eq("status", "Recebido")
-    .order("id", { ascending: true });
+async function carregarFilaPedidos() {
+  try {
+    // ================================
+    // 1️⃣ Buscar pedidos com status "Recebido"
+    // ================================
+    const { data: pedidos, error: erroPedidos } = await supabase
+      .from("pedidos")
+      .select("*")
+      .eq("status", "Recebido")
+      .order("id", { ascending: true });
 
-  if (error) {
-    console.error("Erro ao carregar pedidos:", error);
-    return;
-  }
+    if (erroPedidos) throw erroPedidos;
 
-  // 🔹 2. Buscar entregas com status Aguardando
-  const { data: entregasAguardando, error: erroEntrega } = await supabase
-    .from("entregas")
-    .select("numero_pedido")
-    .eq("status", "Aguardando");
+    // ================================
+    // 2️⃣ Buscar entregas com status "Aguardando"
+    // ================================
+    const { data: entregasAguardando, error: erroEntregas } = await supabase
+      .from("entregas")
+      .select("numero_pedido")
+      .eq("status", "Aguardando");
 
-  if (erroEntrega) {
-    console.error("Erro ao buscar entregas:", erroEntrega);
-    return;
-  }
+    if (erroEntregas) throw erroEntregas;
 
-  // Criar array apenas com números dos pedidos que estão aguardando
-  const pedidosAguardando = entregasAguardando.map(e => e.numero_pedido);
+    const pedidosAguardando = entregasAguardando.map(e => e.numero_pedido);
 
-  const listaPedidos = document.querySelector(".fila-pedidos-list");
-  if (!listaPedidos) return;
-  listaPedidos.innerHTML = "";
+    // ================================
+    // 3️⃣ Preparar container e contador
+    // ================================
+    const listaPedidos = document.querySelector(".fila-pedidos-list");
+    if (!listaPedidos) return;
+    listaPedidos.innerHTML = "";
 
-  const contador = document.getElementById("contador-pedidos");
-  if (contador) contador.textContent = pedidos.length;
+    const contador = document.getElementById("contador-pedidos");
+    if (contador) contador.textContent = pedidos.length;
 
-  pedidos.forEach((pedido) => {
-    const item = document.createElement("div");
+    // ================================
+    // 4️⃣ Criar cards para cada pedido
+    // ================================
+    pedidos.forEach(pedido => {
+      const item = document.createElement("div");
 
-    const numeroFormatado = pedido.id.toString().padStart(4, "0");
+      const numeroFormatado = pedido.id.toString().padStart(4, "0");
+      const isRetirada = pedido.tipo_entrega === "retirada";
 
-    const isRetirada = pedido.tipo_entrega === "retirada";
+      // Verifica se pedido delivery está aguardando entrega
+      const estaAguardandoEntrega =
+        pedido.tipo_entrega === "delivery" &&
+        pedidosAguardando.includes(numeroFormatado);
 
-    // 🔥 VERIFICA SE EXISTE NA TABELA ENTREGAS
-    const estaAguardandoEntrega =
-      pedido.tipo_entrega === "delivery" &&
-      pedidosAguardando.includes(numeroFormatado);
+      // Definir cores do card
+      let corBorda = "border-yellow-400";
+      let bgLeve = "bg-yellow-50";
 
-    // 🎨 DEFINIÇÃO DE CORES
-    let corBorda = "border-yellow-400";
-    let bgLeve = "bg-yellow-50";
-
-    if (isRetirada) {
-      corBorda = "border-blue-900";
-      bgLeve = "bg-blue-50";
-    }
-
-    // ✅ SE ESTIVER AGUARDANDO ENTREGA → VERDE
-    if (estaAguardandoEntrega) {
-      corBorda = "border-green-600";
-      bgLeve = "bg-green-50";
-    }
-
-    const badgeEntrega = isRetirada
-      ? `<span class="text-xs font-semibold bg-blue-100 text-blue-900 px-3 py-1 rounded-full">🏪 RETIRADA</span>`
-      : `<span class="text-xs font-semibold bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">🚚 ENTREGA</span>`;
-
-    item.className = `
-      order-list-item
-      ${bgLeve}
-      p-4
-      rounded-xl
-      border-l-4
-      ${corBorda}
-      shadow-sm
-      hover:shadow-md
-      hover:scale-[1.01]
-      transition-all
-      duration-200
-      cursor-pointer
-    `;
-
-    item.dataset.id = pedido.id;
-
-    // ⏰ Formatar horário
-    let horario = "";
-    if (pedido.horario_recebido) {
-      const date = new Date(pedido.horario_recebido);
-      if (!isNaN(date.getTime())) {
-        const h = date.getHours().toString().padStart(2, "0");
-        const m = date.getMinutes().toString().padStart(2, "0");
-        horario = `${h}:${m}`;
+      if (isRetirada) {
+        corBorda = "border-blue-900";
+        bgLeve = "bg-blue-50";
       }
-    }
 
-    item.innerHTML = `
-      <div class="flex justify-between items-start w-full">
-        <div class="flex flex-col gap-2 w-full">
+      if (estaAguardandoEntrega) {
+        corBorda = "border-green-600";
+        bgLeve = "bg-green-50";
+      }
 
-          <div class="flex justify-between items-center">
-            <h3 class="font-bold text-gray-800 text-base">
-              Pedido #${numeroFormatado}
-            </h3>
+      // Badge de entrega
+      const badgeEntrega = isRetirada
+        ? `<span class="text-xs font-semibold bg-blue-100 text-blue-900 px-3 py-1 rounded-full">🏪 RETIRADA</span>`
+        : `<span class="text-xs font-semibold bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">🚚 ENTREGA</span>`;
 
-            <span class="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm">
-              🕒 ${horario}
-            </span>
+      // Montar HTML do card
+      item.className = `
+        order-list-item
+        ${bgLeve}
+        p-4
+        rounded-xl
+        border-l-4
+        ${corBorda}
+        shadow-sm
+        hover:shadow-md
+        hover:scale-[1.01]
+        transition-all
+        duration-200
+        cursor-pointer
+      `;
+      item.dataset.id = pedido.id;
+
+      // Formatar horário
+      let horario = "";
+      if (pedido.horario_recebido) {
+        const date = new Date(pedido.horario_recebido);
+        if (!isNaN(date.getTime())) {
+          const h = date.getHours().toString().padStart(2, "0");
+          const m = date.getMinutes().toString().padStart(2, "0");
+          horario = `${h}:${m}`;
+        }
+      }
+
+      item.innerHTML = `
+        <div class="flex justify-between items-start w-full">
+          <div class="flex flex-col gap-2 w-full">
+
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-gray-800 text-base">
+                Pedido #${numeroFormatado}
+              </h3>
+              <span class="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm">
+                🕒 ${horario}
+              </span>
+            </div>
+
+            <p class="text-sm text-gray-700 font-medium">
+              ${pedido.cliente}
+            </p>
+
+            <div>${badgeEntrega}</div>
+
+            <p class="text-xs text-gray-500">
+              ${pedido.endereco || "Endereço não informado"}
+            </p>
+
+            ${
+              pedido.observacoes
+                ? `<p class="text-xs text-gray-400 italic">
+                     Obs: ${pedido.observacoes}
+                   </p>`
+                : ""
+            }
+
           </div>
-
-          <p class="text-sm text-gray-700 font-medium">
-            ${pedido.cliente}
-          </p>
-
-          <div>${badgeEntrega}</div>
-
-          <p class="text-xs text-gray-500">
-            ${pedido.endereco || "Endereço não informado"}
-          </p>
-
-          ${
-            pedido.observacoes
-              ? `<p class="text-xs text-gray-400 italic">
-                  Obs: ${pedido.observacoes}
-                </p>`
-              : ""
-          }
-
         </div>
-      </div>
-    `;
+      `;
 
-    item.addEventListener("click", () => {
-      abrirDetalhesPedido(pedido.id);
+      // Clique para abrir detalhes
+      item.addEventListener("click", () => abrirDetalhesPedido(pedido.id));
+
+      listaPedidos.appendChild(item);
     });
-
-    listaPedidos.appendChild(item);
-  });
+  } catch (error) {
+    console.error("Erro ao carregar fila de pedidos:", error);
+  }
 }
   // ================================
   // FUNÇÃO PARA FINALIZAR PEDIDO
@@ -1454,109 +1458,111 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!btnEntrega || !pedidoNumeroEl) return;
 
+  // Atualiza a lista de pedidos e total de entregas
   atualizarPedidos();
   carregarTotalEntrega();
 
- btnEntrega.addEventListener("click", async () => {
-  try {
-    const idPedido = Number(pedidoNumeroEl.dataset.pedidoId);
-    const numeroPedido = pedidoNumeroEl.textContent.trim();
+  btnEntrega.addEventListener("click", async () => {
+    try {
+      const idPedido = Number(pedidoNumeroEl.dataset.pedidoId);
+      const numeroPedido = pedidoNumeroEl.textContent.trim();
 
-    console.error("Debug pedido selecionado:", {
-      idPedido: idPedido,
-      numeroPedido: numeroPedido,
-      dataset: pedidoNumeroEl.dataset
-    });
+      console.log("Debug pedido selecionado:", {
+        idPedido,
+        numeroPedido,
+        dataset: pedidoNumeroEl.dataset
+      });
 
-    if (!idPedido || numeroPedido === "0000") {
-      mostrarModalErro("Nenhum pedido selecionado.");
-      return;
-    }
+      if (!idPedido || numeroPedido === "0000") {
+        mostrarModalErro("Nenhum pedido selecionado.");
+        return;
+      }
 
-    // 🔹 Busca o pedido na tabela 'pedidos'
-    const { data: pedido, error } = await supabase
-      .from("pedidos")
-      .select("*")
-      .eq("id", idPedido)
-      .single();
+      // 🔹 Busca o pedido na tabela 'pedidos'
+      const { data: pedido, error } = await supabase
+        .from("pedidos")
+        .select("*")
+        .eq("id", idPedido)
+        .single();
 
-    if (error || !pedido) {
-      mostrarModalErro("Pedido não encontrado.");
-      return;
-    }
+      if (error || !pedido) {
+        mostrarModalErro("Pedido não encontrado.");
+        return;
+      }
 
-    // 🔴 BLOQUEIA SE FOR RETIRADA
-    if (pedido.tipo_entrega?.toLowerCase() === "retirada") {
-      mostrarModalErro(
-        "Este pedido é do tipo RETIRADA e não pode ser enviado para entrega."
-      );
+      // 🔴 BLOQUEIA SE FOR RETIRADA
+      if (pedido.tipo_entrega?.toLowerCase() === "retirada") {
+        mostrarModalErro(
+          "Este pedido é do tipo RETIRADA e não pode ser enviado para entrega."
+        );
+        limparDetalhesPedido();
+        return;
+      }
+
+      // 🔹 Itens do pedido
+      const itens = Array.isArray(pedido.itens)
+        ? pedido.itens
+        : JSON.parse(pedido.itens || "[]");
+
+      // 🔹 VERIFICA SE O PEDIDO JÁ EXISTE NA TABELA 'entregas'
+      const { data: entregaExistente, error: checkError } = await supabase
+        .from("entregas")
+        .select("*")
+        .eq("numero_pedido", numeroPedido)
+        .maybeSingle();
+
+      if (checkError) {
+        mostrarModalErro(
+          "Erro ao verificar entregas existentes: " + checkError.message
+        );
+        return;
+      }
+
+      if (entregaExistente) {
+        mostrarModalErro(
+          "Este pedido já consta como enviado para entrega e não pode ser processado novamente."
+        );
+        limparDetalhesPedido();
+        return;
+      }
+
+      // 🔹 CRIA O PAYLOAD PARA INSERÇÃO (com data_pedido)
+      const payload = {
+        numero_pedido: pedido.numero_pedido,
+        status: "Aguardando",
+        itens,
+        nome_cliente: pedido.cliente,
+        endereco: pedido.endereco,
+        entregador_nome: null,
+        horario_entrega: null,
+        foto_entrega: null,
+        data_pedido: new Date().toISOString() // ← adiciona a data/hora atual
+      };
+
+      // 🔹 INSERE NA TABELA 'entregas'
+      const { error: insertError } = await supabase
+        .from("entregas")
+        .insert([payload]);
+
+      if (insertError) {
+        mostrarModalErro(
+          "Erro ao enviar pedido para entrega: " + insertError.message
+        );
+        limparDetalhesPedido();
+        return;
+      }
+
+      console.log("✅ Pedido enviado para entrega:", numeroPedido);
+
+      // Limpa detalhes do card e atualiza fila
       limparDetalhesPedido();
-      return;
+      await atualizarPedidos();
+      carregarTotalEntrega();
+
+    } catch (err) {
+      mostrarModalErro("Erro inesperado: " + err.message);
     }
-
-    const itens = Array.isArray(pedido.itens)
-      ? pedido.itens
-      : JSON.parse(pedido.itens || "[]");
-
-    // 🔹 VERIFICA SE O PEDIDO JÁ EXISTE NA TABELA 'entregas'
-    const { data: entregaExistente, error: checkError } = await supabase
-      .from("entregas")
-      .select("*")
-      .eq("numero_pedido", numeroPedido)
-      .maybeSingle();
-
-    if (checkError) {
-      mostrarModalErro(
-        "Erro ao verificar entregas existentes: " + checkError.message
-      );
-      return;
-    }
-
-    if (entregaExistente) {
-      mostrarModalErro(
-        "Este pedido já consta como enviado para entrega e não pode ser processado novamente."
-      );
-      limparDetalhesPedido();
-      return;
-    }
-
-    // 🔹 CRIA O PAYLOAD PARA INSERÇÃO
-    const payload = {
-      numero_pedido: pedido.numero_pedido,
-      status: "Aguardando",
-      itens,
-      nome_cliente: pedido.cliente,
-      endereco: pedido.endereco,
-      entregador_nome: null,
-      horario_entrega: null,
-      foto_entrega: null
-    };
-
-    // 🔹 INSERE NA TABELA 'entregas'
-    const { error: insertError } = await supabase
-      .from("entregas")
-      .insert([payload]);
-
-    if (insertError) {
-      mostrarModalErro(
-        "Erro ao enviar pedido para entrega: " + insertError.message
-      );
-      limparDetalhesPedido();
-      return;
-    }
-
-    console.log("✅ Pedido enviado para entrega:", numeroPedido);
-
-    limparDetalhesPedido();
-    await atualizarPedidos();
-    carregarTotalEntrega();
-
-  } catch (err) {
-    mostrarModalErro("Erro inesperado: " + err.message);
-  }
-});
-
-
+  });
 });
 
 

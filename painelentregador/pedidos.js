@@ -323,19 +323,53 @@ async function tirarFoto() {
       return;
     }
 
-    // Atualiza SOMENTE a coluna foto_entrega + status
-    const { error } = await supabase
-      .from("entregas")
-      .update({ foto_entrega: imagemBase64, status: "Entregue" })
-      .eq("id", entregaAtualId);
+    // 🔹 Pega entregador logado
+    const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
 
-    if (error) {
-      console.error("Erro ao salvar foto:", error);
-      alert("Erro ao salvar foto da entrega.");
+    if (!entregador || !entregador.username) {
+      alert("Entregador não identificado. Faça login novamente.");
       return;
     }
 
-    // Atualiza visual do card
+    // 🔹 Formato correto TIME
+    const horaAtual = new Date().toISOString().split("T")[1].split(".")[0];
+
+    // 🔹 1️⃣ Atualiza tabela ENTREGAS
+    const { data: entregaData, error: entregaError } = await supabase
+      .from("entregas")
+      .update({ 
+        foto_entrega: imagemBase64,
+        status: "Entregue",
+        entregador_nome: entregador.username,
+        horario_entrega: horaAtual
+      })
+      .eq("id", entregaAtualId)
+      .select("numero_pedido")
+      .single();
+
+    if (entregaError) {
+      console.error("Erro ao salvar entrega:", entregaError);
+      alert("Erro ao finalizar entrega.");
+      return;
+    }
+
+    const numeroPedido = entregaData.numero_pedido;
+
+    // 🔹 2️⃣ Atualiza tabela PEDIDOS
+    const { error: pedidoError } = await supabase
+      .from("pedidos")
+      .update({ 
+        status: "Finalizado"
+      })
+      .eq("numero_pedido", numeroPedido)
+      .eq("status", "Recebido"); // garante que só altera se estiver Recebido
+
+    if (pedidoError) {
+      console.error("Erro ao atualizar pedido:", pedidoError);
+      alert("Entrega salva, mas erro ao atualizar pedido.");
+    }
+
+    // 🔹 Atualiza visual do card
     const statusBadge = entregaAtualCard.querySelector(`#status-${entregaAtualId}`);
     statusBadge.textContent = "Entregue";
     statusBadge.classList.remove("bg-yellow-100", "text-yellow-700");
@@ -344,13 +378,13 @@ async function tirarFoto() {
     const botao = entregaAtualCard.querySelector(`#btn-${entregaAtualId}`);
     botao.textContent = "Entregue";
     botao.disabled = true;
-    botao.classList.remove("bg-green-500", "hover:bg-green-600");
+    botao.classList.remove("bg-black", "hover:bg-gray-800");
     botao.classList.add("bg-gray-400", "cursor-not-allowed");
 
-    // Fecha a câmera
+    // 🔹 Fecha câmera
     fecharCamera();
 
-    // Limpa variáveis globais
+    // 🔹 Limpa variáveis
     entregaAtualId = null;
     entregaAtualCard = null;
 
@@ -359,8 +393,6 @@ async function tirarFoto() {
     alert("Erro inesperado ao finalizar entrega.");
   }
 }
-
-
 
 
 const modalCamera = document.getElementById("modal-camera");

@@ -614,10 +614,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     listaPedidos.appendChild(item);
   });
 }
-
-
-
-
   // ================================
   // FUNÇÃO PARA FINALIZAR PEDIDO
   // ================================
@@ -698,6 +694,189 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
+
+// Atualiza os KPIs do relatório de entregadores e popula o select de entregadores
+// ================== FUNÇÃO DE ATUALIZAÇÃO DE KPIs E SELECT ==================
+async function atualizarKPIs() {
+  try {
+    const { data: entregas, error } = await supabase
+      .from("entregas")
+      .select("*");
+
+    if (error) {
+      console.error("Erro ao buscar entregas:", error);
+      return [];
+    }
+
+    // Filtra apenas entregas ativas (ignora "Aguardando")
+    const entregasAtivas = entregas.filter(e => e.status && e.status !== "Aguardando");
+
+    // ================== KPIs ==================
+    const totalEntregas = entregasAtivas.length;
+    const comFoto = entregasAtivas.filter(e => e.foto_entrega && e.foto_entrega.trim() !== "").length;
+    const semFoto = totalEntregas - comFoto;
+    const totalValor = entregasAtivas.reduce((acum, e) => {
+      if (e.itens && Array.isArray(e.itens)) {
+        const somaItens = e.itens.reduce((soma, item) => soma + (item.total ? parseFloat(item.total) : 0), 0);
+        return acum + somaItens;
+      }
+      return acum;
+    }, 0);
+
+    // Atualiza KPIs no HTML
+    document.getElementById("kpiTotalEntregas").textContent = totalEntregas;
+    document.getElementById("kpiComFoto").textContent = comFoto;
+    document.getElementById("kpiSemFoto").textContent = semFoto;
+    document.getElementById("kpiTotalValor").textContent = `R$ ${totalValor.toFixed(2)}`;
+
+    // ================== POPULA SELECT DE ENTREGADORES ==================
+    const selectEntregador = document.getElementById("selectEntregador");
+    selectEntregador.innerHTML = `<option value="">Todos</option>`; // Limpa e mantém "Todos"
+
+    const nomesUnicos = [...new Set(entregasAtivas
+      .map(e => e.entregador_nome)
+      .filter(nome => nome && nome.trim() !== ""))];
+
+    nomesUnicos.forEach(nome => {
+      const option = document.createElement("option");
+      option.value = nome;
+      option.textContent = nome;
+      selectEntregador.appendChild(option);
+    });
+
+    return entregasAtivas; // Retorna entregas ativas para usar na tabela
+  } catch (err) {
+    console.error("Erro ao atualizar KPIs:", err);
+    return [];
+  }
+}
+
+// ================== FUNÇÃO DE FILTRAGEM E POPULAÇÃO DA TABELA ==================
+async function filtrarEntregas() {
+  try {
+    const entregasAtivas = await atualizarKPIs(); // Atualiza KPIs e select
+
+    // Valores dos filtros
+    const entregadorSelecionado = document.getElementById("selectEntregador").value;
+    let statusSelecionado = document.getElementById("selectStatusEntregador").value;
+    const fotoSelecionada = document.getElementById("selectFotoEntrega").value;
+    const clienteFiltro = document.getElementById("inputClienteFiltro").value.toLowerCase();
+    const dataInicial = document.getElementById("dataInicialEntregador").value;
+    const dataFinal = document.getElementById("dataFinalEntregador").value;
+
+    // Filtra entregas ativas
+    let entregasFiltradas = [...entregasAtivas];
+
+    // Filtro por entregador (se não for "Todos")
+    if (entregadorSelecionado) {
+      entregasFiltradas = entregasFiltradas.filter(e => e.entregador_nome === entregadorSelecionado);
+    }
+
+    // Filtro por status
+    if (statusSelecionado) {
+      if (statusSelecionado === "Finalizado") {
+        // Mapeia "Finalizado" para "Entregue"
+        entregasFiltradas = entregasFiltradas.filter(e => e.status === "Entregue");
+      } else if (statusSelecionado !== "Todos") {
+        entregasFiltradas = entregasFiltradas.filter(e => e.status === statusSelecionado);
+      }
+    }
+
+    // Filtro por foto
+    if (fotoSelecionada) {
+      if (fotoSelecionada === "com_foto") {
+        entregasFiltradas = entregasFiltradas.filter(e => e.foto_entrega && e.foto_entrega.trim() !== "");
+      } else if (fotoSelecionada === "sem_foto") {
+        entregasFiltradas = entregasFiltradas.filter(e => !e.foto_entrega || e.foto_entrega.trim() === "");
+      }
+    }
+
+    // Filtro por cliente
+    if (clienteFiltro) {
+      entregasFiltradas = entregasFiltradas.filter(e => e.nome_cliente && e.nome_cliente.toLowerCase().includes(clienteFiltro));
+    }
+
+    // Filtro por datas
+    if (dataInicial) entregasFiltradas = entregasFiltradas.filter(e => e.data_pedido && e.data_pedido >= dataInicial);
+    if (dataFinal) entregasFiltradas = entregasFiltradas.filter(e => e.data_pedido && e.data_pedido <= dataFinal);
+
+    // Preenche tabela
+    const tbody = document.getElementById("tbodyRelatorioEntregadores");
+    tbody.innerHTML = "";
+    entregasFiltradas.forEach(e => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="px-4 py-2">${e.entregador_nome || "-"}</td>
+        <td class="px-4 py-2">${e.numero_pedido || "-"}</td>
+        <td class="px-4 py-2">${e.nome_cliente || "-"}</td>
+        <td class="px-4 py-2">R$ ${calcularTotalPedido(e.itens).toFixed(2)}</td>
+        <td class="px-4 py-2">R$ ${e.taxa_entrega ? parseFloat(e.taxa_entrega).toFixed(2) : "0.00"}</td>
+        <td class="px-4 py-2">${e.status || "-"}</td>
+        <td class="px-4 py-2">
+          ${e.foto_entrega && e.foto_entrega.trim() !== "" 
+            ? `<button class="btnVerFoto text-blue-600 underline"
+                 data-foto="${e.foto_entrega}"
+                 data-cliente="${e.nome_cliente}"
+                 data-endereco="${e.endereco}"
+                 data-data="${e.data_pedido}"
+                 data-numero-pedido="${e.numero_pedido}">Ver Foto</button>`
+            : "-"}
+        </td>
+        <td class="px-4 py-2">${e.data_pedido || "-"}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Evento dos botões "Ver Foto"
+    document.querySelectorAll(".btnVerFoto").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const modal = document.getElementById("modalFotoEntrega");
+        const img = document.getElementById("imgModalFotoEntrega");
+
+        // Preenche a imagem
+        img.src = btn.dataset.foto;
+        img.alt = `Foto da entrega para ${btn.dataset.cliente} - ${btn.dataset.data}`;
+
+        // Preenche informações no modal
+        document.getElementById("infoCliente").textContent = btn.dataset.cliente || "-";
+        document.getElementById("infoEndereco").textContent = btn.dataset.endereco || "-";
+        document.getElementById("infoData").textContent = btn.dataset.data || "-";
+
+        // Preenche o número do pedido
+        document.getElementById("infoPedido").textContent = btn.dataset.numeroPedido || "-";
+
+        // Mostra o modal
+        modal.classList.remove("hidden");
+      });
+    });
+
+    // Botão de fechar modal
+    document.getElementById("btnFecharModalFoto").addEventListener("click", () => {
+      const modal = document.getElementById("modalFotoEntrega");
+      modal.classList.add("hidden");
+      document.getElementById("imgModalFotoEntrega").src = "";
+    });
+
+  } catch (err) {
+    console.error("Erro ao filtrar entregas:", err);
+  }
+}
+
+// Calcula total do pedido
+function calcularTotalPedido(itens) {
+  if (!itens || !Array.isArray(itens)) return 0;
+  return itens.reduce((acum, item) => acum + (item.total ? parseFloat(item.total) : 0), 0);
+}
+
+// Evento botão Filtrar
+document.getElementById("btnFiltrarEntregadores").addEventListener("click", filtrarEntregas);
+
+// Inicializa relatório já mostrando todas as entregas ativas
+async function inicializarRelatorio() {
+  await filtrarEntregas(); // Já popula tabela ao abrir
+}
+
+inicializarRelatorio();
 
 
 // ===============================

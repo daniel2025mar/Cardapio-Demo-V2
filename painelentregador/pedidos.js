@@ -272,7 +272,7 @@ function criarCardEntrega(entrega) {
     <!-- BOTÕES -->
     <div class="flex gap-3 mt-4">
       <button id="btn-${entrega.id}"
-        class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-semibold shadow-md transition">
+        class="flex-1 bg-black hover:bg-gray-800 text-white py-2 rounded-xl font-semibold shadow-md transition">
         Finalizar
       </button>
 
@@ -285,14 +285,12 @@ function criarCardEntrega(entrega) {
 
   const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
 
-  // 🔥 FINALIZAR: abre câmera e guarda referência da entrega
   card.querySelector(`#btn-${entrega.id}`).onclick = () => {
     entregaAtualId = entrega.id;
     entregaAtualCard = card;
     abrirCamera();
   };
 
-  // Ver rota (mantido original)
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
     if (!entregador || !entregador.lat || !entregador.lng) {
       mostrarModalAlerta("Coordenadas do entregador não encontradas!");
@@ -408,6 +406,7 @@ function fecharCamera() {
 }
 
 // 📸 FUNÇÃO PARA TIRAR FOTO
+
 
 
 

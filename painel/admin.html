@@ -595,33 +595,30 @@
 <!-- SUBMENU -->
 <div id="submenu-relatorios" class="flex flex-col mt-1 ml-10 space-y-1 submenu submenu-animado">
 
-
-  <label
-    data-menu="relatorio-vendas"
-    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
-  >
+  <label data-menu="relatorio-vendas"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300">
     Relatório de Vendas
   </label>
 
-  <label
-    data-menu="relatorio-comandas"
-    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
-  >
+  <label data-menu="relatorio-comandas"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300">
     Relatório de Comandas
   </label>
 
-  <label
-    data-menu="relatorio-produtos"
-    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
-  >
+  <label data-menu="relatorio-produtos"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300">
     Relatório de Produtos
   </label>
 
-  <label
-    data-menu="relatorio-garcons"
-    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300 whitespace-nowrap overflow-hidden text-ellipsis"
-  >
+  <label data-menu="relatorio-garcons"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300">
     Relatório de Garçons
+  </label>
+
+  <!-- NOVO -->
+  <label data-menu="relatorio-entregadores"
+    class="cursor-pointer px-2 py-2 rounded hover:bg-gray-700 hover:text-white text-gray-300">
+    Relatório de Entregadores
   </label>
 
 </div>
@@ -1505,7 +1502,222 @@
 
   </form>
 </section>
+<!--relatorios de entregadores-->
+<section id="relatorio-entregadores-section" class="content-section mb-10 p-6" style="display:none;">
 
+  <h2 class="text-4xl font-extrabold text-gray-900 mb-2">Relatório de Entregadores</h2>
+  <p class="text-gray-500 mb-8">Consulte entregas, fotos registradas e produtividade detalhada.</p>
+
+  <!-- ================== RESUMO (KPIs) ================== -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white p-6 rounded-2xl shadow border">
+      <p class="text-gray-500 text-sm">Total Entregas</p>
+      <h3 id="kpiTotalEntregas" class="text-2xl font-bold text-gray-800">0</h3>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow border">
+      <p class="text-gray-500 text-sm">Com Foto</p>
+      <h3 id="kpiComFoto" class="text-2xl font-bold text-green-600">0</h3>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow border">
+      <p class="text-gray-500 text-sm">Sem Foto</p>
+      <h3 id="kpiSemFoto" class="text-2xl font-bold text-red-600">0</h3>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow border">
+      <p class="text-gray-500 text-sm">Total Faturado</p>
+      <h3 id="kpiTotalValor" class="text-2xl font-bold text-indigo-600">R$ 0,00</h3>
+    </div>
+  </div>
+
+  <!-- ================== FILTROS ================== -->
+  <div class="bg-white shadow-xl rounded-2xl p-6 mb-8 border">
+
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+
+      <!-- ENTREGADOR -->
+      <div>
+        <label class="text-sm text-gray-600 font-medium block mb-1">Entregador</label>
+        <select id="selectEntregador" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+          <option value="">Todos</option>
+        </select>
+      </div>
+
+      <!-- STATUS -->
+      <div>
+        <label class="text-sm text-gray-600 font-medium block mb-1">Status</label>
+        <select id="selectStatusEntregador" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+          <option value="">Todos</option>
+          <option value="Finalizado">Finalizado</option>
+          <option value="Em Rota">Em Rota</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </div>
+
+      <!-- FOTO -->
+      <div>
+        <label class="text-sm text-gray-600 font-medium block mb-1">Foto Comprovante</label>
+        <select id="selectFotoEntrega" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+          <option value="">Todas</option>
+          <option value="com_foto">Com Foto</option>
+          <option value="sem_foto">Sem Foto</option>
+        </select>
+      </div>
+
+      <!-- CLIENTE -->
+      <div>
+        <label class="text-sm text-gray-600 font-medium block mb-1">Cliente</label>
+        <input type="text" id="inputClienteFiltro" placeholder="Nome do cliente"
+          class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- DATA INICIAL -->
+      <div>
+        <label class="text-sm text-gray-600 font-medium block mb-1">Data Inicial</label>
+        <input type="date" id="dataInicialEntregador" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+      <!-- DATA FINAL -->
+      <div>
+        <label class="text-sm text-gray-600 font-medium block mb-1">Data Final</label>
+        <input type="date" id="dataFinalEntregador" class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+      </div>
+
+    </div>
+
+    <!-- FILTRO RÁPIDO -->
+    <div class="flex flex-wrap gap-3 mt-6">
+      <button type="button" class="btnPeriodo px-4 py-2 bg-gray-200 rounded-xl" data-periodo="hoje">Hoje</button>
+      <button type="button" class="btnPeriodo px-4 py-2 bg-gray-200 rounded-xl" data-periodo="ontem">Ontem</button>
+      <button type="button" class="btnPeriodo px-4 py-2 bg-gray-200 rounded-xl" data-periodo="7dias">7 Dias</button>
+      <button type="button" class="btnPeriodo px-4 py-2 bg-gray-200 rounded-xl" data-periodo="mes">Este Mês</button>
+    </div>
+
+    <!-- BOTÕES -->
+    <div class="flex justify-end gap-4 mt-6">
+      <button type="button" id="btnLimparFiltros"
+        class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition">Limpar</button>
+      <button type="button" id="btnFiltrarEntregadores"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition">Filtrar</button>
+      <button type="button" id="btnGerarPDFEntregadores"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition">Gerar PDF</button>
+    </div>
+
+  </div>
+
+  <!-- ================== TABELA ================== -->
+  <div class="overflow-x-auto bg-white shadow-xl rounded-2xl border">
+    <table class="min-w-full">
+      <thead class="bg-gray-100 text-gray-700">
+        <tr>
+          <th class="px-4 py-3 text-left">Entregador</th>
+          <th class="px-4 py-3 text-left">Pedido</th>
+          <th class="px-4 py-3 text-left">Cliente</th>
+          <th class="px-4 py-3 text-left">Valor</th>
+          <th class="px-4 py-3 text-left">Taxa</th>
+          <th class="px-4 py-3 text-left">Status</th>
+          <th class="px-4 py-3 text-left">Foto</th>
+          <th class="px-4 py-3 text-left">Data</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyRelatorioEntregadores" class="text-sm text-gray-700"></tbody>
+    </table>
+  </div>
+
+</section>
+
+<!-- ================== MODAL FOTO ================== -->
+<div id="modalFotoEntrega" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4 transition-opacity duration-300">
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-auto relative flex flex-col md:flex-row gap-4 transform transition-transform duration-300 scale-95 animate-scale-up">
+
+    <!-- Header -->
+    <div class="absolute top-0 left-0 w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white py-3 px-5 rounded-t-3xl flex justify-between items-center shadow-md">
+      <h2 class="text-xl font-bold">Comprovante de Entrega</h2>
+      <button id="btnFecharModalFoto" class="text-white text-2xl font-bold hover:text-gray-300 transition-transform hover:scale-110">&times;</button>
+    </div>
+
+    <!-- Imagem -->
+    <div class="flex-shrink-0 w-full md:w-1/2 flex flex-col items-center justify-center gap-2 p-2 pt-16">
+      <img id="imgModalFotoEntrega" src="" alt="Foto da entrega"
+           class="rounded-2xl max-w-full max-h-[60vh] object-contain shadow-xl hover:scale-105 transition-transform duration-300 cursor-pointer">
+      <span class="text-gray-500 text-xs italic">Clique na imagem para ampliar</span>
+    </div>
+
+    <!-- Informações -->
+    <div class="flex flex-col justify-between w-full md:w-1/2 bg-gray-50 rounded-2xl p-3 shadow-inner pt-16 space-y-2">
+
+      <div class="grid grid-cols-2 gap-2 text-sm">
+
+        <!-- Cliente -->
+        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-blue-600">Cliente:</span>
+          <span id="infoCliente" class="text-gray-900 truncate">-</span>
+        </div>
+
+        <!-- Pedido -->
+        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-purple-600">Pedido:</span>
+          <span id="infoPedido" class="text-gray-900">-</span>
+        </div>
+
+        <!-- Endereço (ocupa 2 colunas, igual Observação) -->
+        <div class="col-span-2 flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-green-600">Endereço:</span>
+          <span id="infoEndereco" class="text-gray-900 truncate">-</span>
+        </div>
+
+        <!-- Data -->
+        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-yellow-500">Data:</span>
+          <span id="infoData" class="text-gray-900">-</span>
+        </div>
+
+        <!-- Status -->
+        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-red-500">Status:</span>
+          <span id="infoStatus" class="px-2 py-0.5 rounded-full text-white text-xs font-medium bg-green-500">-</span>
+        </div>
+
+        <!-- Valor Total -->
+        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-indigo-600">Valor Total:</span>
+          <span id="infoValor" class="text-gray-900">R$ 0,00</span>
+        </div>
+
+        <!-- Taxa Entrega -->
+        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold text-teal-600">Taxa Entrega:</span>
+          <span id="infoTaxa" class="text-gray-900">R$ 0,00</span>
+        </div>
+
+        <!-- Observação -->
+        <div class="col-span-2 flex items-center gap-1 bg-white p-2 rounded-lg shadow">
+          <span class="font-semibold italic">Observação:</span>
+          <span id="infoObservacao" class="text-gray-600 truncate">-</span>
+        </div>
+
+      </div>
+
+      <!-- Botão de Compartilhar -->
+      <div class="flex justify-center mt-3">
+        <button id="btnCompartilharFoto" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-2 rounded-2xl font-semibold shadow-lg transition-transform hover:scale-105 hover:brightness-110 w-full max-w-xs">
+          Compartilhar
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<style>
+  @keyframes scaleUp {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-scale-up {
+    animation: scaleUp 0.25s ease-out forwards;
+  }
+</style>
+<!--Relatorios de produtos-->
 <section id="relatorio-produtos-section" 
   class="content-section mb-10 p-8 bg-white rounded-2xl shadow-lg" 
   style="display:none;">
@@ -2263,7 +2475,7 @@
     </div>
 
     <!-- LISTA DE PEDIDOS DINÂMICA -->
-    <div class="space-y-3 fila-pedidos-list">
+    <div class="space-y-3 ">
       <!-- Os pedidos serão adicionados aqui pelo JavaScript -->
     </div>
   </div>

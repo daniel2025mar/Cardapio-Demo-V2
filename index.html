@@ -8,6 +8,12 @@
   <title>Cardápio Carregando...</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCf3zWk9WWrjaSRs6Nb3p2tBX-0wihsOA4&libraries=places&callback=initMaps"
+  async
+  defer
+></script>
+  
 </head>
 <body class="bg-gray-100">
 
@@ -450,77 +456,146 @@
 </div>
 
 <!-- Modal do Carrinho -->
-<div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
-  <div class="bg-white rounded-xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col -translate-y-8">
 
-    <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-3 sm:p-4 rounded-t-xl">
+<div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
+
+  <div class="bg-white rounded-2xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col -translate-y-8">
+
+    <!-- HEADER -->
+    <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-4 rounded-t-2xl shadow-md">
       Meu Carrinho
     </div>
 
-    <!-- Conteúdo -->
-    <div class="p-2 sm:p-4 flex-1 overflow-y-auto space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200">
+    <!-- CONTEÚDO -->
+    <div class="p-4 flex-1 overflow-y-auto space-y-4">
 
-      <!-- Número e status do pedido -->
+      <!-- Número do Pedido -->
       <div class="flex justify-between text-sm sm:text-base">
-        <span class="font-semibold text-gray-700">Pedido <span id="pedidoNumero">0000</span></span>
-        <span id="pedidoStatus" class="font-semibold text-blue-600">Aguardando</span>
+        <span class="font-semibold text-gray-700">
+          Pedido <span id="pedidoNumero">0000</span>
+        </span>
+        <span id="pedidoStatus" class="font-semibold text-blue-600">
+          Aguardando
+        </span>
       </div>
 
-      <!-- Lista de produtos -->
+      <!-- Produtos -->
       <div>
-        <h3 class="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">Produtos:</h3>
-        <ul id="listaProdutos" class="space-y-1 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-red-400 scrollbar-track-gray-200 p-1">
-          <!-- Produtos serão adicionados via JS -->
-        </ul>
+        <h3 class="font-semibold mb-2 text-gray-700">Produtos:</h3>
+        <ul id="listaProdutos" class="space-y-2 max-h-48 overflow-y-auto"></ul>
       </div>
 
       <!-- Totais -->
-      <div class="border-t pt-2 text-sm sm:text-base">
-        <p>Taxa de Entrega: <span id="taxaEntrega" class="text-blue-600 font-semibold">R$ 0,00</span></p>
-        <p>Total: <span id="totalPedido" class="font-bold">R$ 0,00</span></p>
+      <div class="border-t pt-3 text-sm">
+        <p>Taxa de Entrega: 
+          <span id="taxaEntrega" class="text-blue-600 font-semibold">R$ 0,00</span>
+        </p>
+        <p>Total: 
+          <span id="totalPedido" class="font-bold text-lg">R$ 0,00</span>
+        </p>
       </div>
 
-      <!-- Endereço -->
+      <!-- ENDEREÇO COM GPS MELHORADO -->
       <div>
-        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="enderecoEntrega">Endereço de Entrega:</label>
-        <input id="enderecoEntrega" type="text" placeholder="Digite o Endereço" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+        <label class="font-semibold text-gray-700">
+          Endereço de Entrega:
+        </label>
+
+        <div class="flex gap-2 mt-2 items-center">
+
+          <!-- INPUT -->
+          <input id="enderecoEntrega"
+            type="text"
+            placeholder="Digite o endereço ou use o GPS"
+            class="flex-1 p-3 border border-gray-300 rounded-xl 
+                   focus:outline-none focus:ring-2 focus:ring-red-600 text-sm">
+
+         
+
+        </div>
+
+        <!-- BOTÃO MAPA -->
+        <button type="button"
+          id="btnAbrirMaps"
+          class="text-xs text-red-600 mt-2 underline hover:text-red-700 transition">
+          Escolher manualmente no mapa
+        </button>
       </div>
 
       <!-- Celular -->
       <div>
-        <label class="font-semibold text-gray-700 text-sm sm:text-base" for="celularContato">Celular para Contato:</label>
-        <input id="celularContato" type="tel" inputmode="numeric" placeholder="(99) 9 9999-9999" maxlength="16" class="w-full mt-1 p-2 sm:p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 text-sm sm:text-base">
+        <label class="font-semibold text-gray-700">
+          Celular para Contato:
+        </label>
+        <input id="celularContato"
+          type="tel"
+          placeholder="(99) 9 9999-9999"
+          maxlength="16"
+          class="w-full mt-2 p-3 border border-gray-300 rounded-xl 
+                 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm">
       </div>
 
-      <!-- Retirar no local -->
-      <div class="flex items-center gap-2 text-sm sm:text-base">
-        <input type="checkbox" id="retirarLocal" class="w-4 h-4 sm:w-5 sm:h-5 accent-red-600">
-        <label for="retirarLocal" class="text-gray-700">Retirar no local</label>
+      <!-- Retirar no Local -->
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="retirarLocal" class="w-5 h-5 accent-red-600">
+        <label for="retirarLocal" class="text-gray-700 text-sm">
+          Retirar no local
+        </label>
       </div>
 
     </div>
 
-    <!-- Rodapé com botões -->
-   <div class="flex justify-between p-3 sm:p-4 border-t bg-gray-50 gap-2">
+    <!-- RODAPÉ -->
+    <div class="flex justify-between p-4 border-t bg-gray-50 gap-2">
 
-  <button id="limparCarrinho"
-    class="w-28 h-10 flex items-center justify-center gap-2 border border-red-300 text-red-600 rounded-lg bg-white hover:bg-red-50 transition">
-    🗑️ Excluir
-  </button>
+      <button id="limparCarrinho"
+        class="w-28 h-10 border border-red-300 text-red-600 rounded-xl bg-white hover:bg-red-50 transition">
+        🗑️ Excluir
+      </button>
 
-  <button id="fecharModalCarrinho"
-    class="w-24 h-10 flex items-center justify-center gap-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-    Fechar
-  </button>
+      <button id="fecharModalCarrinho"
+        class="w-24 h-10 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition">
+        Fechar
+      </button>
 
-  <button id="finalizarPedido"
-    class="w-32 h-10 flex items-center justify-center gap-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-    Finalizar
-  </button>
+      <button id="finalizarPedido"
+        class="w-32 h-10 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-md">
+        Finalizar
+      </button>
 
+    </div>
+
+  </div>
 </div>
 
+<!-- MODAL MAPA -->
+<div id="modalMapa" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden p-4">
 
+  <div class="bg-white w-full max-w-4xl h-[80vh] rounded-2xl shadow-2xl relative flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <div class="bg-red-600 text-white flex justify-between items-center p-4 rounded-t-2xl shadow-md">
+      <h2 class="font-bold text-lg">Selecionar Local no Mapa</h2>
+      <button id="fecharModalMapa" class="text-2xl font-bold">&times;</button>
+    </div>
+
+    <!-- Campo de busca -->
+    <input id="inputBuscaEndereco"
+      type="text"
+      placeholder="Digite o endereço..."
+      class="p-2 border rounded-lg m-4 w-[calc(100%-2rem)] focus:outline-none focus:ring-2 focus:ring-red-600"
+    >
+
+    <!-- Mapa -->
+    <div id="map" class="w-full rounded-b-2xl h-96 md:h-[60vh]"></div>
+
+    <!-- Botão Confirmar -->
+    <div class="p-4">
+      <button id="confirmarEndereco"
+        class="w-full bg-red-600 text-white p-3 rounded-xl font-semibold hover:bg-red-700 transition">
+        Confirmar Endereço
+      </button>
+    </div>
 
   </div>
 </div>

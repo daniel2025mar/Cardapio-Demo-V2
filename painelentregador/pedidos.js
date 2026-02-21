@@ -199,6 +199,7 @@ function mostrarModalAlerta(mensagem) {
 let entregaAtualId = null;
 let entregaAtualCard = null;
 
+// 🔹 Abre o Google Maps com o endereço completo do cliente
 function abrirRotaGPS(endereco) {
   if (!endereco) {
     alert("Endereço do cliente não informado.");
@@ -214,6 +215,8 @@ function abrirRotaGPS(endereco) {
   // No celular, abrirá no app do Google Maps se instalado
   window.open(url, "_blank");
 }
+
+// 🔹 Cria card de entrega
 function criarCardEntrega(entrega) {
   const card = document.createElement("div");
 
@@ -298,26 +301,16 @@ function criarCardEntrega(entrega) {
     </div>
   `;
 
-  const entregador = JSON.parse(localStorage.getItem("entregadorLogado"));
-
+  // Função do botão Finalizar
   card.querySelector(`#btn-${entrega.id}`).onclick = () => {
     entregaAtualId = entrega.id;
     entregaAtualCard = card;
     abrirCamera();
   };
 
+  // Função do botão Ver Rota usando o endereço do cliente
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
-    if (!entregador || !entregador.lat || !entregador.lng) {
-      mostrarModalAlerta("Coordenadas do entregador não encontradas!");
-      return;
-    }
-
-    mostrarRota(
-      entregador.lat,
-      entregador.lng,
-      entrega.lat_cliente,
-      entrega.lng_cliente
-    );
+    abrirRotaGPS(entrega.endereco); // usa a coluna "endereco"
   };
 
   return card;

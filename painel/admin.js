@@ -914,6 +914,7 @@ async function filtrarEntregas() {
   }
 }
 
+
 async function carregarClientesNoSelect() {
   const { data, error } = await supabase
     .from("entregas")

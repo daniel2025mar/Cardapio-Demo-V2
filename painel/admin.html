@@ -1627,83 +1627,108 @@
 </section>
 
 <!-- ================== MODAL FOTO ================== -->
-<div id="modalFotoEntrega" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4 transition-opacity duration-300">
-  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-auto relative flex flex-col md:flex-row gap-4 transform transition-transform duration-300 scale-95 animate-scale-up">
+<!-- MODAL PEDIDO -->
+<div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
 
-    <!-- Header -->
-    <div class="absolute top-0 left-0 w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white py-3 px-5 rounded-t-3xl flex justify-between items-center shadow-md">
-      <h2 class="text-xl font-bold">Comprovante de Entrega</h2>
-      <button id="btnFecharModalFoto" class="text-white text-2xl font-bold hover:text-gray-300 transition-transform hover:scale-110">&times;</button>
+  <div class="bg-white rounded-2xl w-11/12 sm:w-96 shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col -translate-y-8">
+
+    <!-- HEADER -->
+    <div class="bg-red-600 text-white text-center font-bold text-lg sm:text-xl p-4 rounded-t-2xl shadow-md">
+      Meu Carrinho
     </div>
 
-    <!-- Imagem -->
-    <div class="flex-shrink-0 w-full md:w-1/2 flex flex-col items-center justify-center gap-2 p-2 pt-16">
-      <img id="imgModalFotoEntrega" src="" alt="Foto da entrega"
-           class="rounded-2xl max-w-full max-h-[60vh] object-contain shadow-xl hover:scale-105 transition-transform duration-300 cursor-pointer">
-      <span class="text-gray-500 text-xs italic">Clique na imagem para ampliar</span>
-    </div>
+    <!-- CONTEÚDO -->
+    <div class="p-4 flex-1 overflow-y-auto space-y-4">
 
-    <!-- Informações -->
-    <div class="flex flex-col justify-between w-full md:w-1/2 bg-gray-50 rounded-2xl p-3 shadow-inner pt-16 space-y-2">
-
-      <div class="grid grid-cols-2 gap-2 text-sm">
-
-        <!-- Cliente -->
-        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-blue-600">Cliente:</span>
-          <span id="infoCliente" class="text-gray-900 truncate">-</span>
-        </div>
-
-        <!-- Pedido -->
-        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-purple-600">Pedido:</span>
-          <span id="infoPedido" class="text-gray-900">-</span>
-        </div>
-
-        <!-- Endereço (ocupa 2 colunas, igual Observação) -->
-        <div class="col-span-2 flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-green-600">Endereço:</span>
-          <span id="infoEndereco" class="text-gray-900 truncate">-</span>
-        </div>
-
-        <!-- Data -->
-        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-yellow-500">Data:</span>
-          <span id="infoData" class="text-gray-900">-</span>
-        </div>
-
-        <!-- Status -->
-        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-red-500">Status:</span>
-          <span id="infoStatus" class="px-2 py-0.5 rounded-full text-white text-xs font-medium bg-green-500">-</span>
-        </div>
-
-        <!-- Valor Total -->
-        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-indigo-600">Valor Total:</span>
-          <span id="infoValor" class="text-gray-900">R$ 0,00</span>
-        </div>
-
-        <!-- Taxa Entrega -->
-        <div class="flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold text-teal-600">Taxa Entrega:</span>
-          <span id="infoTaxa" class="text-gray-900">R$ 0,00</span>
-        </div>
-
-        <!-- Observação -->
-        <div class="col-span-2 flex items-center gap-1 bg-white p-2 rounded-lg shadow">
-          <span class="font-semibold italic">Observação:</span>
-          <span id="infoObservacao" class="text-gray-600 truncate">-</span>
-        </div>
-
+      <!-- Número do Pedido -->
+      <div class="flex justify-between text-sm sm:text-base">
+        <span class="font-semibold text-gray-700">
+          Pedido <span id="pedidoNumero">0000</span>
+        </span>
+        <span id="pedidoStatus" class="font-semibold text-blue-600">
+          Aguardando
+        </span>
       </div>
 
-      <!-- Botão de Compartilhar -->
-      <div class="flex justify-center mt-3">
-        <button id="btnCompartilharFoto" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 py-2 rounded-2xl font-semibold shadow-lg transition-transform hover:scale-105 hover:brightness-110 w-full max-w-xs">
-          Compartilhar
+      <!-- Produtos -->
+      <div>
+        <h3 class="font-semibold mb-2 text-gray-700">Produtos:</h3>
+        <ul id="listaProdutos" class="space-y-2 max-h-48 overflow-y-auto"></ul>
+      </div>
+
+      <!-- Totais -->
+      <div class="border-t pt-3 text-sm">
+        <p>
+          Taxa de Entrega:
+          <span id="taxaEntrega" class="text-blue-600 font-semibold">R$ 0,00</span>
+        </p>
+        <p>
+          Total:
+          <span id="totalPedido" class="font-bold text-lg">R$ 0,00</span>
+        </p>
+      </div>
+
+      <!-- ENDEREÇO (SEM BOTÃO GPS) -->
+      <div>
+        <label class="font-semibold text-gray-700">
+          Endereço de Entrega:
+        </label>
+
+        <input id="enderecoEntrega"
+          type="text"
+          placeholder="Digite o endereço"
+          class="w-full mt-2 p-3 border border-gray-300 rounded-xl 
+                 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm">
+
+        <!-- SOMENTE OPÇÃO MANUAL -->
+        <button type="button"
+          id="btnAbrirMaps"
+          class="text-sm text-red-600 mt-2 font-semibold 
+                 hover:underline hover:text-red-700 transition">
+          📍 Escolher manualmente no mapa
         </button>
       </div>
+
+      <!-- Celular -->
+      <div>
+        <label class="font-semibold text-gray-700">
+          Celular para Contato:
+        </label>
+        <input id="celularContato"
+          type="tel"
+          placeholder="(99) 9 9999-9999"
+          maxlength="16"
+          class="w-full mt-2 p-3 border border-gray-300 rounded-xl 
+                 focus:outline-none focus:ring-2 focus:ring-red-600 text-sm">
+      </div>
+
+      <!-- Retirar no Local -->
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="retirarLocal" class="w-5 h-5 accent-red-600">
+        <label for="retirarLocal" class="text-gray-700 text-sm">
+          Retirar no local
+        </label>
+      </div>
+
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="flex justify-between p-4 border-t bg-gray-50 gap-2">
+
+      <button id="limparCarrinho"
+        class="w-28 h-10 border border-red-300 text-red-600 rounded-xl bg-white hover:bg-red-50 transition">
+        🗑️ Excluir
+      </button>
+
+      <button id="fecharModalCarrinho"
+        class="w-24 h-10 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition">
+        Fechar
+      </button>
+
+      <button id="finalizarPedido"
+        class="w-32 h-10 bg-green-600 text-white rounded-xl hover:bg-green-700 transition shadow-md">
+        Finalizar
+      </button>
 
     </div>
 

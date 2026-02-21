@@ -206,13 +206,13 @@ function abrirRotaGPS(endereco) {
     return;
   }
 
-  // Substitui espaços por + para URL
+  // Substitui espaços e caracteres especiais por URL encode
   const enderecoFormatado = encodeURIComponent(endereco);
 
   // Abre Google Maps com o endereço
   const url = `https://www.google.com/maps/dir/?api=1&destination=${enderecoFormatado}`;
 
-  // No celular, abrirá no app do Google Maps se instalado
+  // No celular, abrirá no app do Google Maps se estiver instalado
   window.open(url, "_blank");
 }
 
@@ -251,6 +251,7 @@ function criarCardEntrega(entrega) {
   }
   itensHtml += `</div>`;
 
+  // Adicionando ícone de copiar ao lado do endereço
   card.innerHTML = `
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-3">
@@ -270,7 +271,13 @@ function criarCardEntrega(entrega) {
     <!-- CLIENTE -->
     <div class="text-sm text-gray-600 mb-2">
       <p><strong>Cliente:</strong> ${entrega.nome_cliente}</p>
-      <p><strong>Endereço:</strong> ${entrega.endereco}</p>
+      <p class="flex items-center gap-2">
+        <strong>Endereço:</strong> 
+        <span id="endereco-${entrega.id}" class="flex-1">${entrega.endereco}</span>
+        <button id="btn-copiar-${entrega.id}" title="Copiar endereço" class="text-blue-500 hover:text-blue-700">
+          📋
+        </button>
+      </p>
     </div>
 
     <!-- ITENS -->
@@ -301,16 +308,29 @@ function criarCardEntrega(entrega) {
     </div>
   `;
 
-  // Função do botão Finalizar
+  // Botão Finalizar
   card.querySelector(`#btn-${entrega.id}`).onclick = () => {
     entregaAtualId = entrega.id;
     entregaAtualCard = card;
     abrirCamera();
   };
 
-  // Função do botão Ver Rota usando o endereço do cliente
+  // Botão Ver Rota
   card.querySelector(`#btn-rota-${entrega.id}`).onclick = () => {
-    abrirRotaGPS(entrega.endereco); // usa a coluna "endereco"
+    let enderecoCompleto = entrega.endereco;
+    if (entrega.bairro) enderecoCompleto += `, ${entrega.bairro}`;
+    if (entrega.cidade && entrega.uf) enderecoCompleto += `, ${entrega.cidade} - ${entrega.uf}`;
+    if (entrega.cep) enderecoCompleto += `, ${entrega.cep}`;
+
+    abrirRotaGPS(enderecoCompleto);
+  };
+
+  // Botão Copiar endereço
+  card.querySelector(`#btn-copiar-${entrega.id}`).onclick = () => {
+    const enderecoTexto = document.getElementById(`endereco-${entrega.id}`).innerText;
+    navigator.clipboard.writeText(enderecoTexto)
+      .then(() => alert("Endereço copiado!"))
+      .catch(() => alert("Erro ao copiar endereço."));
   };
 
   return card;

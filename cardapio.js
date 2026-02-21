@@ -111,111 +111,48 @@ let searchBox;
 let mapIniciado = false; // Para não reiniciar o mapa toda vez que abrir o modal
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM carregado");
-
   const modalMapa = document.getElementById("modalMapa");
-  const btnAbrirMaps = document.getElementById("btnAbrirMaps"); // Botão que abre o modal
+  const btnAbrirMaps = document.getElementById("btnAbrirMaps");
   const fecharModalMapa = document.getElementById("fecharModalMapa");
-  const confirmarEndereco = document.getElementById("confirmarEndereco");
-  const enderecoInput = document.getElementById("enderecoEntrega");
 
-  if (!modalMapa || !btnAbrirMaps) {
-    console.error("Modal ou botão não encontrados!");
-    return;
-  }
+  if (!modalMapa || !btnAbrirMaps) return;
 
-  // Abrir modal
+  // Criar modal de aviso
+  const avisoModal = document.createElement("div");
+  avisoModal.id = "modalAviso";
+  avisoModal.className = `
+    fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden
+  `;
+  avisoModal.innerHTML = `
+    <div class="bg-white p-6 rounded-xl shadow-xl max-w-sm text-center">
+      <p class="mb-4 text-gray-800 font-semibold">Mapa temporariamente indisponível – estamos trabalhando para deixar tudo perfeito!</p>
+      <button id="btnOkAviso" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold">
+        OK
+      </button>
+    </div>
+  `;
+  document.body.appendChild(avisoModal);
+
+  const btnOkAviso = document.getElementById("btnOkAviso");
+
+  // Botão Abrir Maps agora abre o aviso
   btnAbrirMaps.addEventListener("click", () => {
-    console.log("Botão Abrir Maps clicado");
-
-    modalMapa.classList.remove("hidden");
-    console.log("Modal aberto");
-
-    // Inicializa o mapa só na primeira vez
-    if (!mapIniciado) {
-      console.log("Inicializando mapa...");
-      mapIniciado = true;
-
-      const initialPosition = { lat: -14.2350, lng: -51.9253 }; // Brasil centro
-      const mapContainer = document.getElementById("map");
-
-      if (!mapContainer) {
-        console.error("Container do mapa não encontrado!");
-        return;
-      }
-
-      map = new google.maps.Map(mapContainer, {
-        center: initialPosition,
-        zoom: 4,
-      });
-      console.log("Mapa criado");
-
-      marker = new google.maps.Marker({
-        map: map,
-        draggable: true,
-      });
-      console.log("Marker criado");
-
-      const input = document.getElementById("inputBuscaEndereco");
-      if (!input) {
-        console.error("Input de busca não encontrado!");
-      }
-
-      searchBox = new google.maps.places.SearchBox(input);
-      console.log("SearchBox criado");
-
-      searchBox.addListener("places_changed", () => {
-        console.log("Busca de endereço acionada");
-        const places = searchBox.getPlaces();
-        if (places.length === 0) return;
-
-        const place = places[0];
-        if (!place.geometry) return;
-
-        map.panTo(place.geometry.location);
-        map.setZoom(16);
-        marker.setPosition(place.geometry.location);
-        console.log("Endereço encontrado e marker atualizado:", place.formatted_address);
-      });
-
-      map.addListener("click", (e) => {
-        marker.setPosition(e.latLng);
-        console.log("Mapa clicado em:", e.latLng.lat(), e.latLng.lng());
-      });
-    } else {
-      console.log("Mapa já inicializado, não cria novamente");
-    }
-
-    // Corrige renderização do mapa no modal quando visível
-    requestAnimationFrame(() => {
-      console.log("Disparando resize do mapa");
-      google.maps.event.trigger(map, "resize");
-      if (marker.getPosition()) {
-        map.setCenter(marker.getPosition());
-        map.setZoom(16);
-        console.log("Mapa centralizado no marker");
-      }
-    });
+    modalMapa.classList.remove("hidden"); // mostra o modal do mapa
+    avisoModal.classList.remove("hidden"); // mostra o aviso
   });
 
-  // Fechar modal
-  fecharModalMapa.addEventListener("click", () => {
-    console.log("Modal fechado");
+  // Botão OK fecha aviso e modal do mapa
+  btnOkAviso.addEventListener("click", () => {
+    avisoModal.classList.add("hidden");
     modalMapa.classList.add("hidden");
   });
 
-  // Confirmar endereço
-  confirmarEndereco.addEventListener("click", () => {
-    const position = marker.getPosition();
-    if (position) {
-      enderecoInput.value = `https://www.google.com/maps?q=${position.lat()},${position.lng()}`;
-      console.log("Endereço confirmado:", enderecoInput.value);
-    } else {
-      console.warn("Marker sem posição!");
-    }
+  // Fechar modal normalmente
+  fecharModalMapa.addEventListener("click", () => {
     modalMapa.classList.add("hidden");
   });
 });
+
 async function abrirModalPedidosSeLogado() {
   const logado = await usuarioEstaLogado();
 

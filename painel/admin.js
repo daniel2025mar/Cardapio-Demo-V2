@@ -699,9 +699,7 @@ async function carregarFilaPedidos() {
 });
 
 
-// Atualiza os KPIs do relatório de entregadores e popula o select de entregadores
-// ================== FUNÇÃO DE ATUALIZAÇÃO DE KPIs E SELECT ==================
-// ================== ATUALIZA KPIs E POPULA SELECT ==================
+
 async function atualizarKPIs() {
   try {
     const { data: entregas, error } = await supabase
@@ -756,7 +754,6 @@ async function atualizarKPIs() {
   }
 }
 
-// ================== FILTRA E POPULA TABELA ==================
 // ================== FILTRA E POPULA TABELA ==================
 async function filtrarEntregas() {
   try {
@@ -918,7 +915,7 @@ async function filtrarEntregas() {
 async function carregarClientesNoSelect() {
   const { data, error } = await supabase
     .from("entregas")
-    .select("nome_cliente");
+    .select("nome_cliente, status");
 
   if (error) {
     console.error("Erro ao buscar clientes:", error);
@@ -930,17 +927,27 @@ async function carregarClientesNoSelect() {
   // Limpa antes de preencher
   select.innerHTML = "";
 
-  // Remove vazios e duplicados
-  const clientesUnicos = [...new Set(
-    data
-      .map(item => item.nome_cliente)
-      .filter(nome => nome && nome.trim() !== "")
-  )];
+  // Adiciona a opção "Todos" como padrão
+  const optionTodos = document.createElement("option");
+  optionTodos.value = "todos";
+  optionTodos.id = "optionTodos";
+  optionTodos.textContent = "Todos";
+  optionTodos.selected = true; // seleciona por padrão
+  select.appendChild(optionTodos);
+
+  // Filtra apenas clientes com status "Entregue"
+  const clientesEntregues = data
+    .filter(item => item.status && item.status.toLowerCase() === "entregue")
+    .map(item => item.nome_cliente)
+    .filter(nome => nome && nome.trim() !== "");
+
+  // Remove duplicados
+  const clientesUnicos = [...new Set(clientesEntregues)];
 
   // Ordena alfabeticamente
   clientesUnicos.sort((a, b) => a.localeCompare(b));
 
-  // Adiciona no select
+  // Adiciona os clientes no select
   clientesUnicos.forEach(nome => {
     const option = document.createElement("option");
     option.value = nome.trim();
@@ -948,6 +955,22 @@ async function carregarClientesNoSelect() {
     select.appendChild(option);
   });
 }
+
+// ================= POPULA SELECT AO CARREGAR A PÁGINA =================
+document.addEventListener("DOMContentLoaded", async () => {
+  await atualizarKPIs();        // Preenche select de entregadores
+  await carregarClientesNoSelect(); // Preenche select de clientes, "Todos" já selecionado
+
+  // Inicialmente a tabela fica vazia
+  const tbody = document.getElementById("tbodyRelatorioEntregadores");
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="8" class="text-center text-gray-500 py-4">
+        Clique em "Filtrar" para exibir registros
+      </td>
+    </tr>
+  `;
+});
 // ================= CALCULA TOTAL DO PEDIDO =================
 function calcularTotalPedido(itens) {
   if (!itens || !Array.isArray(itens)) return 0;
@@ -1101,11 +1124,6 @@ function aplicarPermissoes(usuario) {
   ativarMenu();
   ativarMenuConfiguracoes();
 }
-
-
-
-
-
 
 
 // ======================

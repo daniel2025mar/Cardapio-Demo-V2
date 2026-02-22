@@ -1565,10 +1565,14 @@
       <!-- CLIENTE -->
       <div>
   <label class="text-sm text-gray-600 font-medium block mb-1">Cliente</label>
-  <select id="selectClienteFiltro"
-    class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
-    <!-- As opções de clientes serão preenchidas dinamicamente via JS -->
-  </select>
+
+<select id="selectClienteFiltro"
+  class="w-full border border-gray-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500">
+  
+  <option id="optionTodos" value="todos">Todos</option>
+  <!-- As opções de clientes serão preenchidas dinamicamente via JS -->
+  
+</select>
 </div>
 
       <!-- DATA INICIAL -->
@@ -1627,6 +1631,76 @@
 </section>
 
 <!-- ================== MODAL FOTO ================== -->
+<div id="modalFotoEntrega"
+     class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4 transition-all duration-300">
+
+  <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative animate-fadeIn">
+
+    <!-- HEADER DARK PROFISSIONAL -->
+    <div class="bg-gradient-to-r from-[#0b1120] via-[#111827] to-black text-white px-6 py-5 flex justify-between items-center border-b border-white/10">
+      <div>
+        <h2 class="text-xl font-bold tracking-wide">📦 Comprovante de Entrega</h2>
+        <p class="text-sm text-gray-300">Visualização da foto enviada pelo entregador</p>
+      </div>
+
+      <button id="btnFecharModalFoto"
+              class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition text-xl font-bold">
+        ✕
+      </button>
+    </div>
+
+    <!-- CONTEÚDO -->
+    <div class="p-8 grid md:grid-cols-2 gap-8">
+
+      <!-- IMAGEM -->
+      <div class="flex items-center justify-center bg-gray-100 rounded-2xl p-4 shadow-inner">
+        <img id="imgModalFotoEntrega"
+             src=""
+             alt="Foto da Entrega"
+             class="max-h-[420px] rounded-xl shadow-lg object-contain transition duration-300 hover:scale-105">
+      </div>
+
+      <!-- INFORMAÇÕES -->
+      <div class="flex flex-col justify-between space-y-5">
+
+        <div class="space-y-5">
+          <div class="bg-gray-50 p-4 rounded-xl shadow-sm">
+            <p class="text-xs uppercase tracking-wide text-gray-500">Cliente</p>
+            <p id="infoCliente" class="text-lg font-semibold text-gray-800"></p>
+          </div>
+
+          <div class="bg-gray-50 p-4 rounded-xl shadow-sm">
+            <p class="text-xs uppercase tracking-wide text-gray-500">Endereço</p>
+            <p id="infoEndereco" class="text-base text-gray-700"></p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-gray-50 p-4 rounded-xl shadow-sm">
+              <p class="text-xs uppercase tracking-wide text-gray-500">Data</p>
+              <p id="infoData" class="text-base font-medium text-gray-800"></p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-xl shadow-sm">
+              <p class="text-xs uppercase tracking-wide text-gray-500">Pedido</p>
+              <p id="infoPedido" class="text-base font-medium text-gray-800"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÃO COMPARTILHAR -->
+        <div>
+         <button id="btnCompartilharFoto"
+        class="w-full px-6 py-2 bg-indigo-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-900 transition-colors duration-300">
+  📤 Compartilhar
+</button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
 <!-- MODAL PEDIDO -->
 <div id="modalPedido" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50 p-2">
 

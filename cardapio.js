@@ -1045,7 +1045,6 @@ function formatarDataHoraParaDB(date) {
   return `${ano}-${mes}-${dia} ${hora}:${minutos}:${segundos}`;
 }
 
-
 // aqui e a funçao de enviar pedidos
 document.addEventListener("DOMContentLoaded", () => {
   const botaoCarrinho = document.getElementById("card-btn");
@@ -1057,14 +1056,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputEndereco = document.getElementById("enderecoEntrega");
   const inputCelular = document.getElementById("celularContato");
 
-  // Toast (mensagem estilizada)
   const toast = document.getElementById("toast");
   const toastTitulo = document.getElementById("toastTitulo");
   const toastMensagem = document.getElementById("toastMensagem");
 
-  // Nome da empresa (buscado no Supabase)
-  let nomeEmpresa = "suporte"; // valor padrão caso dê erro
+  let nomeEmpresa = "suporte";
 
+  // ===============================
+  // 🔎 BUSCAR NOME EMPRESA
+  // ===============================
   async function carregarNomeEmpresa() {
     const { data, error } = await supabase
       .from("empresa")
@@ -1077,6 +1077,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // ===============================
+  // 🔎 BUSCAR WHATSAPP EMPRESA
+  // ===============================
+  async function buscarWhatsAppEmpresa() {
+    const { data, error } = await supabase
+      .from("empresa")
+      .select("whatsapp")
+      .limit(1)
+      .single();
+
+    if (error || !data?.whatsapp) {
+      console.error("Erro ao buscar WhatsApp:", error);
+      return null;
+    }
+
+    let numeroLimpo = data.whatsapp.replace(/\D/g, "");
+    if (!numeroLimpo.startsWith("55")) {
+      numeroLimpo = "55" + numeroLimpo;
+    }
+
+    return numeroLimpo;
+  }
+
+  // ===============================
+  // 📲 ENVIAR PARA WHATSAPP
+  // ===============================
+  function enviarParaWhatsApp(numero, mensagem) {
+    const mensagemCodificada = encodeURIComponent(mensagem);
+    const url = `https://wa.me/${numero}?text=${mensagemCodificada}`;
+    window.open(url, "_blank");
+  }
+
   function mostrarToast(titulo, mensagem) {
     toastTitulo.innerText = titulo;
     toastMensagem.innerText = mensagem;
@@ -1084,21 +1116,16 @@ document.addEventListener("DOMContentLoaded", () => {
     toast.classList.remove("hidden");
     toast.classList.add("show");
 
-    // fecha automaticamente após 4 segundos
     setTimeout(() => {
       toast.classList.remove("show");
       toast.classList.add("hidden");
     }, 4000);
   }
 
-  // 🔢 Máscara do celular
   inputCelular.addEventListener("input", () => {
     inputCelular.value = formatarCelular(inputCelular.value);
   });
 
-  // ===============================
-  // 🛒 ABRIR MODAL (SÓ SE LOGADO)
-  // ===============================
   botaoCarrinho.addEventListener("click", async () => {
     const { data, error } = await supabase.auth.getUser();
     const usuarioLogado = !error && !!data.user;
@@ -1108,238 +1135,202 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // usuário logado → abre modal
     modal.classList.remove("hidden");
   });
 
-  // Fecha o modal
   botaoFechar.addEventListener("click", () => {
     modal.classList.add("hidden");
   });
 
-  // Fecha clicando fora
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
       modal.classList.add("hidden");
     }
   });
 
-  // ===============================
-  // 📦 RETIRAR NO LOCAL
-  // ===============================
   checkboxRetirarLocal.addEventListener("change", () => {
     if (checkboxRetirarLocal.checked) {
       atualizarTaxaNaTela(0);
-
       inputEndereco.value = "";
       inputEndereco.disabled = true;
       inputEndereco.classList.add("bg-gray-100");
     } else {
       atualizarTaxaNaTela(taxaEntregaValor);
-
       inputEndereco.disabled = false;
       inputEndereco.classList.remove("bg-gray-100");
     }
-
-    // 🔁 Atualiza total
     atualizarCarrinhoUI();
   });
 
-  // ===============================
-  // 🔒 VALIDAÇÃO AO FINALIZAR (COM BLOQUEIO)
-  // ===============================
-  
   btnFinalizar.addEventListener("click", async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // 🔐 VERIFICA LOGIN GOOGLE
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user) {
-    abrirModalLoginNecessario();
-    return;
-  }
-
-  const user = userData.user;
-  if (!user.app_metadata?.provider || user.app_metadata.provider !== "google") {
-    mostrarToast("Login necessário", "Faça login com sua conta Google para enviar pedidos.");
-    return;
-  }
-
-  const emailLogado = user.email;
-
-  // 🔎 BUSCA CLIENTE EXISTENTE
-  let { data: cliente, error: errCliente } = await supabase
-    .from("clientes")
-    .select("*")
-    .eq("email", emailLogado)
-    .single();
-
-  if (errCliente && errCliente.code !== "PGRST116") {
-    mostrarToast("Erro", "Erro ao verificar cliente.");
-    return;
-  }
-
-  // ⚠️ SE CLIENTE NÃO EXISTIR, ABRE MODAL PARA PEGAR NOME
-  if (!cliente) {
-    const modalNome = document.getElementById("modalNome");
-    if (!modalNome) return mostrarToast("Erro", "Modal de nome não encontrado.");
-
-    modalNome.classList.remove("hidden");
-    const btnSalvarNome = modalNome.querySelector("#btnSalvarNome");
-    const inputNome = modalNome.querySelector("#inputNome");
-    const erroNome = modalNome.querySelector("#erroNome");
-
-    cliente = await new Promise((resolve) => {
-      btnSalvarNome.onclick = async () => {
-        const nomeCliente = inputNome.value.trim();
-        if (!nomeCliente || /\d/.test(nomeCliente)) {
-          erroNome?.classList.remove("hidden");
-          return;
-        }
-        erroNome?.classList.add("hidden");
-
-        const { data: novoCliente, error: insertClienteError } = await supabase
-          .from("clientes")
-          .insert([{
-            nome: nomeCliente,
-            email: emailLogado,
-            celular: inputCelular.value,
-            criado_em: new Date().toISOString(),
-            status: "ativo",
-            bloqueado: false,
-            saldo_cashback: 0
-          }])
-          .select()
-          .single();
-
-        if (insertClienteError) {
-          mostrarToast("Erro", "Não foi possível criar cliente.");
-          return;
-        }
-
-        modalNome.classList.add("hidden");
-        resolve(novoCliente);
-      };
-    });
-  } else {
-    if (inputCelular.value && inputCelular.value !== cliente.celular) {
-      const { error: updateError } = await supabase
-        .from("clientes")
-        .update({ celular: inputCelular.value })
-        .eq("id", cliente.id);
-
-      if (updateError) return mostrarToast("Erro", "Não foi possível atualizar o celular do cliente.");
-      cliente.celular = inputCelular.value;
-    }
-  }
-
-  if (cliente.bloqueado === true) {
-    mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
-    return;
-  }
-
-  if (!carrinho || carrinho.length === 0) {
-    mostrarToast("Carrinho vazio", "Adicione produtos antes de enviar.");
-    return;
-  }
-
-  // Valida campos
-  let erro = false;
-  inputCelular.classList.remove("border-red-500");
-  inputEndereco.classList.remove("border-red-500");
-  if (inputCelular.value.trim().length < 16) {
-    erro = true;
-    inputCelular.classList.add("border-red-500");
-  }
-  if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
-    erro = true;
-    inputEndereco.classList.add("border-red-500");
-  }
-  if (erro) return mostrarToast("Erro", "Preencha corretamente os dados.");
-
-  // 🔢 GERA NUMERO_PEDIDO
-  let numeroPedido = "0001";
-  try {
-    const { data: ultimosPedidos, error: erroPedidos } = await supabase
-      .from("pedidos")
-      .select("numero_pedido")
-      .order("id", { ascending: false })
-      .limit(1);
-
-    if (!erroPedidos && ultimosPedidos.length > 0) {
-      const ultimo = ultimosPedidos[0].numero_pedido || "0000";
-      numeroPedido = (parseInt(ultimo, 10) + 1).toString().padStart(4, "0");
-    }
-  } catch (err) {
-    console.error("Erro ao gerar numero_pedido:", err);
-  }
-
-  // ===============================
-  // 🔎 BUSCA VALORES UNITARIOS DOS PRODUTOS
-  // ===============================
-  const itensComValores = [];
-  for (const item of carrinho) {
-    const { data: produto, error: errProduto } = await supabase
-      .from("produtos")
-      .select("valor_sugerido")
-      .eq("descricao", item.descricao)
-      .single();
-
-    if (errProduto || !produto) {
-      mostrarToast("Erro", `Produto não encontrado: ${item.descricao}`);
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      abrirModalLoginNecessario();
       return;
     }
 
-    const valorUnitario = Number(produto.valor_sugerido);
-    itensComValores.push({
-      descricao: item.descricao,
-      quantidade: item.quantidade,
-      subtotal: valorUnitario,              // valor unitário
-      total: valorUnitario * item.quantidade // multiplica pela quantidade
-    });
-  }
+    const user = userData.user;
 
-  // Calcula subtotal do pedido
-  const subtotal = itensComValores.reduce((acc, i) => acc + i.subtotal, 0).toFixed(2);
-  const total = itensComValores.reduce((acc, i) => acc + i.total, 0).toFixed(2);
-
-  // 🗄 INSERE PEDIDO NO SUPABASE
-  const { error: insertError } = await supabase.from("pedidos").insert([
-    {
-      numero_pedido: numeroPedido,
-      tipo_entrega: checkboxRetirarLocal.checked ? "retirada" : "delivery",
-      horario_recebido: new Date().toISOString(),
-      status: "Recebido",
-      subtotal: Number(subtotal),
-      total: Number(total),
-      cliente: cliente.nome,
-      telefone: inputCelular.value,
-      endereco: checkboxRetirarLocal.checked ? null : inputEndereco.value,
-      referencia: null,
-      pagamento: "não informado",
-      observacoes: null,
-      criado_em: new Date().toISOString(),
-      itens: itensComValores
+    if (!user.app_metadata?.provider || user.app_metadata.provider !== "google") {
+      mostrarToast("Login necessário", "Faça login com sua conta Google para enviar pedidos.");
+      return;
     }
-  ]);
 
-  if (insertError) {
-    mostrarToast("Erro", insertError.message);
-    console.error("ERRO SUPABASE:", insertError);
-    return;
-  }
+    const emailLogado = user.email;
 
-  mostrarToast("Pedido enviado 🎉", "Seu pedido foi recebido com sucesso!");
-  limparCarrinhoStorage();
-  atualizarCarrinhoUI();
-  modal.classList.add("hidden");
-});
+    let { data: cliente, error: errCliente } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("email", emailLogado)
+      .single();
 
+    if (errCliente && errCliente.code !== "PGRST116") {
+      mostrarToast("Erro", "Erro ao verificar cliente.");
+      return;
+    }
 
-  // Carrega taxa
+    if (!cliente) {
+      mostrarToast("Erro", "Cliente não encontrado.");
+      return;
+    }
+
+    if (cliente.bloqueado === true) {
+      mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
+      return;
+    }
+
+    if (!carrinho || carrinho.length === 0) {
+      mostrarToast("Carrinho vazio", "Adicione produtos antes de enviar.");
+      return;
+    }
+
+    let erro = false;
+    inputCelular.classList.remove("border-red-500");
+    inputEndereco.classList.remove("border-red-500");
+
+    if (inputCelular.value.trim().length < 16) {
+      erro = true;
+      inputCelular.classList.add("border-red-500");
+    }
+
+    if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
+      erro = true;
+      inputEndereco.classList.add("border-red-500");
+    }
+
+    if (erro) {
+      mostrarToast("Erro", "Preencha corretamente os dados.");
+      return;
+    }
+
+    let numeroPedido = "0001";
+
+    try {
+      const { data: ultimosPedidos } = await supabase
+        .from("pedidos")
+        .select("numero_pedido")
+        .order("id", { ascending: false })
+        .limit(1);
+
+      if (ultimosPedidos && ultimosPedidos.length > 0) {
+        const ultimo = ultimosPedidos[0].numero_pedido || "0000";
+        numeroPedido = (parseInt(ultimo, 10) + 1).toString().padStart(4, "0");
+      }
+    } catch (err) {
+      console.error("Erro ao gerar numero_pedido:", err);
+    }
+
+    const itensComValores = [];
+
+    for (const item of carrinho) {
+      const { data: produto, error: errProduto } = await supabase
+        .from("produtos")
+        .select("valor_sugerido")
+        .eq("descricao", item.descricao)
+        .single();
+
+      if (errProduto || !produto) {
+        mostrarToast("Erro", `Produto não encontrado: ${item.descricao}`);
+        return;
+      }
+
+      const valorUnitario = Number(produto.valor_sugerido);
+
+      itensComValores.push({
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        subtotal: valorUnitario,
+        total: valorUnitario * item.quantidade
+      });
+    }
+
+    const subtotal = itensComValores.reduce((acc, i) => acc + i.subtotal, 0);
+    const total = itensComValores.reduce((acc, i) => acc + i.total, 0);
+
+    const { error: insertError } = await supabase.from("pedidos").insert([
+      {
+        numero_pedido: numeroPedido,
+        tipo_entrega: checkboxRetirarLocal.checked ? "retirada" : "delivery",
+        horario_recebido: new Date().toISOString(),
+        status: "Recebido",
+        subtotal,
+        total,
+        cliente: cliente.nome,
+        telefone: inputCelular.value,
+        endereco: checkboxRetirarLocal.checked ? null : inputEndereco.value,
+        referencia: null,
+        pagamento: "não informado",
+        observacoes: null,
+        criado_em: new Date().toISOString(),
+        itens: itensComValores
+      }
+    ]);
+
+    if (insertError) {
+      mostrarToast("Erro", insertError.message);
+      console.error("ERRO SUPABASE:", insertError);
+      return;
+    }
+
+    // ===============================
+    // ENVIA PARA WHATSAPP
+    // ===============================
+    const whatsappEmpresa = await buscarWhatsAppEmpresa();
+
+    if (whatsappEmpresa) {
+      let mensagem = `📦 *Novo Pedido Recebido*\n`;
+      mensagem += `----------------------------\n`;
+      mensagem += `🧾 *Pedido Nº:* ${numeroPedido}\n`;
+      mensagem += `👤 *Cliente:* ${cliente.nome}\n`;
+      mensagem += `📞 *Telefone:* ${inputCelular.value}\n`;
+      mensagem += `🚚 *Entrega:* ${checkboxRetirarLocal.checked ? "Retirada no local" : "Delivery"}\n`;
+
+      if (!checkboxRetirarLocal.checked) {
+        mensagem += `📍 *Endereço:* ${inputEndereco.value}\n`;
+      }
+
+      mensagem += `----------------------------\n`;
+      mensagem += `🛒 *Itens do Pedido:*\n`;
+
+      itensComValores.forEach(item => {
+        mensagem += `• ${item.descricao} x${item.quantidade} = R$ ${item.total.toFixed(2)}\n`;
+      });
+
+      mensagem += `----------------------------\n`;
+      mensagem += `💰 *Total:* R$ ${total.toFixed(2)}\n`;
+
+      enviarParaWhatsApp(whatsappEmpresa, mensagem);
+    }
+
+    mostrarToast("Pedido enviado 🎉", "Seu pedido foi recebido com sucesso!");
+    limparCarrinhoStorage();
+    atualizarCarrinhoUI();
+    modal.classList.add("hidden");
+  });
+
   carregarTaxaEntrega();
-
-  // Carrega nome da empresa
   carregarNomeEmpresa();
 });
 

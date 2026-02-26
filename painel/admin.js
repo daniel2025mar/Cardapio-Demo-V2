@@ -8123,8 +8123,6 @@ inputWhatsApp.addEventListener('keydown', function(e) {
   }
 });
 
-// Assumindo que você já inicializou o Supabase
-// Exemplo: const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function carregarWhatsApp() {
   const { data, error } = await supabase

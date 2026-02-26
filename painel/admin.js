@@ -8080,3 +8080,104 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modalMaintenance")?.classList.remove("show");
   });
 });
+
+//funçao cadastro do whatsapp da empresa
+const inputWhatsApp = document.getElementById('inputWhatsAppDono');
+const msgErro = document.getElementById('msgWhatsAppErro');
+
+// Inicializa com +55
+if (!inputWhatsApp.value.startsWith('+55 ')) {
+  inputWhatsApp.value = '+55 ';
+}
+
+// Função para formatar o número
+function formatarWhatsApp(valor) {
+  valor = valor.replace(/\D/g, '').slice(0, 11); // remove não números e limita
+  const ddd = valor.slice(0, 2);
+  let numero = valor.slice(2);
+  if (numero.length > 5) numero = numero.slice(0, 5) + '-' + numero.slice(5);
+  return '+55 ' + (ddd ? '(' + ddd + ') ' : '') + numero;
+}
+
+// Converte índice do cursor entre valor sem máscara e com máscara
+function ajustarCursor(valorAntigo, cursorPos, valorNovo) {
+  // Conta quantos números antes do cursor antigo
+  const numerosAntesCursor = valorAntigo.slice(0, cursorPos).replace(/\D/g, '').length;
+
+  // Agora acha a posição equivalente no valor formatado
+  let contadorNumeros = 0;
+  for (let i = 0; i < valorNovo.length; i++) {
+    if (/\d/.test(valorNovo[i])) contadorNumeros++;
+    if (contadorNumeros >= numerosAntesCursor) return i + 1;
+  }
+  return valorNovo.length;
+}
+
+// Keydown: bloqueia letras, mas permite apagar/mover o cursor
+inputWhatsApp.addEventListener('keydown', function(e) {
+  const allowedKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Tab'];
+  // Bloqueia tudo que não seja número ou teclas permitidas
+  if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) {
+    e.preventDefault();
+    // mensagem de erro removida
+  }
+});
+
+// Assumindo que você já inicializou o Supabase
+// Exemplo: const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function carregarWhatsApp() {
+  const { data, error } = await supabase
+    .from('empresa')
+    .select('whatsapp')
+    .limit(1)
+    .single(); // pega apenas o primeiro registro
+
+  if (error) {
+    console.error('Erro ao buscar WhatsApp:', error);
+    msgErro.textContent = 'Não foi possível carregar o WhatsApp da empresa.';
+    msgErro.classList.remove('hidden');
+    setTimeout(() => msgErro.classList.add('hidden'), 3000);
+    return;
+  }
+
+  if (data && data.whatsapp) {
+    // Remove tudo que não é número e formata
+    let numeros = data.whatsapp.replace(/\D/g, '');
+    if (numeros.startsWith('55')) numeros = numeros.slice(2);
+    inputWhatsApp.value = formatarWhatsApp(numeros);
+  }
+}
+
+// Chama a função ao carregar a página
+carregarWhatsApp();
+
+// Input: formata mantendo o cursor corretamente
+inputWhatsApp.addEventListener('input', function(e) {
+  const cursorStart = inputWhatsApp.selectionStart;
+  const valorAntigo = inputWhatsApp.value;
+
+  // Remove máscara e mantém apenas números
+  let numeros = valorAntigo.replace(/\D/g, '');
+  if (numeros.startsWith('55')) numeros = numeros.slice(2);
+
+  const valorFormatado = formatarWhatsApp(numeros);
+  inputWhatsApp.value = valorFormatado;
+
+  // Ajusta cursor corretamente
+  const novaPos = Math.min(ajustarCursor(valorAntigo, cursorStart, valorFormatado), valorFormatado.length);
+  inputWhatsApp.setSelectionRange(novaPos, novaPos);
+});
+
+// Paste: formata corretamente
+inputWhatsApp.addEventListener('paste', function(e) {
+  e.preventDefault();
+  let texto = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 11);
+  if (!texto) {
+    msgErro.textContent = 'O conteúdo colado deve conter apenas números!';
+    msgErro.classList.remove('hidden');
+    setTimeout(() => msgErro.classList.add('hidden'), 2000);
+    return;
+  }
+  inputWhatsApp.value = formatarWhatsApp(texto);
+});

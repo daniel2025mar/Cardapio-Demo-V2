@@ -1185,7 +1185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .from("clientes")
     .select("*")
     .eq("email", emailLogado)
-    .maybeSingle(); // usamos maybeSingle para não dar erro se não existir
+    .maybeSingle();
 
   if (errCliente) {
     mostrarToast("Erro", "Erro ao verificar cliente.");
@@ -1202,18 +1202,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnSalvarNome.onclick = async () => {
       const nomeDigitado = inputNome.value.trim();
+      const celularDigitado = inputCelular.value.trim();
+
       if (!nomeDigitado) {
         mostrarToast("Erro", "Digite seu nome completo.");
         return;
       }
 
-      // 🔥 Inserir ou atualizar cliente com o nome
+      // 🔥 Inserir ou atualizar cliente com nome e celular
       let { data: novoCliente, error: erroInsert } = await supabase
         .from("clientes")
         .upsert([
           {
             email: emailLogado,
             nome: nomeDigitado,
+            celular: celularDigitado, // adiciona o celular aqui
             bloqueado: false,
             criado_em: new Date().toISOString()
           }
@@ -1222,7 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .single();
 
       if (erroInsert) {
-        mostrarToast("Erro", "Erro ao salvar nome.");
+        mostrarToast("Erro", "Erro ao salvar nome e celular.");
         console.error("Erro supabase:", erroInsert);
         return;
       }
@@ -1230,9 +1233,21 @@ document.addEventListener("DOMContentLoaded", () => {
       cliente = novoCliente;
       modalNome.classList.add("hidden");
       
+      // Após salvar, chama novamente o click do btnFinalizar para continuar o fluxo
+      btnFinalizar.click();
     };
 
-    return; // para não continuar o fluxo até o cliente existir
+    return; // interrompe o fluxo até o cliente existir
+  }
+
+  // Atualiza celular se já existir cliente
+  const celularDigitado = inputCelular.value.trim();
+  if (cliente.celular !== celularDigitado) {
+    await supabase
+      .from("clientes")
+      .update({ celular: celularDigitado })
+      .eq("email", emailLogado);
+    cliente.celular = celularDigitado;
   }
 
   // ============================ 

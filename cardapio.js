@@ -1163,241 +1163,231 @@ document.addEventListener("DOMContentLoaded", () => {
   // FINALIZAR PEDIDO
   // ===============================
   btnFinalizar.addEventListener("click", async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user) {
-    abrirModalLoginNecessario();
-    return;
-  }
-
-  const user = userData.user;
-
-  if (!user.app_metadata?.provider || user.app_metadata.provider !== "google") {
-    mostrarToast("Login necessário", "Faça login com sua conta Google para enviar pedidos.");
-    return;
-  }
-
-  const emailLogado = user.email;
-
-  // 🔎 Verifica se existe cliente com mesmo email E nome
-  let { data: cliente, error: errCliente } = await supabase
-    .from("clientes")
-    .select("*")
-    .eq("email", emailLogado)
-    .maybeSingle();
-
-  if (errCliente) {
-    mostrarToast("Erro", "Erro ao verificar cliente.");
-    return;
-  }
-
-  // 🚨 Se cliente não existir OU nome estiver vazio → abre modalNome
-  if (!cliente || !cliente.nome) {
-    const modalNome = document.getElementById("modalNome");
-    modalNome.classList.remove("hidden");
-
-    const btnSalvarNome = document.getElementById("btnSalvarNome");
-    const inputNome = document.getElementById("inputNome");
-
-    btnSalvarNome.onclick = async () => {
-      const nomeDigitado = inputNome.value.trim();
-      const celularDigitado = inputCelular.value.trim();
-
-      if (!nomeDigitado) {
-        mostrarToast("Erro", "Digite seu nome completo.");
-        return;
-      }
-
-      // 🔥 Inserir ou atualizar cliente com nome e celular
-      let { data: novoCliente, error: erroInsert } = await supabase
-        .from("clientes")
-        .upsert([
-          {
-            email: emailLogado,
-            nome: nomeDigitado,
-            celular: celularDigitado, // adiciona o celular aqui
-            bloqueado: false,
-            criado_em: new Date().toISOString()
-          }
-        ])
-        .select()
-        .single();
-
-      if (erroInsert) {
-        mostrarToast("Erro", "Erro ao salvar nome e celular.");
-        console.error("Erro supabase:", erroInsert);
-        return;
-      }
-
-      cliente = novoCliente;
-      modalNome.classList.add("hidden");
-      
-      // Após salvar, chama novamente o click do btnFinalizar para continuar o fluxo
-      btnFinalizar.click();
-    };
-
-    return; // interrompe o fluxo até o cliente existir
-  }
-
-  // Atualiza celular se já existir cliente
-  const celularDigitado = inputCelular.value.trim();
-  if (cliente.celular !== celularDigitado) {
-    await supabase
-      .from("clientes")
-      .update({ celular: celularDigitado })
-      .eq("email", emailLogado);
-    cliente.celular = celularDigitado;
-  }
-
-  // ============================ 
-  // 🔒 Bloqueio do cliente
-  // ============================
-  if (cliente.bloqueado === true) {
-    mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
-    return;
-  }
-
-  // ============================ 
-  // 🔹 Validar carrinho e campos
-  // ============================
-  if (!carrinho || carrinho.length === 0) {
-    mostrarToast("Carrinho vazio", "Adicione produtos antes de enviar.");
-    return;
-  }
-
-  let erro = false;
-  inputCelular.classList.remove("border-red-500");
-  inputEndereco.classList.remove("border-red-500");
-
-  if (inputCelular.value.trim().length < 16) {
-    erro = true;
-    inputCelular.classList.add("border-red-500");
-  }
-
-  if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
-    erro = true;
-    inputEndereco.classList.add("border-red-500");
-  }
-
-  if (erro) {
-    mostrarToast("Erro", "Preencha corretamente os dados.");
-    return;
-  }
-
-  // ============================ 
-  // 🔹 Gerar numero_pedido
-  // ============================
-  let numeroPedido = "0001";
-
-  try {
-    const { data: ultimosPedidos } = await supabase
-      .from("pedidos")
-      .select("numero_pedido")
-      .order("id", { ascending: false })
-      .limit(1);
-
-    if (ultimosPedidos && ultimosPedidos.length > 0) {
-      const ultimo = ultimosPedidos[0].numero_pedido || "0000";
-      numeroPedido = (parseInt(ultimo, 10) + 1).toString().padStart(4, "0");
-    }
-  } catch (err) {
-    console.error("Erro ao gerar numero_pedido:", err);
-  }
-
-  // ============================ 
-  // 🔹 Preparar itens e valores
-  // ============================
-  const itensComValores = [];
-
-  for (const item of carrinho) {
-    const { data: produto, error: errProduto } = await supabase
-      .from("produtos")
-      .select("valor_sugerido")
-      .eq("descricao", item.descricao)
-      .single();
-
-    if (errProduto || !produto) {
-      mostrarToast("Erro", `Produto não encontrado: ${item.descricao}`);
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      abrirModalLoginNecessario();
       return;
     }
 
-    const valorUnitario = Number(produto.valor_sugerido);
+    const user = userData.user;
+    const emailLogado = user.email; // ADICIONADO: email do usuário logado
 
-    itensComValores.push({
-      descricao: item.descricao,
-      quantidade: item.quantidade,
-      subtotal: valorUnitario,
-      total: valorUnitario * item.quantidade
-    });
-  }
-
-  const subtotal = itensComValores.reduce((acc, i) => acc + i.subtotal, 0);
-  const total = itensComValores.reduce((acc, i) => acc + i.total, 0);
-
-  // ============================ 
-  // 🔹 Inserir pedido
-  // ============================
-  const { error: insertError } = await supabase.from("pedidos").insert([
-    {
-      numero_pedido: numeroPedido,
-      tipo_entrega: checkboxRetirarLocal.checked ? "retirada" : "delivery",
-      horario_recebido: new Date().toISOString(),
-      status: "Recebido",
-      subtotal,
-      total,
-      cliente: cliente.nome,
-      telefone: inputCelular.value,
-      endereco: checkboxRetirarLocal.checked ? null : inputEndereco.value,
-      referencia: null,
-      pagamento: "não informado",
-      observacoes: null,
-      criado_em: new Date().toISOString(),
-      itens: itensComValores
-    }
-  ]);
-
-  if (insertError) {
-    mostrarToast("Erro", insertError.message);
-    console.error("ERRO SUPABASE:", insertError);
-    return;
-  }
-
-  // ============================ 
-  // 🔹 Enviar WhatsApp
-  // ============================
-  const whatsappEmpresa = await buscarWhatsAppEmpresa();
-
-  if (whatsappEmpresa) {
-    let mensagem = `📦 *Novo Pedido Recebido*\n`;
-    mensagem += `----------------------------\n`;
-    mensagem += `🧾 *Pedido Nº:* ${numeroPedido}\n`;
-    mensagem += `👤 *Cliente:* ${cliente.nome}\n`;
-    mensagem += `📞 *Telefone:* ${inputCelular.value}\n`;
-    mensagem += `🚚 *Entrega:* ${checkboxRetirarLocal.checked ? "Retirada no local" : "Delivery"}\n`;
-
-    if (!checkboxRetirarLocal.checked) {
-      mensagem += `📍 *Endereço:* ${inputEndereco.value}\n`;
+    if (!user.app_metadata?.provider || user.app_metadata.provider !== "google") {
+      mostrarToast("Login necessário", "Faça login com sua conta Google para enviar pedidos.");
+      return;
     }
 
-    mensagem += `----------------------------\n`;
-    mensagem += `🛒 *Itens do Pedido:*\n`;
+    // 🔎 Verifica se existe cliente com mesmo email
+    let { data: cliente, error: errCliente } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("email", emailLogado)
+      .maybeSingle();
 
-    itensComValores.forEach(item => {
-      mensagem += `• ${item.descricao} x${item.quantidade} = R$ ${item.total.toFixed(2)}\n`;
-    });
+    if (errCliente) {
+      mostrarToast("Erro", "Erro ao verificar cliente.");
+      return;
+    }
 
-    mensagem += `----------------------------\n`;
-    mensagem += `💰 *Total:* R$ ${total.toFixed(2)}\n`;
+    // 🚨 Se cliente não existir → abre modalNome
+    if (!cliente || !cliente.nome) {
+      const modalNome = document.getElementById("modalNome");
+      modalNome.classList.remove("hidden");
 
-    enviarParaWhatsApp(whatsappEmpresa, mensagem);
-  }
+      const btnSalvarNome = document.getElementById("btnSalvarNome");
+      const inputNome = document.getElementById("inputNome");
 
-  mostrarToast("Pedido enviado 🎉", "Seu pedido foi recebido com sucesso!");
-  limparCarrinhoStorage();
-  atualizarCarrinhoUI();
-  modal.classList.add("hidden");
-});
+      btnSalvarNome.onclick = async () => {
+        const nomeDigitado = inputNome.value.trim();
+        const celularDigitado = inputCelular.value.trim();
+
+        if (!nomeDigitado) {
+          mostrarToast("Erro", "Digite seu nome completo.");
+          return;
+        }
+
+        // 🔥 Inserir ou atualizar cliente com nome e celular
+        let { data: novoCliente, error: erroInsert } = await supabase
+          .from("clientes")
+          .upsert([
+            {
+              email: emailLogado,
+              nome: nomeDigitado,
+              celular: celularDigitado,
+              bloqueado: false,
+              criado_em: new Date().toISOString()
+            }
+          ])
+          .select()
+          .single();
+
+        if (erroInsert) {
+          mostrarToast("Erro", "Erro ao salvar nome e celular.");
+          console.error("Erro supabase:", erroInsert);
+          return;
+        }
+
+        cliente = novoCliente;
+        modalNome.classList.add("hidden");
+        
+        // Após salvar, chama novamente o click do btnFinalizar para continuar o fluxo
+        btnFinalizar.click();
+      };
+
+      return;
+    }
+
+    // Atualiza celular se necessário
+    const celularDigitado = inputCelular.value.trim();
+    if (cliente.celular !== celularDigitado) {
+      await supabase
+        .from("clientes")
+        .update({ celular: celularDigitado })
+        .eq("email", emailLogado);
+      cliente.celular = celularDigitado;
+    }
+
+    // Bloqueio
+    if (cliente.bloqueado === true) {
+      mostrarToast("Acesso bloqueado", "Seu acesso está bloqueado.");
+      return;
+    }
+
+    // Validação do carrinho
+    if (!carrinho || carrinho.length === 0) {
+      mostrarToast("Carrinho vazio", "Adicione produtos antes de enviar.");
+      return;
+    }
+
+    let erro = false;
+    inputCelular.classList.remove("border-red-500");
+    inputEndereco.classList.remove("border-red-500");
+
+    if (inputCelular.value.trim().length < 16) {
+      erro = true;
+      inputCelular.classList.add("border-red-500");
+    }
+
+    if (!checkboxRetirarLocal.checked && inputEndereco.value.trim() === "") {
+      erro = true;
+      inputEndereco.classList.add("border-red-500");
+    }
+
+    if (erro) {
+      mostrarToast("Erro", "Preencha corretamente os dados.");
+      return;
+    }
+
+    // Gerar numero_pedido
+    let numeroPedido = "0001";
+
+    try {
+      const { data: ultimosPedidos } = await supabase
+        .from("pedidos")
+        .select("numero_pedido")
+        .order("id", { ascending: false })
+        .limit(1);
+
+      if (ultimosPedidos && ultimosPedidos.length > 0) {
+        const ultimo = ultimosPedidos[0].numero_pedido || "0000";
+        numeroPedido = (parseInt(ultimo, 10) + 1).toString().padStart(4, "0");
+      }
+    } catch (err) {
+      console.error("Erro ao gerar numero_pedido:", err);
+    }
+
+    // Preparar itens e valores
+    const itensComValores = [];
+
+    for (const item of carrinho) {
+      const { data: produto, error: errProduto } = await supabase
+        .from("produtos")
+        .select("valor_sugerido")
+        .eq("descricao", item.descricao)
+        .single();
+
+      if (errProduto || !produto) {
+        mostrarToast("Erro", `Produto não encontrado: ${item.descricao}`);
+        return;
+      }
+
+      const valorUnitario = Number(produto.valor_sugerido);
+
+      itensComValores.push({
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        subtotal: valorUnitario,
+        total: valorUnitario * item.quantidade
+      });
+    }
+
+    const subtotal = itensComValores.reduce((acc, i) => acc + i.subtotal, 0);
+    const total = itensComValores.reduce((acc, i) => acc + i.total, 0);
+
+    // ============================
+    // 🔹 Inserir pedido COM EMAIL
+    // ============================
+    const { error: insertError } = await supabase.from("pedidos").insert([
+      {
+        numero_pedido: numeroPedido,
+        tipo_entrega: checkboxRetirarLocal.checked ? "retirada" : "delivery",
+        horario_recebido: new Date().toISOString(),
+        status: "Recebido",
+        subtotal,
+        total,
+        cliente: cliente.nome,
+        email: emailLogado, // ADICIONADO
+        telefone: inputCelular.value,
+        endereco: checkboxRetirarLocal.checked ? null : inputEndereco.value,
+        referencia: null,
+        pagamento: "não informado",
+        observacoes: null,
+        criado_em: new Date().toISOString(),
+        itens: itensComValores
+      }
+    ]);
+
+    if (insertError) {
+      mostrarToast("Erro", insertError.message);
+      console.error("ERRO SUPABASE:", insertError);
+      return;
+    }
+
+    // Enviar WhatsApp
+    const whatsappEmpresa = await buscarWhatsAppEmpresa();
+
+    if (whatsappEmpresa) {
+      let mensagem = `📦 *Novo Pedido Recebido*\n`;
+      mensagem += `----------------------------\n`;
+      mensagem += `🧾 *Pedido Nº:* ${numeroPedido}\n`;
+      mensagem += `👤 *Cliente:* ${cliente.nome}\n`;
+      mensagem += `📞 *Telefone:* ${inputCelular.value}\n`;
+      mensagem += `🚚 *Entrega:* ${checkboxRetirarLocal.checked ? "Retirada no local" : "Delivery"}\n`;
+
+      if (!checkboxRetirarLocal.checked) {
+        mensagem += `📍 *Endereço:* ${inputEndereco.value}\n`;
+      }
+
+      mensagem += `----------------------------\n`;
+      mensagem += `🛒 *Itens do Pedido:*\n`;
+
+      itensComValores.forEach(item => {
+        mensagem += `• ${item.descricao} x${item.quantidade} = R$ ${item.total.toFixed(2)}\n`;
+      });
+
+      mensagem += `----------------------------\n`;
+      mensagem += `💰 *Total:* R$ ${total.toFixed(2)}\n`;
+
+      enviarParaWhatsApp(whatsappEmpresa, mensagem);
+    }
+
+    mostrarToast("Pedido enviado 🎉", "Seu pedido foi recebido com sucesso!");
+    limparCarrinhoStorage();
+    atualizarCarrinhoUI();
+    modal.classList.add("hidden");
+  });
 
   carregarTaxaEntrega();
   carregarNomeEmpresa();
@@ -2434,105 +2424,116 @@ const btnHistoricoPedidos = document.getElementById("btnHistoricoPedidos");
 const modalHistoricoPedidos = document.getElementById("modalHistoricoPedidos");
 const containerPedidos = document.getElementById("historicoPedidosBody"); // tbody da tabela
 
-// modalContaCliente já existe em outro lugar
-// const modalContaCliente = document.getElementById("modalContaCliente");
-
 // ===============================
 // FUNÇÃO PARA ABRIR O MODAL E CARREGAR HISTÓRICO
 // ===============================
 async function abrirHistoricoPedidos() {
   console.log("[DEBUG] abrirHistoricoPedidos chamado");
 
-  if (!modalHistoricoPedidos) return;
+  if (!modalHistoricoPedidos) {
+    console.log("[ERRO] modalHistoricoPedidos não encontrado");
+    return;
+  }
 
   // Fecha modalContaCliente se estiver aberto
-  if (typeof modalContaCliente !== "undefined" && modalContaCliente && !modalContaCliente.classList.contains("hidden")) {
+  if (
+    typeof modalContaCliente !== "undefined" &&
+    modalContaCliente &&
+    !modalContaCliente.classList.contains("hidden")
+  ) {
     modalContaCliente.classList.add("hidden");
     console.log("[DEBUG] modalContaCliente fechado");
   }
 
-  // Mostra o modal de histórico
+  // Mostra o modal
   modalHistoricoPedidos.classList.remove("hidden");
   console.log("[DEBUG] modalHistoricoPedidos aberto");
 
   try {
-    // Verifica se o usuário está logado
+    // ===============================
+    // 1️⃣ Verifica se usuário está logado
+    // ===============================
     const { data: userData, error: userError } = await supabase.auth.getUser();
+
     if (userError || !userData?.user) {
       alert("Você precisa estar logado para ver o histórico.");
-      console.log("[ERROR] Usuário não logado");
+      console.log("[ERRO] Usuário não logado");
       return;
     }
 
     const userEmail = userData.user.email;
-    console.log("[DEBUG] Usuário logado:", userEmail);
+    console.log("[DEBUG] Email do usuário logado:", userEmail);
 
-    // Busca o nome do cliente na tabela clientes pelo email
-    const { data: clientes, error: clientesError } = await supabase
-      .from("clientes")
-      .select("nome")
-      .eq("email", userEmail)
-      .single();
-
-    if (clientesError) throw clientesError;
-
-    const userNome = clientes?.nome || "";
-    console.log("[DEBUG] Nome do cliente encontrado:", userNome);
-
-    if (!userNome) {
-      containerPedidos.innerHTML = `
-        <tr>
-          <td colspan="3" class="text-center text-gray-500 py-4">Nome do cliente não encontrado.</td>
-        </tr>`;
-      console.log("[INFO] Nome do cliente não encontrado na tabela clientes");
-      return;
-    }
-
-    // Pega os pedidos do usuário na tabela 'pedidos' usando o nome
+    // ===============================
+    // 2️⃣ Busca pedidos diretamente pelo EMAIL
+    // ===============================
     const { data: pedidos, error: pedidosError } = await supabase
       .from("pedidos")
       .select("numero_pedido, horario_recebido")
-      .ilike("cliente", `%${userNome}%`) // case-insensitive, encontra correspondências parciais
+      .eq("email", userEmail) // 🔥 CORREÇÃO AQUI
       .order("horario_recebido", { ascending: false });
 
-    if (pedidosError) throw pedidosError;
+    if (pedidosError) {
+      console.error("[ERRO] Erro ao buscar pedidos:", pedidosError);
+      throw pedidosError;
+    }
 
     console.log("[DEBUG] Pedidos retornados:", pedidos);
 
-    // Limpa container antes de inserir
+    // Limpa tabela antes de inserir
     containerPedidos.innerHTML = "";
 
+    // ===============================
+    // 3️⃣ Se não tiver pedidos
+    // ===============================
     if (!pedidos || pedidos.length === 0) {
       containerPedidos.innerHTML = `
         <tr>
-          <td colspan="3" class="text-center text-gray-500 py-4">Nenhum pedido encontrado.</td>
+          <td colspan="3" class="text-center text-gray-500 py-4">
+            Nenhum pedido encontrado.
+          </td>
         </tr>`;
-      console.log("[INFO] Nenhum pedido encontrado");
+      console.log("[INFO] Nenhum pedido encontrado para este email");
       return;
     }
 
-    // Adiciona os pedidos na tabela
-    pedidos.forEach(pedido => {
+    // ===============================
+    // 4️⃣ Renderiza pedidos na tabela
+    // ===============================
+    pedidos.forEach((pedido) => {
       const dataObj = new Date(pedido.horario_recebido);
-      const data = dataObj.toLocaleDateString();
-      const hora = dataObj.toLocaleTimeString();
+
+      const data = dataObj.toLocaleDateString("pt-BR");
+      const hora = dataObj.toLocaleTimeString("pt-BR");
 
       const tr = document.createElement("tr");
       tr.className = "border-b border-gray-200";
+
       tr.innerHTML = `
-        <td class="py-2 px-4 text-gray-800 font-semibold">${pedido.numero_pedido}</td>
-        <td class="py-2 px-4 text-gray-700">${data}</td>
-        <td class="py-2 px-4 text-gray-700">${hora}</td>
+        <td class="py-2 px-4 text-gray-800 font-semibold">
+          ${pedido.numero_pedido}
+        </td>
+        <td class="py-2 px-4 text-gray-700">
+          ${data}
+        </td>
+        <td class="py-2 px-4 text-gray-700">
+          ${hora}
+        </td>
       `;
+
       containerPedidos.appendChild(tr);
-      console.log("[DEBUG] Pedido adicionado:", pedido.numero_pedido, data, hora);
+
+      console.log("[DEBUG] Pedido renderizado:", pedido.numero_pedido);
     });
 
   } catch (err) {
-    console.error("[ERROR] Erro ao carregar histórico de pedidos:", err);
+    console.error("[ERRO] Erro ao carregar histórico de pedidos:", err);
+
     containerPedidos.innerHTML = `
       <tr>
-        <td colspan="3" class="text-center text-red-500 py-4">Erro ao carregar pedidos.</td>
+        <td colspan="3" class="text-center text-red-500 py-4">
+          Erro ao carregar pedidos.
+        </td>
       </tr>`;
   }
 }
@@ -2550,10 +2551,13 @@ function fecharHistoricoPedidos() {
 // ===============================
 // EVENTOS
 // ===============================
+
 // Abrir modal
 if (btnHistoricoPedidos) {
   btnHistoricoPedidos.addEventListener("click", abrirHistoricoPedidos);
   console.log("[DEBUG] Evento click para abrirHistoricoPedidos registrado");
+} else {
+  console.log("[ERRO] btnHistoricoPedidos não encontrado");
 }
 
 // Fechar modal ao clicar fora do conteúdo

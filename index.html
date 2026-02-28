@@ -1177,6 +1177,23 @@
         </div>
       </button>
 
+      <!-- Opção Informações de Cadastro -->
+      <button
+    id="btnInformacoesCadastro"
+    onclick="abrirInformacoesCadastro()"
+    class="w-full flex items-center gap-3 border rounded-xl p-3 hover:bg-gray-50 transition text-left"
+>
+    <span class="text-xl">👤</span>
+    <div>
+        <p class="font-semibold text-gray-800">
+            Informações de cadastro
+        </p>
+        <p class="text-sm text-gray-500">
+            Veja seus dados cadastrados
+        </p>
+    </div>
+</button>
+
       <!-- Sair da conta -->
       <button
         onclick="logoutCliente()"
@@ -1204,7 +1221,88 @@
   </div>
 </div>
 
+<!-- Modal Cadastro Cliente -->
+<div id="modalCadastroCliente" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative transform transition-all scale-95 opacity-0 animate-fade-in max-h-[90vh] flex flex-col">
 
+    <!-- Botão Fechar -->
+    <button onclick="fecharModalCadastro()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-lg">
+      ✖
+    </button>
+
+    <!-- Título -->
+    <h2 class="text-2xl font-bold mb-4 text-gray-800 text-center flex-shrink-0">Cadastro do Cliente</h2>
+
+    <!-- Conteúdo com scroll -->
+    <div class="overflow-y-auto pr-2 flex-1">
+      <form id="formCadastroCliente" class="flex flex-col gap-5">
+
+        <!-- Nome -->
+        <div>
+          <label for="nomeCliente" class="block font-semibold mb-1 text-gray-700">Nome Completo</label>
+          <input type="text" id="nomeCliente" placeholder="Ex: Joao Da Silva" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition" required>
+        </div>
+
+        <!-- CPF e Telefone lado a lado -->
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label for="cpfCliente" class="block font-semibold mb-1 text-gray-700">CPF</label>
+            <input type="text" id="cpfCliente" placeholder="000.000.000-00" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+          </div>
+          <div class="flex-1">
+            <label for="telefoneCliente" class="block font-semibold mb-1 text-gray-700">Telefone</label>
+            <input type="text" id="telefoneCliente" placeholder="(00) 00000-0000" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition" required>
+          </div>
+        </div>
+
+        <!-- Endereço separado -->
+        <div class="flex flex-col gap-3">
+          <div>
+            <label for="ruaCliente" class="block font-semibold mb-1 text-gray-700">Endereço</label>
+            <input type="text" id="ruaCliente" placeholder="Ex: Nome da rua" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+          </div>
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label for="numeroCliente" class="block font-semibold mb-1 text-gray-700">Número</label>
+              <input type="text" id="numeroCliente" placeholder="Nº" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+            </div>
+            <div class="flex-1">
+              <label for="bairroCliente" class="block font-semibold mb-1 text-gray-700">Bairro</label>
+              <input type="text" id="bairroCliente" placeholder="Bairro" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label for="cidadeCliente" class="block font-semibold mb-1 text-gray-700">Cidade</label>
+              <input type="text" id="cidadeCliente" placeholder="Cidade" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+            </div>
+            <div class="flex-1">
+              <label for="ufCliente" class="block font-semibold mb-1 text-gray-700">UF</label>
+              <input type="text" id="ufCliente" placeholder="UF" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão de Cadastrar -->
+        <button type="submit" class="bg-red-600 text-white font-semibold px-4 py-3 rounded-lg hover:bg-red-700 transition-all shadow-md hover:shadow-lg mt-2">
+          Cadastrar
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Animação Fade In (Tailwind + custom) -->
+<style>
+  @keyframes fade-in {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+</style>
 <!-- Modal Logout Sucesso -->
 <div
   id="modalLogoutSucesso"

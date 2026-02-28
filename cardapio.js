@@ -2196,6 +2196,7 @@ function atualizarModal(bloqueado) {
   }
 }
 
+
 // Função para verificar o estado do cardápio
 async function verificarEstadoCardapio() {
   const { data } = await supabase
@@ -2228,3 +2229,177 @@ document.addEventListener("DOMContentLoaded", async () => {
     )
     .subscribe();
 });
+
+// ===============================
+// ELEMENTOS
+// ===============================
+const btnInformacoesCadastro = document.getElementById("btnInformacoesCadastro");
+const modalCadastroCliente = document.getElementById("modalCadastroCliente");
+const modalContaCliente = document.getElementById("modalContaCliente"); // modal da conta
+const formCadastroCliente = document.getElementById("formCadastroCliente");
+
+// ===============================
+// FUNÇÃO PARA ABRIR O MODAL DE CADASTRO E CARREGAR DADOS
+// ===============================
+async function abrirInformacoesCadastro() {
+  if (!modalCadastroCliente) return;
+
+  // Abre o modal
+  modalCadastroCliente.classList.remove("hidden");
+
+  // Fechar modal da conta se estiver aberto
+  if (modalContaCliente && !modalContaCliente.classList.contains("hidden")) {
+    modalContaCliente.classList.add("hidden");
+  }
+
+  try {
+    // Verifica se o usuário está logado
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) return;
+
+    const userEmail = userData.user.email;
+
+    // Busca o cliente na tabela clientes pelo email
+    const { data: cliente, error: clienteError } = await supabase
+      .from("clientes")
+      .select("*")
+      .eq("email", userEmail)
+      .maybeSingle();
+
+    if (clienteError) {
+      console.error("Erro ao buscar cliente:", clienteError);
+      return;
+    }
+
+    if (cliente) {
+      // Preenche os campos do modal com os dados do cliente
+      document.getElementById("nomeCliente").value = cliente.nome || "";
+      document.getElementById("cpfCliente").value = cliente.cpf || ""; // CPF não obrigatório
+      document.getElementById("telefoneCliente").value = cliente.telefone || cliente.celular || "";
+      document.getElementById("ruaCliente").value = cliente.endereco || "";
+      document.getElementById("numeroCliente").value = cliente.numero || "";
+      document.getElementById("bairroCliente").value = cliente.bairro || "";
+      document.getElementById("cidadeCliente").value = cliente.cidade || "";
+      document.getElementById("ufCliente").value = cliente.uf || "";
+    } else {
+      // Limpa os campos se não encontrar registro
+      formCadastroCliente.reset();
+    }
+  } catch (err) {
+    console.error("Erro ao carregar dados do cliente:", err);
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA FECHAR O MODAL DE CADASTRO
+// ===============================
+function fecharModalCadastro() {
+  if (modalCadastroCliente) {
+    modalCadastroCliente.classList.add("hidden");
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
+// ===============================
+if (formCadastroCliente) {
+  formCadastroCliente.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Pega os valores dos inputs
+    const nome = document.getElementById("nomeCliente").value.trim();
+    const cpf = document.getElementById("cpfCliente").value.trim(); // pode ficar vazio
+    const telefone = document.getElementById("telefoneCliente").value.trim();
+    const endereco = document.getElementById("ruaCliente").value.trim();
+    const numero = document.getElementById("numeroCliente").value.trim();
+    const bairro = document.getElementById("bairroCliente").value.trim();
+    const cidade = document.getElementById("cidadeCliente").value.trim();
+    const uf = document.getElementById("ufCliente").value.trim();
+
+    try {
+      // Verifica login do usuário
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user) {
+        alert("Você precisa estar logado para cadastrar os dados.");
+        return;
+      }
+
+      const userEmail = userData.user.email;
+
+      // Verifica se o cliente já existe pelo email
+      const { data: existingCliente } = await supabase
+        .from("clientes")
+        .select("id")
+        .eq("email", userEmail)
+        .maybeSingle();
+
+      if (existingCliente) {
+        // Atualiza registro existente
+        const { error: updateError } = await supabase
+          .from("clientes")
+          .update({
+            nome,
+            cpf,
+            telefone,
+            endereco,
+            numero,
+            bairro,
+            cidade,
+            uf
+          })
+          .eq("email", userEmail);
+
+        if (updateError) throw updateError;
+        alert("Cadastro atualizado com sucesso!");
+      } else {
+        // Insere novo registro
+        const { error: insertError } = await supabase
+          .from("clientes")
+          .insert([
+            {
+              nome,
+              cpf,
+              telefone,
+              endereco,
+              numero,
+              bairro,
+              cidade,
+              uf,
+              email: userEmail,
+              status: "ativo"
+            }
+          ]);
+
+        if (insertError) throw insertError;
+        alert("Cadastro realizado com sucesso!");
+      }
+
+      // Fecha o modal após salvar
+      fecharModalCadastro();
+
+    } catch (err) {
+      console.error("Erro ao salvar cadastro:", err);
+      alert("Ocorreu um erro ao salvar seus dados. Tente novamente.");
+    }
+  });
+}
+
+// ===============================
+// EVENTOS
+// ===============================
+// Clicar no botão abre o modal de cadastro
+if (btnInformacoesCadastro) {
+  btnInformacoesCadastro.addEventListener("click", abrirInformacoesCadastro);
+}
+
+// Fechar ao clicar fora do modal
+if (modalCadastroCliente) {
+  modalCadastroCliente.addEventListener("click", (e) => {
+    if (e.target === modalCadastroCliente) {
+      fecharModalCadastro();
+    }
+  });
+}
+
+// Torna a função global para o onclick funcionar
+window.fecharModalCadastro = fecharModalCadastro;

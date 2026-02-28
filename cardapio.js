@@ -2237,6 +2237,12 @@ const btnInformacoesCadastro = document.getElementById("btnInformacoesCadastro")
 const modalCadastroCliente = document.getElementById("modalCadastroCliente");
 const modalContaCliente = document.getElementById("modalContaCliente"); // modal da conta
 const formCadastroCliente = document.getElementById("formCadastroCliente");
+const btnCadastrar = formCadastroCliente?.querySelector('button[type="submit"]');
+
+// ===============================
+// VARIÁVEL PARA GUARDAR OS VALORES ORIGINAIS
+// ===============================
+let valoresOriginais = {};
 
 // ===============================
 // FUNÇÃO PARA ABRIR O MODAL DE CADASTRO E CARREGAR DADOS
@@ -2253,13 +2259,11 @@ async function abrirInformacoesCadastro() {
   }
 
   try {
-    // Verifica se o usuário está logado
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData?.user) return;
 
     const userEmail = userData.user.email;
 
-    // Busca o cliente na tabela clientes pelo email
     const { data: cliente, error: clienteError } = await supabase
       .from("clientes")
       .select("*")
@@ -2272,21 +2276,70 @@ async function abrirInformacoesCadastro() {
     }
 
     if (cliente) {
-      // Preenche os campos do modal com os dados do cliente
       document.getElementById("nomeCliente").value = cliente.nome || "";
-      document.getElementById("cpfCliente").value = cliente.cpf || ""; // CPF não obrigatório
+      document.getElementById("cpfCliente").value = cliente.cpf || "";
       document.getElementById("telefoneCliente").value = cliente.telefone || cliente.celular || "";
       document.getElementById("ruaCliente").value = cliente.endereco || "";
       document.getElementById("numeroCliente").value = cliente.numero || "";
       document.getElementById("bairroCliente").value = cliente.bairro || "";
       document.getElementById("cidadeCliente").value = cliente.cidade || "";
       document.getElementById("ufCliente").value = cliente.uf || "";
+
+      valoresOriginais = {
+        nome: cliente.nome || "",
+        cpf: cliente.cpf || "",
+        telefone: cliente.telefone || cliente.celular || "",
+        endereco: cliente.endereco || "",
+        numero: cliente.numero || "",
+        bairro: cliente.bairro || "",
+        cidade: cliente.cidade || "",
+        uf: cliente.uf || ""
+      };
     } else {
-      // Limpa os campos se não encontrar registro
       formCadastroCliente.reset();
+      valoresOriginais = {};
     }
+
+    // Desabilita o botão e muda a cor para cinza
+    if (btnCadastrar) {
+      btnCadastrar.disabled = true;
+      btnCadastrar.classList.add("bg-gray-400", "cursor-not-allowed");
+      btnCadastrar.classList.remove("bg-red-600", "hover:bg-red-700");
+    }
+
   } catch (err) {
     console.error("Erro ao carregar dados do cliente:", err);
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA CHECAR SE HOUVE ALTERAÇÃO
+// ===============================
+function verificarAlteracoes() {
+  if (!btnCadastrar) return;
+
+  const atual = {
+    nome: document.getElementById("nomeCliente").value.trim(),
+    cpf: document.getElementById("cpfCliente").value.trim(),
+    telefone: document.getElementById("telefoneCliente").value.trim(),
+    endereco: document.getElementById("ruaCliente").value.trim(),
+    numero: document.getElementById("numeroCliente").value.trim(),
+    bairro: document.getElementById("bairroCliente").value.trim(),
+    cidade: document.getElementById("cidadeCliente").value.trim(),
+    uf: document.getElementById("ufCliente").value.trim()
+  };
+
+  const mudou = Object.keys(atual).some(key => atual[key] !== (valoresOriginais[key] || ""));
+
+  btnCadastrar.disabled = !mudou;
+
+  // Atualiza a cor do botão
+  if (mudou) {
+    btnCadastrar.classList.remove("bg-gray-400", "cursor-not-allowed");
+    btnCadastrar.classList.add("bg-red-600", "hover:bg-red-700", "cursor-pointer");
+  } else {
+    btnCadastrar.classList.add("bg-gray-400", "cursor-not-allowed");
+    btnCadastrar.classList.remove("bg-red-600", "hover:bg-red-700", "cursor-pointer");
   }
 }
 
@@ -2306,9 +2359,8 @@ if (formCadastroCliente) {
   formCadastroCliente.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Pega os valores dos inputs
     const nome = document.getElementById("nomeCliente").value.trim();
-    const cpf = document.getElementById("cpfCliente").value.trim(); // pode ficar vazio
+    const cpf = document.getElementById("cpfCliente").value.trim();
     const telefone = document.getElementById("telefoneCliente").value.trim();
     const endereco = document.getElementById("ruaCliente").value.trim();
     const numero = document.getElementById("numeroCliente").value.trim();
@@ -2317,7 +2369,6 @@ if (formCadastroCliente) {
     const uf = document.getElementById("ufCliente").value.trim();
 
     try {
-      // Verifica login do usuário
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData?.user) {
         alert("Você precisa estar logado para cadastrar os dados.");
@@ -2326,7 +2377,6 @@ if (formCadastroCliente) {
 
       const userEmail = userData.user.email;
 
-      // Verifica se o cliente já existe pelo email
       const { data: existingCliente } = await supabase
         .from("clientes")
         .select("id")
@@ -2334,47 +2384,20 @@ if (formCadastroCliente) {
         .maybeSingle();
 
       if (existingCliente) {
-        // Atualiza registro existente
         const { error: updateError } = await supabase
           .from("clientes")
-          .update({
-            nome,
-            cpf,
-            telefone,
-            endereco,
-            numero,
-            bairro,
-            cidade,
-            uf
-          })
+          .update({ nome, cpf, telefone, endereco, numero, bairro, cidade, uf })
           .eq("email", userEmail);
-
         if (updateError) throw updateError;
         alert("Cadastro atualizado com sucesso!");
       } else {
-        // Insere novo registro
         const { error: insertError } = await supabase
           .from("clientes")
-          .insert([
-            {
-              nome,
-              cpf,
-              telefone,
-              endereco,
-              numero,
-              bairro,
-              cidade,
-              uf,
-              email: userEmail,
-              status: "ativo"
-            }
-          ]);
-
+          .insert([{ nome, cpf, telefone, endereco, numero, bairro, cidade, uf, email: userEmail, status: "ativo" }]);
         if (insertError) throw insertError;
         alert("Cadastro realizado com sucesso!");
       }
 
-      // Fecha o modal após salvar
       fecharModalCadastro();
 
     } catch (err) {
@@ -2382,17 +2405,18 @@ if (formCadastroCliente) {
       alert("Ocorreu um erro ao salvar seus dados. Tente novamente.");
     }
   });
+
+  const inputs = formCadastroCliente.querySelectorAll("input");
+  inputs.forEach(input => input.addEventListener("input", verificarAlteracoes));
 }
 
 // ===============================
 // EVENTOS
 // ===============================
-// Clicar no botão abre o modal de cadastro
 if (btnInformacoesCadastro) {
   btnInformacoesCadastro.addEventListener("click", abrirInformacoesCadastro);
 }
 
-// Fechar ao clicar fora do modal
 if (modalCadastroCliente) {
   modalCadastroCliente.addEventListener("click", (e) => {
     if (e.target === modalCadastroCliente) {
@@ -2401,5 +2425,4 @@ if (modalCadastroCliente) {
   });
 }
 
-// Torna a função global para o onclick funcionar
 window.fecharModalCadastro = fecharModalCadastro;

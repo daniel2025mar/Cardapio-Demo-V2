@@ -1163,19 +1163,20 @@
 
       <!-- Opção Histórico -->
       <button
-        onclick="abrirHistoricoPedidos()"
-        class="w-full flex items-center gap-3 border rounded-xl p-3 hover:bg-gray-50 transition text-left"
-      >
-        <span class="text-xl">📦</span>
-        <div>
-          <p class="font-semibold text-gray-800">
+    id="btnHistoricoPedidos"
+    onclick="abrirHistoricoPedidos()"
+    class="w-full flex items-center gap-3 border rounded-xl p-3 hover:bg-gray-50 transition text-left"
+>
+    <span class="text-xl">📦</span>
+    <div>
+        <p class="font-semibold text-gray-800">
             Histórico de pedidos
-          </p>
-          <p class="text-sm text-gray-500">
+        </p>
+        <p class="text-sm text-gray-500">
             Veja seus pedidos anteriores
-          </p>
-        </div>
-      </button>
+        </p>
+    </div>
+</button>
 
       <!-- Opção Informações de Cadastro -->
       <button
@@ -1311,6 +1312,59 @@
   }
 </style>
 <!-- Modal Logout Sucesso -->
+
+<!-- MODAL HISTÓRICO DE PEDIDOS -->
+
+<div id="modalHistoricoPedidos" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-[9999] p-2 sm:p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg sm:max-w-md p-0 relative transform transition-all scale-95 opacity-0 animate-fade-in max-h-[90vh] flex flex-col">
+
+    <!-- Botão Fechar -->
+    <button onclick="fecharHistoricoPedidos()" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-gray-200 text-lg z-[10000]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Topo do Modal -->
+    <div class="bg-red-600 rounded-t-2xl p-4 flex flex-col items-center">
+      <h2 class="text-xl sm:text-2xl font-bold text-white text-center flex-shrink-0">Histórico de Pedidos</h2>
+      <p class="text-white text-xs sm:text-sm mt-1 text-center">Confira todos os pedidos realizados anteriormente.</p>
+    </div>
+
+    <!-- Conteúdo com scroll -->
+    <div class="overflow-y-auto flex-1 pr-2 p-4 sm:p-6">
+      <table class="w-full text-left border-collapse text-sm sm:text-base">
+        <thead>
+          <tr class="border-b border-gray-300">
+            <th class="py-2 px-2 sm:px-4 text-gray-700">Pedido</th>
+            <th class="py-2 px-2 sm:px-4 text-gray-700">Data</th>
+            <th class="py-2 px-2 sm:px-4 text-gray-700">Hora</th>
+          </tr>
+        </thead>
+        <tbody id="historicoPedidosBody">
+          <!-- Linhas serão adicionadas via JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Animação Fade In -->
+<style>
+  @keyframes fade-in {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+
+  /* Garantir scroll suave em dispositivos móveis */
+  #modalHistoricoPedidos div.overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
 <div
   id="modalLogoutSucesso"
   class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4"

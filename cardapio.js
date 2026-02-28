@@ -2231,7 +2231,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ===============================
-// ELEMENTOS
+// ELEMENTOS CADASTRO DO USUARIO
 // ===============================
 const btnInformacoesCadastro = document.getElementById("btnInformacoesCadastro");
 const modalCadastroCliente = document.getElementById("modalCadastroCliente");
@@ -2426,3 +2426,144 @@ if (modalCadastroCliente) {
 }
 
 window.fecharModalCadastro = fecharModalCadastro;
+
+// ===============================
+// ELEMENTOS
+// ===============================
+const btnHistoricoPedidos = document.getElementById("btnHistoricoPedidos");
+const modalHistoricoPedidos = document.getElementById("modalHistoricoPedidos");
+const containerPedidos = document.getElementById("historicoPedidosBody"); // tbody da tabela
+
+// modalContaCliente já existe em outro lugar
+// const modalContaCliente = document.getElementById("modalContaCliente");
+
+// ===============================
+// FUNÇÃO PARA ABRIR O MODAL E CARREGAR HISTÓRICO
+// ===============================
+async function abrirHistoricoPedidos() {
+  console.log("[DEBUG] abrirHistoricoPedidos chamado");
+
+  if (!modalHistoricoPedidos) return;
+
+  // Fecha modalContaCliente se estiver aberto
+  if (typeof modalContaCliente !== "undefined" && modalContaCliente && !modalContaCliente.classList.contains("hidden")) {
+    modalContaCliente.classList.add("hidden");
+    console.log("[DEBUG] modalContaCliente fechado");
+  }
+
+  // Mostra o modal de histórico
+  modalHistoricoPedidos.classList.remove("hidden");
+  console.log("[DEBUG] modalHistoricoPedidos aberto");
+
+  try {
+    // Verifica se o usuário está logado
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      alert("Você precisa estar logado para ver o histórico.");
+      console.log("[ERROR] Usuário não logado");
+      return;
+    }
+
+    const userEmail = userData.user.email;
+    console.log("[DEBUG] Usuário logado:", userEmail);
+
+    // Busca o nome do cliente na tabela clientes pelo email
+    const { data: clientes, error: clientesError } = await supabase
+      .from("clientes")
+      .select("nome")
+      .eq("email", userEmail)
+      .single();
+
+    if (clientesError) throw clientesError;
+
+    const userNome = clientes?.nome || "";
+    console.log("[DEBUG] Nome do cliente encontrado:", userNome);
+
+    if (!userNome) {
+      containerPedidos.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center text-gray-500 py-4">Nome do cliente não encontrado.</td>
+        </tr>`;
+      console.log("[INFO] Nome do cliente não encontrado na tabela clientes");
+      return;
+    }
+
+    // Pega os pedidos do usuário na tabela 'pedidos' usando o nome
+    const { data: pedidos, error: pedidosError } = await supabase
+      .from("pedidos")
+      .select("numero_pedido, horario_recebido")
+      .ilike("cliente", `%${userNome}%`) // case-insensitive, encontra correspondências parciais
+      .order("horario_recebido", { ascending: false });
+
+    if (pedidosError) throw pedidosError;
+
+    console.log("[DEBUG] Pedidos retornados:", pedidos);
+
+    // Limpa container antes de inserir
+    containerPedidos.innerHTML = "";
+
+    if (!pedidos || pedidos.length === 0) {
+      containerPedidos.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center text-gray-500 py-4">Nenhum pedido encontrado.</td>
+        </tr>`;
+      console.log("[INFO] Nenhum pedido encontrado");
+      return;
+    }
+
+    // Adiciona os pedidos na tabela
+    pedidos.forEach(pedido => {
+      const dataObj = new Date(pedido.horario_recebido);
+      const data = dataObj.toLocaleDateString();
+      const hora = dataObj.toLocaleTimeString();
+
+      const tr = document.createElement("tr");
+      tr.className = "border-b border-gray-200";
+      tr.innerHTML = `
+        <td class="py-2 px-4 text-gray-800 font-semibold">${pedido.numero_pedido}</td>
+        <td class="py-2 px-4 text-gray-700">${data}</td>
+        <td class="py-2 px-4 text-gray-700">${hora}</td>
+      `;
+      containerPedidos.appendChild(tr);
+      console.log("[DEBUG] Pedido adicionado:", pedido.numero_pedido, data, hora);
+    });
+
+  } catch (err) {
+    console.error("[ERROR] Erro ao carregar histórico de pedidos:", err);
+    containerPedidos.innerHTML = `
+      <tr>
+        <td colspan="3" class="text-center text-red-500 py-4">Erro ao carregar pedidos.</td>
+      </tr>`;
+  }
+}
+
+// ===============================
+// FUNÇÃO PARA FECHAR O MODAL
+// ===============================
+function fecharHistoricoPedidos() {
+  if (modalHistoricoPedidos) {
+    modalHistoricoPedidos.classList.add("hidden");
+    console.log("[DEBUG] modalHistoricoPedidos fechado");
+  }
+}
+
+// ===============================
+// EVENTOS
+// ===============================
+// Abrir modal
+if (btnHistoricoPedidos) {
+  btnHistoricoPedidos.addEventListener("click", abrirHistoricoPedidos);
+  console.log("[DEBUG] Evento click para abrirHistoricoPedidos registrado");
+}
+
+// Fechar modal ao clicar fora do conteúdo
+if (modalHistoricoPedidos) {
+  modalHistoricoPedidos.addEventListener("click", (e) => {
+    if (e.target === modalHistoricoPedidos) {
+      fecharHistoricoPedidos();
+    }
+  });
+}
+
+// Torna a função global para onclick do botão fechar no modal
+window.fecharHistoricoPedidos = fecharHistoricoPedidos;

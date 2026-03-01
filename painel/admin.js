@@ -2284,6 +2284,86 @@ async function bloquearCliente(idCliente, statusAtual) {
     modal.classList.add("flex");
   }
 
+ async function atualizarFaturamentoDia() {
+  const cardFaturamento = document.getElementById("cardFaturamentoDia");
+
+  try {
+    // 🔹 Obter data de hoje no formato yyyy-mm-dd
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
+    const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
+
+    // 🔹 Buscar todos os pedidos finalizados do dia
+    const { data: pedidos, error } = await supabase
+      .from("pedidos")
+      .select("total")
+      .eq("status", "Finalizado")
+      .gte("criado_em", dataInicio)
+      .lte("criado_em", dataFim);
+
+    if (error) {
+      console.error("Erro ao buscar pedidos finalizados:", error);
+      cardFaturamento.innerText = "R$ 0,00";
+      return;
+    }
+
+    // 🔹 Somar todos os valores
+    const totalFaturamento = pedidos.reduce((acc, pedido) => {
+      return acc + Number(pedido.total || 0);
+    }, 0);
+
+    // 🔹 Atualizar o campo HTML
+    cardFaturamento.innerText = `R$ ${totalFaturamento.toFixed(2)}`;
+
+  } catch (err) {
+    console.error("Erro ao atualizar faturamento:", err);
+    cardFaturamento.innerText = "R$ 0,00";
+  }
+}
+
+// 🔹 Chamar a função ao carregar a página
+atualizarFaturamentoDia();
+
+async function atualizarPedidosRealizados() {
+  const cardPedidos = document.getElementById("cardPedidosRealizados");
+
+  try {
+    // 🔹 Obter data de hoje no formato yyyy-mm-dd
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
+    const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
+
+    // 🔹 Buscar todos os pedidos finalizados do dia
+    const { data: pedidos, error } = await supabase
+      .from("pedidos")
+      .select("id") // só precisamos contar
+      .eq("status", "Finalizado")
+      .gte("criado_em", dataInicio)
+      .lte("criado_em", dataFim);
+
+    if (error) {
+      console.error("Erro ao buscar pedidos finalizados:", error);
+      cardPedidos.innerText = "0";
+      return;
+    }
+
+    // 🔹 Atualizar o card com a quantidade de pedidos
+    cardPedidos.innerText = pedidos.length;
+
+  } catch (err) {
+    console.error("Erro ao atualizar pedidos realizados:", err);
+    cardPedidos.innerText = "0";
+  }
+}
+
+// 🔹 Chamar a função ao carregar a página
+atualizarPedidosRealizados();
   // =============================
   //     FECHAR MODAL EDITAR
   // =============================

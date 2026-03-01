@@ -2284,86 +2284,86 @@ async function bloquearCliente(idCliente, statusAtual) {
     modal.classList.add("flex");
   }
 
- async function atualizarFaturamentoDia() {
-  const cardFaturamento = document.getElementById("cardFaturamentoDia");
+ document.addEventListener("DOMContentLoaded", () => {
 
-  try {
-    // 🔹 Obter data de hoje no formato yyyy-mm-dd
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-    const dia = String(hoje.getDate()).padStart(2, "0");
-    const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
-    const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
+  async function atualizarFaturamentoDia() {
+    const cardFaturamento = document.getElementById("cardFaturamentoDia");
+    try {
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+      const dia = String(hoje.getDate()).padStart(2, "0");
+      const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
+      const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
 
-    // 🔹 Buscar todos os pedidos finalizados do dia
-    const { data: pedidos, error } = await supabase
-      .from("pedidos")
-      .select("total")
-      .eq("status", "Finalizado")
-      .gte("criado_em", dataInicio)
-      .lte("criado_em", dataFim);
+      const { data: pedidos, error } = await supabase
+        .from("pedidos")
+        .select("total")
+        .eq("status", "Finalizado")
+        .gte("criado_em", dataInicio)
+        .lte("criado_em", dataFim);
 
-    if (error) {
-      console.error("Erro ao buscar pedidos finalizados:", error);
+      if (error) throw error;
+
+      const totalFaturamento = pedidos.reduce((acc, pedido) => acc + Number(pedido.total || 0), 0);
+      cardFaturamento.innerText = `R$ ${totalFaturamento.toFixed(2)}`;
+    } catch (err) {
+      console.error("Erro ao atualizar faturamento:", err);
       cardFaturamento.innerText = "R$ 0,00";
-      return;
     }
-
-    // 🔹 Somar todos os valores
-    const totalFaturamento = pedidos.reduce((acc, pedido) => {
-      return acc + Number(pedido.total || 0);
-    }, 0);
-
-    // 🔹 Atualizar o campo HTML
-    cardFaturamento.innerText = `R$ ${totalFaturamento.toFixed(2)}`;
-
-  } catch (err) {
-    console.error("Erro ao atualizar faturamento:", err);
-    cardFaturamento.innerText = "R$ 0,00";
   }
-}
 
-// 🔹 Chamar a função ao carregar a página
-atualizarFaturamentoDia();
+  async function atualizarPedidosRealizados() {
+    const cardPedidos = document.getElementById("cardPedidosRealizados");
+    try {
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+      const dia = String(hoje.getDate()).padStart(2, "0");
+      const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
+      const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
 
-async function atualizarPedidosRealizados() {
-  const cardPedidos = document.getElementById("cardPedidosRealizados");
+      const { data: pedidos, error } = await supabase
+        .from("pedidos")
+        .select("id")
+        .eq("status", "Finalizado")
+        .gte("criado_em", dataInicio)
+        .lte("criado_em", dataFim);
 
-  try {
-    // 🔹 Obter data de hoje no formato yyyy-mm-dd
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-    const dia = String(hoje.getDate()).padStart(2, "0");
-    const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
-    const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
+      if (error) throw error;
 
-    // 🔹 Buscar todos os pedidos finalizados do dia
-    const { data: pedidos, error } = await supabase
-      .from("pedidos")
-      .select("id") // só precisamos contar
-      .eq("status", "Finalizado")
-      .gte("criado_em", dataInicio)
-      .lte("criado_em", dataFim);
-
-    if (error) {
-      console.error("Erro ao buscar pedidos finalizados:", error);
+      cardPedidos.innerText = pedidos.length;
+    } catch (err) {
+      console.error("Erro ao atualizar pedidos realizados:", err);
       cardPedidos.innerText = "0";
-      return;
     }
-
-    // 🔹 Atualizar o card com a quantidade de pedidos
-    cardPedidos.innerText = pedidos.length;
-
-  } catch (err) {
-    console.error("Erro ao atualizar pedidos realizados:", err);
-    cardPedidos.innerText = "0";
   }
-}
 
-// 🔹 Chamar a função ao carregar a página
-atualizarPedidosRealizados();
+  async function atualizarDashboard() {
+    await Promise.all([atualizarFaturamentoDia(), atualizarPedidosRealizados()]);
+  }
+
+  // Atualiza ao carregar a página
+  atualizarDashboard();
+
+  // 🔹 SUPABASE REALTIME
+  supabase
+    .channel('realtime-pedidos')  // nome do canal
+    .on('postgres_changes', {
+      event: '*',                // pode ser INSERT, UPDATE, DELETE ou '*'
+      schema: 'public',
+      table: 'pedidos'
+    }, payload => {
+      // Só atualiza se for INSERT ou UPDATE de status para Finalizado
+      if (
+        payload.eventType === "INSERT" ||
+        (payload.eventType === "UPDATE" && payload.new.status === "Finalizado")
+      ) {
+        atualizarDashboard();
+      }
+    })
+    .subscribe();
+});
   // =============================
   //     FECHAR MODAL EDITAR
   // =============================
@@ -5115,7 +5115,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const selectPeriodo = document.getElementById("periodoPedidos");
   const selectAnoContainer = document.getElementById("selectAnoContainer");
   const selectAno = document.getElementById("anoPedidos");
-
   const canvas = document.getElementById('graficoPedidos');
   if (!canvas) return console.error("Canvas do gráfico não encontrado!");
   const ctx = canvas.getContext('2d');
@@ -5150,7 +5149,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Preencher anos de 1400 a 3000
+  // Preenche select de anos
   function preencherAnos() {
     const anoAtual = new Date().getFullYear();
     for (let ano = 1400; ano <= 3000; ano++) {
@@ -5163,134 +5162,110 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   preencherAnos();
 
-  // Buscar pedidos finalizados para o gráfico
+  // Buscar pedidos usando horario_recebido
   async function buscarPedidos(periodo, anoSelecionado = null) {
     const hoje = new Date();
-    let labels = [];
-    let dados = [];
+    let labels = [], dados = [];
 
-    if (periodo === 'ano') {
-      const ano = anoSelecionado || hoje.getFullYear();
-      labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-      dados = Array(12).fill(0);
-
-      const inicioAno = new Date(ano,0,1).toISOString();
-      const fimAno = new Date(ano+1,0,1).toISOString();
-
-      const { data: pedidos, error } = await supabase
+    try {
+      let query = supabase
         .from('pedidos')
-        .select('horario_recebido_status,total')
-        .eq('status','Finalizado')
-        .gte('horario_recebido_status', inicioAno)
-        .lt('horario_recebido_status', fimAno);
+        .select('horario_recebido,total')
+        .eq('status', 'Finalizado'); // somente finalizados
 
-      if (!error) {
-        pedidos.forEach(pedido => {
-          const mes = new Date(pedido.horario_recebido_status).getMonth();
-          dados[mes] += parseFloat(pedido.total || 0);
-        });
+      // Determina período
+      let inicio, fim;
+
+      if (periodo === 'ano') {
+        const ano = anoSelecionado || hoje.getFullYear();
+        labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        dados = Array(12).fill(0);
+        inicio = new Date(ano,0,1);
+        fim = new Date(ano+1,0,1);
+
+      } else if (periodo === 'mes') {
+        const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+        labels = Array.from({length:diasNoMes}, (_,i) => i+1);
+        dados = Array(diasNoMes).fill(0);
+        inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1);
+
+      } else if (periodo === 'semana') {
+        const diaSemana = hoje.getDay(); // 0 = domingo
+        const domingo = new Date(hoje);
+        domingo.setDate(hoje.getDate() - diaSemana);
+        labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        dados = Array(7).fill(0);
+        inicio = new Date(domingo.getFullYear(), domingo.getMonth(), domingo.getDate());
+        fim = new Date(domingo.getFullYear(), domingo.getMonth(), domingo.getDate()+7);
+
+      } else if (periodo === 'dia') {
+        labels = Array.from({length:24}, (_,i)=>i+'h');
+        dados = Array(24).fill(0);
+        inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+        fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1);
       }
 
-    } else if (periodo === 'mes') {
-      const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
-      labels = Array.from({length:diasNoMes}, (_,i)=> (i+1).toString());
-      dados = Array(diasNoMes).fill(0);
+      // Aplica filtro de datas usando horario_recebido
+      query = query.gte('horario_recebido', inicio.toISOString())
+                   .lt('horario_recebido', fim.toISOString());
 
-      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
-      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1).toISOString();
+      const { data: pedidos, error } = await query;
 
-      const { data: pedidos, error } = await supabase
-        .from('pedidos')
-        .select('horario_recebido_status,total')
-        .eq('status','Finalizado')
-        .gte('horario_recebido_status', inicioMes)
-        .lt('horario_recebido_status', fimMes);
-
-      if (!error) {
-        pedidos.forEach(pedido => {
-          const dia = new Date(pedido.horario_recebido_status).getDate();
-          dados[dia-1] += parseFloat(pedido.total || 0);
-        });
+      if (error) {
+        console.error("Erro ao buscar pedidos:", error);
+        return { labels, dados };
       }
 
-    } else if (periodo === 'semana') {
-      const diaSemanaHoje = hoje.getDay();
-      const domingo = new Date(hoje);
-      domingo.setDate(hoje.getDate() - diaSemanaHoje);
-      labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-      dados = Array(7).fill(0);
+      console.log("Pedidos retornados:", pedidos);
 
-      const inicioSemana = new Date(domingo.getFullYear(),domingo.getMonth(),domingo.getDate()).toISOString();
-      const fimSemana = new Date(domingo.getFullYear(),domingo.getMonth(),domingo.getDate()+7).toISOString();
+      pedidos.forEach(pedido => {
+        const valor = parseFloat(pedido.total) || 0;
+        const dt = pedido.horario_recebido ? new Date(pedido.horario_recebido) : new Date();
 
-      const { data: pedidos, error } = await supabase
-        .from('pedidos')
-        .select('horario_recebido_status,total')
-        .eq('status','Finalizado')
-        .gte('horario_recebido_status', inicioSemana)
-        .lt('horario_recebido_status', fimSemana);
+        if(periodo==='ano') dados[dt.getMonth()] += valor;
+        else if(periodo==='mes') dados[dt.getDate()-1] += valor;
+        else if(periodo==='semana') dados[dt.getDay()] += valor;
+        else if(periodo==='dia') dados[dt.getHours()] += valor;
+      });
 
-      if (!error) {
-        pedidos.forEach(pedido => {
-          const dia = new Date(pedido.horario_recebido_status).getDay();
-          dados[dia] += parseFloat(pedido.total || 0);
-        });
-      }
-
-    } else if (periodo === 'dia') {
-      labels = Array.from({length:24},(_,i)=>i+'h');
-      dados = Array(24).fill(0);
-
-      const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
-      const fimDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1).toISOString();
-
-      const { data: pedidos, error } = await supabase
-        .from('pedidos')
-        .select('horario_recebido_status,total')
-        .eq('status','Finalizado')
-        .gte('horario_recebido_status', inicioDia)
-        .lt('horario_recebido_status', fimDia);
-
-      if (!error) {
-        pedidos.forEach(pedido => {
-          const hora = new Date(pedido.horario_recebido_status).getHours();
-          dados[hora] += parseFloat(pedido.total || 0);
-        });
-      }
+    } catch(e) {
+      console.error("Erro na função buscarPedidos:", e);
     }
 
     return { labels, dados };
   }
 
-  // Atualizar dashboard
+  // Atualiza dashboard
   async function atualizarDashboard() {
     try {
       const periodo = selectPeriodo?.value || 'ano';
       const anoSelecionado = periodo==='ano'?parseInt(selectAno?.value):new Date().getFullYear();
 
-      if(periodo==='ano') selectAnoContainer.classList.remove('hidden');
-      else selectAnoContainer.classList.add('hidden');
+      if(selectAnoContainer) {
+        if(periodo==='ano') selectAnoContainer.classList.remove('hidden');
+        else selectAnoContainer.classList.add('hidden');
+      }
 
-      // 🔹 Total de pedidos (todos os status, nunca diminui)
-      const { count: totalPedidos } = await supabase
-        .from('pedidos')
-        .select('id', { count:'exact', head:true }); // pega todos os pedidos
+      // Total de pedidos
+      const { count: totalPedidos } = await supabase.from('pedidos').select('id', {count:'exact', head:true});
       totalPedidosEl.textContent = totalPedidos || 0;
 
-      // Buscar e atualizar gráfico com valor total vendido (somente Finalizados)
+      // Total de clientes distintos
+      const { data: clientesData } = await supabase.from('pedidos').select('cliente',{distinct:true});
+      totalClientesEl.textContent = clientesData?.length || 0;
+
+      // Atualizar gráfico
       const { labels, dados } = await buscarPedidos(periodo, anoSelecionado);
       grafico.data.labels = labels;
       grafico.data.datasets[0].data = dados;
       grafico.update();
 
-      // Total de clientes
-      const { count: totalClientes } = await supabase
-        .from('clientes')
-        .select('*',{count:'exact',head:true});
-      totalClientesEl.textContent = totalClientes || 0;
+      console.log("Labels:", labels);
+      console.log("Dados:", dados);
 
-    } catch(err){
-      console.error("Erro ao atualizar dashboard:",err);
+    } catch(e) {
+      console.error("Erro ao atualizar dashboard:", e);
     }
   }
 
@@ -5301,7 +5276,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setInterval(atualizarDashboard, 10000);
 
 });
-
 // grafico de mais vendidos
 document.addEventListener('DOMContentLoaded', () => {
 

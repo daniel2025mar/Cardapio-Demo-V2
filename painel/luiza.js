@@ -129,6 +129,22 @@ const atualizacoes = [
                   "Funçao de carrinho de produtos"
                   
       ]
+    },
+    {
+      id: 8,
+      data: "01/03/2026",
+      descricao: ["Funçao de Cadastro do Usuario",
+                  "Melhorias no cardapio",
+                  "Funçao de envio de pedidos para whatsapp da empresa",
+                  "Funçao Relatorio de Garçom e Entregadores PDF",
+                  "Melhorias no menu de pedidos",
+                  "Funçao Historico de pedidos no cardapio",
+                  "Funçao do Sistema de entregador",
+                  "Funcao Rota de entregas de Pedido",
+                  "Funçao de comprovante por foto sistema entregador",
+                  "Funçao do Sistema Garçom"
+                  
+      ]
     }
 ];
 

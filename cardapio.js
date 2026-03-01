@@ -1124,16 +1124,41 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   botaoCarrinho.addEventListener("click", async () => {
-    const { data, error } = await supabase.auth.getUser();
-    const usuarioLogado = !error && !!data.user;
+  const { data, error } = await supabase.auth.getUser();
+  const usuarioLogado = !error && !!data.user;
 
-    if (!usuarioLogado) {
-      abrirModalLoginNecessario();
-      return;
-    }
+  if (!usuarioLogado) {
+    abrirModalLoginNecessario();
+    return;
+  }
 
-    modal.classList.remove("hidden");
-  });
+  // 🔹 Buscar cliente pelo email logado
+  const emailLogado = data.user.email;
+
+  let { data: cliente, error: errCliente } = await supabase
+    .from("clientes")
+    .select("*")
+    .eq("email", emailLogado)
+    .maybeSingle();
+
+  if (errCliente) {
+    mostrarToast("Erro", "Erro ao verificar cliente.");
+    return;
+  }
+
+  // 🔹 Pré-preencher endereço se existir cliente e não for retirar no local
+  if (cliente && !checkboxRetirarLocal.checked) {
+    const rua = cliente.endereco || "";
+    const numero = cliente.numero || "";
+    const bairro = cliente.bairro || "";
+    const cidade = cliente.cidade || "";
+    const uf = cliente.uf || "";
+    inputEndereco.value = `R. ${rua}, ${numero} - ${bairro}, ${cidade} - ${uf}`;
+  }
+
+  // Abrir modal
+  modal.classList.remove("hidden");
+});
 
   botaoFechar.addEventListener("click", () => {
     modal.classList.add("hidden");
@@ -2465,12 +2490,13 @@ async function abrirHistoricoPedidos() {
     console.log("[DEBUG] Email do usuário logado:", userEmail);
 
     // ===============================
-    // 2️⃣ Busca pedidos diretamente pelo EMAIL
+    // 2️⃣ Busca pedidos finalizados diretamente pelo EMAIL
     // ===============================
     const { data: pedidos, error: pedidosError } = await supabase
       .from("pedidos")
-      .select("numero_pedido, horario_recebido")
-      .eq("email", userEmail) // 🔥 CORREÇÃO AQUI
+      .select("numero_pedido, horario_recebido, status")
+      .eq("email", userEmail)        // filtra pelo email do cliente
+      .eq("status", "Finalizado")    // 🔹 filtra apenas pedidos finalizados
       .order("horario_recebido", { ascending: false });
 
     if (pedidosError) {
@@ -2484,25 +2510,24 @@ async function abrirHistoricoPedidos() {
     containerPedidos.innerHTML = "";
 
     // ===============================
-    // 3️⃣ Se não tiver pedidos
+    // 3️⃣ Se não tiver pedidos finalizados
     // ===============================
     if (!pedidos || pedidos.length === 0) {
       containerPedidos.innerHTML = `
         <tr>
           <td colspan="3" class="text-center text-gray-500 py-4">
-            Nenhum pedido encontrado.
+            Nenhum pedido finalizado encontrado.
           </td>
         </tr>`;
-      console.log("[INFO] Nenhum pedido encontrado para este email");
+      console.log("[INFO] Nenhum pedido finalizado encontrado para este email");
       return;
     }
 
     // ===============================
-    // 4️⃣ Renderiza pedidos na tabela
+    // 4️⃣ Renderiza pedidos finalizados na tabela
     // ===============================
     pedidos.forEach((pedido) => {
       const dataObj = new Date(pedido.horario_recebido);
-
       const data = dataObj.toLocaleDateString("pt-BR");
       const hora = dataObj.toLocaleTimeString("pt-BR");
 
@@ -2510,19 +2535,12 @@ async function abrirHistoricoPedidos() {
       tr.className = "border-b border-gray-200";
 
       tr.innerHTML = `
-        <td class="py-2 px-4 text-gray-800 font-semibold">
-          ${pedido.numero_pedido}
-        </td>
-        <td class="py-2 px-4 text-gray-700">
-          ${data}
-        </td>
-        <td class="py-2 px-4 text-gray-700">
-          ${hora}
-        </td>
+        <td class="py-2 px-4 text-gray-800 font-semibold">${pedido.numero_pedido}</td>
+        <td class="py-2 px-4 text-gray-700">${data}</td>
+        <td class="py-2 px-4 text-gray-700">${hora}</td>
       `;
 
       containerPedidos.appendChild(tr);
-
       console.log("[DEBUG] Pedido renderizado:", pedido.numero_pedido);
     });
 

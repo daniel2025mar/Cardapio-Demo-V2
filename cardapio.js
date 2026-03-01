@@ -2447,10 +2447,82 @@ window.fecharModalCadastro = fecharModalCadastro;
 // ===============================
 const btnHistoricoPedidos = document.getElementById("btnHistoricoPedidos");
 const modalHistoricoPedidos = document.getElementById("modalHistoricoPedidos");
-const containerPedidos = document.getElementById("historicoPedidosBody"); // tbody da tabela
+const containerPedidos = document.getElementById("historicoPedidosBody");
+
+// Elementos do modalProdutos (drawer lateral)
+const modalProdutos = document.getElementById("modalProdutos");
+const modalProdutosContent = document.getElementById("modalProdutosContent");
+const btnFecharProdutos = document.getElementById("fecharModalProdutos");
+const modalListaProdutos = document.getElementById("modalListaProdutos");
+const modalProdutosDataHora = document.getElementById("modalProdutosDataHora");
+
 
 // ===============================
-// FUNÇÃO PARA ABRIR O MODAL E CARREGAR HISTÓRICO
+// FUNÇÕES DE CONTROLE DO DRAWER
+// ===============================
+
+function abrirModalProdutos() {
+  if (!modalProdutos) return;
+
+  modalProdutos.classList.remove("hidden");
+
+  // animação lateral
+  setTimeout(() => {
+    modalProdutosContent.classList.remove("translate-x-full");
+  }, 10);
+}
+
+function fecharModalProdutos() {
+  if (!modalProdutos) return;
+
+  modalProdutosContent.classList.add("translate-x-full");
+
+  setTimeout(() => {
+    modalProdutos.classList.add("hidden");
+  }, 300);
+}
+
+
+// ===============================
+// FUNÇÃO PARA FECHAR HISTÓRICO
+// ===============================
+function fecharHistoricoPedidos() {
+  if (modalHistoricoPedidos) {
+    modalHistoricoPedidos.classList.add("hidden");
+    console.log("[DEBUG] modalHistoricoPedidos fechado");
+  }
+}
+
+
+// ===============================
+// EVENTOS FECHAR
+// ===============================
+
+if (btnFecharProdutos) {
+  btnFecharProdutos.addEventListener("click", fecharModalProdutos);
+}
+
+// fechar clicando no overlay escuro
+if (modalProdutos) {
+  modalProdutos.addEventListener("click", (e) => {
+    if (e.target === modalProdutos) {
+      fecharModalProdutos();
+    }
+  });
+}
+
+// fechar histórico clicando fora
+if (modalHistoricoPedidos) {
+  modalHistoricoPedidos.addEventListener("click", (e) => {
+    if (e.target === modalHistoricoPedidos) {
+      fecharHistoricoPedidos();
+    }
+  });
+}
+
+
+// ===============================
+// FUNÇÃO PARA ABRIR HISTÓRICO
 // ===============================
 async function abrirHistoricoPedidos() {
   console.log("[DEBUG] abrirHistoricoPedidos chamado");
@@ -2470,48 +2542,32 @@ async function abrirHistoricoPedidos() {
     console.log("[DEBUG] modalContaCliente fechado");
   }
 
-  // Mostra o modal
   modalHistoricoPedidos.classList.remove("hidden");
   console.log("[DEBUG] modalHistoricoPedidos aberto");
 
   try {
-    // ===============================
-    // 1️⃣ Verifica se usuário está logado
-    // ===============================
+    // 1️⃣ Verifica usuário
     const { data: userData, error: userError } = await supabase.auth.getUser();
 
     if (userError || !userData?.user) {
       alert("Você precisa estar logado para ver o histórico.");
-      console.log("[ERRO] Usuário não logado");
       return;
     }
 
     const userEmail = userData.user.email;
-    console.log("[DEBUG] Email do usuário logado:", userEmail);
 
-    // ===============================
-    // 2️⃣ Busca pedidos finalizados diretamente pelo EMAIL
-    // ===============================
+    // 2️⃣ Busca pedidos
     const { data: pedidos, error: pedidosError } = await supabase
       .from("pedidos")
       .select("numero_pedido, horario_recebido, status")
-      .eq("email", userEmail)        // filtra pelo email do cliente
-      .eq("status", "Finalizado")    // 🔹 filtra apenas pedidos finalizados
+      .eq("email", userEmail)
+      .eq("status", "Finalizado")
       .order("horario_recebido", { ascending: false });
 
-    if (pedidosError) {
-      console.error("[ERRO] Erro ao buscar pedidos:", pedidosError);
-      throw pedidosError;
-    }
+    if (pedidosError) throw pedidosError;
 
-    console.log("[DEBUG] Pedidos retornados:", pedidos);
-
-    // Limpa tabela antes de inserir
     containerPedidos.innerHTML = "";
 
-    // ===============================
-    // 3️⃣ Se não tiver pedidos finalizados
-    // ===============================
     if (!pedidos || pedidos.length === 0) {
       containerPedidos.innerHTML = `
         <tr>
@@ -2519,33 +2575,105 @@ async function abrirHistoricoPedidos() {
             Nenhum pedido finalizado encontrado.
           </td>
         </tr>`;
-      console.log("[INFO] Nenhum pedido finalizado encontrado para este email");
       return;
     }
 
-    // ===============================
-    // 4️⃣ Renderiza pedidos finalizados na tabela
-    // ===============================
+    // 4️⃣ Renderiza pedidos
     pedidos.forEach((pedido) => {
       const dataObj = new Date(pedido.horario_recebido);
       const data = dataObj.toLocaleDateString("pt-BR");
       const hora = dataObj.toLocaleTimeString("pt-BR");
 
       const tr = document.createElement("tr");
-      tr.className = "border-b border-gray-200";
+      tr.className =
+        "border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition";
 
       tr.innerHTML = `
-        <td class="py-2 px-4 text-gray-800 font-semibold">${pedido.numero_pedido}</td>
+        <td class="py-2 px-4 text-gray-800 font-semibold">
+          ${pedido.numero_pedido}
+        </td>
         <td class="py-2 px-4 text-gray-700">${data}</td>
         <td class="py-2 px-4 text-gray-700">${hora}</td>
       `;
 
+      // ===============================
+      // CLICK → ABRIR DRAWER PRODUTOS
+      // ===============================
+      tr.addEventListener("click", async () => {
+
+        const { data: pedidoCompleto } = await supabase
+          .from("pedidos")
+          .select("*")
+          .eq("numero_pedido", pedido.numero_pedido)
+          .single();
+
+        if (!pedidoCompleto) return;
+
+        // Data e hora
+        if (pedidoCompleto.horario_recebido) {
+          const d = new Date(pedidoCompleto.horario_recebido);
+          modalProdutosDataHora.textContent =
+            d.toLocaleDateString("pt-BR") +
+            " " +
+            d.toLocaleTimeString("pt-BR");
+        } else {
+          modalProdutosDataHora.textContent = "—";
+        }
+
+        // Itens
+        modalListaProdutos.innerHTML = "";
+        let itens = [];
+
+        try {
+          if (typeof pedidoCompleto.itens === "string") {
+            itens = JSON.parse(pedidoCompleto.itens);
+          } else if (Array.isArray(pedidoCompleto.itens)) {
+            itens = pedidoCompleto.itens;
+          } else if (
+            pedidoCompleto.itens &&
+            typeof pedidoCompleto.itens === "object"
+          ) {
+            itens = [pedidoCompleto.itens];
+          }
+        } catch (e) {
+          console.error("Erro ao interpretar itens:", e);
+        }
+
+        itens.forEach((item) => {
+          const li = document.createElement("li");
+          li.className =
+            "bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center";
+
+          li.innerHTML = `
+            <div>
+              <p class="font-semibold text-gray-800">
+                ${item.descricao || "Produto"}
+              </p>
+              <p class="text-xs text-gray-500">
+                Quantidade: ${item.quantidade || 1}
+              </p>
+            </div>
+            <span class="font-bold text-gray-900">
+              R$ ${
+                item.total
+                  ? parseFloat(item.total).toFixed(2)
+                  : "0.00"
+              }
+            </span>
+          `;
+
+          modalListaProdutos.appendChild(li);
+        });
+
+        fecharHistoricoPedidos();
+        abrirModalProdutos();
+      });
+
       containerPedidos.appendChild(tr);
-      console.log("[DEBUG] Pedido renderizado:", pedido.numero_pedido);
     });
 
   } catch (err) {
-    console.error("[ERRO] Erro ao carregar histórico de pedidos:", err);
+    console.error("[ERRO] Erro ao carregar histórico:", err);
 
     containerPedidos.innerHTML = `
       <tr>
@@ -2556,36 +2684,10 @@ async function abrirHistoricoPedidos() {
   }
 }
 
-// ===============================
-// FUNÇÃO PARA FECHAR O MODAL
-// ===============================
-function fecharHistoricoPedidos() {
-  if (modalHistoricoPedidos) {
-    modalHistoricoPedidos.classList.add("hidden");
-    console.log("[DEBUG] modalHistoricoPedidos fechado");
-  }
-}
 
 // ===============================
-// EVENTOS
+// EVENTO ABRIR HISTÓRICO
 // ===============================
-
-// Abrir modal
 if (btnHistoricoPedidos) {
   btnHistoricoPedidos.addEventListener("click", abrirHistoricoPedidos);
-  console.log("[DEBUG] Evento click para abrirHistoricoPedidos registrado");
-} else {
-  console.log("[ERRO] btnHistoricoPedidos não encontrado");
 }
-
-// Fechar modal ao clicar fora do conteúdo
-if (modalHistoricoPedidos) {
-  modalHistoricoPedidos.addEventListener("click", (e) => {
-    if (e.target === modalHistoricoPedidos) {
-      fecharHistoricoPedidos();
-    }
-  });
-}
-
-// Torna a função global para onclick do botão fechar no modal
-window.fecharHistoricoPedidos = fecharHistoricoPedidos;

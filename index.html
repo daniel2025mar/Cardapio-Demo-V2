@@ -568,6 +568,84 @@
   </div>
 </div>
 
+<!-- Modal Produtos do Pedido - Layout Lateral -->
+<div id="modalProdutos" class="fixed inset-0 hidden z-50">
+  
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
+  
+  <!-- Painel lateral -->
+  <div class="absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out"
+       id="modalProdutosContent">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between p-5 border-b bg-gradient-to-r from-red-900 to-red-700 text-white">
+      <div>
+        <h3 class="text-lg font-semibold">Detalhes do Pedido</h3>
+        <p id="modalProdutosDataHora" class="text-xs opacity-80">—</p>
+      </div>
+
+      <button id="fecharModalProdutos"
+              class="text-white text-2xl font-light hover:opacity-70 transition">
+        &times;
+      </button>
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="p-5 overflow-y-auto h-[calc(100%-80px)] bg-gray-50">
+      
+      <ul id="modalListaProdutos" class="space-y-4">
+        <!-- Itens serão inseridos via JS -->
+        
+        <!-- Exemplo visual de item -->
+        <!--
+        <li class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center">
+          <div>
+            <p class="font-semibold text-gray-800">Cheese Pickles</p>
+            <p class="text-xs text-gray-500">Quantidade: 1</p>
+          </div>
+          <span class="font-bold text-gray-900">R$ 20,60</span>
+        </li>
+        -->
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<!-- Animação e estilo extra -->
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Scrollbar moderna */
+  #modalListaProdutos::-webkit-scrollbar {
+    width: 6px;
+  }
+  #modalListaProdutos::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.6);
+    border-radius: 3px;
+  }
+  #modalListaProdutos::-webkit-scrollbar-track {
+    background-color: rgba(229, 231, 235, 0.3);
+    border-radius: 3px;
+  }
+
+  /* Hover nos itens da lista */
+  #modalListaProdutos li {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #modalListaProdutos li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+</style>
 <!-- MODAL MAPA -->
 <div id="modalMapa" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden p-4">
 

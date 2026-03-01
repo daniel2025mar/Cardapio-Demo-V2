@@ -1282,6 +1282,7 @@ async function carregarPedidos() {
   });
 }
 
+
 // =============================
 //   ABRIR DETALHES DO PEDIDO
 // =============================

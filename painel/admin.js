@@ -2199,90 +2199,165 @@ async function bloquearCliente(idCliente, statusAtual) {
 }
 
 
+// =============================
+//     VALIDAÇÃO CPF
+// =============================
+
+function validarCPF(cpf) {
+  cpf = cpf.replace(/\D/g, "");
+
+  if (cpf.length !== 11) return false;
+  if (/^(\d)\1+$/.test(cpf)) return false;
+
+  let soma = 0;
+  let resto;
+
+  for (let i = 1; i <= 9; i++)
+    soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
+
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+  if (resto !== parseInt(cpf.substring(9, 10))) return false;
+
+  soma = 0;
+  for (let i = 1; i <= 10; i++)
+    soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
+
+  resto = (soma * 10) % 11;
+  if (resto === 10 || resto === 11) resto = 0;
+
+  return resto === parseInt(cpf.substring(10, 11));
+}
+
+// Máscara automática
+const inputCPF = document.getElementById("edit-cpf");
+
+inputCPF.addEventListener("input", (e) => {
+  let value = e.target.value.replace(/\D/g, "");
+
+  if (value.length > 11) value = value.slice(0, 11);
+
+  value = value
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+  e.target.value = value;
+});
   // =============================
   //     ABRIR MODAL EDITAR
   // =============================
   async function editarCliente(id) {
-    console.log("Abrindo edição para cliente:", id);
+  console.log("Abrindo edição para cliente:", id);
 
-    const { data: cliente, error } = await supabase
-      .from("clientes")
-      .select("*")
-      .eq("id", id)
-      .single();
+  // Busca os dados do cliente no Supabase
+  const { data: cliente, error } = await supabase
+    .from("clientes")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-    if (error || !cliente) {
-      console.error("Erro ao carregar cliente:", error);
-      alert("Erro ao carregar dados do cliente.");
-      return;
+  if (error || !cliente) {
+    console.error("Erro ao carregar cliente:", error);
+    alert("Erro ao carregar dados do cliente.");
+    return;
+  }
+
+  // Campos do modal
+  const inputId = document.getElementById("edit-id");
+  const inputNome = document.getElementById("edit-nome");
+  const inputTelefone = document.getElementById("edit-telefone");
+  const inputCPF = document.getElementById("edit-cpf");
+  const inputEndereco = document.getElementById("edit-endereco");
+  const inputNumero = document.getElementById("edit-numero");
+  const inputBairro = document.getElementById("edit-bairro");
+  const selectCidade = document.getElementById("edit-cidade");
+  const selectUP = document.getElementById("edit-up");
+  const btnSalvar = document.getElementById("btn-salvar-edicao");
+
+  // Preenche os campos com os valores do cliente
+  inputId.value = cliente.id || "";
+  inputNome.value = cliente.nome || "";
+  inputTelefone.value = cliente.telefone || "";
+  inputCPF.value = cliente.cpf || "";
+  inputEndereco.value = cliente.endereco || "";
+  inputNumero.value = cliente.numero || "";
+  inputBairro.value = cliente.bairro || "";
+
+  // =============================
+  // Preenche UF (edit-up) e Cidade (edit-cidade)
+  // =============================
+  await carregarEstadosEditar(); // Função que carrega todas as UP no select
+
+  // Determinar o estado/UF
+  let estadoId = null;
+  if (cliente.uf && /^\d+$/.test(String(cliente.uf))) {
+    estadoId = Number(cliente.uf);
+  } else if (cliente.uf && isNaN(cliente.uf)) {
+    estadoId = await buscarEstadoIdPorSigla(cliente.uf); // converte sigla para ID do select
+  }
+
+  if (estadoId) {
+    selectUP.value = estadoId; // Seleciona o estado correto
+    await carregarCidadesPorEstadoEditar(estadoId); // Carrega cidades correspondentes
+
+    if (cliente.cidade) {
+      selectCidade.value = cliente.cidade; // Seleciona a cidade correta
     }
+  } else {
+    selectUP.value = "";
+    selectCidade.value = "";
+    document.getElementById("lista-cidades").innerHTML = '';
+  }
 
-    const inputId = document.getElementById("edit-id");
-    const inputNome = document.getElementById("edit-nome");
-    const inputTelefone = document.getElementById("edit-telefone");
-    const selectUP = document.getElementById("edit-up");
-    const selectCidade = document.getElementById("edit-cidade");
-    const btnSalvar = document.getElementById("btn-salvar-edicao");
+  // =============================
+  // BLOQUEAR BOTÃO SALVAR ATÉ ALTERAÇÃO
+  // =============================
+  const valoresOriginais = {
+    nome: inputNome.value,
+    telefone: inputTelefone.value,
+    cpf: inputCPF.value,
+    endereco: inputEndereco.value,
+    numero: inputNumero.value,
+    bairro: inputBairro.value,
+    up: selectUP.value,
+    cidade: selectCidade.value
+  };
 
-    inputId.value = cliente.id;
-    inputNome.value = cliente.nome || "";
-    inputTelefone.value = cliente.telefone || "";
+  function verificarAlteracoes() {
+    const alterado =
+      inputNome.value !== valoresOriginais.nome ||
+      inputTelefone.value !== valoresOriginais.telefone ||
+      inputCPF.value !== valoresOriginais.cpf ||
+      inputEndereco.value !== valoresOriginais.endereco ||
+      inputNumero.value !== valoresOriginais.numero ||
+      inputBairro.value !== valoresOriginais.bairro ||
+      selectUP.value !== valoresOriginais.up ||
+      selectCidade.value !== valoresOriginais.cidade;
 
-    // Carregar estados (sua função existente)
-    await carregarEstadosEditar();
-
-    let estadoId = null;
-    if (cliente.up && /^\d+$/.test(String(cliente.up))) {
-      estadoId = Number(cliente.up);
-    } else if (cliente.up && isNaN(cliente.up)) {
-      estadoId = await buscarEstadoIdPorSigla(cliente.up);
-    }
-
-    if (estadoId) {
-      selectUP.value = estadoId;
-      await carregarCidadesPorEstadoEditar(estadoId);
-      if (cliente.cidade) selectCidade.value = cliente.cidade;
+    btnSalvar.disabled = !alterado;
+    if (alterado) {
+      btnSalvar.classList.remove("opacity-50", "pointer-events-none");
     } else {
-      selectUP.value = "";
-      selectCidade.value = "";
-      document.getElementById("lista-cidades").innerHTML = '';
+      btnSalvar.classList.add("opacity-50", "pointer-events-none");
     }
+  }
 
-    // =============================
-    //     BLOQUEAR BOTÃO SALVAR ATÉ ALTERAÇÃO
-    // =============================
-    const valoresOriginais = {
-      nome: inputNome.value,
-      telefone: inputTelefone.value,
-      up: selectUP.value,
-      cidade: selectCidade.value
-    };
+  [inputNome, inputTelefone, inputCPF, inputEndereco, inputNumero, inputBairro, selectUP, selectCidade].forEach(el => {
+    el.addEventListener("input", verificarAlteracoes);
+    el.addEventListener("change", verificarAlteracoes);
+  });
 
-    function verificarAlteracoes() {
-      const alterado =
-        inputNome.value !== valoresOriginais.nome ||
-        inputTelefone.value !== valoresOriginais.telefone ||
-        selectUP.value !== valoresOriginais.up ||
-        selectCidade.value !== valoresOriginais.cidade;
-
-      btnSalvar.disabled = !alterado;
-      if (alterado) {
-        btnSalvar.classList.remove("opacity-50", "pointer-events-none");
-      } else {
-        btnSalvar.classList.add("opacity-50", "pointer-events-none");
-      }
-    }
-
-    [inputNome, inputTelefone, selectUP, selectCidade].forEach(el => {
-      el.addEventListener("input", verificarAlteracoes);
-      el.addEventListener("change", verificarAlteracoes);
-    });
-
-    // Abrir modal
-    const modal = document.getElementById("modal-editar-cliente");
+  // Abrir modal
+  const modal = document.getElementById("modal-editar-cliente");
+  if (modal) {
+    console.log("Campos preenchidos, abrindo modal...");
     modal.classList.remove("hidden");
     modal.classList.add("flex");
+  } else {
+    console.error("Modal não encontrado no DOM!");
   }
+}
 
  document.addEventListener("DOMContentLoaded", () => {
 
@@ -2376,42 +2451,118 @@ async function bloquearCliente(idCliente, statusAtual) {
   document.getElementById("fechar-modal-editar").addEventListener("click", fecharModalEditar);
   document.getElementById("cancelar-edicao").addEventListener("click", fecharModalEditar);
 
+  function abrirModalErro(mensagem) {
+  const modal = document.getElementById("modal-erro");
+  const texto = document.getElementById("mensagem-erro");
+
+  texto.innerText = mensagem;
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function fecharModalErro() {
+  const modal = document.getElementById("modal-erro");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+document
+  .getElementById("fechar-modal-erro")
+  .addEventListener("click", fecharModalErro);
 // =============================
 //     SALVAR ALTERAÇÕES
 // =============================
-document.getElementById("form-editar-cliente").addEventListener("submit", async (e) => {
-  e.preventDefault();
+document.getElementById("form-editar-cliente")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const id = document.getElementById("edit-id").value;
+    const id = Number(document.getElementById("edit-id").value);
 
-  const telefoneFormatado = aplicarMascaraTelefone(
-    document.getElementById("edit-telefone").value
-  );
+    if (!id) {
+      abrirModalErro("ID do cliente inválido!");
+      return;
+    }
 
-  const dadosAtualizados = {
-    nome: document.getElementById("edit-nome").value.trim(),
-    telefone: telefoneFormatado,
-    cidade: document.getElementById("edit-cidade").value.trim(),
-    up: document.getElementById("edit-up").value.trim(), // sempre ID
-  };
+    const cpfDigitado = document.getElementById("edit-cpf").value.trim();
+    const cpfNumeros = cpfDigitado.replace(/\D/g, ""); // remove máscara
 
-  console.log("Salvando alterações do cliente:", dadosAtualizados);
+    // =============================
+    // 🔥 CPF INCOMPLETO
+    // =============================
+    if (cpfDigitado && cpfNumeros.length < 11) {
+      document.getElementById("edit-cpf").classList.add("border-red-500");
+      abrirModalErro("CPF incompleto. Está faltando dígitos.");
+      return;
+    }
 
-  const { error } = await supabase
-    .from("clientes")
-    .update(dadosAtualizados)
-    .eq("id", id);
+    // =============================
+    // 🔥 CPF INVÁLIDO (ALGORITMO)
+    // =============================
+    if (cpfDigitado && !validarCPF(cpfDigitado)) {
+      document.getElementById("edit-cpf").classList.add("border-red-500");
+      abrirModalErro("CPF inválido! Verifique o número digitado.");
+      return;
+    } else {
+      document.getElementById("edit-cpf").classList.remove("border-red-500");
+    }
 
-  if (error) {
-    console.error("Erro ao atualizar cliente:", error);
-    mostrarToast("Erro ao salvar alterações!", "bg-red-600");
-    return;
-  }
+    // =============================
+    // 🔥 VERIFICAR CPF DUPLICADO
+    // =============================
+    if (cpfDigitado) {
+      const { data: cpfExistente, error: erroCpf } = await supabase
+        .from("clientes")
+        .select("id")
+        .eq("cpf", cpfDigitado)
+        .neq("id", id);
 
-  fecharModalEditar();
-  carregarClientes();
-  mostrarToast("Cliente atualizado com sucesso!", "bg-green-600");
-});
+      if (erroCpf) {
+        abrirModalErro("Erro ao verificar CPF no banco.");
+        return;
+      }
+
+      if (cpfExistente && cpfExistente.length > 0) {
+        abrirModalErro("Este CPF já está cadastrado para outro cliente.");
+        return;
+      }
+    }
+
+    const telefoneFormatado = aplicarMascaraTelefone(
+      document.getElementById("edit-telefone").value
+    );
+
+    const dadosAtualizados = {
+      nome: document.getElementById("edit-nome").value.trim() || null,
+      telefone: telefoneFormatado || null,
+      cpf: cpfDigitado || null,
+      endereco: document.getElementById("edit-endereco").value.trim() || null,
+      numero: document.getElementById("edit-numero").value.trim() || null,
+      bairro: document.getElementById("edit-bairro").value.trim() || null,
+      cidade: document.getElementById("edit-cidade").value.trim() || null,
+      up: document.getElementById("edit-up").value
+        ? Number(document.getElementById("edit-up").value)
+        : null,
+    };
+
+    const { data, error } = await supabase
+      .from("clientes")
+      .update(dadosAtualizados)
+      .eq("id", id)
+      .select();
+
+    if (error) {
+      abrirModalErro("Erro ao salvar no banco de dados.");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      abrirModalErro("Nenhum cliente foi atualizado.");
+      return;
+    }
+
+    fecharModalEditar();
+    carregarClientes();
+  });
 
 // =============================
 //     🔥 CARREGAR ESTADOS

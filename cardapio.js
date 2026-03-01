@@ -2257,6 +2257,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     .subscribe();
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const modalErro = document.getElementById("modal-erro");
+  const btnFechar = document.getElementById("fechar-modal-erro");
+  const mensagemErro = document.getElementById("mensagem-erro");
+
+  function abrirModalErro(msg) {
+    mensagemErro.textContent = msg;
+    modalErro.classList.remove("hidden");
+    modalErro.classList.add("flex");
+  }
+
+  btnFechar.addEventListener("click", () => {
+    modalErro.classList.add("hidden");
+    modalErro.classList.remove("flex");
+  });
+
+  modalErro.addEventListener("click", (e) => {
+    if (e.target === modalErro) {
+      modalErro.classList.add("hidden");
+      modalErro.classList.remove("flex");
+    }
+  });
+
+  // Exemplo de uso:
+  // abrirModalErro("Ocorreu um erro!");
+});
 // ===============================
 // ELEMENTOS CADASTRO DO USUARIO
 // ===============================
@@ -2266,13 +2292,12 @@ const modalContaCliente = document.getElementById("modalContaCliente"); // modal
 const formCadastroCliente = document.getElementById("formCadastroCliente");
 const btnCadastrar = formCadastroCliente?.querySelector('button[type="submit"]');
 
+
 // ===============================
 // VARIÁVEL PARA GUARDAR OS VALORES ORIGINAIS
 // ===============================
 let valoresOriginais = {};
 
-// ===============================
-// FUNÇÃO PARA ABRIR O MODAL DE CADASTRO E CARREGAR DADOS
 // ===============================
 async function abrirInformacoesCadastro() {
   if (!modalCadastroCliente) return;
@@ -2280,17 +2305,19 @@ async function abrirInformacoesCadastro() {
   // Abre o modal
   modalCadastroCliente.classList.remove("hidden");
 
-  // Fechar modal da conta se estiver aberto
+  // Fecha modal da conta se estiver aberto
   if (modalContaCliente && !modalContaCliente.classList.contains("hidden")) {
     modalContaCliente.classList.add("hidden");
   }
 
   try {
+    // Busca usuário logado
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData?.user) return;
 
     const userEmail = userData.user.email;
 
+    // Busca cliente pelo email
     const { data: cliente, error: clienteError } = await supabase
       .from("clientes")
       .select("*")
@@ -2302,6 +2329,7 @@ async function abrirInformacoesCadastro() {
       return;
     }
 
+    // Preenche os campos
     if (cliente) {
       document.getElementById("nomeCliente").value = cliente.nome || "";
       document.getElementById("cpfCliente").value = cliente.cpf || "";
@@ -2327,17 +2355,82 @@ async function abrirInformacoesCadastro() {
       valoresOriginais = {};
     }
 
-    // Desabilita o botão e muda a cor para cinza
+    // ===============================
+    // DESABILITA BOTÃO CASO CPF INVÁLIDO
+    // ===============================
     if (btnCadastrar) {
       btnCadastrar.disabled = true;
       btnCadastrar.classList.add("bg-gray-400", "cursor-not-allowed");
       btnCadastrar.classList.remove("bg-red-600", "hover:bg-red-700");
     }
 
+    // ===============================
+    // MÁSCARA CPF E VALIDAÇÃO
+    // ===============================
+    const cpfInput = document.getElementById("cpfCliente");
+    const mensagemErroCPF = document.getElementById("mensagem-erro-cpf"); // Span abaixo do input
+
+    function validarCPF(cpf) {
+      cpf = cpf.replace(/\D/g, "");
+      if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+      let soma = 0;
+      for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+      let resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+      if (resto !== parseInt(cpf[9])) return false;
+
+      soma = 0;
+      for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+      resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+      if (resto !== parseInt(cpf[10])) return false;
+
+      return true;
+    }
+
+    if (cpfInput) {
+      cpfInput.addEventListener("input", () => {
+        let valor = cpfInput.value.replace(/\D/g, ""); // Remove tudo que não é número
+        if (valor.length > 11) valor = valor.slice(0, 11); // Limita a 11 números
+        if (valor.length > 3) valor = valor.replace(/^(\d{3})(\d)/, "$1.$2");
+        if (valor.length > 6) valor = valor.replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
+        if (valor.length > 9) valor = valor.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+        cpfInput.value = valor;
+
+        // Ativa/desativa botão
+        const cpfNumeros = valor.replace(/\D/g, "");
+        if (cpfNumeros.length === 11 && validarCPF(valor)) {
+          btnCadastrar.disabled = false;
+          btnCadastrar.classList.remove("bg-gray-400", "cursor-not-allowed");
+          btnCadastrar.classList.add("bg-red-600", "hover:bg-red-700");
+          if (mensagemErroCPF) mensagemErroCPF.textContent = "";
+        } else {
+          btnCadastrar.disabled = true;
+          btnCadastrar.classList.add("bg-gray-400", "cursor-not-allowed");
+          btnCadastrar.classList.remove("bg-red-600", "hover:bg-red-700");
+          if (mensagemErroCPF) mensagemErroCPF.textContent = "CPF inválido ou incompleto";
+        }
+      });
+
+      // Validação ao sair do campo
+      cpfInput.addEventListener("blur", () => {
+        const cpfNumeros = cpfInput.value.replace(/\D/g, "");
+        if (cpfNumeros.length < 11 || !validarCPF(cpfInput.value)) {
+          if (mensagemErroCPF) {
+            mensagemErroCPF.textContent = "CPF inválido! Verifique o número digitado.";
+          }
+        } else {
+          if (mensagemErroCPF) mensagemErroCPF.textContent = "";
+        }
+      });
+    }
+
   } catch (err) {
     console.error("Erro ao carregar dados do cliente:", err);
   }
 }
+
 
 // ===============================
 // FUNÇÃO PARA CHECAR SE HOUVE ALTERAÇÃO

@@ -5162,118 +5162,136 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   preencherAnos();
 
-  // Buscar pedidos usando horario_recebido
+  // Função para buscar pedidos por período
   async function buscarPedidos(periodo, anoSelecionado = null) {
     const hoje = new Date();
     let labels = [], dados = [];
+    let inicio, fim;
+
+    if (periodo === 'ano') {
+      const ano = anoSelecionado || hoje.getFullYear();
+      labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      dados = Array(12).fill(0);
+      inicio = new Date(ano,0,1);
+      fim = new Date(ano+1,0,1);
+    } else if (periodo === 'mes') {
+      const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+      labels = Array.from({length:diasNoMes}, (_,i) => i+1);
+      dados = Array(diasNoMes).fill(0);
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1);
+    } else if (periodo === 'semana') {
+      const diaSemana = hoje.getDay();
+      const domingo = new Date(hoje);
+      domingo.setDate(hoje.getDate() - diaSemana);
+      labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      dados = Array(7).fill(0);
+      inicio = new Date(domingo.getFullYear(), domingo.getMonth(), domingo.getDate());
+      fim = new Date(domingo.getFullYear(), domingo.getMonth(), domingo.getDate()+7);
+    } else if (periodo === 'dia') {
+      labels = Array.from({length:24}, (_,i)=>i+'h');
+      dados = Array(24).fill(0);
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+      fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1);
+    }
 
     try {
-      let query = supabase
+      const { data: pedidos, error } = await supabase
         .from('pedidos')
         .select('horario_recebido,total')
-        .eq('status', 'Finalizado'); // somente finalizados
+        .eq('status','Finalizado')
+        .gte('horario_recebido', inicio.toISOString())
+        .lt('horario_recebido', fim.toISOString());
 
-      // Determina período
-      let inicio, fim;
-
-      if (periodo === 'ano') {
-        const ano = anoSelecionado || hoje.getFullYear();
-        labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        dados = Array(12).fill(0);
-        inicio = new Date(ano,0,1);
-        fim = new Date(ano+1,0,1);
-
-      } else if (periodo === 'mes') {
-        const diasNoMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
-        labels = Array.from({length:diasNoMes}, (_,i) => i+1);
-        dados = Array(diasNoMes).fill(0);
-        inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1);
-
-      } else if (periodo === 'semana') {
-        const diaSemana = hoje.getDay(); // 0 = domingo
-        const domingo = new Date(hoje);
-        domingo.setDate(hoje.getDate() - diaSemana);
-        labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        dados = Array(7).fill(0);
-        inicio = new Date(domingo.getFullYear(), domingo.getMonth(), domingo.getDate());
-        fim = new Date(domingo.getFullYear(), domingo.getMonth(), domingo.getDate()+7);
-
-      } else if (periodo === 'dia') {
-        labels = Array.from({length:24}, (_,i)=>i+'h');
-        dados = Array(24).fill(0);
-        inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-        fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1);
-      }
-
-      // Aplica filtro de datas usando horario_recebido
-      query = query.gte('horario_recebido', inicio.toISOString())
-                   .lt('horario_recebido', fim.toISOString());
-
-      const { data: pedidos, error } = await query;
-
-      if (error) {
+      if(error){
         console.error("Erro ao buscar pedidos:", error);
         return { labels, dados };
       }
 
-      console.log("Pedidos retornados:", pedidos);
-
       pedidos.forEach(pedido => {
         const valor = parseFloat(pedido.total) || 0;
         const dt = pedido.horario_recebido ? new Date(pedido.horario_recebido) : new Date();
-
         if(periodo==='ano') dados[dt.getMonth()] += valor;
         else if(periodo==='mes') dados[dt.getDate()-1] += valor;
         else if(periodo==='semana') dados[dt.getDay()] += valor;
         else if(periodo==='dia') dados[dt.getHours()] += valor;
       });
 
-    } catch(e) {
+    } catch(e){
       console.error("Erro na função buscarPedidos:", e);
     }
 
     return { labels, dados };
   }
 
-  // Atualiza dashboard
+  // Função para atualizar total de clientes de forma confiável
+  async function atualizarTotalClientes() {
+    try {
+      // Contar clientes diretamente da tabela clientes
+      const { count, error } = await supabase
+        .from('clientes')
+        .select('id', { count: 'exact', head: true });
+
+      if(error) return console.error("Erro ao buscar clientes:", error.message);
+      totalClientesEl.textContent = count || 0;
+
+    } catch(err){
+      console.error("Erro inesperado ao atualizar clientes:", err);
+    }
+  }
+
+  // Atualiza dashboard completo
   async function atualizarDashboard() {
     try {
       const periodo = selectPeriodo?.value || 'ano';
       const anoSelecionado = periodo==='ano'?parseInt(selectAno?.value):new Date().getFullYear();
 
-      if(selectAnoContainer) {
+      if(selectAnoContainer){
         if(periodo==='ano') selectAnoContainer.classList.remove('hidden');
         else selectAnoContainer.classList.add('hidden');
       }
 
       // Total de pedidos
-      const { count: totalPedidos } = await supabase.from('pedidos').select('id', {count:'exact', head:true});
+      const { count: totalPedidos } = await supabase
+        .from('pedidos')
+        .select('id', {count:'exact', head:true});
       totalPedidosEl.textContent = totalPedidos || 0;
 
-      // Total de clientes distintos
-      const { data: clientesData } = await supabase.from('pedidos').select('cliente',{distinct:true});
-      totalClientesEl.textContent = clientesData?.length || 0;
+      // Total clientes (chama função segura)
+      await atualizarTotalClientes();
 
-      // Atualizar gráfico
+      // Atualiza gráfico
       const { labels, dados } = await buscarPedidos(periodo, anoSelecionado);
       grafico.data.labels = labels;
       grafico.data.datasets[0].data = dados;
       grafico.update();
 
-      console.log("Labels:", labels);
-      console.log("Dados:", dados);
-
-    } catch(e) {
+    } catch(e){
       console.error("Erro ao atualizar dashboard:", e);
     }
   }
 
+  // Listeners
   selectPeriodo?.addEventListener('change', atualizarDashboard);
   selectAno?.addEventListener('change', atualizarDashboard);
 
+  // Atualização inicial
   atualizarDashboard();
-  setInterval(atualizarDashboard, 10000);
+
+  // Atualização em tempo real usando Realtime (opcional)
+  supabase
+    .from('pedidos')
+    .on('INSERT', atualizarDashboard)
+    .on('UPDATE', atualizarDashboard)
+    .on('DELETE', atualizarDashboard)
+    .subscribe();
+
+  supabase
+    .from('clientes')
+    .on('INSERT', atualizarDashboard)
+    .on('UPDATE', atualizarDashboard)
+    .on('DELETE', atualizarDashboard)
+    .subscribe();
 
 });
 // grafico de mais vendidos

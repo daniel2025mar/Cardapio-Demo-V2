@@ -2359,12 +2359,14 @@ inputCPF.addEventListener("input", (e) => {
   }
 }
 
- document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
 
+  // ===============================
+  // INÍCIO E FIM DO DIA (UTC)
+  // ===============================
   function getDatasHojeUTC() {
     const agora = new Date();
 
-    // Início do dia local
     const inicioLocal = new Date(
       agora.getFullYear(),
       agora.getMonth(),
@@ -2372,7 +2374,6 @@ inputCPF.addEventListener("input", (e) => {
       0, 0, 0, 0
     );
 
-    // Fim do dia local
     const fimLocal = new Date(
       agora.getFullYear(),
       agora.getMonth(),
@@ -2386,87 +2387,90 @@ inputCPF.addEventListener("input", (e) => {
     };
   }
 
+  // ===============================
+  // ATUALIZA FATURAMENTO
+  // ===============================
   async function atualizarFaturamentoDia() {
-    const cardFaturamento = document.getElementById("cardFaturamentoDia");
+    const { dataInicio, dataFim } = getDatasHojeUTC();
 
-    try {
-      const { dataInicio, dataFim } = getDatasHojeUTC();
+    const { data, error } = await supabase
+      .from("pedidos")
+      .select("total")
+      .eq("status", "Finalizado")
+      .gte("criado_em", dataInicio)
+      .lte("criado_em", dataFim);
 
-      const { data, error } = await supabase
-        .from("pedidos")
-        .select("total")
-        .ilike("status", "Finalizado")
-        .gte("criado_em", dataInicio)
-        .lte("criado_em", dataFim);
-
-      if (error) throw error;
-
-      const totalFaturamento = data.reduce(
-        (acc, pedido) => acc + Number(pedido.total || 0),
-        0
-      );
-
-      cardFaturamento.innerText = `R$ ${totalFaturamento.toFixed(2)}`;
-
-    } catch (err) {
-      console.error("Erro ao atualizar faturamento:", err);
-      cardFaturamento.innerText = "R$ 0,00";
+    if (error) {
+      console.error("Erro faturamento:", error.message);
+      return;
     }
+
+    const total = data.reduce(
+      (acc, pedido) => acc + Number(pedido.total || 0),
+      0
+    );
+
+    document.getElementById("cardFaturamentoDia").textContent =
+      `R$ ${total.toFixed(2)}`;
   }
 
-  async function atualizarPedidosRealizados() {
-    const cardPedidos = document.getElementById("cardPedidosRealizados");
+  // ===============================
+  // ATUALIZA PEDIDOS FINALIZADOS
+  // ===============================
+  async function atualizarPedidosFinalizados() {
+    const { dataInicio, dataFim } = getDatasHojeUTC();
 
-    try {
-      const { dataInicio, dataFim } = getDatasHojeUTC();
+    const { count, error } = await supabase
+      .from("pedidos")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "Finalizado")
+      .gte("criado_em", dataInicio)
+      .lte("criado_em", dataFim);
 
-      const { count, error } = await supabase
-        .from("pedidos")
-        .select("*", { count: "exact", head: true })
-        .ilike("status", "Finalizado")
-        .gte("criado_em", dataInicio)
-        .lte("criado_em", dataFim);
-
-      if (error) throw error;
-
-      cardPedidos.innerText = count || 0;
-
-    } catch (err) {
-      console.error("Erro ao atualizar pedidos realizados:", err);
-      cardPedidos.innerText = "0";
+    if (error) {
+      console.error("Erro pedidos finalizados:", error.message);
+      return;
     }
+
+    document.getElementById("cardPedidosRealizados").textContent =
+      count || 0;
   }
 
+  // ===============================
+  // DASHBOARD COMPLETO
+  // ===============================
   async function atualizarDashboard() {
     await Promise.all([
       atualizarFaturamentoDia(),
-      atualizarPedidosRealizados()
+      atualizarPedidosFinalizados()
     ]);
   }
 
   // Atualiza ao carregar
   atualizarDashboard();
 
-  // 🔥 REALTIME MELHORADO
+  // ===============================
+  // 🔥 REALTIME (IGUAL AO QUE VOCÊ QUER)
+  // ===============================
   supabase
-    .channel("realtime-pedidos")
-    .on("postgres_changes", {
-      event: "*",
-      schema: "public",
-      table: "pedidos"
-    }, payload => {
-
-      const statusNovo = payload.new?.status?.toLowerCase();
-
-      if (
-        payload.eventType === "INSERT" ||
-        (payload.eventType === "UPDATE" && statusNovo === "finalizado")
-      ) {
+    .channel("realtime-dashboard")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "pedidos"
+      },
+      () => {
         atualizarDashboard();
       }
-
-    })
+    )
     .subscribe();
+
+  // ===============================
+  // 🔥 BACKUP AUTOMÁTICO A CADA 5 SEGUNDOS
+  // ===============================
+  setInterval(atualizarDashboard, 5000);
 
 });
   // =============================

@@ -2004,23 +2004,19 @@ btnCadastro.addEventListener("click", async () => {
 async function verificarLogin() {
   const { data, error } = await supabase.auth.getUser();
 
-  // ❌ Usuário NÃO logado
-  if (error || !data?.user) {
-    const btnCadastro = document.getElementById("btn-cadastro");
-    const userPhoto = document.getElementById("userPhoto");
+  const btnCadastro = document.getElementById("btn-cadastro");
+  const userPhoto = document.getElementById("userPhoto");
 
+  // ❌ NÃO LOGADO
+  if (error || !data?.user) {
     if (btnCadastro) btnCadastro.style.display = "block";
     if (userPhoto) userPhoto.classList.add("hidden");
-
     return;
   }
 
   const user = data.user;
 
-  // ✅ Usuário logado
-  const btnCadastro = document.getElementById("btn-cadastro");
-  const userPhoto = document.getElementById("userPhoto");
-
+  // ✅ LOGADO
   if (btnCadastro) btnCadastro.style.display = "none";
 
   if (userPhoto) {
@@ -2031,23 +2027,52 @@ async function verificarLogin() {
     userPhoto.classList.remove("hidden");
   }
 
-  // ⚠️ CONTROLE DO MODAL DE NOME
-  // Abre **APENAS se for login via Google**
-  const isGoogle = user.identities?.some(id => id.provider === "google");
-  const modalJaMostrou = localStorage.getItem("modal_nome_mostrado");
+  // ============================================
+  // 🔎 VERIFICAR SE JÁ EXISTE CADASTRO
+  // ============================================
 
-  if (isGoogle && !user.user_metadata?.nome_apelido && !modalJaMostrou) {
-    const modal = document.getElementById("modalNome");
+  const { data: cliente, error: clienteError } = await supabase
+    .from("clientes")
+    .select("id")
+    .eq("email", user.email)
+    .maybeSingle(); // 👈 melhor que single()
 
-    if (modal) {
-      modal.classList.remove("hidden");
+  if (clienteError) {
+    console.error("Erro ao verificar cliente:", clienteError);
+    return;
+  }
+
+  // ❗ SE NÃO EXISTE → ABRE MODAL
+  if (!cliente) {
+    const modalCadastro = document.getElementById("modalCadastroCliente");
+
+    if (modalCadastro) {
+      modalCadastro.classList.remove("hidden");
     }
 
-    // 👉 carrega logo da empresa (se existir)
-    await carregarLogotipoEmpresa();
-
-    localStorage.setItem("modal_nome_mostrado", "true");
+    // 👉 opcional: bloquear botão de pedido
+    bloquearPedidos();
+  } else {
+    liberarPedidos();
   }
+}
+
+function bloquearPedidos() {
+  const botoesPedido = document.querySelectorAll(".btn-fazer-pedido");
+
+  botoesPedido.forEach(btn => {
+    btn.disabled = true;
+    btn.classList.add("opacity-50", "cursor-not-allowed");
+  });
+}
+
+function liberarPedidos() {
+  const botoesPedido = document.querySelectorAll(".btn-fazer-pedido");
+
+  botoesPedido.forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove("opacity-50", "cursor-not-allowed");
+  });
 }
 
 // ===============================

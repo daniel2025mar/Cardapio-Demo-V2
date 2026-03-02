@@ -2361,27 +2361,53 @@ inputCPF.addEventListener("input", (e) => {
 
  document.addEventListener("DOMContentLoaded", () => {
 
+  function getDatasHojeUTC() {
+    const agora = new Date();
+
+    // Início do dia local
+    const inicioLocal = new Date(
+      agora.getFullYear(),
+      agora.getMonth(),
+      agora.getDate(),
+      0, 0, 0, 0
+    );
+
+    // Fim do dia local
+    const fimLocal = new Date(
+      agora.getFullYear(),
+      agora.getMonth(),
+      agora.getDate(),
+      23, 59, 59, 999
+    );
+
+    return {
+      dataInicio: inicioLocal.toISOString(),
+      dataFim: fimLocal.toISOString()
+    };
+  }
+
   async function atualizarFaturamentoDia() {
     const cardFaturamento = document.getElementById("cardFaturamentoDia");
-    try {
-      const hoje = new Date();
-      const ano = hoje.getFullYear();
-      const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-      const dia = String(hoje.getDate()).padStart(2, "0");
-      const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
-      const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
 
-      const { data: pedidos, error } = await supabase
+    try {
+      const { dataInicio, dataFim } = getDatasHojeUTC();
+
+      const { data, error } = await supabase
         .from("pedidos")
         .select("total")
-        .eq("status", "Finalizado")
+        .ilike("status", "Finalizado")
         .gte("criado_em", dataInicio)
         .lte("criado_em", dataFim);
 
       if (error) throw error;
 
-      const totalFaturamento = pedidos.reduce((acc, pedido) => acc + Number(pedido.total || 0), 0);
+      const totalFaturamento = data.reduce(
+        (acc, pedido) => acc + Number(pedido.total || 0),
+        0
+      );
+
       cardFaturamento.innerText = `R$ ${totalFaturamento.toFixed(2)}`;
+
     } catch (err) {
       console.error("Erro ao atualizar faturamento:", err);
       cardFaturamento.innerText = "R$ 0,00";
@@ -2390,24 +2416,21 @@ inputCPF.addEventListener("input", (e) => {
 
   async function atualizarPedidosRealizados() {
     const cardPedidos = document.getElementById("cardPedidosRealizados");
-    try {
-      const hoje = new Date();
-      const ano = hoje.getFullYear();
-      const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-      const dia = String(hoje.getDate()).padStart(2, "0");
-      const dataInicio = `${ano}-${mes}-${dia}T00:00:00.000Z`;
-      const dataFim = `${ano}-${mes}-${dia}T23:59:59.999Z`;
 
-      const { data: pedidos, error } = await supabase
+    try {
+      const { dataInicio, dataFim } = getDatasHojeUTC();
+
+      const { count, error } = await supabase
         .from("pedidos")
-        .select("id")
-        .eq("status", "Finalizado")
+        .select("*", { count: "exact", head: true })
+        .ilike("status", "Finalizado")
         .gte("criado_em", dataInicio)
         .lte("criado_em", dataFim);
 
       if (error) throw error;
 
-      cardPedidos.innerText = pedidos.length;
+      cardPedidos.innerText = count || 0;
+
     } catch (err) {
       console.error("Erro ao atualizar pedidos realizados:", err);
       cardPedidos.innerText = "0";
@@ -2415,29 +2438,36 @@ inputCPF.addEventListener("input", (e) => {
   }
 
   async function atualizarDashboard() {
-    await Promise.all([atualizarFaturamentoDia(), atualizarPedidosRealizados()]);
+    await Promise.all([
+      atualizarFaturamentoDia(),
+      atualizarPedidosRealizados()
+    ]);
   }
 
-  // Atualiza ao carregar a página
+  // Atualiza ao carregar
   atualizarDashboard();
 
-  // 🔹 SUPABASE REALTIME
+  // 🔥 REALTIME MELHORADO
   supabase
-    .channel('realtime-pedidos')  // nome do canal
-    .on('postgres_changes', {
-      event: '*',                // pode ser INSERT, UPDATE, DELETE ou '*'
-      schema: 'public',
-      table: 'pedidos'
+    .channel("realtime-pedidos")
+    .on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "pedidos"
     }, payload => {
-      // Só atualiza se for INSERT ou UPDATE de status para Finalizado
+
+      const statusNovo = payload.new?.status?.toLowerCase();
+
       if (
         payload.eventType === "INSERT" ||
-        (payload.eventType === "UPDATE" && payload.new.status === "Finalizado")
+        (payload.eventType === "UPDATE" && statusNovo === "finalizado")
       ) {
         atualizarDashboard();
       }
+
     })
     .subscribe();
+
 });
   // =============================
   //     FECHAR MODAL EDITAR

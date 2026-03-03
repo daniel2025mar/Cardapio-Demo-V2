@@ -2308,6 +2308,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Exemplo de uso:
   // abrirModalErro("Ocorreu um erro!");
 });
+
 // ===============================
 // ELEMENTOS CADASTRO DO USUARIO
 // ===============================
@@ -2323,6 +2324,7 @@ const btnCadastrar = formCadastroCliente?.querySelector('button[type="submit"]')
 // ===============================
 let valoresOriginais = {};
 
+
 // ===============================
 async function abrirInformacoesCadastro() {
   if (!modalCadastroCliente) return;
@@ -2336,10 +2338,41 @@ async function abrirInformacoesCadastro() {
   }
 
   try {
+    // ===============================
+    // Funções auxiliares
+    // ===============================
+    function validarCPF(cpf) {
+      cpf = cpf.replace(/\D/g, "");
+      if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+      let soma = 0;
+      for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+      let resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+      if (resto !== parseInt(cpf[9])) return false;
+
+      soma = 0;
+      for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+      resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+      if (resto !== parseInt(cpf[10])) return false;
+
+      return true;
+    }
+
+    function formatarCPF(cpf) {
+      cpf = cpf.replace(/\D/g, "");
+      return cpf
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+
+    // ===============================
     // Busca usuário logado
+    // ===============================
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData?.user) return;
-
     const userEmail = userData.user.email;
 
     // Busca cliente pelo email
@@ -2348,13 +2381,14 @@ async function abrirInformacoesCadastro() {
       .select("*")
       .eq("email", userEmail)
       .maybeSingle();
-
     if (clienteError) {
       console.error("Erro ao buscar cliente:", clienteError);
       return;
     }
 
+    // ===============================
     // Preenche os campos
+    // ===============================
     if (cliente) {
       document.getElementById("nomeCliente").value = cliente.nome || "";
       document.getElementById("cpfCliente").value = cliente.cpf || "";
@@ -2381,7 +2415,7 @@ async function abrirInformacoesCadastro() {
     }
 
     // ===============================
-    // DESABILITA BOTÃO CASO CPF INVÁLIDO
+    // Desabilita botão caso CPF inválido
     // ===============================
     if (btnCadastrar) {
       btnCadastrar.disabled = true;
@@ -2390,40 +2424,22 @@ async function abrirInformacoesCadastro() {
     }
 
     // ===============================
-    // MÁSCARA CPF E VALIDAÇÃO
+    // Máscara CPF e validação em tempo real
     // ===============================
     const cpfInput = document.getElementById("cpfCliente");
-    const mensagemErroCPF = document.getElementById("mensagem-erro-cpf"); // Span abaixo do input
-
-    function validarCPF(cpf) {
-      cpf = cpf.replace(/\D/g, "");
-      if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-
-      let soma = 0;
-      for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
-      let resto = (soma * 10) % 11;
-      if (resto === 10) resto = 0;
-      if (resto !== parseInt(cpf[9])) return false;
-
-      soma = 0;
-      for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
-      resto = (soma * 10) % 11;
-      if (resto === 10) resto = 0;
-      if (resto !== parseInt(cpf[10])) return false;
-
-      return true;
-    }
+    const mensagemErroCPF = document.getElementById("mensagem-erro-cpf");
 
     if (cpfInput) {
       cpfInput.addEventListener("input", () => {
-        let valor = cpfInput.value.replace(/\D/g, ""); // Remove tudo que não é número
-        if (valor.length > 11) valor = valor.slice(0, 11); // Limita a 11 números
+        let valor = cpfInput.value.replace(/\D/g, "");
+        if (valor.length > 11) valor = valor.slice(0, 11);
+
         if (valor.length > 3) valor = valor.replace(/^(\d{3})(\d)/, "$1.$2");
         if (valor.length > 6) valor = valor.replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
         if (valor.length > 9) valor = valor.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+
         cpfInput.value = valor;
 
-        // Ativa/desativa botão
         const cpfNumeros = valor.replace(/\D/g, "");
         if (cpfNumeros.length === 11 && validarCPF(valor)) {
           btnCadastrar.disabled = false;
@@ -2438,13 +2454,10 @@ async function abrirInformacoesCadastro() {
         }
       });
 
-      // Validação ao sair do campo
       cpfInput.addEventListener("blur", () => {
         const cpfNumeros = cpfInput.value.replace(/\D/g, "");
         if (cpfNumeros.length < 11 || !validarCPF(cpfInput.value)) {
-          if (mensagemErroCPF) {
-            mensagemErroCPF.textContent = "CPF inválido! Verifique o número digitado.";
-          }
+          if (mensagemErroCPF) mensagemErroCPF.textContent = "CPF inválido! Verifique o número digitado.";
         } else {
           if (mensagemErroCPF) mensagemErroCPF.textContent = "";
         }
@@ -2455,7 +2468,6 @@ async function abrirInformacoesCadastro() {
     console.error("Erro ao carregar dados do cliente:", err);
   }
 }
-
 
 // ===============================
 // FUNÇÃO PARA CHECAR SE HOUVE ALTERAÇÃO
@@ -2497,15 +2509,18 @@ function fecharModalCadastro() {
   }
 }
 
-// ===============================
-// FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
-// ===============================
+  // ===============================
+   // FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
+  // ===============================
 if (formCadastroCliente) {
   formCadastroCliente.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // ===============================
+    // Captura os valores dos inputs
+    // ===============================
     const nome = document.getElementById("nomeCliente").value.trim();
-    const cpf = document.getElementById("cpfCliente").value.trim();
+    let cpf = document.getElementById("cpfCliente").value.trim();
     const telefone = document.getElementById("telefoneCliente").value.trim();
     const endereco = document.getElementById("ruaCliente").value.trim();
     const numero = document.getElementById("numeroCliente").value.trim();
@@ -2513,15 +2528,61 @@ if (formCadastroCliente) {
     const cidade = document.getElementById("cidadeCliente").value.trim();
     const uf = document.getElementById("ufCliente").value.trim();
 
+    // ===============================
+    // Funções auxiliares
+    // ===============================
+    function validarCPF(cpf) {
+      cpf = cpf.replace(/\D/g, "");
+      if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+      let soma = 0;
+      for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+      let resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+      if (resto !== parseInt(cpf[9])) return false;
+
+      soma = 0;
+      for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+      resto = (soma * 10) % 11;
+      if (resto === 10) resto = 0;
+      if (resto !== parseInt(cpf[10])) return false;
+
+      return true;
+    }
+
+    function formatarCPF(cpf) {
+      cpf = cpf.replace(/\D/g, "");
+      return cpf
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+
+    // ===============================
+    // Validação do CPF
+    // ===============================
+    if (!validarCPF(cpf)) {
+      alert("CPF inválido! Verifique o número digitado.");
+      return;
+    }
+
+    // Formata o CPF antes de salvar
+    cpf = formatarCPF(cpf);
+
     try {
+      // ===============================
+      // Pega usuário logado
+      // ===============================
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData?.user) {
         alert("Você precisa estar logado para cadastrar os dados.");
         return;
       }
-
       const userEmail = userData.user.email;
 
+      // ===============================
+      // Verifica se já existe cliente
+      // ===============================
       const { data: existingCliente } = await supabase
         .from("clientes")
         .select("id")
@@ -2529,20 +2590,25 @@ if (formCadastroCliente) {
         .maybeSingle();
 
       if (existingCliente) {
+        // Atualiza dados existentes (não insere duplicado)
         const { error: updateError } = await supabase
           .from("clientes")
           .update({ nome, cpf, telefone, endereco, numero, bairro, cidade, uf })
           .eq("email", userEmail);
+
         if (updateError) throw updateError;
         alert("Cadastro atualizado com sucesso!");
       } else {
+        // Insere novo registro
         const { error: insertError } = await supabase
           .from("clientes")
           .insert([{ nome, cpf, telefone, endereco, numero, bairro, cidade, uf, email: userEmail, status: "ativo" }]);
+
         if (insertError) throw insertError;
         alert("Cadastro realizado com sucesso!");
       }
 
+      // Fecha o modal
       fecharModalCadastro();
 
     } catch (err) {
@@ -2551,6 +2617,9 @@ if (formCadastroCliente) {
     }
   });
 
+  // ===============================
+  // Monitora alterações para habilitar/desabilitar botão
+  // ===============================
   const inputs = formCadastroCliente.querySelectorAll("input");
   inputs.forEach(input => input.addEventListener("input", verificarAlteracoes));
 }

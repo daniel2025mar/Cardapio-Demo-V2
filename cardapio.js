@@ -2512,13 +2512,13 @@ function fecharModalCadastro() {
   // ===============================
    // FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
   // ===============================
+// ===============================
+// FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
+// ===============================
 if (formCadastroCliente) {
   formCadastroCliente.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // ===============================
-    // Captura os valores dos inputs
-    // ===============================
     const nome = document.getElementById("nomeCliente").value.trim();
     let cpf = document.getElementById("cpfCliente").value.trim();
     const telefone = document.getElementById("telefoneCliente").value.trim();
@@ -2529,7 +2529,7 @@ if (formCadastroCliente) {
     const uf = document.getElementById("ufCliente").value.trim();
 
     // ===============================
-    // Funções auxiliares
+    // VALIDADOR DE CPF
     // ===============================
     function validarCPF(cpf) {
       cpf = cpf.replace(/\D/g, "");
@@ -2559,29 +2559,50 @@ if (formCadastroCliente) {
     }
 
     // ===============================
-    // Validação do CPF
+    // VALIDAÇÃO CPF
     // ===============================
     if (!validarCPF(cpf)) {
       alert("CPF inválido! Verifique o número digitado.");
       return;
     }
 
-    // Formata o CPF antes de salvar
     cpf = formatarCPF(cpf);
 
     try {
       // ===============================
-      // Pega usuário logado
+      // PEGA USUÁRIO LOGADO
       // ===============================
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData?.user) {
-        alert("Você precisa estar logado para cadastrar os dados.");
+        alert("Você precisa estar logado.");
         return;
       }
+
       const userEmail = userData.user.email;
 
       // ===============================
-      // Verifica se já existe cliente
+      // 🔎 VERIFICA SE CPF JÁ EXISTE
+      // ===============================
+      const { data: cpfExistente, error: cpfError } = await supabase
+        .from("clientes")
+        .select("id, email")
+        .eq("cpf", cpf)
+        .maybeSingle();
+
+      if (cpfError) {
+        console.error("Erro ao verificar CPF:", cpfError);
+        alert("Erro ao verificar CPF.");
+        return;
+      }
+
+      // Se CPF existir e for de outro usuário
+      if (cpfExistente && cpfExistente.email !== userEmail) {
+        alert("Já existe um cadastro com este CPF!");
+        return;
+      }
+
+      // ===============================
+      // VERIFICA SE JÁ EXISTE CLIENTE PELO EMAIL
       // ===============================
       const { data: existingCliente } = await supabase
         .from("clientes")
@@ -2590,35 +2611,47 @@ if (formCadastroCliente) {
         .maybeSingle();
 
       if (existingCliente) {
-        // Atualiza dados existentes (não insere duplicado)
+        // UPDATE
         const { error: updateError } = await supabase
           .from("clientes")
           .update({ nome, cpf, telefone, endereco, numero, bairro, cidade, uf })
           .eq("email", userEmail);
 
         if (updateError) throw updateError;
+
         alert("Cadastro atualizado com sucesso!");
       } else {
-        // Insere novo registro
+        // INSERT
         const { error: insertError } = await supabase
           .from("clientes")
-          .insert([{ nome, cpf, telefone, endereco, numero, bairro, cidade, uf, email: userEmail, status: "ativo" }]);
+          .insert([{
+            nome,
+            cpf,
+            telefone,
+            endereco,
+            numero,
+            bairro,
+            cidade,
+            uf,
+            email: userEmail,
+            status: "ativo"
+          }]);
 
         if (insertError) throw insertError;
+
         alert("Cadastro realizado com sucesso!");
       }
 
-      // Fecha o modal
       fecharModalCadastro();
 
     } catch (err) {
       console.error("Erro ao salvar cadastro:", err);
-      alert("Ocorreu um erro ao salvar seus dados. Tente novamente.");
+      alert("Ocorreu um erro ao salvar seus dados.");
     }
   });
 
   // ===============================
-  // Monitora alterações para habilitar/desabilitar botão
+  // MONITORA ALTERAÇÕES
   // ===============================
   const inputs = formCadastroCliente.querySelectorAll("input");
   inputs.forEach(input => input.addEventListener("input", verificarAlteracoes));

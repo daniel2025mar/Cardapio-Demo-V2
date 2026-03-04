@@ -2324,7 +2324,20 @@ const btnCadastrar = formCadastroCliente?.querySelector('button[type="submit"]')
 // ===============================
 let valoresOriginais = {};
 
+function mostrarModalCpfDuplicado() {
+  const modal = document.getElementById('modalCpfDuplicado');
+  modal.style.display = 'flex';
 
+  const btnFechar = document.getElementById('btnFecharCpf');
+  btnFechar.onclick = () => {
+    modal.style.display = 'none';
+  }
+
+  // Fecha clicando fora do conteúdo
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  }
+}
 // ===============================
 async function abrirInformacoesCadastro() {
   if (!modalCadastroCliente) return;
@@ -2597,7 +2610,7 @@ if (formCadastroCliente) {
 
       // Se CPF existir e for de outro usuário
       if (cpfExistente && cpfExistente.email !== userEmail) {
-        alert("Já existe um cadastro com este CPF!");
+        mostrarModalCpfDuplicado();
         return;
       }
 

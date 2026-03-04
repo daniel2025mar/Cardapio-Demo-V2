@@ -1509,6 +1509,75 @@
   </p>
 </div>
 
+<!-- Modal de CPF duplicado -->
+<div id="modalCpfDuplicado" class="modal-cpf">
+  <div class="modal-content-cpf">
+    <h2>⚠ Aviso</h2>
+    <hr>
+    <p>Já existe um cadastro com este CPF!</p>
+    <button id="btnFecharCpf">OK</button>
+  </div>
+</div>
+
+<style>
+  /* ================== Modal CPF Duplicado ================== */
+.modal-cpf {
+  position: fixed;
+  inset: 0;
+  display: none; /* começa escondido */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+}
+
+.modal-content-cpf {
+  background-color: #1e1e1e; /* cor dark */
+  color: #f1f1f1;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  animation: modalShow 0.3s ease-out;
+}
+
+.modal-content-cpf h2 {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.modal-content-cpf hr {
+  border: 0;
+  border-top: 1px solid #555;
+  margin: 10px 0 20px;
+}
+
+.modal-content-cpf p {
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.modal-content-cpf button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.modal-content-cpf button:hover {
+  background-color: #0056b3;
+}
+
+@keyframes modalShow {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+</style>
 <!-- Botão fixo do carrinho -->
 <footer
   class="w-full py-2 fixed bottom-0 z-50 flex items-center justify-center px-2 sm:px-4"

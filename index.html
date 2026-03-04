@@ -1341,7 +1341,13 @@
         <div class="flex gap-4">
           <div class="flex-1">
             <label for="cpfCliente" class="block font-semibold mb-1 text-gray-700">CPF</label>
-            <input type="text" id="cpfCliente" placeholder="000.000.000-00" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition">
+            <input type="text"
+       id="cpfCliente"
+       placeholder="000.000.000-00"
+       class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition"
+       maxlength="14"
+       inputmode="decimal"   
+       pattern="[0-9.-]*">    <!-- permite apenas números, ponto e traço -->
             <p class="text-sm text-gray-500 mt-1">Apenas para emissao de NF.</p>
           </div>
           <div class="flex-1">

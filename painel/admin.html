@@ -164,16 +164,280 @@
         <div class="flex flex-col">
             <h1 class="text-xl font-bold truncate hidden md:block">Painel Administrativo</h1>
             <span id="nomeEmpresa" class="text-sm text-white mt-1 cursor-pointer">Nome Empresa</span>
-            
+      
 
-  <!-- Modal Editável -->
+    <!-- ================= MODAL EMPRESA ================= -->
+<!-- Modal Empresa -->
+<div id="modalEmpresa" class="modal hidden">
+  <div class="modal-content-empresa">
 
-<!-- MODAL EMPRESA -->
-    
+    <!-- Botão Fechar -->
+    <button id="fecharModal" class="fechar-btn">&times;</button>
 
-ph vf4xz 
+    <!-- Título -->
+    <h2 class="modal-titulo">Cadastro da Empresa</h2>
+    <p class="modal-subtitulo">Preencha as informações da empresa</p>
+    <div class="linha-separadora"></div>
 
+    <!-- Formulário -->
+    <form id="formEmpresa" class="form-empresa">
 
+      <!-- Linha 1: Nome e CNPJ -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome:</label>
+          <input type="text" id="inputNome" placeholder="Ex: Empresa Ltda">
+        </div>
+        <div class="form-group">
+          <label>CNPJ:</label>
+          <input type="text" id="inputCNPJ" placeholder="00.000.000/0000-00">
+        </div>
+      </div>
+
+      <!-- Linha 2: Telefone e WhatsApp -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Telefone:</label>
+          <input type="text" id="inputTelefone" placeholder="(00) 0000-0000">
+        </div>
+        <div class="form-group">
+          <label>WhatsApp:</label>
+          <input type="text" id="inputWhatsApp" placeholder="(00) 00000-0000">
+        </div>
+      </div>
+
+      <!-- Endereço -->
+      <div class="form-group">
+        <label>Endereço:</label>
+        <input type="text" id="inputEndereco" placeholder="Rua, número, bairro">
+      </div>
+
+      <!-- Criado em -->
+      <div class="form-group">
+        <label>Criado em:</label>
+        <input type="text" id="inputCriadoEm" readonly>
+      </div>
+
+      <div class="linha-separadora"></div>
+
+      <!-- Uploads lado a lado -->
+      <div class="form-row">
+        <!-- Upload Logo -->
+        <div class="form-group upload-container">
+          <label>Logotipo:</label>
+          <div class="upload-box" onclick="document.getElementById('inputLogo').click()">
+            <img id="previewLogo" class="preview-img" src="" alt="Logo da empresa">
+          </div>
+          <input type="file" id="inputLogo" hidden>
+        </div>
+
+        <!-- Upload Fundo -->
+        <div class="form-group upload-container">
+          <label>Foto de Fundo:</label>
+          <div class="upload-box" onclick="document.getElementById('inputFundo').click()">
+            <img id="previewFundo" class="preview-img" src="" alt="Fundo do cardápio">
+          </div>
+          <input type="file" id="inputFundo" hidden>
+        </div>
+      </div>
+
+      <!-- Botão Salvar -->
+      <button id="btnSalvarEmpresa" class="btn-salvar-modal">Salvar Alterações</button>
+    </form>
+  </div>
+</div>
+
+<style>
+
+  /* Scroll do modal (apenas cor do "polegar") */
+.modal-content-empresa::-webkit-scrollbar {
+  width: 8px; /* largura da barra */
+}
+
+.modal-content-empresa::-webkit-scrollbar-thumb {
+  background-color: #1e90ff; /* cor da barra de rolagem */
+  border-radius: 4px;        /* cantos arredondados */
+}
+
+/* Para Firefox */
+.modal-content-empresa {
+  scrollbar-color: #1e90ff transparent; /* cor do polegar e track */
+  scrollbar-width: thin;
+}
+/* Modal fundo */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 15px;
+  overflow-y: auto;
+}
+.modal.hidden {
+  display: none;
+}
+
+/* Conteúdo do modal */
+.modal-content-empresa {
+  background: #1e1e2f;
+  color: #f0f0f0;
+  width: 100%;
+  max-width: 500px; /* **LIMITA** a largura máxima do modal */
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  padding: 25px 25px;
+  position: relative;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+  animation: fadeIn 0.25s ease;
+}
+
+/* Botão fechar */
+#fecharModal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+#fecharModal:hover {
+  color: #1e90ff;
+}
+
+/* Título e subtítulo */
+.modal-titulo {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 5px;
+  color: #1e90ff;
+}
+.modal-subtitulo {
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 15px;
+  color: #bbb;
+}
+
+/* Linha separadora */
+.linha-separadora {
+  width: 100%;
+  height: 2px;
+  background: #1e90ff;
+  margin: 10px 0 20px 0;
+  border-radius: 1px;
+}
+
+/* Formulário */
+.form-empresa {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+.form-row .form-group {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Labels e inputs */
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #ccc;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #444;
+  background: #2a2a3e;
+  color: #f0f0f0;
+  outline: none;
+  transition: all 0.3s;
+}
+.form-group input:focus {
+  border-color: #1e90ff;
+  box-shadow: 0 0 8px rgba(30,144,255,0.4);
+}
+
+/* Uploads */
+.upload-box {
+  position: relative;
+  height: 130px;
+  border: 2px dashed #555;
+  border-radius: 12px;
+  background: #2a2a3e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+.upload-box:hover {
+  border-color: #1e90ff;
+  box-shadow: 0 0 10px rgba(30,144,255,0.3);
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block; /* antes estava display: none */
+}
+.placeholder-text {
+  color: #888;
+  font-size: 12px;
+  text-align: center;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Botão salvar */
+#btnSalvarEmpresa {
+  margin-top: 20px;
+  width: 100%;
+  padding: 14px 0;
+  font-weight: bold;
+  background: #1e90ff;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+#btnSalvarEmpresa:hover {
+  background: #1464b3;
+  transform: translateY(-2px);
+}
+
+/* Responsivo */
+@media (max-width: 1024px) {
+  .modal-content-empresa { max-width: 90%; }
+}
+@media (max-width: 768px) {
+  .modal-content-empresa { max-width: 95%; padding: 20px; }
+  .form-row { flex-direction: column; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
 <!-- Toast -->
 <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hidden"></div>
 
@@ -192,6 +456,8 @@ ph vf4xz
   .animate-fadeOut { animation: fadeOut 0.3s forwards; }
 
   #nomeEmpresa { cursor:pointer; }
+
+  
 </style>
 
 

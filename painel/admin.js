@@ -25,12 +25,11 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
     if (e.ctrlKey) e.preventDefault();
   }, { passive: false });
 
-document.addEventListener("DOMContentLoaded", async () => {
 
+  document.addEventListener("DOMContentLoaded", async () => {
   const spanEmpresa = document.getElementById("nomeEmpresa");
   const modal = document.getElementById("modalEmpresa");
   const fechar = document.getElementById("fecharModal");
-  const form = document.getElementById("formEmpresa");
 
   const inputNome = document.getElementById("inputNome");
   const inputEndereco = document.getElementById("inputEndereco");
@@ -48,10 +47,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   let novoFundo = null;
   let novoLogo = null;
 
-  // garante estado inicial
   modal.classList.add("hidden");
 
-  /* ================= MODAL AVISO ================= */
+  // Modal aviso
   const modalAviso = document.getElementById("modalAviso2");
   const modalAvisoTexto = document.getElementById("modalAvisoTexto");
   const btnFecharAviso = document.getElementById("btnFecharAviso");
@@ -61,17 +59,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     modalAviso.classList.remove("hidden");
   }
 
-  btnFecharAviso.addEventListener("click", () => {
-    modalAviso.classList.add("hidden");
-  });
+  btnFecharAviso.addEventListener("click", () => modalAviso.classList.add("hidden"));
+  modalAviso.addEventListener("click", (e) => { if (e.target === modalAviso) modalAviso.classList.add("hidden"); });
 
-  modalAviso.addEventListener("click", (e) => {
-    if (e.target === modalAviso) {
-      modalAviso.classList.add("hidden");
-    }
-  });
-
-  /* ================= EMPRESA ================= */
+  // Carregar empresa
   async function carregarEmpresa() {
     const { data, error } = await supabase
       .from("empresa")
@@ -90,31 +81,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   function recuperarUsuarioLogado() {
     const usuarioJSON = localStorage.getItem("usuarioLogado");
     if (!usuarioJSON) return null;
-
     try {
       const usuario = JSON.parse(usuarioJSON);
-      if (!Array.isArray(usuario.permissoes)) {
-        usuario.permissoes = JSON.parse(usuario.permissoes || "[]");
-      }
+      if (!Array.isArray(usuario.permissoes)) usuario.permissoes = JSON.parse(usuario.permissoes || "[]");
       return usuario;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   const empresa = await carregarEmpresa();
   if (!empresa) return;
-
   spanEmpresa.textContent = empresa.nome;
 
   const usuario = recuperarUsuarioLogado();
   if (!usuario) return;
-
   const podeEditar = usuario.permissoes.includes("Acesso Total");
 
-  /* ================= ABRIR MODAL ================= */
+  // Abrir modal
   spanEmpresa.addEventListener("click", () => {
-
     if (!podeEditar) {
       mostrarModalAviso("Você não tem permissão para editar informações da empresa!");
       return;
@@ -125,123 +108,87 @@ document.addEventListener("DOMContentLoaded", async () => {
     inputTelefone.value = empresa.telefone || "";
     inputWhatsApp.value = empresa.whatsapp || "";
     inputCNPJ.value = empresa.cnpj || "";
-    inputCriadoEm.value = empresa.criado_em
-      ? new Date(empresa.criado_em).toLocaleString()
-      : "";
+    inputCriadoEm.value = empresa.criado_em ? new Date(empresa.criado_em).toLocaleString() : "";
 
     // Fundo
-    if (empresa.fundo_cardapio) {
-      previewFundo.src = empresa.fundo_cardapio;
-      previewFundo.classList.remove("hidden");
-      novoFundo = null;
-    } else {
-      previewFundo.src = "";
-      previewFundo.classList.add("hidden");
-    }
+    previewFundo.src = empresa.fundo_cardapio || "";
+    previewFundo.classList.toggle("hidden", !empresa.fundo_cardapio);
+    novoFundo = null;
 
     // Logo
-    if (empresa.logotipo) {
-      previewLogo.src = empresa.logotipo;
-      previewLogo.classList.remove("hidden");
-      novoLogo = null;
-    } else {
-      previewLogo.src = "";
-      previewLogo.classList.add("hidden");
-    }
+    previewLogo.src = empresa.logotipo || "";
+    previewLogo.classList.toggle("hidden", !empresa.logotipo);
+    novoLogo = null;
 
     modal.classList.remove("hidden");
   });
 
-  /* ================= FECHAR MODAL ================= */
-  fechar.addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
+  // Fechar modal
+  fechar.addEventListener("click", () => modal.classList.add("hidden"));
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("hidden"); });
 
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.add("hidden");
-    }
-  });
+  // ===================== UPLOAD E PREVIEW =====================
+  function initUploadPreview(inputElement, previewElement, setNovaImagem) {
+    previewElement.addEventListener("click", () => inputElement.click());
 
-  /* ================= PREVIEW FUNDO ================= */
-  previewFundo.addEventListener("click", () => inputFundo.click());
-  inputFundo.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    inputElement.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      previewFundo.src = event.target.result;
-      previewFundo.classList.remove("hidden");
-      novoFundo = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        previewElement.src = event.target.result; // Atualiza preview
+        previewElement.classList.remove("hidden");
+        setNovaImagem(event.target.result); // Atualiza variável para salvar
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
-  /* ================= PREVIEW LOGO ================= */
-  previewLogo.addEventListener("click", () => inputLogo.click());
-  inputLogo.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // Inicializa os previews
+  initUploadPreview(inputLogo, previewLogo, (v) => novoLogo = v);
+  initUploadPreview(inputFundo, previewFundo, (v) => novoFundo = v);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      previewLogo.src = event.target.result;
-      previewLogo.classList.remove("hidden");
-      novoLogo = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  /* ================= SALVAR ================= */
+  // Salvar alterações
   const btnSalvarEmpresa = document.getElementById("btnSalvarEmpresa");
+  btnSalvarEmpresa.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-btnSalvarEmpresa.addEventListener("click", async (e) => {
-  e.preventDefault();
-  e.stopPropagation(); // 🔥 AGORA SIM
+    if (!podeEditar) {
+      mostrarModalAviso("Você não tem permissão para salvar alterações!");
+      return;
+    }
 
-  if (!podeEditar) {
-    mostrarModalAviso("Você não tem permissão para salvar alterações!");
-    return;
-  }
+    const updateData = {
+      nome: inputNome.value,
+      endereco: inputEndereco.value,
+      telefone: inputTelefone.value,
+      whatsapp: inputWhatsApp.value,
+      cnpj: inputCNPJ.value,
+    };
 
-  const updateData = {
-    nome: inputNome.value,
-    endereco: inputEndereco.value,
-    telefone: inputTelefone.value,
-    whatsapp: inputWhatsApp.value,
-    cnpj: inputCNPJ.value,
-  };
+    if (novoFundo) updateData.fundo_cardapio = novoFundo;
+    if (novoLogo) updateData.logotipo = novoLogo;
 
-  if (novoFundo) updateData.fundo_cardapio = novoFundo;
-  if (novoLogo) updateData.logotipo = novoLogo;
+    const { data, error } = await supabase
+      .from("empresa")
+      .update(updateData)
+      .eq("id", empresa.id)
+      .single();
 
-  const { data, error } = await supabase
-    .from("empresa")
-    .update(updateData)
-    .eq("id", empresa.id)
-    .single();
+    if (error) {
+      console.error(error);
+      mostrarModalAviso("Erro ao salvar alterações!");
+      return;
+    }
 
-  if (error) {
-    console.error(error);
-    mostrarModalAviso("Erro ao salvar alterações!");
-    return;
-  }
-
-  // ✅ ATUALIZA O NOME
-  spanEmpresa.textContent = data.nome;
-
-  // ✅ FECHA O MODAL
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-
-  // ✅ MOSTRA A MENSAGEM
-  mostrarModalAviso("Alterações salvas com sucesso!");
+    spanEmpresa.textContent = data.nome;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    mostrarModalAviso("Alterações salvas com sucesso!");
+  });
 });
-
-});
-
-
 
 let timerBloqueio = null;
 let canalBloqueio = null;

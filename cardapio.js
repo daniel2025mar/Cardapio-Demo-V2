@@ -2328,16 +2328,14 @@ function mostrarModalCpfDuplicado() {
   const modal = document.getElementById('modalCpfDuplicado');
   modal.style.display = 'flex';
 
+  // Fechar botão
   const btnFechar = document.getElementById('btnFecharCpf');
-  btnFechar.onclick = () => {
-    modal.style.display = 'none';
-  }
+  btnFechar.onclick = () => { modal.style.display = 'none'; }
 
-  // Fecha clicando fora do conteúdo
-  modal.onclick = (e) => {
-    if (e.target === modal) modal.style.display = 'none';
-  }
+  // Fechar clicando fora do conteúdo
+  modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; }
 }
+
 // ===============================
 async function abrirInformacoesCadastro() {
   if (!modalCadastroCliente) return;

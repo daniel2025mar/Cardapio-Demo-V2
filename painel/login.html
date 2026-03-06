@@ -144,11 +144,71 @@
       transform: translateY(0);
       position: relative;
     }
+
+    
   </style>
 </head>
 
 <body class="min-h-screen bg-animated flex items-center justify-center px-4">
 
+    <!-- SPLASH SCREEN -->
+<div id="splash">
+    <img src="../dist/Imagem/LogoTipo.png" class="logo-splash" alt="Logo do Sistema">
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+</div>
+<style>
+  
+/* ===== SPLASH SCREEN ===== */
+#splash {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    background: #dbdbdb;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Logo da Splash Screen maior padrão */
+.logo-splash {
+    width: 50%;         /* largura padrão */
+    max-width: 300px;   /* limite máximo */
+    margin-bottom: 30px;
+}
+
+/* Ajuste para celulares (telas até 480px) */
+@media screen and (max-width: 480px) {
+    .logo-splash {
+        width: 70%;     /* mais larga para celulares */
+        max-width: 250px; /* limita para não estourar a tela */
+    }
+}
+
+/* Barra de progresso */
+.progress-container {
+    width: 220px;
+    height: 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #034588;
+    transition: width 0.1s;
+}
+
+/* Oculta o login inicialmente */
+#loginForm {
+    display: none;
+}
+</style>
   <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
 
     <!-- BRANDING -->

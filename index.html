@@ -17,6 +17,81 @@
 </head>
 <body class="bg-gray-100">
 
+  <div id="splash">
+    <img src="../dist/Imagem/LogoTipo.png" class="logo-splash" alt="Logo do Sistema">
+
+    <!-- Pontos piscando -->
+    <div class="dots-container">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+    </div>
+
+    <!-- Texto Aguarde -->
+    <div class="loading-text">Aguarde...</div>
+</div>
+
+<style>
+/* ===== SPLASH SCREEN ===== */
+#splash {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    background: #dbdbdb;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Logo da Splash Screen */
+.logo-splash {
+    width: 50%;
+    max-width: 300px;
+    margin-bottom: 15px; /* aproxima os círculos */
+}
+
+@media screen and (max-width: 480px) {
+    .logo-splash {
+        width: 70%;
+        max-width: 250px;
+    }
+}
+
+/* ===== DOTS ===== */
+.dots-container {
+    display: flex;
+    gap: 10px; /* círculos mais próximos */
+    margin-bottom: 10px; /* espaço entre os círculos e o texto */
+}
+
+.dot {
+    width: 15px;
+    height: 15px;
+    background-color: #034588;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: blink 0.6s infinite; /* animação mais rápida */
+}
+
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; }
+    40% { opacity: 1; }
+}
+
+/* Texto Aguarde */
+.loading-text {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    color: #034588;
+    font-weight: 500;
+}
+</style>
   
   <div class="bg-gray-200 text-gray-800 font-bold text-center py-3 rounded-lg w-full overflow-hidden relative">
   <span id="rotating-text"></span>

@@ -2876,3 +2876,31 @@ async function abrirHistoricoPedidos() {
 // EVENTO ABRIR HISTÓRICO
 // ===============================
 btnHistoricoPedidos?.addEventListener("click", abrirHistoricoPedidos);
+
+// SPLASH SCREEN com efeito “travando”
+let progress = 0;
+const progressBar = document.getElementById("progressBar");
+const splash = document.getElementById("splash");
+const loginForm = document.getElementById("loginForm");
+
+// Intervalo da barra de progresso
+const intervalo = setInterval(() => {
+    let incremento = Math.floor(Math.random() * 6) + 1; 
+    progress += incremento;
+    if (progress > 100) progress = 100;
+    progressBar.style.width = progress + "%";
+
+    // Se chegar a 100%, encerra
+    if (progress >= 100) {
+        clearInterval(intervalo);
+        splash.style.display = "none";
+        loginForm.style.display = "block";
+    }
+}, 100);
+
+// Fallback: garante que a splash desapareça em 5 segundos
+setTimeout(() => {
+    clearInterval(intervalo);       // para o intervalo caso ainda esteja rodando
+    splash.style.display = "none";  // esconde splash
+    loginForm.style.display = "block"; // mostra login
+}, 5000); // 5000ms = 5 segundos

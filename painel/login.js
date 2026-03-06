@@ -364,3 +364,23 @@ async function verificarAniversario() {
 // Executa a função
 verificarAniversario();
 
+// SPLASH SCREEN com efeito “travando”
+let progress = 0;
+const progressBar = document.getElementById("progressBar");
+const splash = document.getElementById("splash");
+const loginForm = document.getElementById("loginForm");
+
+let intervalo = setInterval(() => {
+    // incrementos irregulares entre 1 e 6%
+    let incremento = Math.floor(Math.random() * 6) + 1; 
+    progress += incremento;
+
+    if (progress > 100) progress = 100; // não passar de 100%
+    progressBar.style.width = progress + "%";
+
+    if (progress >= 100) {
+        clearInterval(intervalo);
+        splash.style.display = "none";       // esconde splash
+        loginForm.style.display = "block";   // mostra login
+    }
+}, 100); // atualiza a cada 100ms

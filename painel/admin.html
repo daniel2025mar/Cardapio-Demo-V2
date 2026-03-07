@@ -90,6 +90,21 @@
 <!--fim do head-->
 <body class="h-screen flex flex-col bg-gray-100">
 
+  <div id="splashScreen">
+  <div class="splash-container">
+    <img src="/dist/Imagem/LogoTipo.png" class="splash-logo" alt="Logo GestioMax">
+
+    <div class="progress-circle">
+      <svg viewBox="0 0 100 100">
+        <circle class="circle-bg" cx="50" cy="50" r="45"></circle>
+        <circle class="circle-progress" cx="50" cy="50" r="45"></circle>
+      </svg>
+      <div id="progressText">0%</div>
+    </div>
+    
+    <p class="splash-text">Preparando tudo para você… <i class="fas fa-spinner fa-spin"></i></p>
+  </div>
+</div>
   <!-- Painel bloqueado moderno -->
   <div id="painel-bloqueado" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
   <div class="bg-black text-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center animate__animated animate__fadeIn border border-gray-700">
@@ -254,6 +269,135 @@
   width: 8px; /* largura da barra */
 }
 
+/* ================= SPLASH SCREEN ================= */
+
+#splashScreen{
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  background:#ffffff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:999999;
+}
+
+/* container central */
+
+.splash-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  animation:fadeIn 1s ease;
+}
+
+/* ================= LOGO ================= */
+
+.splash-logo{
+  width:300px;
+  max-width:80%;
+  margin-bottom:4px; /* logo quase colada no progressBar */
+}
+
+/* ================= CIRCULO ================= */
+
+.progress-circle{
+  position:relative;
+  width:60px;
+  height:60px;
+  margin-bottom:10px; /* pequeno espaço abaixo do progress */
+}
+
+.progress-circle svg{
+  width:60px;
+  height:60px;
+  transform:rotate(-90deg);
+}
+
+/* fundo do circulo */
+
+.circle-bg{
+  fill:none;
+  stroke:#e5e5e5;
+  stroke-width:6;
+}
+
+/* progresso */
+
+.circle-progress{
+  fill:none;
+  stroke:#03305c;
+  stroke-width:6;
+  stroke-linecap:round;
+
+  stroke-dasharray:283;
+  stroke-dashoffset:283;
+
+  animation:progressAnim 3s linear forwards; /* mais rápido */
+}
+
+/* porcentagem */
+
+#progressText{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:13px;
+  font-weight:bold;
+  color:#03305c;
+}
+
+/* texto inferior */
+
+.splash-text{
+  margin-top:10px;
+  font-size:15px;
+  color:#333;
+}
+
+/* ================= ANIMAÇÕES ================= */
+
+@keyframes progressAnim{
+  from{
+    stroke-dashoffset:283;
+  }
+  to{
+    stroke-dashoffset:0;
+  }
+}
+
+@keyframes fadeIn{
+  from{
+    opacity:0;
+  }
+  to{
+    opacity:1;
+  }
+}
+
+/* animação logo flutuando */
+@keyframes logoFloat{
+  0%{ transform:translateY(0px); }
+  50%{ transform:translateY(-8px); }
+  100%{ transform:translateY(0px); }
+}
+
+/* fade inicial */
+@keyframes fadeIn{
+  from{
+    opacity:0;
+  }
+  to{
+    opacity:1;
+  }
+}
 .modal-content-empresa::-webkit-scrollbar-thumb {
   background-color: #1e90ff; /* cor da barra de rolagem */
   border-radius: 4px;        /* cantos arredondados */

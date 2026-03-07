@@ -10,7 +10,32 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+let progress = 0;
 
+const text = document.getElementById("progressText");
+const splash = document.getElementById("splashScreen");
+
+// intervalo para atualizar a porcentagem
+const interval = setInterval(() => {
+
+  progress++;
+
+  // atualiza o texto da porcentagem
+  text.innerText = progress + "%";
+
+  // quando chegar em 100%
+  if (progress >= 100) {
+
+    clearInterval(interval); // para o intervalo
+
+    // pequena pausa antes de remover a splash
+    setTimeout(() => {
+      splash.style.display = "none";
+    }, 200);
+
+  }
+
+}, 30); // 100 x 30ms ≈ 3 segundos
 
   // Bloqueia Ctrl + + / Ctrl + - / Ctrl + 0
   window.addEventListener('keydown', function(e) {

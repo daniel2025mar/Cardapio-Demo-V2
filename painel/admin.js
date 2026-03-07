@@ -10,32 +10,48 @@ const SUPABASE_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let progress = 0;
-
 const text = document.getElementById("progressText");
 const splash = document.getElementById("splashScreen");
+const circle = document.querySelector(".circle-progress");
 
-// intervalo para atualizar a porcentagem
-const interval = setInterval(() => {
+// raio do círculo
+const radius = 45;
+const circumference = 2 * Math.PI * radius;
 
-  progress++;
+// configura o círculo
+circle.style.strokeDasharray = circumference;
+circle.style.strokeDashoffset = circumference;
 
-  // atualiza o texto da porcentagem
-  text.innerText = progress + "%";
+const duration = 3000; // duração total em ms (3 segundos)
+let startTime = null;
 
-  // quando chegar em 100%
-  if (progress >= 100) {
+function animateProgress(timestamp) {
+  if (!startTime) startTime = timestamp;
+  const elapsed = timestamp - startTime;
 
-    clearInterval(interval); // para o intervalo
+  // calcula a porcentagem
+  let progress = Math.min((elapsed / duration) * 100, 100);
 
-    // pequena pausa antes de remover a splash
+  // atualiza o texto
+  text.innerText = Math.floor(progress) + "%";
+
+  // atualiza o progressBar
+  const offset = circumference - (progress / 100) * circumference;
+  circle.style.strokeDashoffset = offset;
+
+  // continua animando se não chegou em 100%
+  if (progress < 100) {
+    requestAnimationFrame(animateProgress);
+  } else {
+    // remove a splash após 200ms
     setTimeout(() => {
       splash.style.display = "none";
     }, 200);
-
   }
+}
 
-}, 30); // 100 x 30ms ≈ 3 segundos
+// inicia a animação
+requestAnimationFrame(animateProgress);
 
   // Bloqueia Ctrl + + / Ctrl + - / Ctrl + 0
   window.addEventListener('keydown', function(e) {

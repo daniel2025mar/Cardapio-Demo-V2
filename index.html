@@ -1427,7 +1427,15 @@
           </div>
           <div class="flex-1">
             <label for="telefoneCliente" class="block font-semibold mb-1 text-gray-700">Telefone</label>
-            <input type="text" id="telefoneCliente" placeholder="(00) 00000-0000" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition" required>
+            <input 
+  type="text" 
+  id="telefoneCliente" 
+  placeholder="(00) 0 0000-0000" 
+  class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition" 
+  required 
+  maxlength="16" 
+  inputmode="tel"
+>
           </div>
         </div>
 

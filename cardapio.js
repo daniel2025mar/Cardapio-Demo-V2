@@ -2337,6 +2337,8 @@ function mostrarModalCpfDuplicado() {
 }
 
 // ===============================
+// ABRIR MODAL DE INFORMAÇÕES DO CADASTRO
+// ===============================
 async function abrirInformacoesCadastro() {
   if (!modalCadastroCliente) return;
 
@@ -2369,14 +2371,6 @@ async function abrirInformacoesCadastro() {
       if (resto !== parseInt(cpf[10])) return false;
 
       return true;
-    }
-
-    function formatarCPF(cpf) {
-      cpf = cpf.replace(/\D/g, "");
-      return cpf
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     }
 
     // ===============================
@@ -2426,7 +2420,7 @@ async function abrirInformacoesCadastro() {
     }
 
     // ===============================
-    // Desabilita botão caso CPF inválido
+    // Desabilita botão inicialmente
     // ===============================
     if (btnCadastrar) {
       btnCadastrar.disabled = true;
@@ -2435,7 +2429,7 @@ async function abrirInformacoesCadastro() {
     }
 
     // ===============================
-    // Máscara CPF e validação em tempo real
+    // Máscara e validação CPF
     // ===============================
     const cpfInput = document.getElementById("cpfCliente");
     const mensagemErroCPF = document.getElementById("mensagem-erro-cpf");
@@ -2450,17 +2444,12 @@ async function abrirInformacoesCadastro() {
         if (valor.length > 9) valor = valor.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
 
         cpfInput.value = valor;
+        verificarHabilitarBotao();
 
         const cpfNumeros = valor.replace(/\D/g, "");
         if (cpfNumeros.length === 11 && validarCPF(valor)) {
-          btnCadastrar.disabled = false;
-          btnCadastrar.classList.remove("bg-gray-400", "cursor-not-allowed");
-          btnCadastrar.classList.add("bg-red-600", "hover:bg-red-700");
           if (mensagemErroCPF) mensagemErroCPF.textContent = "";
         } else {
-          btnCadastrar.disabled = true;
-          btnCadastrar.classList.add("bg-gray-400", "cursor-not-allowed");
-          btnCadastrar.classList.remove("bg-red-600", "hover:bg-red-700");
           if (mensagemErroCPF) mensagemErroCPF.textContent = "CPF inválido ou incompleto";
         }
       });
@@ -2473,6 +2462,56 @@ async function abrirInformacoesCadastro() {
           if (mensagemErroCPF) mensagemErroCPF.textContent = "";
         }
       });
+    }
+
+    // ===============================
+    // Máscara Telefone - formato (00) 0 0000-0000
+    // ===============================
+    const telefoneInput = document.getElementById("telefoneCliente");
+    const mensagemErroTelefone = document.getElementById("mensagem-erro-telefone");
+
+    if (telefoneInput) {
+      telefoneInput.setAttribute("inputmode", "tel"); // teclado numérico no celular
+
+      telefoneInput.addEventListener("input", () => {
+        let value = telefoneInput.value.replace(/\D/g, ""); // remove tudo que não é número
+
+        if (value.length > 0) value = value.replace(/^(\d{0,2})/, "($1");
+        if (value.length > 2) value = value.replace(/\((\d{2})(\d)/, "($1) $2");
+        if (value.length > 3) value = value.replace(/^(\(\d{2}\) )(\d)/, "$1$2");
+        if (value.length > 7) value = value.replace(/^(\(\d{2}\) \d)(\d{0,4})/, "$1 $2");
+        if (value.length > 11) value = value.replace(/^(\(\d{2}\) \d \d{4})(\d{0,4})/, "$1-$2");
+
+        telefoneInput.value = value.slice(0, 16);
+
+        if (mensagemErroTelefone) {
+          if (value.replace(/\D/g, "").length < 11) {
+            mensagemErroTelefone.textContent = "Telefone inválido ou incompleto";
+          } else {
+            mensagemErroTelefone.textContent = "";
+          }
+        }
+
+        verificarHabilitarBotao();
+      });
+    }
+
+    // ===============================
+    // Habilita botão quando CPF e Telefone válidos
+    // ===============================
+    function verificarHabilitarBotao() {
+      const cpfValido = cpfInput && cpfInput.value.replace(/\D/g, "").length === 11 && validarCPF(cpfInput.value);
+      const telefoneValido = telefoneInput && telefoneInput.value.replace(/\D/g, "").length >= 11;
+
+      if (cpfValido && telefoneValido) {
+        btnCadastrar.disabled = false;
+        btnCadastrar.classList.remove("bg-gray-400", "cursor-not-allowed");
+        btnCadastrar.classList.add("bg-red-600", "hover:bg-red-700");
+      } else {
+        btnCadastrar.disabled = true;
+        btnCadastrar.classList.add("bg-gray-400", "cursor-not-allowed");
+        btnCadastrar.classList.remove("bg-red-600", "hover:bg-red-700");
+      }
     }
 
   } catch (err) {
@@ -2501,7 +2540,6 @@ function verificarAlteracoes() {
 
   btnCadastrar.disabled = !mudou;
 
-  // Atualiza a cor do botão
   if (mudou) {
     btnCadastrar.classList.remove("bg-gray-400", "cursor-not-allowed");
     btnCadastrar.classList.add("bg-red-600", "hover:bg-red-700", "cursor-pointer");
@@ -2520,9 +2558,6 @@ function fecharModalCadastro() {
   }
 }
 
-  // ===============================
-   // FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
-  // ===============================
 // ===============================
 // FUNÇÃO PARA SALVAR/ATUALIZAR CADASTRO DO CLIENTE
 // ===============================
@@ -2539,9 +2574,6 @@ if (formCadastroCliente) {
     const cidade = document.getElementById("cidadeCliente").value.trim();
     const uf = document.getElementById("ufCliente").value.trim();
 
-    // ===============================
-    // VALIDADOR DE CPF
-    // ===============================
     function validarCPF(cpf) {
       cpf = cpf.replace(/\D/g, "");
       if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
@@ -2569,9 +2601,6 @@ if (formCadastroCliente) {
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     }
 
-    // ===============================
-    // VALIDAÇÃO CPF
-    // ===============================
     if (!validarCPF(cpf)) {
       alert("CPF inválido! Verifique o número digitado.");
       return;
@@ -2580,9 +2609,6 @@ if (formCadastroCliente) {
     cpf = formatarCPF(cpf);
 
     try {
-      // ===============================
-      // PEGA USUÁRIO LOGADO
-      // ===============================
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData?.user) {
         alert("Você precisa estar logado.");
@@ -2591,9 +2617,6 @@ if (formCadastroCliente) {
 
       const userEmail = userData.user.email;
 
-      // ===============================
-      // 🔎 VERIFICA SE CPF JÁ EXISTE
-      // ===============================
       const { data: cpfExistente, error: cpfError } = await supabase
         .from("clientes")
         .select("id, email")
@@ -2606,15 +2629,11 @@ if (formCadastroCliente) {
         return;
       }
 
-      // Se CPF existir e for de outro usuário
       if (cpfExistente && cpfExistente.email !== userEmail) {
         mostrarModalCpfDuplicado();
         return;
       }
 
-      // ===============================
-      // VERIFICA SE JÁ EXISTE CLIENTE PELO EMAIL
-      // ===============================
       const { data: existingCliente } = await supabase
         .from("clientes")
         .select("id")
@@ -2622,17 +2641,14 @@ if (formCadastroCliente) {
         .maybeSingle();
 
       if (existingCliente) {
-        // UPDATE
         const { error: updateError } = await supabase
           .from("clientes")
           .update({ nome, cpf, telefone, endereco, numero, bairro, cidade, uf })
           .eq("email", userEmail);
 
         if (updateError) throw updateError;
-
         alert("Cadastro atualizado com sucesso!");
       } else {
-        // INSERT
         const { error: insertError } = await supabase
           .from("clientes")
           .insert([{
@@ -2649,7 +2665,6 @@ if (formCadastroCliente) {
           }]);
 
         if (insertError) throw insertError;
-
         alert("Cadastro realizado com sucesso!");
       }
 
@@ -2661,9 +2676,6 @@ if (formCadastroCliente) {
     }
   });
 
-  // ===============================
-  // MONITORA ALTERAÇÕES
-  // ===============================
   const inputs = formCadastroCliente.querySelectorAll("input");
   inputs.forEach(input => input.addEventListener("input", verificarAlteracoes));
 }

@@ -2889,30 +2889,172 @@ async function abrirHistoricoPedidos() {
 // ===============================
 btnHistoricoPedidos?.addEventListener("click", abrirHistoricoPedidos);
 
-// SPLASH SCREEN com efeito “travando”
+// =========================
+// CONTROLE GLOBAL
+// =========================
+window.splashFinalizada = false;
+window.empresaCarregada = false;
+window.verificarAbrirModal = null;
+
+// =========================
+// SPLASH SCREEN
+// =========================
 let progress = 0;
 const progressBar = document.getElementById("progressBar");
 const splash = document.getElementById("splash");
 const loginForm = document.getElementById("loginForm");
 
-// Intervalo da barra de progresso
+// 🔥 FINALIZAR SPLASH
+function finalizarSplash() {
+    if (window.splashFinalizada) return;
+
+    window.splashFinalizada = true;
+
+    splash.style.display = "none";
+    loginForm.style.display = "block";
+
+    console.log("✅ Splash finalizada");
+
+    // 🔥 só chama se a função existir
+    if (window.verificarAbrirModal) {
+        window.verificarAbrirModal();
+    }
+}
+
+// Intervalo da barra
 const intervalo = setInterval(() => {
-    let incremento = Math.floor(Math.random() * 6) + 1; 
+    let incremento = Math.floor(Math.random() * 6) + 1;
     progress += incremento;
+
     if (progress > 100) progress = 100;
     progressBar.style.width = progress + "%";
 
-    // Se chegar a 100%, encerra
     if (progress >= 100) {
         clearInterval(intervalo);
-        splash.style.display = "none";
-        loginForm.style.display = "block";
+        finalizarSplash();
     }
 }, 100);
 
-// Fallback: garante que a splash desapareça em 5 segundos
+// Fallback (5 segundos)
 setTimeout(() => {
-    clearInterval(intervalo);       // para o intervalo caso ainda esteja rodando
-    splash.style.display = "none";  // esconde splash
-    loginForm.style.display = "block"; // mostra login
-}, 5000); // 5000ms = 5 segundos
+    clearInterval(intervalo);
+    finalizarSplash();
+}, 5000);
+
+// =========================
+// MODAL + EMPRESA
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
+
+  const gxModal = document.getElementById("gxModalBoasVindas");
+  const gxBtnFechar = document.getElementById("gxBtnFecharModal");
+  const gxNaoMostrar = document.getElementById("gxNaoMostrar");
+
+  if (!gxModal || !gxBtnFechar) {
+    console.error("❌ Modal não encontrado");
+    return;
+  }
+
+  let modalJaAberto = false;
+  let modalFechadoPeloUsuario = false;
+
+  // =========================
+  // FUNÇÃO CENTRAL (🔥)
+  // =========================
+  function verificarAbrirModal() {
+    const ocultar = localStorage.getItem("gxOcultarModal");
+
+    console.log("📊 Status:", {
+      splash: window.splashFinalizada,
+      empresa: window.empresaCarregada,
+      ocultar
+    });
+
+    if (
+      window.splashFinalizada &&
+      window.empresaCarregada &&
+      !modalJaAberto &&
+      ocultar !== "true"
+    ) {
+      console.log("🚀 ABRINDO MODAL AGORA!");
+
+      gxModal.style.display = "flex";
+      modalJaAberto = true;
+    }
+  }
+
+  // deixa global
+  window.verificarAbrirModal = verificarAbrirModal;
+
+  // =========================
+  // FECHAR MODAL
+  // =========================
+  gxBtnFechar.addEventListener("click", () => {
+    console.log("🟢 Modal fechado pelo usuário");
+
+    modalFechadoPeloUsuario = true;
+
+    if (gxNaoMostrar && gxNaoMostrar.checked) {
+      localStorage.setItem("gxOcultarModal", "true");
+    }
+
+    gxModal.style.display = "none";
+  });
+
+  // =========================
+  // BLOQUEAR FECHAMENTO AUTOMÁTICO
+  // =========================
+  const observer = new MutationObserver(() => {
+    if (
+      gxModal.style.display === "none" &&
+      localStorage.getItem("gxOcultarModal") !== "true" &&
+      !modalFechadoPeloUsuario
+    ) {
+      gxModal.style.display = "flex";
+    }
+  });
+
+  observer.observe(gxModal, {
+    attributes: true,
+    attributeFilter: ["style"]
+  });
+
+  // =========================
+  // CARREGAR EMPRESA
+  // =========================
+  async function carregarEmpresa() {
+    try {
+      console.log("🏢 Carregando empresa...");
+
+      const { data, error } = await supabase
+        .from("empresa")
+        .select("*")
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("Erro empresa:", error);
+        return;
+      }
+
+      if (data) {
+        console.log("✅ Empresa carregada:", data.nome);
+
+        window.empresaCarregada = true;
+
+        // 🔥 tenta abrir
+        verificarAbrirModal();
+      }
+
+    } catch (erro) {
+      console.error("Erro geral empresa:", erro);
+    }
+  }
+
+  // INICIAR
+  carregarEmpresa();
+
+  // 🔥 GARANTE abertura caso splash já tenha terminado antes
+  verificarAbrirModal();
+
+});

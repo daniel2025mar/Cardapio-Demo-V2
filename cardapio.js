@@ -2915,10 +2915,7 @@ function finalizarSplash() {
 
     console.log("✅ Splash finalizada");
 
-    // 🔥 só chama se a função existir
-    if (window.verificarAbrirModal) {
-        window.verificarAbrirModal();
-    }
+    tentarAbrirModal();
 }
 
 // Intervalo da barra
@@ -2935,11 +2932,29 @@ const intervalo = setInterval(() => {
     }
 }, 100);
 
-// Fallback (5 segundos)
+// Fallback (5s)
 setTimeout(() => {
     clearInterval(intervalo);
     finalizarSplash();
 }, 5000);
+
+// =========================
+// FUNÇÃO GLOBAL DE TENTATIVA
+// =========================
+function tentarAbrirModal() {
+    const intervaloTentativa = setInterval(() => {
+        if (window.verificarAbrirModal) {
+            window.verificarAbrirModal();
+        }
+
+        const modal = document.getElementById("gxModalBoasVindas");
+
+        if (modal && modal.style.display === "flex") {
+            console.log("✅ Modal aberto com sucesso");
+            clearInterval(intervaloTentativa);
+        }
+    }, 100);
+}
 
 // =========================
 // MODAL + EMPRESA
@@ -3042,8 +3057,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.empresaCarregada = true;
 
-        // 🔥 tenta abrir
-        verificarAbrirModal();
+        // 🔥 tenta abrir também aqui
+        tentarAbrirModal();
       }
 
     } catch (erro) {
@@ -3054,7 +3069,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // INICIAR
   carregarEmpresa();
 
-  // 🔥 GARANTE abertura caso splash já tenha terminado antes
-  verificarAbrirModal();
+  // 🔥 caso splash já tenha terminado antes
+  tentarAbrirModal();
 
 });
